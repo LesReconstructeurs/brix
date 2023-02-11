@@ -49,7 +49,7 @@ module('Acceptance | Displaying a QCU challenge', function (hooks) {
       // eslint-disable-next-line qunit/no-assert-equal
       assert.equal(
         findAll('.proposal-text')[2].innerHTML.trim(),
-        '<p><img src="/images/pix-logo-blanc.svg" alt="3eme possibilite"></p>'
+        '<p><img src="/images/brix-logo-blanc.svg" alt="3eme possibilite"></p>'
       );
       // TODO: Fix this the next time the file is edited.
       // eslint-disable-next-line qunit/no-assert-equal

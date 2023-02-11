@@ -48,7 +48,7 @@ module('Acceptance | Displaying a QCM challenge', function (hooks) {
       // eslint-disable-next-line qunit/no-assert-equal
       assert.equal(
         proposalsText[2].innerHTML.trim(),
-        '<p><img src="/images/pix-logo-blanc.svg" alt="possibilite 3">, et/ou</p>'
+        '<p><img src="/images/brix-logo-blanc.svg" alt="possibilite 3">, et/ou</p>'
       );
       // TODO: Fix this the next time the file is edited.
       // eslint-disable-next-line qunit/no-assert-equal

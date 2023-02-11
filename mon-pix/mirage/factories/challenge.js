@@ -51,7 +51,7 @@ export default Factory.extend({
     proposals:
       '- *possibilite* 1, et/ou' +
       '\n - [possibilite 2](/test), et/ou' +
-      '\n - ![possibilite 3](/images/pix-logo-blanc.svg), et/ou' +
+      '\n - ![possibilite 3](/images/brix-logo-blanc.svg), et/ou' +
       '\n - possibilite 4',
   }),
 
@@ -63,7 +63,7 @@ export default Factory.extend({
     proposals:
       '- 1ere *possibilite*\n ' +
       '- 2eme [possibilite](/test)\n ' +
-      '- ![3eme possibilite](/images/pix-logo-blanc.svg)\n' +
+      '- ![3eme possibilite](/images/brix-logo-blanc.svg)\n' +
       '- 4eme possibilite',
   }),
 

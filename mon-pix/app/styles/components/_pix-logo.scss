@@ -14,10 +14,10 @@
   }
 
   &__image {
-    width: 60px;
+    width: 183px;
 
     @include device-is('desktop') {
-      width: 71px;
+      width: 220px;
     }
   }
 }

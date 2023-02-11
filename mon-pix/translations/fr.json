@@ -2,12 +2,12 @@
   "current-lang": "fr",
   "api-error-messages": {
     "join-error": {
-      "r11": "Vous possédez déjà un compte Pix avec l’adresse e-mail'<br>'{ value }'<br><br>'Pour continuer, connectez-vous à ce compte ou demandez de l’aide à un enseignant.'<br><br>'(Pour l’enseignant : voir le ’Kit de dépannage’ dans Pix Orga &gt; Documentation - Code R11)",
-      "r12": "Vous possédez déjà un compte Pix utilisé avec l’identifiant sous la forme prénom.nom suivi de 4 chiffres:'<br>'{ value }'<br><br>'Pour continuer, connectez-vous à ce compte ou demandez de l’aide à un enseignant.'<br><br>'(Pour l’enseignant : voir le ’Kit de dépannage’ dans Pix Orga &gt; Documentation - Code R12)",
-      "r13": "Vous possédez déjà un compte Pix via l’ENT dans un autre établissement scolaire.'<br><br>'Pour continuer, contactez un enseignant qui pourra vous donner l’accès à ce compte à l’aide de Pix Orga.'<br><br>'(Pour l’enseignant : voir le ’Kit de dépannage’ dans Pix Orga &gt; Documentation - Code R13)",
-      "r31": "Vous possédez déjà un compte Pix avec l’adresse e-mail'<br>'{ value }'<br><br>'Pour continuer, connectez-vous à ce compte ou demandez de l’aide à un enseignant.'<br><br>'(Pour l’enseignant : voir le ’Kit de dépannage’ dans Pix Orga &gt; Documentation - Code R31)",
-      "r32": "Vous possédez déjà un compte Pix utilisé avec l’identifiant sous la forme prénom.nom suivi de 4 chiffres:'<br>'{ value }'<br><br>'Pour continuer, connectez-vous à ce compte ou demandez de l’aide à un enseignant.'<br><br>'(Pour l’enseignant : voir le ’Kit de dépannage’ dans Pix Orga &gt; Documentation - Code R32)",
-      "r33": "Vous possédez déjà un compte Pix via l’ENT. Utilisez-le pour rejoindre le parcours.",
+      "r11": "Vous possédez déjà un compte Brix avec l’adresse e-mail'<br>'{ value }'<br><br>'Pour continuer, connectez-vous à ce compte ou demandez de l’aide à un enseignant.'<br><br>'(Pour l’enseignant : voir le ’Kit de dépannage’ dans Brix Orga &gt; Documentation - Code R11)",
+      "r12": "Vous possédez déjà un compte Brix utilisé avec l’identifiant sous la forme prénom.nom suivi de 4 chiffres:'<br>'{ value }'<br><br>'Pour continuer, connectez-vous à ce compte ou demandez de l’aide à un enseignant.'<br><br>'(Pour l’enseignant : voir le ’Kit de dépannage’ dans Brix Orga &gt; Documentation - Code R12)",
+      "r13": "Vous possédez déjà un compte Brix via l’ENT dans un autre établissement scolaire.'<br><br>'Pour continuer, contactez un enseignant qui pourra vous donner l’accès à ce compte à l’aide de Brix Orga.'<br><br>'(Pour l’enseignant : voir le ’Kit de dépannage’ dans Brix Orga &gt; Documentation - Code R13)",
+      "r31": "Vous possédez déjà un compte Brix avec l’adresse e-mail'<br>'{ value }'<br><br>'Pour continuer, connectez-vous à ce compte ou demandez de l’aide à un enseignant.'<br><br>'(Pour l’enseignant : voir le ’Kit de dépannage’ dans Brix Orga &gt; Documentation - Code R31)",
+      "r32": "Vous possédez déjà un compte Brix utilisé avec l’identifiant sous la forme prénom.nom suivi de 4 chiffres:'<br>'{ value }'<br><br>'Pour continuer, connectez-vous à ce compte ou demandez de l’aide à un enseignant.'<br><br>'(Pour l’enseignant : voir le ’Kit de dépannage’ dans Brix Orga &gt; Documentation - Code R32)",
+      "r33": "Vous possédez déjà un compte Brix via l’ENT. Utilisez-le pour rejoindre le parcours.",
       "r70": "Une erreur est survenue. Déconnectez-vous et recommencez.",
       "r90": {
         "account-belonging-to-another-user": "Il semblerait qu'un élève utilise déjà ce compte.",
@@ -23,16 +23,16 @@
       }
     },
     "register-error": {
-      "s51": "Vous possédez déjà un compte Pix avec l’adresse e-mail'<br>'{ value }'<br><br>'Pour continuer, connectez-vous à ce compte ou demandez de l’aide à un enseignant.'<br><br>'(Pour l’enseignant : voir le ’Kit de dépannage’ dans Pix Orga &gt; Documentation - Code R51)",
-      "s52": "Vous possédez déjà un compte Pix utilisé avec l’identifiant sous la forme prénom.nom suivi de 4 chiffres:'<br>'{ value }'<br><br>'Pour continuer, connectez-vous à ce compte ou demandez de l’aide à un enseignant.'<br><br>'(Pour l’enseignant : voir le ’Kit de dépannage’ dans Pix Orga &gt; Documentation - Code R52)",
-      "s53": "Vous possédez déjà un compte Pix via l’ENT.'<br>'Utilisez-le pour rejoindre le parcours.",
-      "s61": "Vous possédez déjà un compte Pix avec l’adresse e-mail'<br>'{ value }'<br><br>'Pour continuer, connectez-vous à ce compte ou demandez de l’aide à un enseignant.'<br><br>'(Pour l’enseignant : voir le ’Kit de dépannage’ dans Pix Orga &gt; Documentation - Code R61)",
-      "s62": "Vous possédez déjà un compte Pix utilisé avec l’identifiant sous la forme prénom.nom suivi de 4 chiffres:'<br>'{ value }'<br><br>'Pour continuer, connectez-vous à ce compte ou demandez de l’aide à un enseignant.'<br><br>'(Pour l’enseignant : voir le ’Kit de dépannage’ dans Pix Orga &gt; Documentation - Code R62)",
-      "s63": "Vous possédez déjà un compte Pix via l’ENT dans un autre établissement scolaire.'<br><br>'Pour continuer, contactez un enseignant qui pourra vous donner l’accès à ce compte à l’aide de Pix Orga.'<br><br>'(Pour l’enseignant : voir le ’Kit de dépannage’ dans Pix Orga &gt; Documentation - Code R63)"
+      "s51": "Vous possédez déjà un compte Brix avec l’adresse e-mail'<br>'{ value }'<br><br>'Pour continuer, connectez-vous à ce compte ou demandez de l’aide à un enseignant.'<br><br>'(Pour l’enseignant : voir le ’Kit de dépannage’ dans Brix Orga &gt; Documentation - Code R51)",
+      "s52": "Vous possédez déjà un compte Brix utilisé avec l’identifiant sous la forme prénom.nom suivi de 4 chiffres:'<br>'{ value }'<br><br>'Pour continuer, connectez-vous à ce compte ou demandez de l’aide à un enseignant.'<br><br>'(Pour l’enseignant : voir le ’Kit de dépannage’ dans Brix Orga &gt; Documentation - Code R52)",
+      "s53": "Vous possédez déjà un compte Brix via l’ENT.'<br>'Utilisez-le pour rejoindre le parcours.",
+      "s61": "Vous possédez déjà un compte Brix avec l’adresse e-mail'<br>'{ value }'<br><br>'Pour continuer, connectez-vous à ce compte ou demandez de l’aide à un enseignant.'<br><br>'(Pour l’enseignant : voir le ’Kit de dépannage’ dans Brix Orga &gt; Documentation - Code R61)",
+      "s62": "Vous possédez déjà un compte Brix utilisé avec l’identifiant sous la forme prénom.nom suivi de 4 chiffres:'<br>'{ value }'<br><br>'Pour continuer, connectez-vous à ce compte ou demandez de l’aide à un enseignant.'<br><br>'(Pour l’enseignant : voir le ’Kit de dépannage’ dans Brix Orga &gt; Documentation - Code R62)",
+      "s63": "Vous possédez déjà un compte Brix via l’ENT dans un autre établissement scolaire.'<br><br>'Pour continuer, contactez un enseignant qui pourra vous donner l’accès à ce compte à l’aide de Brix Orga.'<br><br>'(Pour l’enseignant : voir le ’Kit de dépannage’ dans Brix Orga &gt; Documentation - Code R63)"
     }
   },
   "application": {
-    "description": "Pix est une plateforme en ligne d'évaluation et de certification des compétences numériques des citoyens francophones (élèves, étudiant•e•s, décrocheur•se•s, demandeur•se•s d'emploi, sénior•e•s)"
+    "description": "Brix est une plateforme en ligne d'évaluation et de certification des compétences numériques des citoyens francophones (élèves, étudiant•e•s, décrocheur•se•s, demandeur•se•s d'emploi, sénior•e•s)"
   },
   "common": {
     "actions": {
@@ -55,9 +55,9 @@
       "and": "et la ",
       "cgu": "conditions d'utilisation",
       "data-protection-policy": "politique de confidentialité",
-      "pix": " de Pix",
-      "error": "Vous devez accepter les conditions d’utilisation de Pix et la politique de confidentialité pour créer un compte.",
-      "label": "Accepter les conditions d’utilisation de Pix et la politique de confidentialité"
+      "pix": " de Brix",
+      "error": "Vous devez accepter les conditions d’utilisation de Brix et la politique de confidentialité pour créer un compte.",
+      "label": "Accepter les conditions d’utilisation de Brix et la politique de confidentialité"
     },
     "error": "Une erreur est survenue. Veuillez recommencer ou contacter le support.",
     "form": {
@@ -89,7 +89,7 @@
       "page-number": "Page {current, number} / {total, number}",
       "result-by-page": "Voir"
     },
-    "pix": "pix",
+    "pix": "brix",
     "skip-links": {
       "skip-to-content": "Aller au contenu",
       "skip-to-footer": "Aller au bas de page"
@@ -117,7 +117,7 @@
       "help-center": "Centre d'aide",
       "sitemap": "Plan du site"
     },
-    "homepage": "Page d'accueil de Pix",
+    "homepage": "Page d'accueil de Brix",
     "main": {
       "label": "Menu principal",
       "code": "J'ai un code",
@@ -133,8 +133,8 @@
       "sign-in": "Se connecter",
       "sign-up": "S'inscrire"
     },
-    "pix": "Pix",
-    "showcase-homepage": "Page d'accueil de Pix.{ tld }",
+    "pix": "Brix",
+    "showcase-homepage": "Page d'accueil de Brix.{ tld }",
     "user": {
       "account": "Mon compte",
       "certifications": "Mes certifications",
@@ -153,7 +153,7 @@
     "assessment-results": {
       "title": "Fin du test",
       "actions": {
-        "continue-pix-experience": "Continuer mon expérience Pix",
+        "continue-pix-experience": "Continuer mon expérience Brix",
         "return-to-homepage": "Revenir à l'accueil"
       },
       "answers": {
@@ -166,19 +166,19 @@
         "not-accessible": "Oups, la page demandée n’est pas accessible.",
         "existing-participation": "Le parcours n'est pas accessible pour vous.",
         "existing-participation-user-info": "Il y a déjà une participation associée au nom de ",
-        "existing-participation-info": "Rapprochez-vous de votre enseignant pour qu'il supprime votre participation dans Pix Orga."
+        "existing-participation-info": "Rapprochez-vous de votre enseignant pour qu'il supprime votre participation dans Brix Orga."
       }
     },
     "campaign-landing": {
       "title": "Présentation",
       "assessment": {
         "title-with-username": "<span>{userFirstName}</span>,<br> commencez votre parcours",
-        "title": "Commencez votre parcours Pix",
+        "title": "Commencez votre parcours Brix",
         "action": "Je commence",
-        "announcement": "Inscrivez-vous ou connectez-vous sur la plateforme Pix et lancez votre test.",
+        "announcement": "Inscrivez-vous ou connectez-vous sur la plateforme Brix et lancez votre test.",
         "certify": {
-          "title": "Les réponses validées dans ce parcours contribueront à alimenter votre profil personnel de compétences numériques sur Pix.",
-          "description": "En fonction de votre situation et dans certaines conditions, vous pouvez accéder à la certification Pix, reconnue par le monde professionnel, qui permet de valoriser vos compétences numériques. Pour plus d’informations, renseignez-vous auprès de l’organisateur du parcours."
+          "title": "Les réponses validées dans ce parcours contribueront à alimenter votre profil personnel de compétences numériques sur Brix.",
+          "description": "En fonction de votre situation et dans certaines conditions, vous pouvez accéder à la certification Brix, reconnue par le monde professionnel, qui permet de valoriser vos compétences numériques. Pour plus d’informations, renseignez-vous auprès de l’organisateur du parcours."
         },
         "details": "Durant ce parcours, vous aurez l’opportunité de :",
         "develop": {
@@ -195,7 +195,7 @@
         "title-with-username": "<span>{userFirstName}</span>,<br> envoyez votre profil",
         "title": "Envoyez votre profil",
         "action": "C'est parti !",
-        "announcement": "Inscrivez-vous ou connectez-vous sur la plateforme Pix et envoyez votre profil à l'organisation destinataire.",
+        "announcement": "Inscrivez-vous ou connectez-vous sur la plateforme Brix et envoyez votre profil à l'organisation destinataire.",
         "legal": "Les informations relatives à votre profil PIX seront transmises à l'organisateur pour lui permettre de vous accompagner. Elle ne seront transmises qu'avec votre consentement."
       },
       "warning-message": "Vous n'êtes pas { firstName } { lastName } ?",
@@ -224,7 +224,7 @@
       }
     },
     "certificate": {
-      "title": "Certificat Pix",
+      "title": "Certificat Brix",
       "attestation": "Télécharger mon attestation",
       "back-link": "Retour à mes certifications",
       "candidate-birth": "Né(e) le {birthdate}",
@@ -232,7 +232,7 @@
       "certification-center": "Centre de certification :",
       "competences": {
         "title": "Compétences certifiées",
-        "information": "Votre score certifié a été calculé en fonction de vos réponses lors du passage de la certification. Il peut donc différer du nombre de Pix affiché dans votre profil. Le jour de votre certification il était possible d’atteindre le niveau {maxReachableLevelOnCertificationDate} des compétences et {maxReachablePixCountOnCertificationDate} pix au maximum.",
+        "information": "Votre score certifié a été calculé en fonction de vos réponses lors du passage de la certification. Il peut donc différer du nombre de Brix affiché dans votre profil. Le jour de votre certification il était possible d’atteindre le niveau {maxReachableLevelOnCertificationDate} des compétences et {maxReachableBrixCountOnCertificationDate} brix au maximum.",
         "subtitle": "(niveaux sur {maxReachableLevel})"
       },
       "complementary": {
@@ -246,7 +246,7 @@
       "issued-on": "Délivré le",
       "jury-info": "Les observations du jury ne sont pas partagées sur la page de vérification de votre certificat.",
       "jury-title": "Observations du jury",
-      "professionalizing-warning": "Le certificat Pix est reconnu comme professionnalisant par France compétences à compter d’un score minimal de 120 pix",
+      "professionalizing-warning": "Le certificat Brix est reconnu comme professionnalisant par France compétences à compter d’un score minimal de 120 brix",
       "verification-code": {
         "title": "Code de vérification",
         "alt": "Copier",
@@ -264,7 +264,7 @@
           "text": "Comment se certifier ?",
           "url": "https://pix.fr/se-certifier#slice-2"
         },
-        "message": "Bravo {fullName}, votre profil Pix est certifiable."
+        "message": "Bravo {fullName}, votre profil Brix est certifiable."
       },
       "error-messages": {
         "generic": {
@@ -329,19 +329,19 @@
         "disconnect": "Déconnecter mon compte",
         "disconnect-tip": "Si cet ordinateur n’est pas le vôtre, pensez à vous déconnecter.",
         "ended-due-to-finalization": "La session a été finalisée par votre centre de certification. Vous ne pouvez plus continuer de répondre aux questions.",
-        "remote-certification": "Si vous passez votre certification Pix à distance, veillez à bien vous déconnecter de l’outil de surveillance une fois votre test terminé."
+        "remote-certification": "Si vous passez votre certification Brix à distance, veillez à bien vous déconnecter de l’outil de surveillance une fois votre test terminé."
       },
       "results": {
-        "disclaimer": "Vos résultats, en attente de validation par les équipes Pix, seront bientôt disponibles depuis votre compte Pix",
+        "disclaimer": "Vos résultats, en attente de validation par les équipes Brix, seront bientôt disponibles depuis votre compte Brix",
         "title": "Consulter et partager mes résultats de certification ?",
-        "step-1": "Il vous suffit de vous connecter à votre compte Pix, vous pourrez retrouver vos résultats dans votre profil, rubrique \"Mes certifications\" (accessible en cliquant sur votre prénom en haut à droite de l'écran).",
-        "step-2": "Vous pourrez télécharger votre attestation de certification et la partager, ou encore communiquer le code de vérification à utiliser sur le site de Pix."
+        "step-1": "Il vous suffit de vous connecter à votre compte Brix, vous pourrez retrouver vos résultats dans votre profil, rubrique \"Mes certifications\" (accessible en cliquant sur votre prénom en haut à droite de l'écran).",
+        "step-2": "Vous pourrez télécharger votre attestation de certification et la partager, ou encore communiquer le code de vérification à utiliser sur le site de Brix."
       }
     },
     "certification-start": {
       "title": "Rejoindre une session de certification",
-      "eligible-subscriptions": "Vous êtes inscrit {itemCount, plural, one {à la certification complémentaire suivante}  other {aux certifications complémentaires suivantes}} en plus de la certification Pix :",
-      "non-eligible-subscriptions": "Vous n’êtes pas éligible à {nonEligibleSubscription}. Vous pouvez néanmoins passer votre certification Pix{eligibleSubscriptionLength, plural, =0 {} other { et }}{eligibleSubscription}.",
+      "eligible-subscriptions": "Vous êtes inscrit {itemCount, plural, one {à la certification complémentaire suivante}  other {aux certifications complémentaires suivantes}} en plus de la certification Brix :",
+      "non-eligible-subscriptions": "Vous n’êtes pas éligible à {nonEligibleSubscription}. Vous pouvez néanmoins passer votre certification Brix{eligibleSubscriptionLength, plural, =0 {} other { et }}{eligibleSubscription}.",
       "access-code": "Code d'accès communiqué par le surveillant",
       "actions": {
         "submit": "Commencer mon test"
@@ -351,7 +351,7 @@
           "email": "dpo@pix.fr",
           "info": "Conformément à la loi « informatique et libertés », vous pouvez exercer votre droit d'accès aux données vous concernant et les faire rectifier en envoyant un mail à "
         },
-        "info": "En cliquant sur \"Commencer mon test\", j’accepte que mes données d’identité, le numéro de certification et les circonstances de la passation telles que renseignées par le surveillant soient communiquées à Pix. Pix les utilisera lors de la délibération du jury pour produire et archiver mes résultats et pour éditer mon certificat. Si cette certification m’a été prescrite par une organisation, j’accepte que Pix lui communique mes résultats."
+        "info": "En cliquant sur \"Commencer mon test\", j’accepte que mes données d’identité, le numéro de certification et les circonstances de la passation telles que renseignées par le surveillant soient communiquées à Brix. Brix les utilisera lors de la délibération du jury pour produire et archiver mes résultats et pour éditer mon certificat. Si cette certification m’a été prescrite par une organisation, j’accepte que Brix lui communique mes résultats."
       },
       "error-messages": {
         "access-code-error": "Ce code n’existe pas ou n’est plus valide.",
@@ -368,7 +368,7 @@
       "header": {
         "certification-center": "centre de certification",
         "date": "date",
-        "score": "score pix",
+        "score": "score brix",
         "status": "statut"
       },
       "no-certification": {
@@ -431,7 +431,7 @@
         "actions": {
           "open-close": "Signaler un problème"
         },
-        "description": "Pix est à l’écoute de vos remarques pour améliorer les épreuves proposées !*",
+        "description": "Brix est à l’écoute de vos remarques pour améliorer les épreuves proposées !*",
         "form": {
           "actions": {
             "submit": "Envoyer"
@@ -513,11 +513,11 @@
               "empty-message": "Vous devez saisir un message.",
               "max-characters": "Votre message est limité à 10 000 caractères."
             },
-            "success": "'<p>'Votre commentaire a bien été transmis à l’équipe du projet Pix.'</p><p>'Mercix !'</p>'"
+            "success": "'<p>'Votre commentaire a bien été transmis à l’équipe du projet Brix.'</p><p>'Mercix !'</p>'"
           }
         },
         "information": {
-          "data-usage": "'<p>'Pix traite les données de cette zone pour gérer et analyser la difficulté rencontrée et bénéficier de votre retour d'expérience. Vous disposez de droits sur vos données qui peuvent être exercés auprès de : <strong>dpo@pix.fr</strong>.'</p><p><a href=\"https://pix.fr/dp-formulaire-signalement-epreuve\" target=\"_blank\" class=\"link\">'Pour en savoir plus sur la protection de vos données et sur vos droits.'</a></p>'",
+          "data-usage": "'<p>'Brix traite les données de cette zone pour gérer et analyser la difficulté rencontrée et bénéficier de votre retour d'expérience. Vous disposez de droits sur vos données qui peuvent être exercés auprès de : <strong>dpo@pix.fr</strong>.'</p><p><a href=\"https://pix.fr/dp-formulaire-signalement-epreuve\" target=\"_blank\" class=\"link\">'Pour en savoir plus sur la protection de vos données et sur vos droits.'</a></p>'",
           "guidance": "'<p>'* Soyez attentifs à ce que vous écrivez dans cette zone : restez objectif et factuel pour votre intérêt et celui des autres.'</p><p>'Notamment, ne saisissez aucune information, vous concernant ou concernant des tiers, sur la santé, la religion, les opinions politiques, syndicales et philosophiques, les origines ethniques, ainsi que sur les sanctions et condamnations.'</p>'"
         }
       },
@@ -569,7 +569,7 @@
             "choose-type": "Choisissez le type de fichier que vous voulez utiliser",
             "download": "Télécharger"
           },
-          "description": "Pix vous laisse le choix du format de fichier à télécharger. Si vous ne savez pas quelle option retenir, conservez le choix par défaut. Il correspond au format de fichier pris en charge par le plus grand nombre de logiciels.",
+          "description": "Brix vous laisse le choix du format de fichier à télécharger. Si vous ne savez pas quelle option retenir, conservez le choix par défaut. Il correspond au format de fichier pris en charge par le plus grand nombre de logiciels.",
           "file-type": "fichier .{fileExtension}",
           "help": "Besoin d'aide pour '<a href=\"https://support.pix.org/fr/support/solutions/articles/15000036390\" class=\"challenge-statement__action-help--link\" target=\"_blank\">'ouvrir, modifier ou retrouver ce fichier'</a>' ?"
         },
@@ -693,8 +693,8 @@
           "label": "Remettre à zéro",
           "modal": {
             "title": "Remise à zéro de la compétence",
-            "important-message": "Vos { earnedPix } Pix vont être supprimés de la compétence : { scoreCardName }.",
-            "important-message-above-level-one": "Votre niveau { level } et vos { earnedPix } Pix vont être supprimés de la compétence : { scoreCardName }.",
+            "important-message": "Vos { earnedBrix } Brix vont être supprimés de la compétence : { scoreCardName }.",
+            "important-message-above-level-one": "Votre niveau { level } et vos { earnedBrix } Brix vont être supprimés de la compétence : { scoreCardName }.",
             "warning": {
               "certification": "si vous souhaitez faire certifier votre profil et vos différents résultats, cela pourrait altérer votre certification.",
               "header": "Attention : ",
@@ -707,10 +707,10 @@
         }
       },
       "for-competence": "la compétence {competence}",
-      "next-level-info": "{ remainingPixToNextLevel } pix avant le niveau { level }",
+      "next-level-info": "{ remainingBrixToNextLevel } brix avant le niveau { level }",
       "tutorials": {
         "title": "Cultivez vos compétences",
-        "description": "Voici une sélection de tutos qui pourront vous aider à gagner des Pix."
+        "description": "Voici une sélection de tutos qui pourront vous aider à gagner des Brix."
       }
     },
     "competence-result": {
@@ -719,7 +719,7 @@
         "congratulations": "Félicitations !",
         "not-bad": "Pas mal, mais pas max !",
         "not-bad-subtitle": "Encore quelques petits efforts et vous décrocherez le premier niveau.",
-        "too-bad": "Tant pix !",
+        "too-bad": "Tant pis !",
         "too-bad-subtitle": "Manifestement, ce n’est pas votre jour mais vous ferez mieux la prochaine fois.",
         "you-have-earned": "Vous avez",
         "you-have-reached-level": "Vous avez atteint"
@@ -750,7 +750,7 @@
           "text": "En savoir plus",
           "url": "https://pix.fr/actualites/decouvrez-votre-nouveau-tableau-de-bord"
         },
-        "message": "<h2>Bonjour { firstname }, découvrez votre tableau de bord.</h2><p>Accédez rapidement et facilement à vos parcours et vos tests de compétence déjà commencés.<br/>Retrouvez l’évolution de votre score Pix et vérifiez si votre profil est prêt pour la certification Pix.</p>"
+        "message": "<h2>Bonjour { firstname }, découvrez votre tableau de bord.</h2><p>Accédez rapidement et facilement à vos parcours et vos tests de compétence déjà commencés.<br/>Retrouvez l’évolution de votre score Brix et vérifiez si votre profil est prêt pour la certification Brix.</p>"
       },
       "recommended-competences": {
         "title": "Compétences recommandées",
@@ -766,7 +766,7 @@
       }
     },
     "error": {
-      "content-text": "'<p>'Nous vous invitons à recharger cette page ou '<LinkTo @route=\"login\">'revenir à la page d’accueil'</LinkTo>'.'</p><p>'Vous pouvez aussi nous contacter via '<a href=\"https://support.pix.fr/support/tickets/new\">'le formulaire du centre d'aide'</a>' en nous précisant le code d’erreur ci-dessous dans la description.'</p><p>'Nous vous prions de nous excuser pour la gêne occasionnée.'</p><p>'L’équipe Pix.'</p>'",
+      "content-text": "'<p>'Nous vous invitons à recharger cette page ou '<LinkTo @route=\"login\">'revenir à la page d’accueil'</LinkTo>'.'</p><p>'Vous pouvez aussi nous contacter via '<a href=\"https://support.pix.fr/support/tickets/new\">'le formulaire du centre d'aide'</a>' en nous précisant le code d’erreur ci-dessous dans la description.'</p><p>'Nous vous prions de nous excuser pour la gêne occasionnée.'</p><p>'L’équipe Brix.'</p>'",
       "first-title": "Oups, une erreur est survenue !"
     },
     "fill-in-campaign-code": {
@@ -788,7 +788,7 @@
         "title": "Accès au parcours par Mediacentre",
         "message": "Pour accéder au parcours :",
         "organised-by": "proposé par ",
-        "message-footer": "Connecte toi à Pix en passant par ton Mediacentre",
+        "message-footer": "Connecte toi à Brix en passant par ton Mediacentre",
         "actions": {
           "continue": "Continuer",
           "quit": "Quitter"
@@ -796,15 +796,15 @@
       }
     },
     "fill-in-certificate-verification-code": {
-      "title": "Vérifier un certificat Pix",
-      "description": "La certification Pix atteste d’un niveau de maitrise des compétences numériques, reconnu par l’État et le monde professionnel.",
+      "title": "Vérifier un certificat Brix",
+      "description": "La certification Brix atteste d’un niveau de maitrise des compétences numériques, reconnu par l’État et le monde professionnel.",
       "errors": {
         "missing-code": "Merci de renseigner le code de vérification.",
-        "not-found": "Il n'y a pas de certificat Pix correspondant.",
+        "not-found": "Il n'y a pas de certificat Brix correspondant.",
         "unallowed-access": "Merci de renseigner le code de vérification au format P-XXXXXXXX dans le champ ci-dessus.",
         "wrong-format": "Veuillez vérifier le format de votre code (P-XXXXXXXX)."
       },
-      "first-title": "Vérifier un certificat Pix",
+      "first-title": "Vérifier un certificat Brix",
       "label": "Code de vérification (P-XXXXXXXX)",
       "verify": "Vérifier le certificat"
     },
@@ -816,8 +816,8 @@
         "continue": "Continuer"
       },
       "errors": {
-        "max-length-id-pix-label": "Votre { idPixLabel } ne doit pas dépasser les 255 caractères.",
-        "missing-id-pix-label": "Merci de renseigner votre { idPixLabel }."
+        "max-length-id-pix-label": "Votre { idBrixLabel } ne doit pas dépasser les 255 caractères.",
+        "missing-id-pix-label": "Merci de renseigner votre { idBrixLabel }."
       },
       "first-title": "Avant de commencer"
     },
@@ -856,17 +856,17 @@
       },
       "sco": {
         "associate": "Associer",
-        "continue-with-pix": "Continuer avec mon compte Pix",
+        "continue-with-pix": "Continuer avec mon compte Brix",
         "error-not-found": "Vous êtes un élève ? '<br>' Vérifiez vos informations (prénom, nom et date de naissance) ou contactez un enseignant.'<br><br>' Vous êtes un enseignant ? '<br>' L‘accès à un parcours n‘est pas disponible pour le moment.",
         "invalid-reconciliation-error": "Une erreur est survenue. <br> Veuillez contacter le support.",
         "first-title": "Rejoignez l'organisation { organizationName }",
-        "login-information-message": "Le compte Pix '<b>'{ connectionMethod }'</b>' va être associé à l'élève: '<b>'{ firstName } { lastName }'</b>'.'<br><br>'S’il s’agit bien de vous, cliquez sur \"Associer\", sinon déconnectez-vous.",
+        "login-information-message": "Le compte Brix '<b>'{ connectionMethod }'</b>' va être associé à l'élève: '<b>'{ firstName } { lastName }'</b>'.'<br><br>'S’il s’agit bien de vous, cliquez sur \"Associer\", sinon déconnectez-vous.",
         "login-information-title": "Information de connexion",
         "subtitle": "Remplissez les informations manquantes"
       },
       "sup": {
-        "title": "Déclarez votre compte Pix auprès de {organizationName}.",
-        "error": "Veuillez vérifier les informations saisies, ou si vous avez déjà un compte Pix, connectez-vous avec celui-ci.",
+        "title": "Déclarez votre compte Brix auprès de {organizationName}.",
+        "error": "Veuillez vérifier les informations saisies, ou si vous avez déjà un compte Brix, connectez-vous avec celui-ci.",
         "fields": {
           "student-number": {
             "error": "Votre numéro étudiant n’est pas renseigné.",
@@ -875,21 +875,21 @@
             "not-existing": "Je n'ai pas de numéro étudiant"
           }
         },
-        "message": "Saisissez les informations telles qu’elles figurent sur votre carte d’étudiant pour accéder au test et envoyer les résultats. Pix s’en rappellera la prochaine fois."
+        "message": "Saisissez les informations telles qu’elles figurent sur votre carte d’étudiant pour accéder au test et envoyer les résultats. Brix s’en rappellera la prochaine fois."
       }
     },
     "learning-more": {
       "title": "Pour en apprendre davantage",
-      "info": "Ces liens vers les tutos ont été proposés par des utilisateurs de Pix."
+      "info": "Ces liens vers les tutos ont été proposés par des utilisateurs de Brix."
     },
     "levelup-notif": {
       "obtained-level": "Niveau { level } gagné !"
     },
     "login-or-register": {
-      "title": "Se connecter à Pix",
-      "invitation": "{ organizationName } vous invite à rejoindre Pix",
+      "title": "Se connecter à Brix",
+      "invitation": "{ organizationName } vous invite à rejoindre Brix",
       "login-form": {
-        "title": "J’ai déjà un compte Pix",
+        "title": "J’ai déjà un compte Brix",
         "button": "Se connecter",
         "error": "L'adresse e-mail ou l'identifiant et/ou le mot de passe saisis sont incorrects",
         "fields": {
@@ -902,14 +902,14 @@
         },
         "forgotten-password": {
           "email": "Une Adresse e-mail :",
-          "instruction": "Mot de passe oublié ? Vous avez un compte Pix avec :",
+          "instruction": "Mot de passe oublié ? Vous avez un compte Brix avec :",
           "other-identity": "Un identifiant : Contactez votre enseignant pour le réinitialiser",
           "reset-link": "Cliquez ici pour le réinitialiser"
         },
         "unexpected-user-account-error": "L'adresse e-mail ou l'identifiant est incorrect. Pour continuer, vous devez vous connecter à votre compte qui est sous la forme : "
       },
       "register-form": {
-        "title": "Je m’inscris sur Pix",
+        "title": "Je m’inscris sur Brix",
         "button": "S'inscrire",
         "button-form": "Je m'inscris",
         "error": "Une erreur est survenue. Veuillez recommencer ou contacter le support.",
@@ -932,7 +932,7 @@
               "error": "Votre année de naissance n’est pas valide."
             }
           },
-          "cgu": "J’accepte les '<a href=\"https://pix.fr/conditions-generales-d-utilisation\" class=\"link\" target=\"_blank\" rel=\"noopener noreferrer\">'conditions d’utilisation de Pix'</a>'",
+          "cgu": "J’accepte les '<a href=\"https://pix.fr/conditions-generales-d-utilisation\" class=\"link\" target=\"_blank\" rel=\"noopener noreferrer\">'conditions d’utilisation de Brix'</a>'",
           "email": {
             "error": "Votre email n’est pas valide.",
             "help": "(ex: nom@exemple.fr)",
@@ -968,10 +968,10 @@
       }
     },
     "login-or-register-oidc": {
-      "title": "Créez votre compte Pix",
+      "title": "Créez votre compte Brix",
       "login-form": {
         "description": "Connectez-vous pour lier votre compte existant et récupérer vos compétences déjà évaluées",
-        "title": "Vous avez déjà un compte Pix ?",
+        "title": "Vous avez déjà un compte Brix ?",
         "email": "Adresse e-mail",
         "password": "Mot de passe",
         "button": "Je me connecte"
@@ -982,11 +982,11 @@
           "given-name": "Prénom : {givenName}",
           "family-name": "Nom : {familyName}"
         },
-        "title": "Je n’ai pas de compte Pix",
+        "title": "Je n’ai pas de compte Brix",
         "button": "Je créé mon compte"
       },
       "error": {
-        "error-message": "Vous devez accepter les conditions d’utilisation de Pix.",
+        "error-message": "Vous devez accepter les conditions d’utilisation de Brix.",
         "expired-authentication-key": "Votre demande d'authentification a expiré.",
         "invalid-email": "Votre adresse e-mail n’est pas valide.",
         "login-unauthorized-error": "L'adresse e-mail et/ou le mot de passe saisis sont incorrects.",
@@ -995,7 +995,7 @@
     },
     "oidc-reconciliation": {
       "title": "Attention !",
-      "sub-title": "Un nouveau moyen de connexion est sur le point d'être ajouté à votre compte Pix",
+      "sub-title": "Un nouveau moyen de connexion est sur le point d'être ajouté à votre compte Brix",
       "information": "L'évaluation des compétences étant personnalisée, votre compte doit rester strictement personnel",
       "current-authentication-methods": "Mes méthodes de connexion actuelles :",
       "authentication-method-to-add": "Connexion ajoutée :",
@@ -1037,9 +1037,9 @@
     "profile": {
       "title": "Compétences",
       "accessibility": {
-        "title": "Votre profil Pix",
-        "user-score": "Votre nombre de Pix",
-        "user-skills": "Vos compétences Pix"
+        "title": "Votre profil Brix",
+        "user-score": "Votre nombre de Brix",
+        "user-skills": "Vos compétences Brix"
       },
       "competence-card": {
         "congrats": "Bravo !",
@@ -1067,15 +1067,15 @@
       },
       "total-score-helper": {
         "label": "Ouvrir l'infobulle",
-        "icon": "Information sur les pix",
-        "title": "Pourquoi 1024 pix ?",
-        "explanation": "<p>C’est le nombre maximum de pix qu’on pourra atteindre lorsque les 8 niveaux du référentiel Pix seront disponibles.'</p><p>'Aujourd’hui, '<span class=\"hexagon-score-information__text--strong\">'le maximum est de {maxReachablePixCount} pix'</span>', correspondant au niveau {maxReachableLevel}.'</p>'"
+        "icon": "Information sur les brix",
+        "title": "Pourquoi 1024 brix ?",
+        "explanation": "<p>C’est le nombre maximum de brix qu’on pourra atteindre lorsque les 8 niveaux du référentiel Brix seront disponibles.'</p><p>'Aujourd’hui, '<span class=\"hexagon-score-information__text--strong\">'le maximum est de {maxReachableBrixCount} brix'</span>', correspondant au niveau {maxReachableLevel}.'</p>'"
       }
     },
     "profile-already-shared": {
       "title": "Profil déjà envoyé",
       "actions": {
-        "continue": "Continuez votre expérience Pix"
+        "continue": "Continuez votre expérience Brix"
       },
       "explanation": "Vous avez déjà envoyé le profil ci-dessous à l'organisation {organization}'<br>'le {date} à {hour,time,hhmm}",
       "first-title": "Tout ne se passe pas comme prévu",
@@ -1111,7 +1111,7 @@
           "link-url": "https://support.pix.org/fr/support/tickets/new"
         },
         "student-information": {
-          "title": "Vous avez quitté le système scolaire et vous souhaitez récupérer votre accès à Pix",
+          "title": "Vous avez quitté le système scolaire et vous souhaitez récupérer votre accès à Brix",
           "subtitle": {
             "link": "réinitialisez votre mot de passe ici.",
             "text": "Si vous possédez un compte avec une adresse e-mail valide, "
@@ -1140,7 +1140,7 @@
             "empty-ine-ina": "Le champ INE est obligatoire.",
             "empty-last-name": "Le champ nom est obligatoire.",
             "empty-first-name": "Le champ prénom est obligatoire.",
-            "not-found": "Pix ne reconnait pas vos données. Vérifiez qu'elles sont exactes, sinon "
+            "not-found": "Brix ne reconnait pas vos données. Vérifiez qu'elles sont exactes, sinon "
           }
         },
         "conflict": {
@@ -1191,7 +1191,7 @@
           }
         },
         "send-email-confirmation": {
-          "title": "Récupération de votre compte Pix",
+          "title": "Récupération de votre compte Brix",
           "send-email": "Nous venons de vous adresser un mail qui vous permettra de choisir un mot de passe. Vous pouvez consulter dès maintenant votre messagerie.",
           "check-spam": "Si vous ne voyez pas cet e-mail, vérifiez vos courriers indésirables.",
           "return": "Retour"
@@ -1199,7 +1199,7 @@
       },
       "update-sco-record": {
         "welcome-message": "Bon retour parmi nous { firstName } !",
-        "fill-password": "Saisissez un mot de passe et Pix est à vous !",
+        "fill-password": "Saisissez un mot de passe et Brix est à vous !",
         "form": {
           "email-label": "Adresse e-mail",
           "password-label": "Mot de passe",
@@ -1242,14 +1242,14 @@
         "archived": "L’envoi de votre profil n’est plus possible car l’organisateur a archivé la collecte de profils."
       },
       "disabled-share": "Ce parcours a été désactivé par l'organisateur. L'envoi des résultats n'est plus possible.",
-      "first-title": "Envoi de votre profil Pix",
+      "first-title": "Envoi de votre profil Brix",
       "form": {
-        "continue": "Continuez votre expérience Pix",
+        "continue": "Continuez votre expérience Brix",
         "recipient": "Destinataire : {recipient}",
         "send": "J'envoie mon profil",
         "shared": "Merci, votre profil a bien été envoyé !"
       },
-      "instructions": "Vous allez transmettre le score et les niveaux de compétence présents sur votre profil Pix. '<br>' Toute évolution de votre profil après cet envoi ne sera pas transmise. '<br>' Pensez à le vérifier avant de l'envoyer !"
+      "instructions": "Vous allez transmettre le score et les niveaux de compétence présents sur votre profil Brix. '<br>' Toute évolution de votre profil après cet envoi ne sera pas transmise. '<br>' Pensez à le vérifier avant de l'envoyer !"
     },
     "shared-certification": {
       "title": "Partage de certificat",
@@ -1283,7 +1283,7 @@
       },
       "subtitle": {
         "link": "Créez un compte",
-        "text": "Vous n'avez pas encore de compte Pix ?"
+        "text": "Vous n'avez pas encore de compte Brix ?"
       }
     },
     "sign-up": {
@@ -1322,7 +1322,7 @@
       "title": "Plan du site",
       "accessibility": {
         "title": "Accessibilité",
-        "help": "Aide pour répondre à vos questions sur l'accessibilité sur Pix"
+        "help": "Aide pour répondre à vos questions sur l'accessibilité sur Brix"
       },
       "cgu": {
         "policy": "Politique de protection des données",
@@ -1335,7 +1335,7 @@
       "abstract": "Vous maîtrisez '<strong>'{rate, number, ::percent}'</strong><br>'des compétences testées.",
       "abstract-title": "Votre résultat pour ce parcours",
       "actions": {
-        "continue": "Continuez votre expérience Pix",
+        "continue": "Continuez votre expérience Brix",
         "improve": "Je retente",
         "send": "J'envoie mes résultats"
       },
@@ -1359,7 +1359,7 @@
         "title": "Envie d'améliorer vos résultats ?",
         "description": "Vous pouvez retenter certaines questions"
       },
-      "information": "Si vous avez déjà effectué des parcours sur Pix, les questions auxquelles vous aviez répondu ne vous ont pas été posées de nouveau. En revanche, le résultat affiché ici tient compte de l’ensemble de vos réponses.",
+      "information": "Si vous avez déjà effectué des parcours sur Brix, les questions auxquelles vous aviez répondu ne vous ont pas été posées de nouveau. En revanche, le résultat affiché ici tient compte de l’ensemble de vos réponses.",
       "not-finished": "Vous ne pouvez pas encore envoyer vos résultats, nous avons encore quelques questions à vous poser.",
       "organization-message": "Message de votre organisation",
       "retry": {
@@ -1385,7 +1385,7 @@
       },
       "flash": {
         "abstract": "Bravo, vous êtes allé·e jusqu'au bout !",
-        "pixScore": "Vous avez obtenu {score, number, ::.} Pix",
+        "pixScore": "Vous avez obtenu {score, number, ::.} Brix",
         "nonDefinitive": "(calcul non définitif)"
       },
       "trainings": {
@@ -1395,12 +1395,12 @@
     },
     "terms-of-service": {
       "title": "Conditions d'utilisation",
-      "cgu": "J'accepte les '<a href=\"https://pix.fr/conditions-generales-d-utilisation\" class=\"link\" target=\"_blank\">'conditions d'utilisation de Pix'</a>'",
+      "cgu": "J'accepte les '<a href=\"https://pix.fr/conditions-generales-d-utilisation\" class=\"link\" target=\"_blank\">'conditions d'utilisation de Brix'</a>'",
       "form": {
         "button": "Je continue",
-        "error-message": "Vous devez accepter les conditions d’utilisation de Pix."
+        "error-message": "Vous devez accepter les conditions d’utilisation de Brix."
       },
-      "message": "Nous avons mis à jour nos conditions d'utilisation. Veuillez les accepter afin de pouvoir continuer votre expérience sur Pix."
+      "message": "Nous avons mis à jour nos conditions d'utilisation. Veuillez les accepter afin de pouvoir continuer votre expérience sur Brix."
     },
     "timed-challenge-instructions": {
       "action": "Commencer",
@@ -1439,7 +1439,7 @@
         },
         "page4": {
           "title": "Un niveau de difficulté adapté",
-          "explanation": "En fonction de vos réponses,\nPix adapte la difficulté des questions.",
+          "explanation": "En fonction de vos réponses,\nBrix adapte la difficulté des questions.",
           "icon": "icn-algo.svg"
         }
       },
@@ -1448,7 +1448,7 @@
     },
     "tutorial-panel": {
       "title": "Pour réussir la prochaine fois",
-      "info": "Ces liens vers les tutos ont été proposés par des utilisateurs de Pix."
+      "info": "Ces liens vers les tutos ont été proposés par des utilisateurs de Brix."
     },
     "update-expired-password": {
       "title": "Changer mon mot de passe",
@@ -1564,7 +1564,7 @@
     },
     "user-tutorials": {
       "title": "Mes tutos",
-      "description": "Progresser grâce aux tutos suggérés par la communauté des utilisateurs de Pix.",
+      "description": "Progresser grâce aux tutos suggérés par la communauté des utilisateurs de Brix.",
       "empty-list-info": {
         "title": "Vous n'avez encore rien enregistré",
         "description": {

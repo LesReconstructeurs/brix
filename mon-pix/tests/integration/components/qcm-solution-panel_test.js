@@ -42,7 +42,7 @@ module('Integration | Component | qcm-solution-panel.js', function (hooks) {
       hooks.before(function () {
         challenge = EmberObject.create({
           id: 'challenge_id',
-          proposals: '-*possibilite* 1\n-[possibilite 2](/test)\n- ![possibilite 3](/images/pix-logo-blanc.svg)\n- yon',
+          proposals: '-*possibilite* 1\n-[possibilite 2](/test)\n- ![possibilite 3](/images/brix-logo-blanc.svg)\n- yon',
           type: 'QCM',
         });
 
@@ -195,7 +195,7 @@ module('Integration | Component | qcm-solution-panel.js', function (hooks) {
         assert.equal(labels[2].getAttribute('data-goodness'), 'good');
         // TODO: Fix this the next time the file is edited.
         // eslint-disable-next-line qunit/no-assert-equal
-        assert.equal(labels[2].innerHTML.trim(), '<p><img src="/images/pix-logo-blanc.svg" alt="possibilite 3"></p>');
+        assert.equal(labels[2].innerHTML.trim(), '<p><img src="/images/brix-logo-blanc.svg" alt="possibilite 3"></p>');
       });
 
       test('should display at least one of the incorrect answers as ticked', async function (assert) {

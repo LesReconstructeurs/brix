@@ -111,5 +111,5 @@ display_header
 verify_prerequesite_programs
 generate_environment_config_file
 install_apps_dependencies
-setup_and_run_infrastructure
+# setup_and_run_infrastructure
 display_footer
