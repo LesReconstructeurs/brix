@@ -50,8 +50,8 @@ function verify_prerequesite_programs() {
   assert_program_is_installed "git"
   assert_program_is_installed "node"
   assert_program_is_installed "npm"
-  assert_program_is_installed "docker"
-  assert_program_is_installed "docker-compose"
+  #assert_program_is_installed "docker"
+  #assert_program_is_installed "docker-compose"
 
   echo "✅ Required programs have been found."
   echo ""
