@@ -23,7 +23,8 @@ module.exports = {
   DEFAULT_LEVEL_FOR_FIRST_CHALLENGE: 2,
   MAX_DIFF_BETWEEN_USER_LEVEL_AND_SKILL_LEVEL: 2,
 
-  PIX_ORIGIN: 'Pix',
+  //PIX_ORIGIN: 'Pix',
+  PIX_ORIGIN: 'Brix',
 
   PIX_ORGA: {
     SCOPE: 'pix-orga',
