@@ -70,6 +70,8 @@
     "start:certif": "cd certif && npm start",
     "start:mon-pix": "cd mon-pix && npm start",
     "start:orga": "cd orga && npm start",
+    "start:editor-api": "cd ../brix-editor/api && npm start",
+    "start:editor-front": "cd ../brix-editor/pix-editor && npm start",
     "test:root": "npm run test:scripts",
     "test": "run-p --print-label test:api test:mon-pix test:orga test:certif test:admin test:scripts",
     "test:admin": "cd admin && npm test",
