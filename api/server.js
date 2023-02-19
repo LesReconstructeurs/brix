@@ -95,6 +95,7 @@ const setupErrorHandling = function (server) {
 
 const setupDeserialization = function (server) {
   server.ext('onPreHandler', async (request, h) => {
+    
     if (request.payload?.data) {
       request.deserializedPayload = await deserializer.deserialize(request.payload);
     }
