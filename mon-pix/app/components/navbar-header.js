@@ -5,6 +5,8 @@ export default class NavbarHeader extends Component {
   @service url;
 
   get isFrenchDomainExtension() {
-    return this.url.isFrenchDomainExtension;
+    //PATCH BRIX FRENCH DOMAIN DISPLAY
+    return false;
+    //return this.url.isFrenchDomainExtension;
   }
 }

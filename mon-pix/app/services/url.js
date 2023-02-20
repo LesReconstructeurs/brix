@@ -11,7 +11,9 @@ export default class Url extends Service {
   definedHomeUrl = ENV.rootURL;
 
   get isFrenchDomainExtension() {
-    return this.currentDomain.getExtension() === FRENCH_DOMAIN_EXTENSION;
+    //PATCH BRIX FRENCH DOMAIN DISPLAY
+    return false;
+    //return this.currentDomain.getExtension() === FRENCH_DOMAIN_EXTENSION;
   }
 
   get showcase() {
