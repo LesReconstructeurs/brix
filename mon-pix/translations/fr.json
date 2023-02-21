@@ -693,8 +693,8 @@
           "label": "Remettre à zéro",
           "modal": {
             "title": "Remise à zéro de la compétence",
-            "important-message": "Vos { earnedBrix } Brix vont être supprimés de la compétence : { scoreCardName }.",
-            "important-message-above-level-one": "Votre niveau { level } et vos { earnedBrix } Brix vont être supprimés de la compétence : { scoreCardName }.",
+            "important-message": "Vos { earnedPix } Brix vont être supprimés de la compétence : { scoreCardName }.",
+            "important-message-above-level-one": "Votre niveau { level } et vos { earnedPix } Brix vont être supprimés de la compétence : { scoreCardName }.",
             "warning": {
               "certification": "si vous souhaitez faire certifier votre profil et vos différents résultats, cela pourrait altérer votre certification.",
               "header": "Attention : ",
