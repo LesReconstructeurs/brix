@@ -2,13 +2,13 @@
   "account-recovery-email": {
     "params": {
       "choosePassword": "Choisir un mot de passe",
-      "context": "Vous avez demandé la récupération de votre compte Pix.",
+      "context": "Vous avez demandé la récupération de votre compte Brix.",
       "doNotAnswer": "Ceci est un e-mail automatique, merci de ne pas y répondre.",
       "instruction": "Choisissez un mot de passe pour finaliser la procédure.",
       "linkValidFor": "Ce lien est valide 24 heures. Si vous n'êtes pas à l'origine de cette demande, merci d'ignorer cet e-mail.",
       "moreOn": "En savoir plus sur",
-      "pixPresentation": "Pix est le service public en ligne pour évaluer, développer et certifier ses compétences numériques.",
-      "signing": "– L'équipe Pix"
+      "pixPresentation": "Brix est le service public en ligne pour évaluer, développer et certifier ses compétences numériques.",
+      "signing": "– L'équipe Brix"
     }
   },
   "campaign-export": {
@@ -55,10 +55,10 @@
       "certifiable-skills": "Nombre de compétences certifiables",
       "is-certifiable": "Certifiable (O/N)",
       "is-sent": "Envoi (O/N)",
-      "pix-score": "Nombre de pix total",
+      "pix-score": "Nombre de Brix total",
       "sent-on": "Date de l'envoi",
       "skill-level": "Niveau pour la compétence {{name}}",
-      "skill-ranking": "Nombre de pix pour la compétence {{name}}"
+      "skill-ranking": "Nombre de Brix pour la compétence {{name}}"
     }
   },
   "certification-center-invitation-email": {
@@ -69,11 +69,11 @@
       "moreAbout": "En savoir plus sur",
       "needHelp": "Besoin d’aide, contactez-nous",
       "oneTimeLink": "Ce lien est à usage unique",
-      "pixCertifPresentation": "L’espace Pix Certif est un outil dédié à l’organisation des sessions de certification.",
+      "pixCertifPresentation": "L’espace Brix Certif est un outil dédié à l’organisation des sessions de certification.",
       "title": "Invitation à rejoindre l’espace",
       "yourCertificationCenter": "Votre centre de certification"
     },
-    "subject": "Invitation à rejoindre Pix Certif"
+    "subject": "Invitation à rejoindre Brix Certif"
   },
   "csv-import-values": {
     "sup-organization-learner": {
@@ -142,7 +142,7 @@
   },
   "current-lang": "fr",
   "entity-validation-errors": {
-    "ACCEPT_CGU": "Vous devez accepter les conditions d’utilisation de Pix pour créer un compte.",
+    "ACCEPT_CGU": "Vous devez accepter les conditions d’utilisation de Brix pour créer un compte.",
     "ALREADY_REGISTERED_EMAIL": "Cette adresse e-mail est déjà enregistrée, connectez-vous.",
     "CUSTOM_RESULT_PAGE_BUTTON_TEXT_IS_REQUIRED_WHEN_CUSTOM_RESULT_PAGE_BUTTON_URL_IS_FILLED": "Une URL pour le bouton est saisie : un texte est également requis.",
     "CUSTOM_RESULT_PAGE_BUTTON_URL_IS_REQUIRED_WHEN_CUSTOM_RESULT_PAGE_BUTTON_TEXT_IS_FILLED": "Un texte pour le bouton est saisi : une URL est également requise.",
@@ -169,12 +169,12 @@
       "moreAbout": "En savoir plus sur",
       "needHelp": "Besoin d’aide, contactez-nous",
       "oneTimeLink": "Ce lien est à usage unique",
-      "pixPresentation": "Pix est le service public en ligne pour évaluer, développer et certifier ses compétences numériques.",
-      "subtitle": "La plateforme Pix Orga vous permet de créer, gérer des campagnes de test et suivre la progression de vos participants.",
-      "title": "Vous êtes invité(e) à rejoindre Pix Orga",
+      "pixPresentation": "Brix est le service public en ligne pour évaluer, développer et certifier ses compétences numériques.",
+      "subtitle": "La plateforme PiBrixx Orga vous permet de créer, gérer des campagnes de test et suivre la progression de vos participants.",
+      "title": "Vous êtes invité(e) à rejoindre Brix Orga",
       "yourOrganization": "Votre organisation"
     },
-    "subject": "Invitation à rejoindre Pix Orga"
+    "subject": "Invitation à rejoindre Brix Orga"
   },
   "pix-account-creation-email": {
     "params": {
@@ -184,11 +184,11 @@
       "goToPix": "Commencer les tests",
       "helpdeskLinkLabel": "ici",
       "moreOn": "En savoir plus sur",
-      "pixPresentation": "Pix est le service public en ligne pour évaluer, développer et certifier ses compétences numériques.",
+      "pixPresentation": "Brix est le service public en ligne pour évaluer, développer et certifier ses compétences numériques.",
       "subtitle": "Vous pouvez désormais commencer les tests.",
-      "title": "Votre compte Pix a bien été créé !"
+      "title": "Votre compte Brix a bien été créé !"
     },
-    "subject": "Votre compte Pix a bien été créé"
+    "subject": "Votre compte Brix a bien été créé"
   },
   "reset-password-demand-email": {
     "params": {
@@ -197,24 +197,24 @@
       "doNotAnswer": "Ceci est un e-mail automatique, merci de ne pas y répondre. Besoin d’aide, ",
       "linkValidFor": "Ce lien est valide 24 heures. Si vous n'êtes pas à l'origine de cette demande, merci d'ignorer cet e-mail.",
       "moreOn": "En savoir plus sur",
-      "pixPresentation": "Pix est le service public en ligne pour évaluer, développer et certifier ses compétences numériques.",
+      "pixPresentation": "Brix est le service public en ligne pour évaluer, développer et certifier ses compétences numériques.",
       "resetMyPassword": "Définir un nouveau mot de passe",
       "title": "Réinitialisation de votre mot de passe",
       "weCannotSendYourPassword": "Bonjour, pour des raisons de sécurité, nous ne vous envoyons pas votre mot de passe par e-mail."
     },
-    "subject": "Demande de réinitialisation de mot de passe Pix"
+    "subject": "Demande de réinitialisation de mot de passe Brix"
   },
   "verification-code-email": {
     "body": {
-      "context": "Vous souhaitez faire une modification de votre adresse e-mail sur votre compte. Pour continuer, entrez le code suivant sur Pix :",
+      "context": "Vous souhaitez faire une modification de votre adresse e-mail sur votre compte. Pour continuer, entrez le code suivant sur Brix :",
       "doNotAnswer": "Ceci est un e-mail automatique, merci de ne pas y répondre",
       "greeting": "Bonjour,",
       "moreOn": "En savoir plus sur",
-      "pixPresentation": "Pix est le service public en ligne pour évaluer, développer et certifier ses compétences numériques.",
-      "seeYouSoon": "À tout de suite sur Pix.",
-      "signing": "— L'équipe Pix",
+      "pixPresentation": "Brix est le service public en ligne pour évaluer, développer et certifier ses compétences numériques.",
+      "seeYouSoon": "À tout de suite sur Brix.",
+      "signing": "— L'équipe Brix",
       "warningMessage": "Si ce n'était pas vous, nous vous invitons à réinitialiser votre mot de passe au plus vite afin de sécuriser votre compte."
     },
-    "subject": "Votre code Pix est {{ code }}"
+    "subject": "Votre code Brix est {{ code }}"
   }
 }

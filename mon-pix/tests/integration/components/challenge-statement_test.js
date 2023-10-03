@@ -276,7 +276,7 @@ module('Integration | Component | ChallengeStatement', function (hooks) {
     test('should display challenge illustration (and alt) if it exists', async function (assert) {
       // given
       const challenge = {
-        illustrationUrl: '/images/pix-logo.svg',
+        illustrationUrl: '/images/brix-logo.svg',
         illustrationAlt: 'texte alternatif',
         id: 'rec_challenge',
       };

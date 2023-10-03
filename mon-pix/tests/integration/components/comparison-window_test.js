@@ -33,7 +33,7 @@ module('Integration | Component | comparison-window', function (hooks) {
 
     test('should display challenge illustration and alt', async function (assert) {
       // given
-      challenge.set('illustrationUrl', '/images/pix-logo.svg');
+      challenge.set('illustrationUrl', '/images/brix-logo.svg');
       challenge.set('illustrationAlt', 'texte alternatif');
 
       // when
