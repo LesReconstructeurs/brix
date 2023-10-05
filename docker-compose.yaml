@@ -20,7 +20,7 @@ services:
 
   api:
     image: pix/api
-    depends_on:
+    # depends_on:
       # - postgres
       # - redis 
     build: 
