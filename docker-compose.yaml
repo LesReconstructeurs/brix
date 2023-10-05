@@ -21,8 +21,8 @@ services:
   api:
     image: pix/api
     depends_on:
-      - postgres
-      - redis 
+      # - postgres
+      # - redis 
     build: 
       dockerfile: ../docker/dockerfiles/Dockerfile.hapi
       context: ./api/
