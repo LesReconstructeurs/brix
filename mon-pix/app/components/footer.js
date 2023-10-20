@@ -7,7 +7,9 @@ export default class Footer extends Component {
   @service currentDomain;
 
   get shouldShowTheMarianneLogo() {
-    return this.url.isFrenchDomainExtension;
+    //desable marianneLogo
+    return false;
+    //return this.url.isFrenchDomainExtension;
   }
 
   get currentYear() {
