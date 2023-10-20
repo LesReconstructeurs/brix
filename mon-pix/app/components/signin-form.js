@@ -25,7 +25,9 @@ export default class SigninForm extends Component {
   }
 
   get displayPoleEmploiButton() {
-    return this.url.isFrenchDomainExtension;
+    //cacher bouton pole emploi
+    return false;
+    //return this.url.isFrenchDomainExtension;
   }
 
   @action
