@@ -5,8 +5,6 @@ export default class InaccessibleCampaign extends Component {
   @service url;
 
   get shouldShowTheMarianneLogo() {
-    //desable marianneLogo
-    return false;
-    //return this.url.isFrenchDomainExtension;
+    return this.url.isFrenchDomainExtension;
   }
 }
