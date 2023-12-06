@@ -1,8 +1,8 @@
-const _ = require('lodash');
-const { UserNotAuthorizedToUpdateResourceError, EntityValidationError } = require('../errors');
-const campaignValidator = require('../validators/campaign-validator');
+import _ from 'lodash';
+import { UserNotAuthorizedToUpdateResourceError, EntityValidationError } from '../errors.js';
+import * as campaignValidator from '../validators/campaign-validator.js';
 
-module.exports = async function updateCampaign({
+const updateCampaign = async function ({
   userId,
   campaignId,
   name,
@@ -21,7 +21,7 @@ module.exports = async function updateCampaign({
   const organizationId = campaign.organizationId;
   if (!user.hasAccessToOrganization(organizationId)) {
     throw new UserNotAuthorizedToUpdateResourceError(
-      `User does not have an access to the organization ${organizationId}`
+      `User does not have an access to the organization ${organizationId}`,
     );
   }
 
@@ -52,3 +52,5 @@ module.exports = async function updateCampaign({
 
   return campaign;
 };
+
+export { updateCampaign };

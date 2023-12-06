@@ -1,11 +1,14 @@
-'use strict';
-require('dotenv').config();
-const path = require('path');
-const fs = require('fs');
-const { access } = require('fs').promises;
-const request = require('request-promise-native');
-const papa = require('papaparse');
-const { disconnect } = require('../db/knex-database-connection');
+import dotenv from 'dotenv';
+
+dotenv.config();
+import path from 'path';
+import fs from 'fs';
+import { access } from 'fs/promises';
+
+import request from 'request-promise-native';
+import papa from 'papaparse';
+import { disconnect } from '../db/knex-database-connection.js';
+import * as url from 'url';
 
 const CSV_HEADERS = {
   ID: 'Orga_ID',
@@ -110,7 +113,9 @@ function _logErrorObjects(errorObjects) {
  * Usage: BASE_URL='url' (...) node update-sco-organizations-with-province-code-and-external-id.js my_file.csv
  */
 
-const isLaunchedFromCommandLine = require.main === module;
+const modulePath = url.fileURLToPath(import.meta.url);
+const isLaunchedFromCommandLine = process.argv[1] === modulePath;
+
 async function main() {
   console.log("Début du script de mise à jour des Organisations avec l'ID externe et le département");
   const filePath = process.argv[2];
@@ -154,8 +159,4 @@ async function main() {
   }
 })();
 
-module.exports = {
-  assertFileValidity,
-  convertCSVDataIntoOrganizations,
-  saveOrganizations,
-};
+export { assertFileValidity, convertCSVDataIntoOrganizations, saveOrganizations };

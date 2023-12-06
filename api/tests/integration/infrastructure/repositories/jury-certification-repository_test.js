@@ -1,7 +1,7 @@
-const { expect, databaseBuilder, domainBuilder, catchErr } = require('../../../test-helper');
-const { NotFoundError } = require('../../../../lib/domain/errors');
-const juryCertificationRepository = require('../../../../lib/infrastructure/repositories/jury-certification-repository');
-const ComplementaryCertificationCourseResult = require('../../../../lib/domain/models/ComplementaryCertificationCourseResult');
+import { expect, databaseBuilder, domainBuilder, catchErr } from '../../../test-helper.js';
+import { NotFoundError } from '../../../../lib/domain/errors.js';
+import * as juryCertificationRepository from '../../../../lib/infrastructure/repositories/jury-certification-repository.js';
+import { ComplementaryCertificationCourseResult } from '../../../../lib/domain/models/ComplementaryCertificationCourseResult.js';
 
 describe('Integration | Infrastructure | Repository | Jury Certification', function () {
   describe('#get', function () {
@@ -166,15 +166,14 @@ describe('Integration | Infrastructure | Repository | Jury Certification', funct
         commentForJury: 'Un commentaire jury',
         competenceMarks: [expectedCompetenceMark],
         certificationIssueReports: [],
-        commonComplementaryCertificationCourseResults: [
-          {
-            acquired: true,
-            id: 123,
-            partnerKey: 'BADGE_FOR_COMPLEMENTARY_CERTIFICATION_WITHOUT_EXTERNAL_JURY',
-            label: 'Badge for complementary certification without external jury',
-          },
-        ],
-        complementaryCertificationCourseResultsWithExternal: {
+        version: 2,
+        commonComplementaryCertificationCourseResult: {
+          acquired: true,
+          id: 123,
+          partnerKey: 'BADGE_FOR_COMPLEMENTARY_CERTIFICATION_WITHOUT_EXTERNAL_JURY',
+          label: 'Badge for complementary certification without external jury',
+        },
+        complementaryCertificationCourseResultWithExternal: {
           complementaryCertificationCourseId: 456,
           externalSection: {
             acquired: false,

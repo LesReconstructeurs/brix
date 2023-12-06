@@ -1,88 +1,108 @@
-const _ = require('lodash');
+import _ from 'lodash';
 
-const CertificationChallenge = require('../models/CertificationChallenge');
+import { CertificationChallenge } from '../models/CertificationChallenge.js';
 
-const {
+import {
   MAX_CHALLENGES_PER_COMPETENCE_FOR_CERTIFICATION,
   MAX_CHALLENGES_PER_AREA_FOR_CERTIFICATION_PLUS,
   PIX_ORIGIN,
-} = require('../constants');
+} from '../constants.js';
 
-const KnowledgeElement = require('../models/KnowledgeElement');
-const Challenge = require('../models/Challenge');
-const challengeRepository = require('../../infrastructure/repositories/challenge-repository');
-const answerRepository = require('../../infrastructure/repositories/answer-repository');
-const knowledgeElementRepository = require('../../infrastructure/repositories/knowledge-element-repository');
-const learningContentRepository = require('../../infrastructure/repositories/learning-content-repository');
-const certifiableProfileForLearningContentRepository = require('../../infrastructure/repositories/certifiable-profile-for-learning-content-repository');
+import { KnowledgeElement } from '../models/KnowledgeElement.js';
+import { Challenge } from '../models/Challenge.js';
 
-module.exports = {
-  async pickCertificationChallenges(placementProfile, locale) {
-    const certifiableUserCompetences = placementProfile.getCertifiableUserCompetences();
+import * as challengeRepository from '../../infrastructure/repositories/challenge-repository.js';
+import * as answerRepository from '../../infrastructure/repositories/answer-repository.js';
+import * as knowledgeElementRepository from '../../infrastructure/repositories/knowledge-element-repository.js';
+import * as learningContentRepository from '../../infrastructure/repositories/learning-content-repository.js';
+import * as certifiableProfileForLearningContentRepository from '../../infrastructure/repositories/certifiable-profile-for-learning-content-repository.js';
 
-    const alreadyAnsweredChallengeIds = await _getAlreadyAnsweredChallengeIds(
-      knowledgeElementRepository,
-      answerRepository,
-      placementProfile.userId,
-      placementProfile.profileDate
-    );
+const pickCertificationChallenges = async function (
+  placementProfile,
+  locale,
+  injectedKnowledgeElementRepository = knowledgeElementRepository,
+  injectedAnswerRepository = answerRepository,
+  injectedChallengeRepository = challengeRepository,
+) {
+  const certifiableUserCompetences = placementProfile.getCertifiableUserCompetences();
 
-    const allOperativeChallengesForLocale = await challengeRepository.findOperativeHavingLocale(locale);
+  const alreadyAnsweredChallengeIds = await _getAlreadyAnsweredChallengeIds(
+    injectedKnowledgeElementRepository,
+    injectedAnswerRepository,
+    placementProfile.userId,
+    placementProfile.profileDate,
+  );
 
-    return _pickCertificationChallengesForCertifiableCompetences(
-      certifiableUserCompetences,
-      alreadyAnsweredChallengeIds,
-      allOperativeChallengesForLocale
-    );
-  },
+  const allOperativeChallengesForLocale = await injectedChallengeRepository.findOperativeHavingLocale(locale);
 
-  async pickCertificationChallengesForPixPlus(campaignId, badgeKey, userId, locale) {
-    const learningContent = await learningContentRepository.findByCampaignId(campaignId, locale);
-    const certifiableProfile = await certifiableProfileForLearningContentRepository.get({
-      id: userId,
-      profileDate: new Date(),
-      learningContent,
-    });
-
-    const excludedOrigins = [PIX_ORIGIN];
-    const skillIdsByDecreasingDifficultyGroupedByArea =
-      certifiableProfile.getOrderedCertifiableSkillsByDecreasingDifficultyGroupedByAreaId(excludedOrigins);
-
-    const alreadyAnsweredChallengeIds = certifiableProfile.getAlreadyAnsweredChallengeIds();
-
-    const allOperativeChallengesForLocale = await challengeRepository.findOperativeHavingLocale(locale);
-    return _pickCertificationChallengesForAllAreas(
-      skillIdsByDecreasingDifficultyGroupedByArea,
-      alreadyAnsweredChallengeIds,
-      allOperativeChallengesForLocale,
-      learningContent,
-      badgeKey
-    );
-  },
+  return _pickCertificationChallengesForCertifiableCompetences(
+    certifiableUserCompetences,
+    alreadyAnsweredChallengeIds,
+    allOperativeChallengesForLocale,
+  );
 };
 
-async function _getAlreadyAnsweredChallengeIds(knowledgeElementRepository, answerRepository, userId, limitDate) {
-  const knowledgeElementsByCompetence = await knowledgeElementRepository.findUniqByUserIdGroupedByCompetenceId({
+const pickCertificationChallengesForPixPlus = async function (
+  campaignId,
+  badgeKey,
+  userId,
+  locale,
+  injectedLearningContentRepository = learningContentRepository,
+  injectedCertifiableProfileForLearningContentRepository = certifiableProfileForLearningContentRepository,
+  injectedChallengeRepository = challengeRepository,
+) {
+  const learningContent = await injectedLearningContentRepository.findByCampaignId(campaignId, locale);
+  const certifiableProfile = await injectedCertifiableProfileForLearningContentRepository.get({
+    id: userId,
+    profileDate: new Date(),
+    learningContent,
+  });
+
+  const excludedOrigins = [PIX_ORIGIN];
+  const skillIdsByDecreasingDifficultyGroupedByArea =
+    certifiableProfile.getOrderedCertifiableSkillsByDecreasingDifficultyGroupedByAreaId(excludedOrigins);
+
+  const alreadyAnsweredChallengeIds = certifiableProfile.getAlreadyAnsweredChallengeIds();
+
+  const allOperativeChallengesForLocale = await injectedChallengeRepository.findOperativeHavingLocale(locale);
+  return _pickCertificationChallengesForAllAreas(
+    skillIdsByDecreasingDifficultyGroupedByArea,
+    alreadyAnsweredChallengeIds,
+    allOperativeChallengesForLocale,
+    learningContent,
+    badgeKey,
+  );
+};
+
+export { pickCertificationChallenges, pickCertificationChallengesForPixPlus };
+
+async function _getAlreadyAnsweredChallengeIds(
+  injectedKnowledgeElementRepository = knowledgeElementRepository,
+  injectedAnswerRepository = answerRepository,
+  userId,
+  limitDate,
+) {
+  const knowledgeElementsByCompetence = await injectedKnowledgeElementRepository.findUniqByUserIdGroupedByCompetenceId({
     userId,
     limitDate,
   });
   const knowledgeElements = KnowledgeElement.findDirectlyValidatedFromGroups(knowledgeElementsByCompetence);
   const answerIds = _.map(knowledgeElements, 'answerId');
 
-  return answerRepository.findChallengeIdsFromAnswerIds(answerIds);
+  return injectedAnswerRepository.findChallengeIdsFromAnswerIds(answerIds);
 }
 
 function _pickCertificationChallengesForCertifiableCompetences(
   certifiableUserCompetences,
   alreadyAnsweredChallengeIds,
-  allChallenges
+  allChallenges,
 ) {
   let pickedCertificationChallenges = [];
   for (const userCompetence of certifiableUserCompetences) {
     const certificationChallengesForCompetence = _pick3CertificationChallengesForCompetence(
       userCompetence,
       alreadyAnsweredChallengeIds,
-      allChallenges
+      allChallenges,
     );
     pickedCertificationChallenges = pickedCertificationChallenges.concat(certificationChallengesForCompetence);
   }
@@ -128,8 +148,8 @@ function _pick3CertificationChallengesForCompetence(userCompetence, alreadyAnswe
       (certificationChallenge) =>
         result.some(
           (certificationChallengeInResult) =>
-            _getTubeName(certificationChallenge) === _getTubeName(certificationChallengeInResult)
-        )
+            _getTubeName(certificationChallenge) === _getTubeName(certificationChallengeInResult),
+        ),
     );
 
     result.push(...certificationChallengesWithTubeNotAlreadyAdded, ...certificationChallengesWithTubeAlreadyAdded);
@@ -146,7 +166,7 @@ function _pickCertificationChallengesForAllAreas(
   alreadyAnsweredChallengeIds,
   allChallenges,
   learningContent,
-  certifiableBadgeKey
+  certifiableBadgeKey,
 ) {
   let pickedCertificationChallenges = [];
   for (const skillIds of Object.values(skillIdsByArea)) {
@@ -155,7 +175,7 @@ function _pickCertificationChallengesForAllAreas(
       alreadyAnsweredChallengeIds,
       allChallenges,
       learningContent,
-      certifiableBadgeKey
+      certifiableBadgeKey,
     );
     pickedCertificationChallenges = pickedCertificationChallenges.concat(certificationChallengesForArea);
   }
@@ -168,7 +188,7 @@ function _pick4CertificationChallengesForArea(
   alreadyAnsweredChallengeIds,
   allChallenges,
   learningContent,
-  certifiableBadgeKey
+  certifiableBadgeKey,
 ) {
   const result = [];
 
@@ -213,7 +233,7 @@ function _pickChallengeForSkill({ skill, allChallenges, alreadyAnsweredChallenge
   const challengesToValidateCurrentSkill = Challenge.findBySkill({ challenges: allChallenges, skill });
   const unansweredChallenges = _.filter(
     challengesToValidateCurrentSkill,
-    (challenge) => !alreadyAnsweredChallengeIds.includes(challenge.id)
+    (challenge) => !alreadyAnsweredChallengeIds.includes(challenge.id),
   );
 
   const challengesPoolToPickChallengeFrom = _.isEmpty(unansweredChallenges)

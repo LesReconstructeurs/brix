@@ -1,10 +1,10 @@
-const Bookshelf = require('../bookshelf');
+import { Bookshelf } from '../bookshelf.js';
 
-require('./User');
+import './User.js';
 
 const modelName = 'ResetPasswordDemand';
 
-module.exports = Bookshelf.model(
+const BookshelfResetPasswordDemand = Bookshelf.model(
   modelName,
   {
     tableName: 'reset-password-demands',
@@ -16,5 +16,7 @@ module.exports = Bookshelf.model(
   },
   {
     modelName,
-  }
+  },
 );
+
+export { BookshelfResetPasswordDemand as ResetPasswordDemand };

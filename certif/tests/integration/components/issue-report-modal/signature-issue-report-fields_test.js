@@ -1,12 +1,12 @@
 import { module, test } from 'qunit';
-import { setupRenderingTest } from 'ember-qunit';
 import { render, click } from '@ember/test-helpers';
 import { hbs } from 'ember-cli-htmlbars';
-
 import sinon from 'sinon';
 
+import setupIntlRenderingTest from '../../../helpers/setup-intl-rendering';
+
 module('Integration | Component | signature-issue-report-fields', function (hooks) {
-  setupRenderingTest(hooks);
+  setupIntlRenderingTest(hooks);
 
   const INPUT_RADIO_SELECTOR = '#input-radio-for-category-signature-issue';
   const TEXTAREA_SELECTOR = '#text-area-for-category-signature-issue';
@@ -34,9 +34,11 @@ module('Integration | Component | signature-issue-report-fields', function (hook
   test('it should show textarea if category is checked', async function (assert) {
     // given
     const toggleOnCategory = sinon.stub();
+    const updateSignatureIssueCategory = sinon.stub();
     const signatureIssueCategory = { isChecked: true };
     this.set('toggleOnCategory', toggleOnCategory);
     this.set('signatureIssueCategory', signatureIssueCategory);
+    this.set('updateSignatureIssueCategory', updateSignatureIssueCategory);
 
     // when
     await render(hbs`
@@ -44,6 +46,7 @@ module('Integration | Component | signature-issue-report-fields', function (hook
         @signatureIssueCategory={{this.signatureIssueCategory}}
         @toggleOnCategory={{this.toggleOnCategory}}
         @maxlength={{500}}
+        @updateSignatureIssueCategoryDescription={{this.updateSignatureIssueCategory}}
       />`);
     await click(INPUT_RADIO_SELECTOR);
 
@@ -54,11 +57,13 @@ module('Integration | Component | signature-issue-report-fields', function (hook
   test('it should show "Précisez" if category is checked', async function (assert) {
     // given
     const toggleOnCategory = sinon.stub();
+    const updateSignatureIssueCategory = sinon.stub();
     const signatureIssueCategory = {
       isChecked: true,
     };
     this.set('toggleOnCategory', toggleOnCategory);
     this.set('signatureIssueCategory', signatureIssueCategory);
+    this.set('updateSignatureIssueCategory', updateSignatureIssueCategory);
 
     // when
     await render(hbs`
@@ -66,6 +71,7 @@ module('Integration | Component | signature-issue-report-fields', function (hook
         @signatureIssueCategory={{this.signatureIssueCategory}}
         @toggleOnCategory={{this.toggleOnCategory}}
         @maxlength={{500}}
+        @updateSignatureIssueCategoryDescription={{this.updateSignatureIssueCategory}}
       />`);
     await click(INPUT_RADIO_SELECTOR);
 

@@ -2,10 +2,8 @@ module.exports = function () {
   return {
     'free-solid-svg-icons': [
       'box-archive',
-      'arrow-down',
       'arrow-left',
       'arrow-right',
-      'arrow-up',
       'award',
       'book',
       'bullhorn',
@@ -13,6 +11,7 @@ module.exports = function () {
       'chevron-down',
       'chevron-up',
       'crown',
+      'earth-europe',
       'ellipsis-vertical',
       'eye',
       'eye-slash',
@@ -30,6 +29,9 @@ module.exports = function () {
       'magnifying-glass',
       'share',
       'slash',
+      'sort',
+      'sort-up',
+      'sort-down',
       'star',
       'tablet-screen-button',
       'xmark',
@@ -37,6 +39,6 @@ module.exports = function () {
       'trash-can',
       'redo',
     ],
-    'free-regular-svg-icons': ['circle-check', 'copy', 'trash-can'],
+    'free-regular-svg-icons': ['circle-check', 'copy', 'trash-can', 'user'],
   };
 };

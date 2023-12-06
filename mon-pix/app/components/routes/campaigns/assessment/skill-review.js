@@ -1,4 +1,4 @@
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
 import { action } from '@ember/object';
 import isNil from 'lodash/isNil';
@@ -42,16 +42,16 @@ export default class SkillReview extends Component {
   }
 
   get showNotCertifiableBadges() {
-    return this.acquiredNotCertifiableBadges.length > 0;
+    return this.notCertifiableBadges.length > 0;
   }
 
   get showCertifiableBadges() {
     return this.certifiableBadgesOrderedByValidity.length > 0;
   }
 
-  get acquiredNotCertifiableBadges() {
+  get notCertifiableBadges() {
     const badges = this.args.model.campaignParticipationResult.campaignParticipationBadges;
-    return badges.filter((badge) => badge.isAcquired && !badge.isCertifiable);
+    return badges.filter((badge) => (badge.isAcquired || badge.isAlwaysVisible) && !badge.isCertifiable);
   }
 
   get certifiableBadgesOrderedByValidity() {
@@ -72,20 +72,20 @@ export default class SkillReview extends Component {
     return badges.filter(
       (badge) =>
         (badge.isCertifiable && badge.isAcquired && !badge.isValid) ||
-        (badge.isCertifiable && !badge.isAcquired && badge.isAlwaysVisible)
+        (badge.isCertifiable && !badge.isAcquired && badge.isAlwaysVisible),
     );
   }
 
   get showStages() {
-    return this.stageCount && !this._isCleaBadgeAcquired;
+    return this.args.model.campaignParticipationResult.hasReachedStage && !this._isCleaBadgeAcquired;
+  }
+
+  get showStagesWithStars() {
+    return this.args.model.campaignParticipationResult.hasReachedStage && !this.showCleaCompetences;
   }
 
   get reachedStage() {
     return this.args.model.campaignParticipationResult.reachedStage;
-  }
-
-  get stageCount() {
-    return this.args.model.campaignParticipationResult.stageCount;
   }
 
   get isShared() {
@@ -110,10 +110,6 @@ export default class SkillReview extends Component {
 
   get isFlashCampaign() {
     return this.args.model.campaign.isFlash;
-  }
-
-  get showDetail() {
-    return !this.isFlashCampaign;
   }
 
   get masteryRate() {
@@ -172,6 +168,28 @@ export default class SkillReview extends Component {
 
   get showImproveButton() {
     return this.args.model.campaignParticipationResult.canImprove && !this.isShareButtonClicked;
+  }
+
+  get competenceResultsGroupedByAreas() {
+    const competenceResults = this.args.model.campaignParticipationResult.get('competenceResults').toArray();
+    return competenceResults.reduce((acc, competenceResult) => {
+      const currentArea = competenceResult.areaTitle;
+      const competence = {
+        name: competenceResult.name,
+        reachedStage: competenceResult.reachedStage,
+        masteryRate: competenceResult.masteryRate,
+      };
+      if (acc[currentArea]) {
+        acc[currentArea].competences.push(competence);
+      } else {
+        acc[currentArea] = {
+          areaTitle: currentArea,
+          areaColor: competenceResult.areaColor,
+          competences: [competence],
+        };
+      }
+      return acc;
+    }, {});
   }
 
   _buildUrl(baseUrl, params) {

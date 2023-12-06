@@ -1,6 +1,6 @@
 import Component from '@glimmer/component';
 import ENV from 'pix-admin/config/environment';
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 
 export default class OrganizationInformationSection extends Component {
   @service oidcIdentityProviders;
@@ -11,7 +11,7 @@ export default class OrganizationInformationSection extends Component {
     const allIdentityProviderList = [...this.oidcIdentityProviders.list, GARIdentityProvider];
     const identityProvider = allIdentityProviderList.findBy(
       'code',
-      this.args.organization.identityProviderForCampaigns
+      this.args.organization.identityProviderForCampaigns,
     );
     const identityProviderName = identityProvider?.organizationName;
     return identityProviderName ?? 'Aucun';

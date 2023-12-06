@@ -1,45 +1,42 @@
-const _ = require('lodash');
-const moment = require('moment');
-const writeOdsUtils = require('../../infrastructure/utils/ods/write-ods-utils');
-const readOdsUtils = require('../../infrastructure/utils/ods/read-ods-utils');
-const sessionXmlService = require('../services/session-xml-service');
-const { UserNotAuthorizedToAccessEntityError } = require('../errors');
-const {
+import _ from 'lodash';
+import moment from 'moment';
+import { UserNotAuthorizedToAccessEntityError } from '../errors.js';
+
+import {
   EXTRA_EMPTY_CANDIDATE_ROWS,
   NON_SCO_ATTENDANCE_SHEET_CANDIDATE_TEMPLATE_VALUES,
   SCO_ATTENDANCE_SHEET_CANDIDATE_TEMPLATE_VALUES,
   ATTENDANCE_SHEET_SESSION_TEMPLATE_VALUES,
-} = require('./../../infrastructure/files/attendance-sheet/attendance-sheet-placeholders');
+} from './../../infrastructure/files/attendance-sheet/attendance-sheet-placeholders.js';
 
-module.exports = async function getAttendanceSheet({
+import * as url from 'url';
+const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
+
+const getAttendanceSheet = async function ({
   userId,
   sessionId,
   sessionRepository,
   sessionForAttendanceSheetRepository,
-  endTestScreenRemovalService,
+  writeOdsUtils,
+  readOdsUtils,
+  sessionXmlService,
 }) {
   const hasMembership = await sessionRepository.doesUserHaveCertificationCenterMembershipForSession(userId, sessionId);
   if (!hasMembership) {
     throw new UserNotAuthorizedToAccessEntityError('User is not allowed to access session.');
   }
 
-  const isEndTestScreenRemovalEnabled = await endTestScreenRemovalService.isEndTestScreenRemovalEnabledBySessionId(
-    sessionId
-  );
-  const addEndTestScreenColumn = !isEndTestScreenRemovalEnabled;
-
   const session = await sessionForAttendanceSheetRepository.getWithCertificationCandidates(sessionId);
   const odsFilePath = _getAttendanceSheetTemplatePath(
     session.certificationCenterType,
     session.isOrganizationManagingStudents,
-    addEndTestScreenColumn
   );
 
   const stringifiedXml = await readOdsUtils.getContentXml({
     odsFilePath,
   });
 
-  const updatedStringifiedXml = _updateXmlWithSession(stringifiedXml, session);
+  const updatedStringifiedXml = _updateXmlWithSession(stringifiedXml, session, sessionXmlService);
 
   return writeOdsUtils.makeUpdatedOdsByContentXml({
     stringifiedXml: updatedStringifiedXml,
@@ -47,7 +44,9 @@ module.exports = async function getAttendanceSheet({
   });
 };
 
-function _updateXmlWithSession(stringifiedXml, session) {
+export { getAttendanceSheet };
+
+function _updateXmlWithSession(stringifiedXml, session, sessionXmlService) {
   const sessionData = _.transform(session, _transformSessionIntoAttendanceSheetSessionData);
   const updatedStringifiedXml = sessionXmlService.getUpdatedXmlWithSessionData({
     stringifiedXml,
@@ -55,10 +54,10 @@ function _updateXmlWithSession(stringifiedXml, session) {
     sessionTemplateValues: ATTENDANCE_SHEET_SESSION_TEMPLATE_VALUES,
   });
 
-  return _attendanceSheetWithCertificationCandidates(updatedStringifiedXml, session);
+  return _attendanceSheetWithCertificationCandidates(updatedStringifiedXml, session, sessionXmlService);
 }
 
-function _attendanceSheetWithCertificationCandidates(stringifiedXml, session) {
+function _attendanceSheetWithCertificationCandidates(stringifiedXml, session, sessionXmlService) {
   let candidateTemplateValues = NON_SCO_ATTENDANCE_SHEET_CANDIDATE_TEMPLATE_VALUES;
 
   if (session.certificationCenterType === 'SCO' && session.isOrganizationManagingStudents) {
@@ -90,7 +89,6 @@ function _transformSessionIntoAttendanceSheetSessionData(attendanceSheetData, va
   switch (prop) {
     case 'time':
       attendanceSheetData.startTime = moment(value, 'HH:mm').format('HH:mm');
-      attendanceSheetData.endTime = moment(value, 'HH:mm').add(moment.duration(2, 'hours')).format('HH:mm');
       break;
     case 'date':
       attendanceSheetData.date = moment(value, 'YYYY-MM-DD').format('DD/MM/YYYY');
@@ -120,15 +118,10 @@ function _transformCandidateIntoAttendanceSheetCandidateData(attendanceSheetData
   }
 }
 
-function _getAttendanceSheetTemplatePath(
-  certificationCenterType,
-  isOrganizationManagingStudents,
-  addEndTestScreenColumn
-) {
-  const suffix = addEndTestScreenColumn ? '_with_fdt' : '';
+function _getAttendanceSheetTemplatePath(certificationCenterType, isOrganizationManagingStudents) {
   const templatePath = __dirname + '/../../infrastructure/files/attendance-sheet';
   if (certificationCenterType === 'SCO' && isOrganizationManagingStudents) {
-    return `${templatePath}/sco_attendance_sheet_template${suffix}.ods`;
+    return `${templatePath}/sco_attendance_sheet_template.ods`;
   }
-  return `${templatePath}/non_sco_attendance_sheet_template${suffix}.ods`;
+  return `${templatePath}/non_sco_attendance_sheet_template.ods`;
 }

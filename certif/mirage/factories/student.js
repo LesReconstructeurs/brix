@@ -1,14 +1,14 @@
-import { Factory } from 'ember-cli-mirage';
-import faker from 'faker';
+import { Factory } from 'miragejs';
+import { faker } from '@faker-js/faker';
 import dayjs from 'dayjs';
 
 export default Factory.extend({
   firstName() {
-    return faker.name.firstName();
+    return faker.person.firstName();
   },
 
   lastName() {
-    return faker.name.lastName();
+    return faker.person.lastName();
   },
 
   birthdate() {
@@ -16,6 +16,6 @@ export default Factory.extend({
   },
 
   division() {
-    return faker.random.word();
+    return faker.lorem.word();
   },
 });

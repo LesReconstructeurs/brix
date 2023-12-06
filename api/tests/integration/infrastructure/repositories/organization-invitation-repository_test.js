@@ -1,10 +1,10 @@
-const _ = require('lodash');
-const { expect, knex, databaseBuilder, catchErr, sinon } = require('../../../test-helper');
-const { NotFoundError } = require('../../../../lib/domain/errors');
-const Membership = require('../../../../lib/domain/models/Membership');
-const OrganizationInvitation = require('../../../../lib/domain/models/OrganizationInvitation');
-const organizationInvitationRepository = require('../../../../lib/infrastructure/repositories/organization-invitation-repository');
-const BookshelfOrganizationInvitation = require('../../../../lib/infrastructure/orm-models/OrganizationInvitation');
+import _ from 'lodash';
+import { expect, knex, databaseBuilder, catchErr, sinon } from '../../../test-helper.js';
+import { NotFoundError } from '../../../../lib/domain/errors.js';
+import { Membership } from '../../../../lib/domain/models/Membership.js';
+import { OrganizationInvitation } from '../../../../lib/domain/models/OrganizationInvitation.js';
+import * as organizationInvitationRepository from '../../../../lib/infrastructure/repositories/organization-invitation-repository.js';
+import { BookshelfOrganizationInvitation } from '../../../../lib/infrastructure/orm-models/OrganizationInvitation.js';
 
 describe('Integration | Repository | OrganizationInvitationRepository', function () {
   describe('#create', function () {
@@ -121,7 +121,7 @@ describe('Integration | Repository | OrganizationInvitationRepository', function
     it('should return an Organization-invitation domain object', async function () {
       // when
       const organizationInvitationSaved = await organizationInvitationRepository.markAsAccepted(
-        organizationInvitation.id
+        organizationInvitation.id,
       );
 
       // then
@@ -146,7 +146,7 @@ describe('Integration | Repository | OrganizationInvitationRepository', function
 
       // when
       const organizationInvitationSaved = await organizationInvitationRepository.markAsAccepted(
-        organizationInvitation.id
+        organizationInvitation.id,
       );
 
       // then
@@ -216,7 +216,7 @@ describe('Integration | Repository | OrganizationInvitationRepository', function
 
       // when
       const foundOrganizationInvitation = await organizationInvitationRepository.findOnePendingByOrganizationIdAndEmail(
-        { organizationId, email }
+        { organizationId, email },
       );
 
       // then
@@ -229,7 +229,7 @@ describe('Integration | Repository | OrganizationInvitationRepository', function
       const upperEmail = email.toUpperCase();
       // when
       const foundOrganizationInvitation = await organizationInvitationRepository.findOnePendingByOrganizationIdAndEmail(
-        { organizationId, email: upperEmail }
+        { organizationId, email: upperEmail },
       );
 
       // then
@@ -362,7 +362,7 @@ describe('Integration | Repository | OrganizationInvitationRepository', function
 
       // when
       const error = await catchErr(organizationInvitationRepository.updateModificationDate)(
-        wrongOrganizationInvitationId
+        wrongOrganizationInvitationId,
       );
 
       // then

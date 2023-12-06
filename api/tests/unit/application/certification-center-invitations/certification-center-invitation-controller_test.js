@@ -1,8 +1,7 @@
-const { expect, sinon, hFake, domainBuilder } = require('../../../test-helper');
-const certificationCenterInvitationController = require('../../../../lib/application/certification-center-invitations/certification-center-invitation-controller');
-const usecases = require('../../../../lib/domain/usecases');
-const CertificationCenterInvitation = require('../../../../lib/domain/models/CertificationCenterInvitation');
-const certificationCenterInvitationSerializer = require('../../../../lib/infrastructure/serializers/jsonapi/certification-center-invitation-serializer');
+import { expect, sinon, hFake, domainBuilder } from '../../../test-helper.js';
+import { certificationCenterInvitationController } from '../../../../lib/application/certification-center-invitations/certification-center-invitation-controller.js';
+import { usecases } from '../../../../lib/domain/usecases/index.js';
+import { CertificationCenterInvitation } from '../../../../lib/domain/models/CertificationCenterInvitation.js';
 
 describe('Unit | Application | Certification-center-Invitations | Certification-center-invitation-controller', function () {
   describe('#acceptCertificationCenterInvitation', function () {
@@ -24,7 +23,7 @@ describe('Unit | Application | Certification-center-Invitations | Certification-
       // when
       const response = await certificationCenterInvitationController.acceptCertificationCenterInvitation(
         request,
-        hFake
+        hFake,
       );
 
       // then
@@ -32,6 +31,7 @@ describe('Unit | Application | Certification-center-Invitations | Certification-
         certificationCenterInvitationId,
         code,
         email: notValidEmail.trim().toLowerCase(),
+        localeFromCookie: undefined,
       });
       expect(response.statusCode).to.equal(204);
     });
@@ -53,12 +53,6 @@ describe('Unit | Application | Certification-center-Invitations | Certification-
           certificationCenterInvitationId: cancelledCertificationCenterInvitation.id,
         })
         .resolves(cancelledCertificationCenterInvitation);
-      const serializedResponse = Symbol('serializedCancelledCertificationCenterInvitation');
-
-      sinon
-        .stub(certificationCenterInvitationSerializer, 'serialize')
-        .withArgs(cancelledCertificationCenterInvitation)
-        .returns(serializedResponse);
 
       // when
       const response = await certificationCenterInvitationController.cancelCertificationCenterInvitation(
@@ -66,7 +60,7 @@ describe('Unit | Application | Certification-center-Invitations | Certification-
           auth: { credentials: { userId: 1 } },
           params: { certificationCenterInvitationId },
         },
-        hFake
+        hFake,
       );
 
       // then

@@ -1,9 +1,10 @@
-const { expect, sinon, domainBuilder } = require('../../../test-helper');
+import { expect, sinon, domainBuilder } from '../../../test-helper.js';
+import { getNextChallengeForCampaignAssessment } from '../../../../lib/domain/usecases/get-next-challenge-for-campaign-assessment.js';
+import * as algorithmDataFetcherService from '../../../../lib/domain/services/algorithm-methods/data-fetcher.js';
 
-const getNextChallengeForCampaignAssessment = require('../../../../lib/domain/usecases/get-next-challenge-for-campaign-assessment');
-const flash = require('../../../../lib/domain/services/algorithm-methods/flash');
-const smartRandom = require('../../../../lib/domain/services/algorithm-methods/smart-random');
-const { FRENCH_SPOKEN } = require('../../../../lib/domain/constants').LOCALE;
+import { LOCALE } from '../../../../lib/domain/constants.js';
+
+const { FRENCH_SPOKEN } = LOCALE;
 
 describe('Integration | Domain | Use Cases | get-next-challenge-for-campaign-assessment', function () {
   describe('#getNextChallengeForCampaignAssessment : case for SMART RANDOM', function () {
@@ -28,6 +29,7 @@ describe('Integration | Domain | Use Cases | get-next-challenge-for-campaign-ass
       challengeWeb21,
       challengeWeb22,
       possibleSkillsForNextChallenge,
+      smartRandom,
       locale;
 
     beforeEach(async function () {
@@ -77,10 +79,12 @@ describe('Integration | Domain | Use Cases | get-next-challenge-for-campaign-ass
       locale = FRENCH_SPOKEN;
       possibleSkillsForNextChallenge = [web2, url2, search2];
 
-      sinon.stub(smartRandom, 'getPossibleSkillsForNextChallenge').returns({
-        hasAssessmentEnded: false,
-        possibleSkillsForNextChallenge,
-      });
+      smartRandom = {
+        getPossibleSkillsForNextChallenge: sinon.stub().returns({
+          hasAssessmentEnded: false,
+          possibleSkillsForNextChallenge,
+        }),
+      };
 
       actualNextChallenge = await getNextChallengeForCampaignAssessment({
         assessment,
@@ -92,6 +96,8 @@ describe('Integration | Domain | Use Cases | get-next-challenge-for-campaign-ass
         improvementService,
         pickChallengeService,
         locale,
+        smartRandom,
+        algorithmDataFetcherService,
       });
     });
 
@@ -147,112 +153,6 @@ describe('Integration | Domain | Use Cases | get-next-challenge-for-campaign-ass
         randomSeed: assessmentId,
         locale,
       });
-    });
-  });
-
-  describe('#getNextChallengeForCampaignAssessment : case for FLASH', function () {
-    let userId,
-      assessmentId,
-      campaignParticipationId,
-      assessment,
-      lastAnswer,
-      answerRepository,
-      challengeRepository,
-      challenges,
-      campaignParticipationRepository,
-      flashAssessmentResultRepository,
-      actualNextChallenge,
-      improvementService,
-      challengeWeb21,
-      challengeWeb22,
-      possibleChallenges,
-      locale,
-      estimatedLevel;
-
-    beforeEach(async function () {
-      // given
-      userId = 'dummyUserId';
-      assessmentId = 21;
-      campaignParticipationId = 456;
-      lastAnswer = null;
-
-      answerRepository = { findByAssessment: sinon.stub().resolves([lastAnswer]) };
-      challenges = [];
-      challengeRepository = { findFlashCompatible: sinon.stub().resolves(challenges) };
-      const campaign = domainBuilder.buildCampaign({ assessmentMethod: 'FLASH' });
-      domainBuilder.buildCampaignParticipation({ campaign, id: campaignParticipationId });
-      assessment = domainBuilder.buildAssessment.ofTypeCampaign({
-        id: assessmentId,
-        userId,
-        campaignParticipationId,
-        isImproving: false,
-        method: 'FLASH',
-      });
-
-      estimatedLevel = Symbol('estimatedLevel');
-      flashAssessmentResultRepository = {
-        getLatestByAssessmentId: sinon.stub(),
-      };
-      flashAssessmentResultRepository.getLatestByAssessmentId.withArgs(assessmentId).resolves({ estimatedLevel });
-
-      const web2 = domainBuilder.buildSkill({ name: '@web2' });
-      challengeWeb21 = domainBuilder.buildChallenge({ id: 'challenge_web2_1' });
-      challengeWeb22 = domainBuilder.buildChallenge({ id: 'challenge_web2_2' });
-      web2.challenges = [challengeWeb21, challengeWeb22];
-      const url2 = domainBuilder.buildSkill({ name: '@url2' });
-      url2.challenges = [
-        domainBuilder.buildChallenge({ id: 'challenge_url2_1' }),
-        domainBuilder.buildChallenge({ id: 'challenge_url2_2' }),
-      ];
-      const search2 = domainBuilder.buildSkill({ name: '@search2' });
-      search2.challenges = [
-        domainBuilder.buildChallenge({ id: 'challenge_search2_1' }),
-        domainBuilder.buildChallenge({ id: 'challenge_search2_2' }),
-      ];
-
-      locale = FRENCH_SPOKEN;
-      possibleChallenges = [challengeWeb21, challengeWeb22];
-
-      sinon.stub(flash, 'getPossibleNextChallenges').returns({
-        hasAssessmentEnded: false,
-        possibleChallenges,
-      });
-
-      // when
-      actualNextChallenge = await getNextChallengeForCampaignAssessment({
-        assessment,
-        answerRepository,
-        challengeRepository,
-        campaignParticipationRepository,
-        flashAssessmentResultRepository,
-        improvementService,
-        locale,
-      });
-    });
-
-    it('should have fetched the answers', function () {
-      // then
-      expect(answerRepository.findByAssessment).to.have.been.calledWithExactly(assessmentId);
-    });
-
-    it('should have fetched the challenges', function () {
-      // then
-      expect(challengeRepository.findFlashCompatible).to.have.been.called;
-    });
-
-    it('should have fetched the next challenge with only most recent knowledge elements', function () {
-      // then
-      const allAnswers = [lastAnswer];
-      expect(flash.getPossibleNextChallenges).to.have.been.calledWithExactly({
-        allAnswers,
-        challenges,
-        estimatedLevel,
-      });
-    });
-
-    it('should have returned the next challenge', function () {
-      // then
-      expect(actualNextChallenge.id).to.equal(challengeWeb22.id);
     });
   });
 });

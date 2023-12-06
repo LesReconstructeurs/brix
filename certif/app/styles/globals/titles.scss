@@ -1,14 +1,16 @@
 .page-title {
-  font-family: $font-roboto;
-  font-weight: 300;
-  font-size: 2.25rem;
-  color: $pix-neutral-80;
   margin: 24px 0;
+  color: $pix-neutral-90;
+  font-weight: 500;
+  font-size: 2.25rem;
+  font-family: $font-open-sans;
 }
 
 .form-title {
-  font-family: $font-open-sans;
+  margin: 16px 0;
+  color: $pix-neutral-100;
   font-weight: 300;
   font-size: 1.9rem;
-  color: $pix-neutral-100;
+  font-family: $font-open-sans;
+  text-align: center;
 }

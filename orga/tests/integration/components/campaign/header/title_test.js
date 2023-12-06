@@ -1,7 +1,7 @@
 import { module, test } from 'qunit';
 import setupIntlRenderingTest from '../../../../helpers/setup-intl-rendering';
 import { render } from '@ember/test-helpers';
-import hbs from 'htmlbars-inline-precompile';
+import { hbs } from 'ember-cli-htmlbars';
 
 module('Integration | Component | Campaign::Header::Title', function (hooks) {
   setupIntlRenderingTest(hooks);
@@ -16,7 +16,7 @@ module('Integration | Component | Campaign::Header::Title', function (hooks) {
     };
 
     // when
-    await render(hbs`<Campaign::Header::Title @campaign={{this.campaign}}/>`);
+    await render(hbs`<Campaign::Header::Title @campaign={{this.campaign}} />`);
 
     // then
     assert.contains('campagne 1');

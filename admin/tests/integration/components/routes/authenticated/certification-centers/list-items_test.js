@@ -1,7 +1,7 @@
 import { module, test } from 'qunit';
 import { setupRenderingTest } from 'ember-qunit';
 import { render } from '@ember/test-helpers';
-import hbs from 'htmlbars-inline-precompile';
+import { hbs } from 'ember-cli-htmlbars';
 
 module('Integration | Component | routes/authenticated/certification-centers | list-items', function (hooks) {
   setupRenderingTest(hooks);
@@ -28,7 +28,7 @@ module('Integration | Component | routes/authenticated/certification-centers | l
       hbs`<CertificationCenters::ListItems
   @certificationCenters={{this.certificationCenters}}
   @triggerFiltering={{this.triggerFiltering}}
-/>`
+/>`,
     );
 
     // then

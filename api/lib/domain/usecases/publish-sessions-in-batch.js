@@ -1,7 +1,9 @@
-const { v4: uuidv4 } = require('uuid');
-const { SessionPublicationBatchResult } = require('../models/SessionPublicationBatchResult');
+import { v4 as uuidv4 } from 'uuid';
 
-module.exports = async function publishSessionsInBatch({
+import { SessionPublicationBatchResult } from '../models/SessionPublicationBatchResult.js';
+
+const publishSessionsInBatch = async function ({
+  i18n,
   sessionIds,
   certificationCenterRepository,
   certificationRepository,
@@ -15,6 +17,7 @@ module.exports = async function publishSessionsInBatch({
   for (const sessionId of sessionIds) {
     try {
       await sessionPublicationService.publishSession({
+        i18n,
         sessionId,
         certificationRepository,
         certificationCenterRepository,
@@ -28,3 +31,5 @@ module.exports = async function publishSessionsInBatch({
   }
   return result;
 };
+
+export { publishSessionsInBatch };

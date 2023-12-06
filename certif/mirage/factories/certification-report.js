@@ -1,32 +1,32 @@
-import { Factory } from 'ember-cli-mirage';
-import faker from 'faker';
+import { Factory } from 'miragejs';
+import { faker } from '@faker-js/faker';
 
 export default Factory.extend({
   certificationCourseId() {
-    return faker.random.number();
+    return faker.number.int();
   },
 
   firstName() {
-    return faker.name.firstName();
+    return faker.person.firstName();
   },
 
   lastName() {
-    return faker.name.lastName();
+    return faker.person.lastName();
   },
 
   externalId() {
-    return faker.random.uuid();
+    return faker.string.uuid();
   },
 
   hasSeenEndTestScreen() {
-    return faker.random.boolean();
+    return faker.datatype.boolean();
   },
 
   isCompleted() {
-    return faker.random.boolean();
+    return faker.datatype.boolean();
   },
 
   abortReason() {
-    return faker.random.word();
+    return faker.lorem.word();
   },
 });

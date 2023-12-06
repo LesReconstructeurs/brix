@@ -1,11 +1,14 @@
-const _ = require('lodash');
-const {
+import _ from 'lodash';
+import { MAX_REACHABLE_LEVEL, MAX_REACHABLE_PIX_SCORE } from '../../../../lib/domain/constants.js';
+
+import {
   expect,
   generateValidRequestAuthorizationHeader,
   databaseBuilder,
   mockLearningContent,
-} = require('../../../test-helper');
-const createServer = require('../../../../server');
+} from '../../../test-helper.js';
+
+import { createServer } from '../../../../server.js';
 
 describe('Acceptance | Route | GET /users/{userId}/campaigns/{campaignId}/profile', function () {
   const userId = 100;
@@ -99,6 +102,8 @@ describe('Acceptance | Route | GET /users/{userId}/campaigns/{campaignId}/profil
               'pix-score': 2,
               'shared-at': sharedAt,
               'can-retry': false,
+              'max-reachable-level': MAX_REACHABLE_LEVEL,
+              'max-reachable-pix-score': MAX_REACHABLE_PIX_SCORE,
             },
             relationships: {
               scorecards: {

@@ -1,8 +1,11 @@
-const BadgeResult = require('./BadgeResult');
-const ReachedStage = require('./ReachedStage');
-const CompetenceResult = require('./CompetenceResult');
-const constants = require('../../constants');
-const moment = require('moment');
+import { BadgeResult } from './BadgeResult.js';
+import { CompetenceResult } from './CompetenceResult.js';
+import {
+  MINIMUM_DELAY_IN_DAYS_BEFORE_IMPROVING,
+  MAX_MASTERY_RATE,
+  MINIMUM_DELAY_IN_DAYS_BEFORE_RETRYING,
+} from '../../constants.js';
+import moment from 'moment';
 
 class AssessmentResult {
   constructor({
@@ -12,7 +15,8 @@ class AssessmentResult {
     isCampaignArchived,
     competences,
     badgeResultsDTO,
-    stages,
+    stageCollection,
+    flashScoringResults,
   }) {
     const { knowledgeElements, sharedAt, assessmentCreatedAt } = participationResults;
 
@@ -20,25 +24,41 @@ class AssessmentResult {
     this.isCompleted = participationResults.isCompleted;
     this.isShared = Boolean(participationResults.sharedAt);
     this.participantExternalId = participationResults.participantExternalId;
-    this.estimatedFlashLevel = participationResults.estimatedFlashLevel;
-    this.flashPixScore = participationResults.flashPixScore;
-
-    this.totalSkillsCount = competences.flatMap(({ skillIds }) => skillIds).length;
+    this.totalSkillsCount = competences.flatMap(({ targetedSkillIds }) => targetedSkillIds).length;
     this.testedSkillsCount = knowledgeElements.length;
     this.validatedSkillsCount = knowledgeElements.filter(({ isValidated }) => isValidated).length;
     this.masteryRate = this._computeMasteryRate(
       participationResults.masteryRate,
       this.isShared,
       this.totalSkillsCount,
-      this.validatedSkillsCount
+      this.validatedSkillsCount,
     );
 
-    this.competenceResults = competences.map((competence) => _buildCompetenceResults(competence, knowledgeElements));
+    this.competenceResults = competences.map(({ competence, area, targetedSkillIds }) => {
+      const competenceKnowledgeElements = knowledgeElements.filter(({ skillId }) => targetedSkillIds.includes(skillId));
+      const validatedSkillsCountForCompetence = competenceKnowledgeElements.filter(
+        ({ isValidated }) => isValidated,
+      ).length;
+      const masteryPercentage = Math.round((validatedSkillsCountForCompetence / targetedSkillIds.length) * 100);
+      let reachedStage;
+      if (stageCollection.totalStages > 0) {
+        reachedStage = stageCollection.getReachedStageIndex(validatedSkillsCountForCompetence, masteryPercentage);
+      }
+
+      return _buildCompetenceResult({
+        competence,
+        area,
+        targetedSkillIds,
+        competenceKnowledgeElements,
+        reachedStage,
+        masteryPercentage,
+      });
+    });
+
     this.badgeResults = badgeResultsDTO.map((badge) => new BadgeResult(badge, participationResults));
 
-    this.stageCount = stages.length;
-    if (stages.length > 0) {
-      this.reachedStage = new ReachedStage(this.masteryRate, stages);
+    if (stageCollection.totalStages > 0) {
+      this.reachedStage = stageCollection.getReachedStage(this.validatedSkillsCount, this.masteryRate * 100);
     }
     this.canImprove = this._computeCanImprove(knowledgeElements, assessmentCreatedAt, this.isShared);
     this.isDisabled = this._computeIsDisabled(isCampaignArchived, participationResults.isDeleted);
@@ -47,8 +67,23 @@ class AssessmentResult {
       sharedAt,
       isOrganizationLearnerActive,
       this.masteryRate,
-      this.isDisabled
+      this.isDisabled,
     );
+
+    if (flashScoringResults) {
+      this.estimatedFlashLevel = flashScoringResults.estimatedLevel;
+      this.flashPixScore = flashScoringResults.pixScore;
+      this.competenceResults = flashScoringResults.competencesWithPixScore.map(
+        ({ competence, area, pixScore }) =>
+          new CompetenceResult({
+            competence,
+            area,
+            totalSkillsCount: competence.skillIds.length,
+            knowledgeElements: [],
+            flashPixScore: pixScore,
+          }),
+      );
+    }
   }
 
   _computeMasteryRate(masteryRate, isShared, totalSkillsCount, validatedSkillsCount) {
@@ -67,7 +102,7 @@ class AssessmentResult {
       knowledgeElements.filter((knowledgeElement) => {
         const isOldEnoughToBeImproved =
           moment(assessmentCreatedAt).diff(knowledgeElement.createdAt, 'days', true) >=
-          constants.MINIMUM_DELAY_IN_DAYS_BEFORE_IMPROVING;
+          MINIMUM_DELAY_IN_DAYS_BEFORE_IMPROVING;
         return knowledgeElement.isInvalidated && isOldEnoughToBeImproved;
       }).length > 0;
     return isImprovementPossible && !isShared;
@@ -77,7 +112,7 @@ class AssessmentResult {
     return (
       isCampaignMultipleSendings &&
       this._timeBeforeRetryingPassed(sharedAt) &&
-      masteryRate < constants.MAX_MASTERY_RATE &&
+      masteryRate < MAX_MASTERY_RATE &&
       isOrganizationLearnerActive &&
       !isDisabled
     );
@@ -90,13 +125,26 @@ class AssessmentResult {
   _timeBeforeRetryingPassed(sharedAt) {
     const isShared = Boolean(sharedAt);
     if (!isShared) return false;
-    return sharedAt && moment().diff(sharedAt, 'days', true) >= constants.MINIMUM_DELAY_IN_DAYS_BEFORE_RETRYING;
+    return sharedAt && moment().diff(sharedAt, 'days', true) >= MINIMUM_DELAY_IN_DAYS_BEFORE_RETRYING;
   }
 }
 
-function _buildCompetenceResults(competence, knowledgeElements) {
-  const competenceKnowledgeElements = knowledgeElements.filter(({ skillId }) => competence.skillIds.includes(skillId));
-  return new CompetenceResult(competence, competenceKnowledgeElements);
+function _buildCompetenceResult({
+  competence,
+  area,
+  targetedSkillIds,
+  competenceKnowledgeElements,
+  reachedStage,
+  masteryPercentage,
+}) {
+  return new CompetenceResult({
+    competence,
+    area,
+    totalSkillsCount: targetedSkillIds.length,
+    knowledgeElements: competenceKnowledgeElements,
+    reachedStage,
+    masteryPercentage,
+  });
 }
 
-module.exports = AssessmentResult;
+export { AssessmentResult };

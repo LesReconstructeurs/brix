@@ -1,85 +1,61 @@
 import { module, test } from 'qunit';
 import sinon from 'sinon';
 
-import { click, fillIn, render, find } from '@ember/test-helpers';
+import { click, fillIn } from '@ember/test-helpers';
+import { fillByLabel, render } from '@1024pix/ember-testing-library';
 import Service from '@ember/service';
-import hbs from 'htmlbars-inline-precompile';
+import { hbs } from 'ember-cli-htmlbars';
 
 import setupIntlRenderingTest from '../../../helpers/setup-intl-rendering';
-import { clickByLabel } from '../../../helpers/click-by-label';
 
 module('Integration | Component | routes/login-form', function (hooks) {
   setupIntlRenderingTest(hooks);
 
   test('should ask for login and password', async function (assert) {
     // when
-    await render(hbs`<Routes::LoginForm/>`);
+    const screen = await render(hbs`<Routes::LoginForm/>`);
 
     // then
-    assert.dom('#login').exists();
-    assert.dom('#password').exists();
-  });
-
-  test('should not display error message', async function (assert) {
-    // when
-    await render(hbs`<Routes::LoginForm/>`);
-
-    // then
-    assert.dom('div[id="error-message"]').doesNotExist();
+    assert.dom(screen.getByRole('textbox', { name: 'Adresse e-mail ou identifiant' })).exists();
+    assert.dom(screen.getByLabelText('Mot de passe')).exists();
   });
 
   test('should display an error message when authentication fails', async function (assert) {
     // given
+    const errorResponse = {
+      status: 401,
+      responseJSON: {
+        errors: [{ status: '401' }],
+      },
+    };
+
     class SessionStub extends Service {
-      authenticate = sinon.stub().rejects();
+      authenticate = sinon.stub().rejects(errorResponse);
     }
     this.owner.register('service:session', SessionStub);
 
+    const screen = await render(hbs`<Routes::LoginForm/>`);
+    await fillByLabel('Adresse e-mail ou identifiant', 'pix@example.net');
+    await fillByLabel('Mot de passe', 'Mauvais mot de passe');
+
     //  when
-    await render(hbs`<Routes::LoginForm/>`);
-    await fillIn('#login', 'pix@example.net');
-    await fillIn('#password', 'Mauvais mot de passe');
-    await clickByLabel(this.intl.t('pages.login-or-register.login-form.button'));
+    await click(screen.getByRole('button', { name: this.intl.t('pages.login-or-register.login-form.button') }));
 
     // then
-    assert.dom('div[id="login-error-message"]').exists();
-    // TODO: Fix this the next time the file is edited.
-    // eslint-disable-next-line qunit/no-assert-equal
-    assert.equal(
-      find('#login-error-message').textContent,
-      "L'adresse e-mail ou l'identifiant et/ou le mot de passe saisis sont incorrects"
-    );
+    assert.dom(screen.getByText(this.intl.t('pages.login-or-register.login-form.error'))).exists();
   });
 
   test('should display password when user click', async function (assert) {
+    // given
+    const screen = await render(hbs`<Routes::LoginForm/>`);
+    const passwordInput = screen.getByLabelText('Mot de passe');
+    await fillIn(passwordInput, 'pix123');
+
     // when
-    await render(hbs`<Routes::LoginForm/>`);
-    await click('.form-textfield-icon__button');
+    await click(screen.getByRole('button', { name: 'Afficher le mot de passe' }));
 
     // then
-    // TODO: Fix this the next time the file is edited.
-    // eslint-disable-next-line qunit/no-assert-equal
-    assert.equal(find('#password').getAttribute('type'), 'text');
-  });
-
-  test('should change icon when user click on it', async function (assert) {
-    // when
-    await render(hbs`<Routes::LoginForm/>`);
-    await click('.form-textfield-icon__button');
-
-    // then
-    assert.dom('.fa-eye').exists();
-  });
-
-  test('should not change icon when user keeps typing his password', async function (assert) {
-    // when
-    await render(hbs`<Routes::LoginForm/>`);
-    await fillIn('#password', 'début du mot de passe');
-    await click('.form-textfield-icon__button');
-    await fillIn('#password', 'fin du mot de passe');
-
-    // then
-    assert.dom('.fa-eye').exists();
+    assert.dom(passwordInput).hasAttribute('type', 'text');
   });
 
   module('when there is no invitation', function () {
@@ -92,13 +68,12 @@ module('Integration | Component | routes/login-form', function (hooks) {
       const sessionServiceObserver = this.owner.lookup('service:session');
 
       // when
-      await render(hbs`<Routes::LoginForm/>`);
-      await fillIn('#login', 'pix@example.net');
-      await fillIn('#password', 'JeMeLoggue1024');
-      await clickByLabel(this.intl.t('pages.login-or-register.login-form.button'));
+      const screen = await render(hbs`<Routes::LoginForm/>`);
+      await fillIn(screen.getByRole('textbox', { name: 'Adresse e-mail ou identifiant' }), 'pix@example.net');
+      await fillIn(screen.getByLabelText('Mot de passe'), 'JeMeLoggue1024');
+      await click(screen.getByRole('button', { name: this.intl.t('pages.login-or-register.login-form.button') }));
 
       // then
-      assert.dom('.form-textfield__input--error').doesNotExist();
       sinon.assert.calledWith(sessionServiceObserver.authenticate, 'authenticator:oauth2', {
         login: 'pix@example.net',
         password: 'JeMeLoggue1024',
@@ -119,13 +94,12 @@ module('Integration | Component | routes/login-form', function (hooks) {
       const sessionServiceObserver = this.owner.lookup('service:session');
 
       //  when
-      await render(hbs`<Routes::LoginForm/>`);
-      await fillIn('#login', 'pix@example.net');
-      await fillIn('#password', 'JeMeLoggue1024');
-      await clickByLabel(this.intl.t('pages.login-or-register.login-form.button'));
+      const screen = await render(hbs`<Routes::LoginForm/>`);
+      await fillIn(screen.getByRole('textbox', { name: 'Adresse e-mail ou identifiant' }), 'pix@example.net');
+      await fillIn(screen.getByLabelText('Mot de passe'), 'JeMeLoggue1024');
+      await click(screen.getByRole('button', { name: this.intl.t('pages.login-or-register.login-form.button') }));
 
       // then
-      assert.dom('.form-textfield__input--error').doesNotExist();
       sinon.assert.calledWith(sessionServiceObserver.authenticate, 'authenticator:oauth2', {
         login: 'pix@example.net',
         password: 'JeMeLoggue1024',
@@ -167,10 +141,10 @@ module('Integration | Component | routes/login-form', function (hooks) {
       const routerObserver = this.owner.lookup('service:router');
 
       // when
-      await render(hbs`<Routes::LoginForm/>`);
-      await fillIn('#login', 'pix@example.net');
-      await fillIn('#password', 'Mauvais mot de passe');
-      await clickByLabel(this.intl.t('pages.login-or-register.login-form.button'));
+      const screen = await render(hbs`<Routes::LoginForm/>`);
+      await fillIn(screen.getByRole('textbox', { name: 'Adresse e-mail ou identifiant' }), 'pix@example.net');
+      await fillIn(screen.getByLabelText('Mot de passe'), 'Mauvais mot de passe');
+      await click(screen.getByRole('button', { name: this.intl.t('pages.login-or-register.login-form.button') }));
 
       // then
       sinon.assert.calledWith(routerObserver.replaceWith, 'update-expired-password');
@@ -215,20 +189,18 @@ module('Integration | Component | routes/login-form', function (hooks) {
       addGarAuthenticationMethodToUserStub.rejects(apiReturn);
       this.set('addGarAuthenticationMethodToUser', addGarAuthenticationMethodToUserStub);
 
-      await render(
-        hbs`<Routes::LoginForm @addGarAuthenticationMethodToUser={{this.addGarAuthenticationMethodToUser}} />`
+      const screen = await render(
+        hbs`<Routes::LoginForm @addGarAuthenticationMethodToUser={{this.addGarAuthenticationMethodToUser}} />`,
       );
 
-      await fillIn('#login', 'pix@example.net');
-      await fillIn('#password', 'JeMeLoggue1024');
+      await fillIn(screen.getByRole('textbox', { name: 'Adresse e-mail ou identifiant' }), 'pix@example.net');
+      await fillIn(screen.getByLabelText('Mot de passe'), 'JeMeLoggue1024');
 
       // when
-      await clickByLabel(this.intl.t('pages.login-or-register.login-form.button'));
+      await click(screen.getByRole('button', { name: this.intl.t('pages.login-or-register.login-form.button') }));
 
       // then
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(find('#update-form-error-message').textContent, expectedErrorMessage);
+      assert.dom(screen.getByText(expectedErrorMessage)).exists();
     });
 
     test('should display the default error message if update fails with other http error', async function (assert) {
@@ -247,20 +219,18 @@ module('Integration | Component | routes/login-form', function (hooks) {
 
       this.set('addGarAuthenticationMethodToUser', addGarAuthenticationMethodToUserStub);
 
-      await render(
-        hbs`<Routes::LoginForm @addGarAuthenticationMethodToUser={{this.addGarAuthenticationMethodToUser}} />`
+      const screen = await render(
+        hbs`<Routes::LoginForm @addGarAuthenticationMethodToUser={{this.addGarAuthenticationMethodToUser}} />`,
       );
 
-      await fillIn('#login', 'pix@example.net');
-      await fillIn('#password', 'JeMeLoggue1024');
+      await fillIn(screen.getByRole('textbox', { name: 'Adresse e-mail ou identifiant' }), 'pix@example.net');
+      await fillIn(screen.getByLabelText('Mot de passe'), 'JeMeLoggue1024');
 
       // when
-      await clickByLabel(this.intl.t('pages.login-or-register.login-form.button'));
+      await click(screen.getByRole('button', { name: this.intl.t('pages.login-or-register.login-form.button') }));
 
       // then
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(find('#update-form-error-message').textContent, expectedErrorMessage);
+      assert.dom(screen.getByText(expectedErrorMessage)).exists();
     });
 
     test('should display the specific error message if update fails with http error 409 and code UNEXPECTED_USER_ACCOUNT', async function (assert) {
@@ -283,20 +253,18 @@ module('Integration | Component | routes/login-form', function (hooks) {
       addGarAuthenticationMethodToUserStub.rejects(apiReturn);
       this.set('addGarAuthenticationMethodToUser', addGarAuthenticationMethodToUserStub);
 
-      await render(
-        hbs`<Routes::LoginForm @addGarAuthenticationMethodToUser={{this.addGarAuthenticationMethodToUser}} />`
+      const screen = await render(
+        hbs`<Routes::LoginForm @addGarAuthenticationMethodToUser={{this.addGarAuthenticationMethodToUser}} />`,
       );
 
-      await fillIn('#login', 'pix@example.net');
-      await fillIn('#password', 'JeMeLoggue1024');
+      await fillIn(screen.getByRole('textbox', { name: 'Adresse e-mail ou identifiant' }), 'pix@example.net');
+      await fillIn(screen.getByLabelText('Mot de passe'), 'JeMeLoggue1024');
 
       // when
-      await clickByLabel(this.intl.t('pages.login-or-register.login-form.button'));
+      await click(screen.getByRole('button', { name: this.intl.t('pages.login-or-register.login-form.button') }));
 
       // then
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(find('#update-form-error-message').textContent, expectedErrorMessage);
+      assert.dom(screen.getByText(expectedErrorMessage)).exists();
     });
   });
 });

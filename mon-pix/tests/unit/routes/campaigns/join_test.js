@@ -13,7 +13,15 @@ module('Unit | Route | Join', function (hooks) {
     route.router = { replaceWith: sinon.stub() };
   });
 
-  module('#beforeModel', function () {
+  module('#beforeModel', function (hooks) {
+    hooks.beforeEach(function () {
+      route = this.owner.lookup('route:campaigns.join');
+      route.session = {
+        prohibitAuthentication: sinon.stub(),
+      };
+      route.router = { replaceWith: sinon.stub() };
+    });
+
     test('should redirect to entry point when /rejoindre is directly set in the url', async function (assert) {
       //when
       await route.beforeModel({ from: null });
@@ -39,9 +47,8 @@ module('Unit | Route | Join', function (hooks) {
       await route.beforeModel({ from: 'campaigns.entry-point' });
 
       //then
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(route.routeIfAlreadyAuthenticated, 'campaigns.access');
+      assert.strictEqual(route.routeIfAlreadyAuthenticated, 'campaigns.access');
+      sinon.assert.calledWith(route.session.prohibitAuthentication, 'authenticated.user-dashboard');
     });
   });
 

@@ -1,4 +1,4 @@
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 import Controller from '@ember/controller';
 import { action } from '@ember/object';
 import { tracked } from '@glimmer/tracking';
@@ -6,23 +6,18 @@ import { tracked } from '@glimmer/tracking';
 export default class Team extends Controller {
   @service featureToggles;
   @service router;
+  @service notifications;
+  @service intl;
+
   @tracked shouldShowRefererSelectionModal = false;
   @tracked selectedReferer = '';
 
   get shouldDisplayNoRefererSection() {
-    return (
-      this.model.hasCleaHabilitation &&
-      _hasAtLeastOneMemberAndNoReferer(this.model.members) &&
-      this.featureToggles.featureToggles.isCleaResultsRetrievalByHabilitatedCertificationCentersEnabled
-    );
+    return this.model.hasCleaHabilitation && _hasAtLeastOneMemberAndNoReferer(this.model.members);
   }
 
   get shouldDisplayUpdateRefererButton() {
-    return (
-      this.model.hasCleaHabilitation &&
-      _hasAtLeastTwoMembersAndOneReferer(this.model.members) &&
-      this.featureToggles.featureToggles.isCleaResultsRetrievalByHabilitatedCertificationCentersEnabled
-    );
+    return this.model.hasCleaHabilitation && _hasAtLeastTwoMembersAndOneReferer(this.model.members);
   }
 
   get membersSelectOptionsSortedByLastName() {
@@ -43,9 +38,14 @@ export default class Team extends Controller {
     if (this.selectedReferer !== '') {
       const userId = this.selectedReferer;
       const member = this.model.members.toArray().find((member) => member.id === userId);
-      await member.updateReferer({ userId: member.id, isReferer: true });
-      this.shouldShowRefererSelectionModal = !this.shouldShowRefererSelectionModal;
-      this.send('refreshModel');
+
+      try {
+        await member.updateReferer({ userId: member.id, isReferer: true });
+        this.shouldShowRefererSelectionModal = !this.shouldShowRefererSelectionModal;
+        this.send('refreshModel');
+      } catch (responseError) {
+        this.notifications.error(this.intl.t('common.api-error-messages.internal-server-error'));
+      }
     }
   }
 

@@ -1,8 +1,7 @@
-const { expect, HttpTestServer, sinon, generateValidRequestAuthorizationHeader } = require('../../../test-helper');
-
-const securityPreHandlers = require('../../../../lib/application/security-pre-handlers');
-const frameworksController = require('../../../../lib/application/frameworks/frameworks-controller');
-const moduleUnderTest = require('../../../../lib/application/frameworks');
+import { expect, HttpTestServer, sinon, generateValidRequestAuthorizationHeader } from '../../../test-helper.js';
+import { securityPreHandlers } from '../../../../lib/application/security-pre-handlers.js';
+import { frameworksController } from '../../../../lib/application/frameworks/frameworks-controller.js';
+import * as moduleUnderTest from '../../../../lib/application/frameworks/index.js';
 
 describe('Unit | Application | Frameworks | Routes', function () {
   describe('GET /api/admin/frameworks', function () {
@@ -44,7 +43,7 @@ describe('Unit | Application | Frameworks | Routes', function () {
             h
               .response({ errors: new Error('forbidden') })
               .code(403)
-              .takeover()
+              .takeover(),
         );
       const httpTestServer = new HttpTestServer();
       await httpTestServer.register(moduleUnderTest);
@@ -96,7 +95,7 @@ describe('Unit | Application | Frameworks | Routes', function () {
             h
               .response({ errors: new Error('forbidden') })
               .code(403)
-              .takeover()
+              .takeover(),
         );
       const httpTestServer = new HttpTestServer();
       await httpTestServer.register(moduleUnderTest);

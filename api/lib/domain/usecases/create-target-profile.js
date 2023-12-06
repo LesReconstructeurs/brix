@@ -1,21 +1,25 @@
-const TargetProfileForCreation = require('../models/TargetProfileForCreation');
-const learningContentConversionService = require('../services/learning-content/learning-content-conversion-service');
+import { TargetProfileForCreation } from '../models/TargetProfileForCreation.js';
+import { TargetProfileCannotBeCreated } from '../errors.js';
 
-module.exports = async function createTargetProfile({
+const createTargetProfile = async function ({
   targetProfileCreationCommand,
   domainTransaction,
   targetProfileRepository,
+  organizationRepository,
 }) {
   const targetProfileForCreation = TargetProfileForCreation.fromCreationCommand(targetProfileCreationCommand);
-  const targetProfileId = await targetProfileRepository.createWithTubes({
+  try {
+    await organizationRepository.get(targetProfileForCreation.ownerOrganizationId);
+  } catch (error) {
+    throw new TargetProfileCannotBeCreated(
+      `Cannot create target profile for non existant organization id: ${targetProfileForCreation.ownerOrganizationId}`,
+    );
+  }
+
+  return targetProfileRepository.create({
     targetProfileForCreation,
     domainTransaction,
   });
-  const skills = await learningContentConversionService.findActiveSkillsForCappedTubes(targetProfileForCreation.tubes);
-  await targetProfileRepository.updateTargetProfileWithSkills({
-    targetProfileId,
-    skills,
-    domainTransaction,
-  });
-  return targetProfileId;
 };
+
+export { createTargetProfile };

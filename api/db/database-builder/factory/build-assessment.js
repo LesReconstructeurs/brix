@@ -1,10 +1,10 @@
-const buildCertificationCourse = require('./build-certification-course');
-const buildUser = require('./build-user');
-const databaseBuffer = require('../database-buffer');
-const Assessment = require('../../../lib/domain/models/Assessment');
-const _ = require('lodash');
+import { buildCertificationCourse } from './build-certification-course.js';
+import { buildUser } from './build-user.js';
+import { databaseBuffer } from '../database-buffer.js';
+import { Assessment } from '../../../lib/domain/models/Assessment.js';
+import _ from 'lodash';
 
-module.exports = function buildAssessment({
+const buildAssessment = function ({
   id = databaseBuffer.getNextId(),
   courseId = 'recDefaultCourseId',
   certificationCourseId,
@@ -53,3 +53,29 @@ module.exports = function buildAssessment({
     values,
   });
 };
+const buildPix1dAssessment = function ({
+  id = databaseBuffer.getNextId(),
+  type = Assessment.types.PIX1D_MISSION,
+  state = Assessment.states.STARTED,
+  createdAt = new Date('2020-01-01'),
+  updatedAt = new Date('2020-01-02'),
+  method = Assessment.methods.PIX1D,
+  missionId,
+} = {}) {
+  const values = {
+    id,
+    type,
+    state,
+    createdAt,
+    updatedAt,
+    method,
+    missionId,
+  };
+
+  return databaseBuffer.pushInsertable({
+    tableName: 'assessments',
+    values,
+  });
+};
+
+export { buildAssessment, buildPix1dAssessment };

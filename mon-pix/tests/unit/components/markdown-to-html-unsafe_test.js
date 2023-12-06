@@ -16,12 +16,10 @@ module('Unit | Component | markdown-to-html-unsafe', function (hooks) {
     ].forEach(({ markdown, expectedValue }) => {
       test(`${markdown} should return ${expectedValue}`, function (assert) {
         // when
-        component = createGlimmerComponent('component:markdown-to-html-unsafe', { markdown });
+        component = createGlimmerComponent('markdown-to-html-unsafe', { markdown });
 
         // then
-        // TODO: Fix this the next time the file is edited.
-        // eslint-disable-next-line qunit/no-assert-equal
-        assert.equal(component.html.string, expectedValue);
+        assert.strictEqual(component.html.toString(), expectedValue);
       });
     });
   });
@@ -39,12 +37,10 @@ module('Unit | Component | markdown-to-html-unsafe', function (hooks) {
     ].forEach(({ markdown, expectedValue }) => {
       test(`${markdown} should not be transform and return ${expectedValue}`, function (assert) {
         // when
-        component = createGlimmerComponent('component:markdown-to-html-unsafe', { markdown });
+        component = createGlimmerComponent('markdown-to-html-unsafe', { markdown });
 
         // then
-        // TODO: Fix this the next time the file is edited.
-        // eslint-disable-next-line qunit/no-assert-equal
-        assert.equal(component.html.string, expectedValue);
+        assert.strictEqual(component.html.toString(), expectedValue);
       });
     });
   });
@@ -54,13 +50,11 @@ module('Unit | Component | markdown-to-html-unsafe', function (hooks) {
     const html = '<a href="/test" rel="noopener noreferrer" target="_blank">Lien vers un site</a>';
 
     // when
-    component = createGlimmerComponent('component:markdown-to-html-unsafe', { markdown: html });
+    component = createGlimmerComponent('markdown-to-html-unsafe', { markdown: html });
 
     // then
     const expectedHtml = `<p>${html}</p>`;
-    // TODO: Fix this the next time the file is edited.
-    // eslint-disable-next-line qunit/no-assert-equal
-    assert.equal(component.html.string, expectedHtml);
+    assert.strictEqual(component.html.toString(), expectedHtml);
   });
 
   module('when extensions are passed in arguments', function () {
@@ -70,13 +64,11 @@ module('Unit | Component | markdown-to-html-unsafe', function (hooks) {
       const extensions = 'remove-paragraph-tags';
 
       // when
-      component = createGlimmerComponent('component:markdown-to-html-unsafe', { markdown, extensions });
+      component = createGlimmerComponent('markdown-to-html-unsafe', { markdown, extensions });
 
       // then
       const expectedHtml = '<h1 id="title1">Title 1</h1>\nCeci est un paragraphe.\n<img src="/images.png" alt="img" />';
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(component.html.string, expectedHtml);
+      assert.strictEqual(component.html.toString(), expectedHtml);
     });
   });
 });

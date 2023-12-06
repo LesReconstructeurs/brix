@@ -1,7 +1,7 @@
-const { expect, databaseBuilder } = require('../../../test-helper');
-const createServer = require('../../../../server');
-const jsonwebtoken = require('jsonwebtoken');
-const settings = require('../../../../lib/config');
+import { expect, databaseBuilder } from '../../../test-helper.js';
+import { createServer } from '../../../../server.js';
+import jsonwebtoken from 'jsonwebtoken';
+import { config as settings } from '../../../../lib/config.js';
 
 describe('Acceptance | Controller | session-controller-get-session-results-to-download', function () {
   describe('GET /api/sessions/download-all-results/{token}', function () {
@@ -49,7 +49,7 @@ describe('Acceptance | Controller | session-controller-get-session-results-to-do
             session_id: sessionId,
           },
           settings.authentication.secret,
-          { expiresIn: '30d' }
+          { expiresIn: '30d' },
         );
 
         const request = {

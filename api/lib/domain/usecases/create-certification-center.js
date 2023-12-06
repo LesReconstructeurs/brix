@@ -1,7 +1,7 @@
-const ComplementaryCertificationHabilitation = require('../models/ComplementaryCertificationHabilitation');
-const certificationCenterCreationValidator = require('../validators/certification-center-creation-validator');
+import { ComplementaryCertificationHabilitation } from '../models/ComplementaryCertificationHabilitation.js';
+import * as certificationCenterCreationValidator from '../validators/certification-center-creation-validator.js';
 
-module.exports = async function createCertificationCenter({
+const createCertificationCenter = async function ({
   certificationCenter,
   complementaryCertificationIds,
   complementaryCertificationHabilitationRepository,
@@ -33,3 +33,5 @@ module.exports = async function createCertificationCenter({
 
   return createdCertificationCenter;
 };
+
+export { createCertificationCenter };

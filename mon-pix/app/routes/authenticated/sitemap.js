@@ -1,4 +1,4 @@
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 import Route from '@ember/routing/route';
 
 export default class Sitemap extends Route {
@@ -14,7 +14,7 @@ export default class Sitemap extends Route {
         (scorecard = {
           competenceId: scorecard.competenceId,
           name: scorecard.name,
-        })
+        }),
     );
 
     return {

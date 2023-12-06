@@ -1,35 +1,38 @@
-const { AssessmentEndedError } = require('../errors');
-const smartRandom = require('../services/algorithm-methods/smart-random');
-const flash = require('../services/algorithm-methods/flash');
-const dataFetcher = require('../services/algorithm-methods/data-fetcher');
+import { AssessmentEndedError } from '../errors.js';
+import { FlashAssessmentAlgorithm } from '../models/FlashAssessmentAlgorithm.js';
 
-module.exports = async function getNextChallengeForCampaignAssessment({
+const getNextChallengeForCampaignAssessment = async function ({
   challengeRepository,
   answerRepository,
   flashAssessmentResultRepository,
   assessment,
   pickChallengeService,
   locale,
+  algorithmDataFetcherService,
+  smartRandom,
 }) {
   let algoResult;
 
   if (assessment.isFlash()) {
-    const inputValues = await dataFetcher.fetchForFlashCampaigns({
+    const { allAnswers, challenges, estimatedLevel } = await algorithmDataFetcherService.fetchForFlashCampaigns({
       assessmentId: assessment.id,
       answerRepository,
       challengeRepository,
       flashAssessmentResultRepository,
       locale,
     });
-    algoResult = flash.getPossibleNextChallenges({ ...inputValues });
 
-    if (algoResult.hasAssessmentEnded) {
-      throw new AssessmentEndedError();
-    }
+    const assessmentAlgorithm = new FlashAssessmentAlgorithm();
 
-    return assessment.chooseNextFlashChallenge(algoResult.possibleChallenges);
+    const possibleChallenges = assessmentAlgorithm.getPossibleNextChallenges({
+      allAnswers,
+      challenges,
+      estimatedLevel,
+    });
+
+    return pickChallengeService.chooseNextChallenge(assessment.id)({ possibleChallenges });
   } else {
-    const inputValues = await dataFetcher.fetchForCampaigns(...arguments);
+    const inputValues = await algorithmDataFetcherService.fetchForCampaigns(...arguments);
     algoResult = smartRandom.getPossibleSkillsForNextChallenge({ ...inputValues, locale });
 
     if (algoResult.hasAssessmentEnded) {
@@ -43,3 +46,5 @@ module.exports = async function getNextChallengeForCampaignAssessment({
     });
   }
 };
+
+export { getNextChallengeForCampaignAssessment };

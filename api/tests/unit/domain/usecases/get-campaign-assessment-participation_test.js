@@ -1,13 +1,23 @@
-const { expect, sinon, domainBuilder, catchErr } = require('../../../test-helper');
-const getCampaignAssessmentParticipation = require('../../../../lib/domain/usecases/get-campaign-assessment-participation');
-const { UserNotAuthorizedToAccessEntityError } = require('../../../../lib/domain/errors');
-const CampaignAssessmentParticipation = require('../../../../lib/domain/read-models/CampaignAssessmentParticipation');
+import { expect, sinon, domainBuilder, catchErr } from '../../../test-helper.js';
+import { getCampaignAssessmentParticipation } from '../../../../lib/domain/usecases/get-campaign-assessment-participation.js';
+import { UserNotAuthorizedToAccessEntityError } from '../../../../lib/domain/errors.js';
+import { CampaignAssessmentParticipation } from '../../../../lib/domain/read-models/CampaignAssessmentParticipation.js';
 
 describe('Unit | UseCase | get-campaign-assessment-participation', function () {
-  let campaignRepository, campaignAssessmentParticipationRepository, badgeAcquisitionRepository;
+  let campaignRepository;
+  let campaignAssessmentParticipationRepository;
+  let badgeAcquisitionRepository;
+  let stageCollectionRepository;
   let userId, campaignId, campaignParticipationId;
 
   beforeEach(function () {
+    stageCollectionRepository = { findStageCollection: sinon.stub() };
+    stageCollectionRepository.findStageCollection.resolves(
+      domainBuilder.buildStageCollectionForUserCampaignResults({
+        campaignId: 1,
+        stages: [],
+      }),
+    );
     campaignRepository = {
       checkIfUserOrganizationHasAccessToCampaign: sinon.stub(),
     };
@@ -47,6 +57,7 @@ describe('Unit | UseCase | get-campaign-assessment-participation', function () {
         campaignRepository,
         campaignAssessmentParticipationRepository,
         badgeAcquisitionRepository,
+        stageCollectionRepository,
       });
 
       // then
@@ -72,6 +83,7 @@ describe('Unit | UseCase | get-campaign-assessment-participation', function () {
         campaignRepository,
         campaignAssessmentParticipationRepository,
         badgeAcquisitionRepository,
+        stageCollectionRepository,
       });
 
       // then
@@ -97,6 +109,7 @@ describe('Unit | UseCase | get-campaign-assessment-participation', function () {
         campaignRepository,
         campaignAssessmentParticipationRepository,
         badgeAcquisitionRepository,
+        stageCollectionRepository,
       });
 
       // then

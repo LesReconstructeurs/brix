@@ -1,5 +1,7 @@
-const Joi = require('joi').extend(require('@joi/date'));
-const { validateEntity } = require('../validators/entity-validator');
+import BaseJoi from 'joi';
+import JoiDate from '@joi/date';
+const Joi = BaseJoi.extend(JoiDate);
+import { validateEntity } from '../validators/entity-validator.js';
 
 const validationSchema = Joi.object({
   id: Joi.number().integer().required(),
@@ -48,4 +50,4 @@ class OrganizationLearnerForAdmin {
   }
 }
 
-module.exports = OrganizationLearnerForAdmin;
+export { OrganizationLearnerForAdmin };

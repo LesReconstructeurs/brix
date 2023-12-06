@@ -1,14 +1,16 @@
-const { expect, sinon, hFake } = require('../../test-helper');
-const errorManager = require('../../../lib/application/error-manager');
-const { BaseHttpError } = require('../../../lib/application/http-errors');
-const { handleDomainAndHttpErrors } = require('../../../lib/application/pre-response-utils');
-
-const { DomainError } = require('../../../lib/domain/errors');
+import { expect, sinon, hFake } from '../../test-helper.js';
+import { BaseHttpError } from '../../../lib/application/http-errors.js';
+import { handleDomainAndHttpErrors } from '../../../lib/application/pre-response-utils.js';
+import { DomainError } from '../../../lib/domain/errors.js';
 
 describe('Unit | Application | PreResponse-utils', function () {
   describe('#handleDomainAndHttpErrors', function () {
+    let errorManager;
+
     beforeEach(function () {
-      sinon.stub(errorManager, 'handle').resolves();
+      errorManager = {
+        handle: sinon.stub().resolves(),
+      };
     });
 
     it('should continue the process when not DomainError or BaseHttpError', async function () {
@@ -21,7 +23,7 @@ describe('Unit | Application | PreResponse-utils', function () {
       const expectedString = 'Symbol(continue)';
 
       // when
-      const response = await handleDomainAndHttpErrors(request, hFake);
+      const response = await handleDomainAndHttpErrors(request, hFake, { errorManager });
 
       // then
       expect(typeof response).to.be.equal('symbol');
@@ -34,7 +36,7 @@ describe('Unit | Application | PreResponse-utils', function () {
       };
 
       // when
-      await handleDomainAndHttpErrors(request, hFake);
+      await handleDomainAndHttpErrors(request, hFake, { errorManager });
 
       // then
       expect(errorManager.handle).to.have.been.calledWithExactly(request, hFake, request.response);
@@ -46,7 +48,7 @@ describe('Unit | Application | PreResponse-utils', function () {
       };
 
       // when
-      await handleDomainAndHttpErrors(request, hFake);
+      await handleDomainAndHttpErrors(request, hFake, { errorManager });
 
       // then
       expect(errorManager.handle).to.have.been.calledWithExactly(request, hFake, request.response);

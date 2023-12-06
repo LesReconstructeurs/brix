@@ -1,5 +1,5 @@
 import { Factory, trait } from 'miragejs';
-import faker from 'faker';
+import { faker } from '@faker-js/faker';
 import sumBy from 'lodash/sumBy';
 
 function _addDefaultProfile(user, server) {
@@ -54,7 +54,7 @@ function _addDefaultScorecards(user, server) {
         remainingDaysBeforeReset: 0,
         remainingDaysBeforeImproving: 0,
         tutorials: [tutorial],
-      })
+      }),
     );
     scorecards.push(
       server.create('scorecard', {
@@ -83,7 +83,7 @@ function _addDefaultScorecards(user, server) {
         index: `${areas[1].code}.1`,
         remainingDaysBeforeReset: 5,
         remainingDaysBeforeImproving: 0,
-      })
+      }),
     );
     scorecards.push(
       server.create('scorecard', {
@@ -112,7 +112,7 @@ function _addDefaultScorecards(user, server) {
         index: `${areas[1].code}.2`,
         remainingDaysBeforeReset: null,
         remainingDaysBeforeImproving: null,
-      })
+      }),
     );
     scorecards.push(
       server.create('scorecard', {
@@ -141,7 +141,7 @@ function _addDefaultScorecards(user, server) {
         index: `${areas[1].code}.1`,
         remainingDaysBeforeReset: 0,
         remainingDaysBeforeImproving: 0,
-      })
+      }),
     );
     scorecards.push(
       server.create('scorecard', {
@@ -170,7 +170,7 @@ function _addDefaultScorecards(user, server) {
         index: `${areas[3].code}.1`,
         remainingDaysBeforeReset: 0,
         remainingDaysBeforeImproving: 3,
-      })
+      }),
     );
     scorecards.push(
       server.create('scorecard', {
@@ -199,7 +199,7 @@ function _addDefaultScorecards(user, server) {
         index: `${areas[3].code}.2`,
         remainingDaysBeforeReset: 0,
         remainingDaysBeforeImproving: 0,
-      })
+      }),
     );
     user.update({ scorecards });
   }
@@ -229,10 +229,10 @@ function _createTutorial(server) {
 
 export default Factory.extend({
   firstName() {
-    return faker.name.firstName();
+    return faker.person.firstName();
   },
   lastName() {
-    return faker.name.lastName();
+    return faker.person.lastName();
   },
   cgu() {
     return false;
@@ -243,29 +243,50 @@ export default Factory.extend({
   isAnonymous() {
     return false;
   },
+  hasSeenLevelSevenInfo() {
+    return false;
+  },
   shouldChangePassword: trait({
     shouldChangePassword: true,
   }),
   withEmail: trait({
     email: faker.internet.exampleEmail(),
-    password: faker.internet.password(),
+    password: 'Azerty123*',
   }),
   withUsername: trait({
     username: faker.internet.userName(),
-    password: faker.internet.password(),
+    password: 'Azerty123*',
   }),
   external: trait({
     lastName: 'Last',
     firstName: 'First',
     email: null,
     username: null,
-    password: faker.internet.password(),
+    password: 'Azerty123*',
   }),
   hasNotValidatedCgu: trait({
     cgu: false,
   }),
   hasSeenNewDashboardInfo: trait({
     hasSeenNewDashboardInfo: true,
+  }),
+  withMaxReachableLevelSeven: trait({
+    afterCreate(user, server) {
+      user.update({
+        profile: server.create('profile', {
+          maxReachableLevel: 7,
+        }),
+      });
+    },
+  }),
+  withMaxReachableLevelSix: trait({
+    afterCreate(user, server) {
+      user.update({
+        profile: server.create('profile', {
+          maxReachableLevel: 6,
+        }),
+      });
+    },
   }),
   withAssessmentParticipations: trait({
     hasAssessmentParticipations: true,
@@ -330,7 +351,7 @@ export default Factory.extend({
         type: 'autoformation',
         duration: '10:00:00',
         locale: 'fr-fr',
-        editorName: "Ministère de l'éducation nationale et de la jeunesse",
+        editorName: "Ministère de l'éducation nationale et de la jeunesse. Liberté égalité fraternité",
         editorLogoUrl: 'https://mon-logo.svg',
       });
       const anotherTraining = server.create('training', {
@@ -339,7 +360,7 @@ export default Factory.extend({
         type: 'webinaire',
         duration: '10:00:00',
         locale: 'fr-fr',
-        editorName: "Ministère de l'éducation nationale et de la jeunesse",
+        editorName: "Ministère de l'éducation nationale et de la jeunesse. Liberté égalité fraternité",
         editorLogoUrl: 'https://mon-logo.svg',
       });
       const trainings = [training, anotherTraining];

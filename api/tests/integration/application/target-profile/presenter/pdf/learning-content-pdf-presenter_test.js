@@ -1,18 +1,23 @@
-const { domainBuilder, expect, MockDate } = require('../../../../../test-helper');
-const { isSameBinary } = require('../../../../../tooling/binary-comparator');
-const learningContentPDFPresenter = require('../../../../../../lib/application/target-profiles/presenter/pdf/learning-content-pdf-presenter');
-const { addRandomSuffix } = require('pdf-lib/cjs/utils');
+import { domainBuilder, expect, MockDate, sinon } from '../../../../../test-helper.js';
+import { isSameBinary } from '../../../../../tooling/binary-comparator.js';
+import * as learningContentPDFPresenter from '../../../../../../lib/application/target-profiles/presenter/pdf/learning-content-pdf-presenter.js';
+import { writeFile } from 'fs/promises';
+import * as url from 'url';
+import pdfLibUtils from 'pdf-lib/cjs/utils/index.js';
+
+const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 
 const REWRITE_REFERENCE_FILE = false;
 
 describe('Integration | Application | Target-Profiles | Presenter | PDF | LearningContentPdfPresenter', function () {
+  this.timeout(3000);
+
   beforeEach(function () {
     _makePdfLibPredictable();
     MockDate.set(new Date('2020-12-01'));
   });
 
   afterEach(function () {
-    _restorePdfLib();
     MockDate.reset();
   });
 
@@ -25,7 +30,7 @@ describe('Integration | Application | Target-Profiles | Presenter | PDF | Learni
     const buffer = await learningContentPDFPresenter.present(
       learningContent,
       'Mon super Titre encore une fois beaucoup trop long pour tester un retour à la ligne aligné au centre',
-      'fr'
+      'fr',
     );
 
     await _writeFile(buffer, referencePdfPath);
@@ -33,7 +38,7 @@ describe('Integration | Application | Target-Profiles | Presenter | PDF | Learni
     // then
     expect(
       await isSameBinary(`${__dirname}/${referencePdfPath}`, buffer),
-      referencePdfPath + ' is not generated as expected'
+      referencePdfPath + ' is not generated as expected',
     ).to.be.true;
   });
 
@@ -46,7 +51,7 @@ describe('Integration | Application | Target-Profiles | Presenter | PDF | Learni
     const buffer = await learningContentPDFPresenter.present(
       learningContent,
       'My awesome super title yet again that is too long to test a carriage return align center',
-      'en'
+      'en',
     );
 
     await _writeFile(buffer, referencePdfPath);
@@ -54,7 +59,7 @@ describe('Integration | Application | Target-Profiles | Presenter | PDF | Learni
     // then
     expect(
       await isSameBinary(`${__dirname}/${referencePdfPath}`, buffer),
-      referencePdfPath + ' is not generated as expected'
+      referencePdfPath + ' is not generated as expected',
     ).to.be.true;
   });
 });
@@ -62,7 +67,6 @@ describe('Integration | Application | Target-Profiles | Presenter | PDF | Learni
 async function _writeFile(buffer, outputFilename) {
   // Note: to update the reference pdf, set REWRITE_REFERENCE_FILE to true.
   if (REWRITE_REFERENCE_FILE) {
-    const { writeFile } = require('fs/promises');
     await writeFile(`${__dirname}/${outputFilename}`, buffer);
   }
 }
@@ -81,11 +85,7 @@ function _makePdfLibPredictable() {
     return prefix + '-' + Math.floor(suffix);
   }
 
-  require('pdf-lib/cjs/utils').addRandomSuffix = autoIncrementSuffixByPrefix;
-}
-
-function _restorePdfLib() {
-  require('pdf-lib/cjs/utils').addRandomSuffix = addRandomSuffix;
+  sinon.stub(pdfLibUtils, 'addRandomSuffix').callsFake(autoIncrementSuffixByPrefix);
 }
 
 function _buildRichLearningContent() {
@@ -200,11 +200,11 @@ function _buildRichArea({
           id: `recTube_${areaIndex}_${competenceIndex}_${thematicIndex}_${tubeIndex}`,
           practicalTitle: mediumText.replace(
             '{placeholder}',
-            `Tube_${areaIndex}_${competenceIndex}_${thematicIndex}_${tubeIndex}`
+            `Tube_${areaIndex}_${competenceIndex}_${thematicIndex}_${tubeIndex}`,
           ),
           practicalDescription: superLongText.replace(
             '{placeholder}',
-            `Tube_${areaIndex}_${competenceIndex}_${thematicIndex}_${tubeIndex}`
+            `Tube_${areaIndex}_${competenceIndex}_${thematicIndex}_${tubeIndex}`,
           ),
         });
         thematic.tubes.push(tube);

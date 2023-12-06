@@ -1,15 +1,15 @@
-import { Factory, trait } from 'ember-cli-mirage';
-import faker from 'faker';
+import { Factory, trait } from 'miragejs';
+import { faker } from '@faker-js/faker';
 import dayjs from 'dayjs';
 import { CREATED, FINALIZED, IN_PROCESS, PROCESSED } from 'pix-admin/models/session';
 
 export default Factory.extend({
   certificationCenterName() {
-    return faker.company.companyName();
+    return faker.company.name();
   },
 
   certificationCenterExternalId() {
-    return faker.company.companyName();
+    return faker.company.name();
   },
 
   certificationCenterType() {
@@ -21,15 +21,15 @@ export default Factory.extend({
   },
 
   address() {
-    return faker.address.streetName();
+    return faker.location.street();
   },
 
   room() {
-    return faker.random.alphaNumeric(9);
+    return faker.string.alphanumeric(9);
   },
 
   examiner() {
-    return faker.company.companyName();
+    return faker.company.name();
   },
 
   date() {
@@ -38,9 +38,9 @@ export default Factory.extend({
 
   time() {
     return (
-      faker.datatype.number({ min: 0, max: 23 }).toString().padStart(2, '0') +
+      faker.number.int({ min: 0, max: 23 }).toString().padStart(2, '0') +
       ':' +
-      faker.datatype.number({ min: 0, max: 59 }).toString().padStart(2, '0')
+      faker.number.int({ min: 0, max: 59 }).toString().padStart(2, '0')
     );
   },
 
@@ -49,16 +49,16 @@ export default Factory.extend({
   },
 
   accessCode() {
-    return 'ABCDEF' + faker.datatype.number({ min: 100, max: 999 });
+    return 'ABCDEF' + faker.number.int({ min: 100, max: 999 });
   },
 
   description() {
-    return faker.random.words();
+    return faker.lorem.words();
   },
 
   examinerGlobalComment(i) {
     if (i % 2 === 0) {
-      return faker.random.words();
+      return faker.lorem.words();
     }
 
     return '';

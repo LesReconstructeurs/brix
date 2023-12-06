@@ -1,18 +1,109 @@
-const { expect, sinon, catchErr } = require('../../../../test-helper');
-const settings = require('../../../../../lib/config');
+import { expect, sinon, catchErr } from '../../../../test-helper.js';
+import { config as settings } from '../../../../../lib/config.js';
 
-const OidcAuthenticationService = require('../../../../../lib/domain/services/authentication/oidc-authentication-service');
-const jsonwebtoken = require('jsonwebtoken');
-const httpAgent = require('../../../../../lib/infrastructure/http/http-agent');
-const AuthenticationSessionContent = require('../../../../../lib/domain/models/AuthenticationSessionContent');
-const { InvalidExternalAPIResponseError } = require('../../../../../lib/domain/errors');
-const DomainTransaction = require('../../../../../lib/infrastructure/DomainTransaction');
-const UserToCreate = require('../../../../../lib/domain/models/UserToCreate');
-const AuthenticationMethod = require('../../../../../lib/domain/models/AuthenticationMethod');
-const OidcIdentityProviders = require('../../../../../lib/domain/constants/oidc-identity-providers');
-const monitoringTools = require('../../../../../lib/infrastructure/monitoring-tools');
+import { OidcAuthenticationService } from '../../../../../lib/domain/services/authentication/oidc-authentication-service.js';
+import jsonwebtoken from 'jsonwebtoken';
+import { httpAgent } from '../../../../../lib/infrastructure/http/http-agent.js';
+import { AuthenticationSessionContent } from '../../../../../lib/domain/models/AuthenticationSessionContent.js';
+
+import {
+  InvalidExternalAPIResponseError,
+  OidcInvokingTokenEndpointError,
+  OidcMissingFieldsError,
+  OidcUserInfoFormatError,
+} from '../../../../../lib/domain/errors.js';
+
+import { DomainTransaction } from '../../../../../lib/infrastructure/DomainTransaction.js';
+import { UserToCreate } from '../../../../../lib/domain/models/UserToCreate.js';
+import { AuthenticationMethod } from '../../../../../lib/domain/models/AuthenticationMethod.js';
+import * as OidcIdentityProviders from '../../../../../lib/domain/constants/oidc-identity-providers.js';
+import { monitoringTools } from '../../../../../lib/infrastructure/monitoring-tools.js';
+import { OIDC_ERRORS } from '../../../../../lib/domain/constants.js';
 
 describe('Unit | Domain | Services | oidc-authentication-service', function () {
+  describe('#isReady', function () {
+    describe('when configKey is set', function () {
+      describe('when enabled in config', function () {
+        describe('when config is valid', function () {
+          it('returns true', function () {
+            // given
+            settings.someOidcProviderService = {
+              isEnabled: true,
+              clientId: 'anId',
+              clientSecret: 'aSecret',
+              authenticationUrl: 'https://example.net',
+              userInfoUrl: 'https://example.net',
+              tokenUrl: 'https://example.net',
+              aProperty: 'aValue',
+            };
+            const oidcAuthenticationService = new OidcAuthenticationService({
+              configKey: 'someOidcProviderService',
+              additionalRequiredProperties: ['aProperty'],
+            });
+
+            // when
+            const result = oidcAuthenticationService.isReady;
+
+            // then
+            expect(result).to.be.true;
+          });
+        });
+
+        describe('when config is invalid', function () {
+          it('returns false', function () {
+            // given
+            settings.someOidcProviderService = {
+              isEnabled: true,
+            };
+            const oidcAuthenticationService = new OidcAuthenticationService({
+              configKey: 'someOidcProviderService',
+            });
+
+            // when
+            const result = oidcAuthenticationService.isReady;
+
+            // then
+            expect(result).to.be.false;
+          });
+        });
+      });
+
+      describe('when not enabled in config', function () {
+        it('returns false', function () {
+          // given
+          settings.someOidcProviderService = {
+            isEnabled: false,
+          };
+          const oidcAuthenticationService = new OidcAuthenticationService({
+            configKey: 'someOidcProviderService',
+          });
+
+          // when
+          const result = oidcAuthenticationService.isReady;
+
+          // then
+          expect(result).to.be.false;
+        });
+      });
+    });
+
+    describe('when configKey is not set', function () {
+      it('returns false', function () {
+        // given
+        settings.someOidcProviderService = {
+          isEnabled: true,
+        };
+        const oidcAuthenticationService = new OidcAuthenticationService({});
+
+        // when
+        const result = oidcAuthenticationService.isReady;
+
+        // then
+        expect(result).to.be.false;
+      });
+    });
+  });
+
   describe('#createAccessToken', function () {
     it('should create access token with user id', function () {
       // given
@@ -60,13 +151,26 @@ describe('Unit | Domain | Services | oidc-authentication-service', function () {
     });
   });
 
-  describe('#isUserInfoContentContainsMissingFields', function () {
+  describe('#getRedirectLogoutUrl', function () {
+    it('returns null', function () {
+      // given
+      const oidcAuthenticationService = new OidcAuthenticationService({});
+
+      // when
+      const result = oidcAuthenticationService.getRedirectLogoutUrl();
+
+      // then
+      expect(result).to.be.null;
+    });
+  });
+
+  describe('#getUserInfoMissingFields', function () {
     it('should return a message with missing fields list', async function () {
       // given
       const oidcAuthenticationService = new OidcAuthenticationService({});
 
       // when
-      const response = await oidcAuthenticationService.isUserInfoContentContainsMissingFields({
+      const response = await oidcAuthenticationService.getUserInfoMissingFields({
         userInfoContent: {
           given_name: 'givenName',
           family_name: undefined,
@@ -84,7 +188,7 @@ describe('Unit | Domain | Services | oidc-authentication-service', function () {
       const oidcAuthenticationService = new OidcAuthenticationService({});
 
       // when
-      const response = await oidcAuthenticationService.isUserInfoContentContainsMissingFields({
+      const response = await oidcAuthenticationService.getUserInfoMissingFields({
         userInfoContent: {
           given_name: 'givenName',
           family_name: 'familyName',
@@ -143,6 +247,7 @@ describe('Unit | Domain | Services | oidc-authentication-service', function () {
         url: 'http://oidc.net/api/token',
         payload: expectedData,
         headers: expectedHeaders,
+        timeout: settings.partner.fetchTimeOut,
       });
       expect(result).to.be.an.instanceOf(AuthenticationSessionContent);
       expect(result).to.deep.equal(oidcAuthenticationSessionContent);
@@ -172,14 +277,14 @@ describe('Unit | Domain | Services | oidc-authentication-service', function () {
         // when
         const error = await catchErr(
           oidcAuthenticationService.exchangeCodeForTokens,
-          oidcAuthenticationService
+          oidcAuthenticationService,
         )({
           code: 'AUTH_CODE',
           redirectUri: 'pix.net/connexion/oidc',
         });
 
         // then
-        expect(error).to.be.an.instanceOf(InvalidExternalAPIResponseError);
+        expect(error).to.be.an.instanceOf(OidcInvokingTokenEndpointError);
         expect(error.message).to.equal('Erreur lors de la récupération des tokens du partenaire.');
         expect(monitoringTools.logErrorWithCorrelationIds).to.have.been.calledWith({
           message: {
@@ -225,6 +330,28 @@ describe('Unit | Domain | Services | oidc-authentication-service', function () {
       expect(queryParams.get('scope')).to.equal('openid profile');
       expect(queryParams.get('realm')).to.equal('/individu');
     });
+
+    describe('when config is missing', function () {
+      it('should throw an error', async function () {
+        // given
+        const redirectUri = 'https://example.org/please-redirect-to-me';
+
+        const oidcAuthenticationService = new OidcAuthenticationService({});
+
+        // when
+        let errorResponse;
+        try {
+          await oidcAuthenticationService.getAuthenticationUrl({
+            redirectUri,
+          });
+        } catch (error) {
+          errorResponse = error;
+        }
+
+        // then
+        expect(errorResponse.code).to.be.equal('ERR_INVALID_URL');
+      });
+    });
   });
 
   describe('#getUserInfo', function () {
@@ -235,7 +362,7 @@ describe('Unit | Domain | Services | oidc-authentication-service', function () {
           {
             ...payload,
           },
-          'secret'
+          'secret',
         );
       }
 
@@ -271,9 +398,10 @@ describe('Unit | Domain | Services | oidc-authentication-service', function () {
             {
               ...payload,
             },
-            'secret'
+            'secret',
           );
         }
+
         const idToken = generateIdToken({
           nonce: 'bb041272-d6e6-457c-99fb-ff1aa02217fd',
           sub: '094b83ac-2e20-4aa8-b438-0bc91748e4a6',
@@ -307,7 +435,11 @@ describe('Unit | Domain | Services | oidc-authentication-service', function () {
       // given
       sinon
         .stub(httpAgent, 'get')
-        .withArgs({ url: userInfoUrl, headers: { Authorization: `Bearer ${accessToken}` } })
+        .withArgs({
+          url: userInfoUrl,
+          headers: { Authorization: `Bearer ${accessToken}` },
+          timeout: settings.partner.fetchTimeOut,
+        })
         .resolves({
           isSuccessful: true,
           data: {
@@ -350,7 +482,11 @@ describe('Unit | Domain | Services | oidc-authentication-service', function () {
         };
         sinon
           .stub(httpAgent, 'get')
-          .withArgs({ url: userInfoUrl, headers: { Authorization: `Bearer ${accessToken}` } })
+          .withArgs({
+            url: userInfoUrl,
+            headers: { Authorization: `Bearer ${accessToken}` },
+            timeout: settings.partner.fetchTimeOut,
+          })
           .resolves({ isSuccessful: false, code: axiosError.response.status, data: axiosError.response.data });
         // See api/lib/infrastructure/http/http-agent.js to understand, axios can throw an error but httpAgent.get map it into an http response
         const oidcAuthenticationService = new OidcAuthenticationService({ userInfoUrl, accessToken });
@@ -369,7 +505,7 @@ describe('Unit | Domain | Services | oidc-authentication-service', function () {
         // then
         expect(errorResponse).to.be.instanceOf(InvalidExternalAPIResponseError);
         expect(errorResponse.message).to.be.equal(
-          'Une erreur est survenue en récupérant les informations des utilisateurs.'
+          'Une erreur est survenue en récupérant les informations des utilisateurs.',
         );
         expect(monitoringTools.logErrorWithCorrelationIds).to.have.been.calledWith({
           message: {
@@ -386,25 +522,39 @@ describe('Unit | Domain | Services | oidc-authentication-service', function () {
         sinon.stub(monitoringTools, 'logErrorWithCorrelationIds');
         sinon
           .stub(httpAgent, 'get')
-          .withArgs({ url: userInfoUrl, headers: { Authorization: `Bearer ${accessToken}` } })
+          .withArgs({
+            url: userInfoUrl,
+            headers: { Authorization: `Bearer ${accessToken}` },
+            timeout: settings.partner.fetchTimeOut,
+          })
           .resolves({
             isSuccessful: true,
             data: '',
           });
-        const oidcAuthenticationService = new OidcAuthenticationService({ userInfoUrl: 'userInfoUrl' });
+        const organizationName = 'Organization Name';
+        const oidcAuthenticationService = new OidcAuthenticationService({
+          userInfoUrl: 'userInfoUrl',
+          organizationName,
+        });
 
         // when
-        const error = await catchErr(oidcAuthenticationService.getUserInfoFromEndpoint)({
+        const error = await catchErr(
+          oidcAuthenticationService.getUserInfoFromEndpoint,
+          oidcAuthenticationService,
+        )({
           accessToken,
           userInfoUrl,
         });
 
         // then
-        expect(error).to.be.instanceOf(InvalidExternalAPIResponseError);
-        expect(error.message).to.be.equal('Les informations utilisateur récupérées ne sont pas au format attendu.');
+        expect(error).to.be.instanceOf(OidcUserInfoFormatError);
+        expect(error.message).to.be.equal(
+          `Les informations utilisateur renvoyées par votre fournisseur d'identité ${organizationName} ne sont pas au format attendu.`,
+        );
+        expect(error.code).to.be.equal(OIDC_ERRORS.USER_INFO.badResponseFormat.code);
         expect(monitoringTools.logErrorWithCorrelationIds).to.have.been.calledWith({
           message: {
-            message: 'Les informations utilisateur récupérées ne sont pas au format attendu.',
+            message: `Les informations utilisateur renvoyées par votre fournisseur d'identité ${organizationName} ne sont pas au format attendu.`,
             typeOfUserInfoContent: 'string',
             userInfoContent: '',
           },
@@ -418,7 +568,11 @@ describe('Unit | Domain | Services | oidc-authentication-service', function () {
         sinon.stub(monitoringTools, 'logErrorWithCorrelationIds');
         sinon
           .stub(httpAgent, 'get')
-          .withArgs({ url: userInfoUrl, headers: { Authorization: `Bearer ${accessToken}` } })
+          .withArgs({
+            url: userInfoUrl,
+            headers: { Authorization: `Bearer ${accessToken}` },
+            timeout: settings.partner.fetchTimeOut,
+          })
           .resolves({
             isSuccessful: true,
             data: {
@@ -428,23 +582,32 @@ describe('Unit | Domain | Services | oidc-authentication-service', function () {
               sub: '094b83ac-2e20-4aa8-b438-0bc91748e4a6',
             },
           });
-        const oidcAuthenticationService = new OidcAuthenticationService({ userInfoUrl, accessToken });
+        const organizationName = 'Organization Name';
+        const oidcAuthenticationService = new OidcAuthenticationService({ userInfoUrl, accessToken, organizationName });
+        const errorMessage = `Un ou des champs obligatoires (Champs manquants : family_name) n'ont pas été renvoyés par votre fournisseur d'identité ${organizationName}.`;
 
         // when
         const error = await catchErr(
           oidcAuthenticationService.getUserInfoFromEndpoint,
-          oidcAuthenticationService
+          oidcAuthenticationService,
         )({
           accessToken: 'accessToken',
           userInfoUrl: 'userInfoUrl',
         });
 
         // then
-        expect(error).to.be.instanceOf(InvalidExternalAPIResponseError);
-        expect(error.message).to.be.equal('Les informations utilisateurs récupérées sont incorrectes.');
+        expect(error).to.be.instanceOf(OidcMissingFieldsError);
+        expect(error.message).to.be.equal(errorMessage);
+        expect(error.code).to.be.equal(OIDC_ERRORS.USER_INFO.missingFields.code);
         expect(monitoringTools.logErrorWithCorrelationIds).to.have.been.calledWith({
-          message: "Un des champs obligatoires n'a pas été renvoyé",
+          message: errorMessage,
           missingFields: 'Champs manquants : family_name',
+          userInfoContent: {
+            given_name: 'givenName',
+            family_name: undefined,
+            nonce: 'bb041272-d6e6-457c-99fb-ff1aa02217fd',
+            sub: '094b83ac-2e20-4aa8-b438-0bc91748e4a6',
+          },
         });
       });
     });
@@ -468,40 +631,38 @@ describe('Unit | Domain | Services | oidc-authentication-service', function () {
       };
     });
 
-    describe('#createUserAccount', function () {
-      it('should return user id', async function () {
-        // given
-        const externalIdentityId = '1233BBBC';
-        const user = new UserToCreate({
-          firstName: 'Adam',
-          lastName: 'Troisjours',
-        });
-        const userId = 1;
-        userToCreateRepository.create.withArgs({ user, domainTransaction }).resolves({ id: userId });
-
-        const identityProvider = OidcIdentityProviders.CNAV.code;
-        const expectedAuthenticationMethod = new AuthenticationMethod({
-          identityProvider,
-          externalIdentifier: externalIdentityId,
-          userId,
-        });
-        const oidcAuthenticationService = new OidcAuthenticationService({ identityProvider });
-
-        // when
-        const result = await oidcAuthenticationService.createUserAccount({
-          user,
-          externalIdentityId,
-          userToCreateRepository,
-          authenticationMethodRepository,
-        });
-
-        // then
-        expect(authenticationMethodRepository.create).to.have.been.calledWith({
-          authenticationMethod: expectedAuthenticationMethod,
-          domainTransaction,
-        });
-        expect(result).to.be.deep.equal({ userId });
+    it('returns created user id', async function () {
+      // given
+      const externalIdentityId = '1233BBBC';
+      const user = new UserToCreate({
+        firstName: 'Adam',
+        lastName: 'Troisjours',
       });
+      const userId = 1;
+      userToCreateRepository.create.withArgs({ user, domainTransaction }).resolves({ id: userId });
+
+      const identityProvider = OidcIdentityProviders.CNAV.code;
+      const expectedAuthenticationMethod = new AuthenticationMethod({
+        identityProvider,
+        externalIdentifier: externalIdentityId,
+        userId,
+      });
+      const oidcAuthenticationService = new OidcAuthenticationService({ identityProvider });
+
+      // when
+      const result = await oidcAuthenticationService.createUserAccount({
+        externalIdentityId,
+        user,
+        authenticationMethodRepository,
+        userToCreateRepository,
+      });
+
+      // then
+      expect(authenticationMethodRepository.create).to.have.been.calledWith({
+        authenticationMethod: expectedAuthenticationMethod,
+        domainTransaction,
+      });
+      expect(result).to.equal(userId);
     });
   });
 });

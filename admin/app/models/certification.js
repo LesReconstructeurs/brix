@@ -18,7 +18,6 @@ export const certificationStatuses = [
   { value: ERROR, label: 'En erreur' },
   { value: 'validated', label: 'Validée' },
   { value: 'rejected', label: 'Rejetée' },
-  { value: 'cancelled', label: 'Annulée' },
 ];
 
 export default class Certification extends Model {
@@ -35,6 +34,7 @@ export default class Certification extends Model {
   @attr() birthPostalCode;
   @attr() createdAt;
   @attr() completedAt;
+  @attr() isCancelled;
   @attr() status;
   @attr() juryId;
   @attr('string') commentForCandidate;
@@ -43,11 +43,12 @@ export default class Certification extends Model {
   @attr() pixScore;
   @attr() competencesWithMark;
   @attr('boolean', { defaultValue: false }) isPublished;
-  @belongsTo('complementary-certification-course-results-with-external')
-  complementaryCertificationCourseResultsWithExternal;
+  @attr('number') version;
+  @belongsTo('complementary-certification-course-result-with-external')
+  complementaryCertificationCourseResultWithExternal;
+  @belongsTo('common-complementary-certification-course-result') commonComplementaryCertificationCourseResult;
 
   @hasMany('certification-issue-report') certificationIssueReports;
-  @hasMany('common-complementary-certification-course-result') commonComplementaryCertificationCourseResults;
 
   @computed('createdAt')
   get creationDate() {
@@ -72,8 +73,8 @@ export default class Certification extends Model {
 
   get hasComplementaryCertifications() {
     return (
-      Boolean(this.commonComplementaryCertificationCourseResults.length) ||
-      Boolean(this.complementaryCertificationCourseResultsWithExternal.get('pixResult'))
+      Boolean(this.commonComplementaryCertificationCourseResult.content) ||
+      Boolean(this.complementaryCertificationCourseResultWithExternal.get('pixResult'))
     );
   }
 

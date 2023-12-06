@@ -1,4 +1,5 @@
-import { currentURL, visit } from '@ember/test-helpers';
+import { currentURL } from '@ember/test-helpers';
+import { visit } from '@1024pix/ember-testing-library';
 import { module, test } from 'qunit';
 import { authenticate } from '../helpers/authentication';
 import { setupApplicationTest } from 'ember-qunit';
@@ -22,9 +23,7 @@ module('Acceptance | Error page', function (hooks) {
     await visit('/mes-certifications');
 
     // then
-    // TODO: Fix this the next time the file is edited.
-    // eslint-disable-next-line qunit/no-assert-equal
-    assert.equal(currentURL(), '/mes-certifications');
+    assert.strictEqual(currentURL(), '/mes-certifications');
     assert.dom('.error-page').exists();
   });
 });

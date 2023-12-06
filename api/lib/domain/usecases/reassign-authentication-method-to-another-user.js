@@ -1,6 +1,6 @@
-const { AuthenticationMethodAlreadyExistsError } = require('../errors');
+import { AuthenticationMethodAlreadyExistsError } from '../errors.js';
 
-module.exports = async function reassignAuthenticationMethodToAnotherUser({
+const reassignAuthenticationMethodToAnotherUser = async function ({
   originUserId,
   targetUserId,
   authenticationMethodId,
@@ -28,6 +28,8 @@ module.exports = async function reassignAuthenticationMethodToAnotherUser({
   });
 };
 
+export { reassignAuthenticationMethodToAnotherUser };
+
 async function _checkIfTargetUserExists({ targetUserId, userRepository }) {
   await userRepository.get(targetUserId);
 }
@@ -39,12 +41,12 @@ async function _checkIfTargetUserHasAlreadyAMethodWithIdentityProvider({
 }) {
   const targetUserAuthenticationMethods = await authenticationMethodRepository.findByUserId({ userId: targetUserId });
   const hasTargetAnAuthenticationMethodWithProvider = targetUserAuthenticationMethods.find(
-    (authenticationMethod) => authenticationMethod.identityProvider === identityProviderToReassign
+    (authenticationMethod) => authenticationMethod.identityProvider === identityProviderToReassign,
   );
 
   if (hasTargetAnAuthenticationMethodWithProvider) {
     throw new AuthenticationMethodAlreadyExistsError(
-      `L'utilisateur ${targetUserId} a déjà une méthode de connexion ${identityProviderToReassign}.`
+      `L'utilisateur ${targetUserId} a déjà une méthode de connexion ${identityProviderToReassign}.`,
     );
   }
 }

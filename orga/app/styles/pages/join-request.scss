@@ -1,64 +1,65 @@
 .join-request {
   display: flex;
   flex-direction: column;
-  width: 100%;
-  min-height: 100%;
-  background: $pix-orga-old-gradient;
   align-items: center;
   justify-content: center;
+  width: 100%;
+  min-height: 100%;
+  background: $pix-secondary-orga-gradient;
 
   a {
-    color: $pix-communication-dark;
-
-    &:visited {
-      color: $pix-communication-dark;
-    }
+    text-decoration: underline;
   }
 
   &__panel {
     display: flex;
     flex-direction: column;
-    border-radius: 0;
     padding: 32px 10px 20px;
+    border-radius: 0;
 
     @include device-is('tablet') {
-      padding: 32px 67px 20px;
       margin: 10px 0;
+      padding: 32px 67px 20px;
       border-radius: 10px;
     }
   }
 
   &__title {
-    font-family: $font-open-sans;
-    font-size: 2rem;
-    letter-spacing: 0.009375rem;
-    line-height: 2.6875rem;
-    font-weight: 300;
-    text-align: center;
     margin: 14px 0;
+    font-weight: 300;
+    font-size: 2rem;
+    font-family: $font-open-sans;
+    line-height: 2.6875rem;
+    letter-spacing: 0.009375rem;
+    text-align: center;
   }
 
   &__description {
-    font-family: $font-roboto;
-    text-align: center;
     max-width: 497px;
-    font-size: 0.875rem;
     font-weight: 400;
+    font-size: 0.875rem;
+    font-family: $font-roboto;
     line-height: 1.25rem;
+    text-align: center;
   }
 
   &__error-message {
     max-width: 497px;
+    margin-top: $pix-spacing-m;
     margin-bottom: 24px;
     font-size: 0.875rem;
     text-align: center;
   }
 
   &__success {
-    text-align: center;
-    color: $pix-neutral-90;
-    letter-spacing: 0.15px;
     margin-top: 54px;
     margin-bottom: 24px;
+    color: $pix-neutral-90;
+    letter-spacing: 0.15px;
+    text-align: center;
+  }
+
+  .pix-button {
+    width: 100%;
   }
 }

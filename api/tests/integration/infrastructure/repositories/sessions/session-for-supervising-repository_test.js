@@ -1,9 +1,9 @@
-const { databaseBuilder, expect, catchErr } = require('../../../../test-helper');
-const _ = require('lodash');
-const { NotFoundError } = require('../../../../../lib/domain/errors');
-const SessionForSupervising = require('../../../../../lib/domain/read-models/SessionForSupervising');
-const sessionForSupervisingRepository = require('../../../../../lib/infrastructure/repositories/sessions/session-for-supervising-repository');
-const Assessment = require('../../../../../lib/domain/models/Assessment');
+import { databaseBuilder, expect, catchErr } from '../../../../test-helper.js';
+import _ from 'lodash';
+import { NotFoundError } from '../../../../../lib/domain/errors.js';
+import { SessionForSupervising } from '../../../../../lib/domain/read-models/SessionForSupervising.js';
+import * as sessionForSupervisingRepository from '../../../../../lib/infrastructure/repositories/sessions/session-for-supervising-repository.js';
+import { Assessment } from '../../../../../lib/domain/models/Assessment.js';
 
 describe('Integration | Repository | SessionForSupervising', function () {
   describe('#get', function () {
@@ -36,7 +36,7 @@ describe('Integration | Repository | SessionForSupervising', function () {
           date: '2018-02-23',
           time: '12:00:00',
           certificationCandidates: [],
-        })
+        }),
       );
     });
 
@@ -52,18 +52,24 @@ describe('Integration | Repository | SessionForSupervising', function () {
         certificationCenterId: 1234,
       });
 
+      databaseBuilder.factory.buildUser({ id: 11111 });
       databaseBuilder.factory.buildCertificationCandidate({
+        userId: 11111,
         lastName: 'Jackson',
         firstName: 'Michael',
         sessionId: session.id,
         authorizedToStart: true,
       });
+      databaseBuilder.factory.buildUser({ id: 22222 });
       databaseBuilder.factory.buildCertificationCandidate({
+        userId: 22222,
         lastName: 'Stardust',
         firstName: 'Ziggy',
         sessionId: session.id,
       });
+      databaseBuilder.factory.buildUser({ id: 33333 });
       databaseBuilder.factory.buildCertificationCandidate({
+        userId: 33333,
         lastName: 'Jackson',
         firstName: 'Janet',
         sessionId: session.id,
@@ -95,10 +101,19 @@ describe('Integration | Repository | SessionForSupervising', function () {
 
       // then
       const actualCandidates = _.map(actualSession.certificationCandidates, (item) =>
-        _.pick(item, ['sessionId', 'lastName', 'firstName', 'authorizedToStart', 'assessmentStatus', 'startDateTime'])
+        _.pick(item, [
+          'userId',
+          'sessionId',
+          'lastName',
+          'firstName',
+          'authorizedToStart',
+          'assessmentStatus',
+          'startDateTime',
+        ]),
       );
       expect(actualCandidates).to.have.deep.ordered.members([
         {
+          userId: 33333,
           lastName: 'Jackson',
           firstName: 'Janet',
           authorizedToStart: false,
@@ -106,6 +121,7 @@ describe('Integration | Repository | SessionForSupervising', function () {
           startDateTime: null,
         },
         {
+          userId: 11111,
           lastName: 'Jackson',
           firstName: 'Michael',
           authorizedToStart: true,
@@ -113,6 +129,7 @@ describe('Integration | Repository | SessionForSupervising', function () {
           startDateTime: null,
         },
         {
+          userId: 12345,
           lastName: 'Joplin',
           firstName: 'Janis',
           authorizedToStart: true,
@@ -120,11 +137,81 @@ describe('Integration | Repository | SessionForSupervising', function () {
           startDateTime: '2022-10-19T13:37:00+00:00',
         },
         {
+          userId: 22222,
           lastName: 'Stardust',
           firstName: 'Ziggy',
           authorizedToStart: false,
           assessmentStatus: null,
           startDateTime: null,
+        },
+      ]);
+    });
+
+    it('should return certifications candidates with subscribed complementary certifications', async function () {
+      // given
+      databaseBuilder.factory.buildCertificationCenter({ name: 'Toto', id: 1234 });
+      const session = databaseBuilder.factory.buildSession({
+        certificationCenter: 'Tour Gamma',
+        room: 'Salle A',
+        examiner: 'Monsieur Examinateur',
+        date: '2018-02-23',
+        time: '12:00:00',
+        certificationCenterId: 1234,
+      });
+
+      databaseBuilder.factory.buildUser({ id: 11111 });
+      const certificationCandidate = databaseBuilder.factory.buildCertificationCandidate({
+        userId: 11111,
+        lastName: 'Jackson',
+        firstName: 'Janet',
+        sessionId: session.id,
+      });
+
+      databaseBuilder.factory.buildUser({ id: 22222 });
+      databaseBuilder.factory.buildCertificationCandidate({
+        userId: 22222,
+        lastName: 'Joplin',
+        firstName: 'Janis',
+        sessionId: session.id,
+      });
+
+      const complementaryCertification = databaseBuilder.factory.buildComplementaryCertification({
+        label: 'Pix+ Édu 1er degré',
+        key: 'EDU_1ER_DEGRE',
+        certificationExtraTime: 45,
+      });
+
+      databaseBuilder.factory.buildComplementaryCertificationSubscription({
+        certificationCandidateId: certificationCandidate.id,
+        complementaryCertificationId: complementaryCertification.id,
+      });
+
+      await databaseBuilder.commit();
+
+      // when
+      const actualSession = await sessionForSupervisingRepository.get(session.id);
+
+      // then
+      const actualCandidates = _.map(actualSession.certificationCandidates, (item) =>
+        _.pick(item, ['userId', 'sessionId', 'lastName', 'firstName', 'enrolledComplementaryCertification']),
+      );
+
+      expect(actualCandidates).to.have.deep.ordered.members([
+        {
+          userId: 11111,
+          lastName: 'Jackson',
+          firstName: 'Janet',
+          enrolledComplementaryCertification: {
+            key: complementaryCertification.key,
+            label: complementaryCertification.label,
+            certificationExtraTime: complementaryCertification.certificationExtraTime,
+          },
+        },
+        {
+          userId: 22222,
+          lastName: 'Joplin',
+          firstName: 'Janis',
+          enrolledComplementaryCertification: null,
         },
       ]);
     });

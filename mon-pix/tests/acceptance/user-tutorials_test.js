@@ -1,7 +1,8 @@
 import { module, test } from 'qunit';
 import { setupApplicationTest } from 'ember-qunit';
 import { setupMirage } from 'ember-cli-mirage/test-support';
-import { visit, currentURL } from '@ember/test-helpers';
+import { currentURL } from '@ember/test-helpers';
+import { visit } from '@1024pix/ember-testing-library';
 import { authenticate } from '../helpers/authentication';
 
 module('Acceptance | mes-tutos', function (hooks) {
@@ -16,17 +17,19 @@ module('Acceptance | mes-tutos', function (hooks) {
     });
 
     test('user is redirected to /mes-tutos/recommandes when visiting /mes-tutos', async function (assert) {
+      // given & when
       await visit('/mes-tutos');
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(currentURL(), '/mes-tutos/recommandes');
+
+      // then
+      assert.strictEqual(currentURL(), '/mes-tutos/recommandes');
     });
 
     test('user is redirected to /mes-tutos/enregistres when visiting /mes-tutos/enregistres', async function (assert) {
+      // given & when
       await visit('/mes-tutos/enregistres');
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(currentURL(), '/mes-tutos/enregistres');
+
+      // then
+      assert.strictEqual(currentURL(), '/mes-tutos/enregistres');
     });
   });
 });

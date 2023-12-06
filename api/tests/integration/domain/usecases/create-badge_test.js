@@ -1,19 +1,20 @@
-const _ = require('lodash');
+import _ from 'lodash';
 
-const { expect, databaseBuilder, mockLearningContent, knex, catchErr, sinon } = require('../../../test-helper');
+import { expect, databaseBuilder, mockLearningContent, knex, catchErr, sinon } from '../../../test-helper.js';
 
-const badgeRepository = require('../../../../lib/infrastructure/repositories/badge-repository');
-const badgeCriteriaRepository = require('../../../../lib/infrastructure/repositories/badge-criteria-repository');
-const skillSetRepository = require('../../../../lib/infrastructure/repositories/skill-set-repository');
-const targetProfileRepository = require('../../../../lib/infrastructure/repositories/target-profile-repository');
-const createBadge = require('../../../../lib/domain/usecases/create-badge');
-const Badge = require('../../../../lib/domain/models/Badge');
-const {
+import * as badgeRepository from '../../../../lib/infrastructure/repositories/badge-repository.js';
+import * as badgeCriteriaRepository from '../../../../lib/infrastructure/repositories/badge-criteria-repository.js';
+import * as skillSetRepository from '../../../../lib/infrastructure/repositories/skill-set-repository.js';
+import * as targetProfileRepository from '../../../../lib/infrastructure/repositories/target-profile-repository.js';
+import { createBadge } from '../../../../lib/domain/usecases/create-badge.js';
+import { Badge } from '../../../../lib/domain/models/Badge.js';
+
+import {
   AlreadyExistingEntityError,
   NotFoundError,
   InvalidSkillSetError,
   MissingBadgeCriterionError,
-} = require('../../../../lib/domain/errors');
+} from '../../../../lib/domain/errors.js';
 
 describe('Integration | UseCases | create-badge', function () {
   let targetProfileId;
@@ -31,7 +32,7 @@ describe('Integration | UseCases | create-badge', function () {
 
     targetProfileId = databaseBuilder.factory.buildTargetProfile().id;
     learningContent.skills.forEach((skill) =>
-      databaseBuilder.factory.buildTargetProfileSkill({ targetProfileId, skillId: skill.id })
+      databaseBuilder.factory.buildTargetProfileSkill({ targetProfileId, skillId: skill.id }),
     );
     existingBadgeKey = databaseBuilder.factory.buildBadge().key;
 
@@ -232,7 +233,7 @@ describe('Integration | UseCases | create-badge', function () {
       expect(error).to.be.instanceOf(InvalidSkillSetError);
       expect(error).to.haveOwnProperty(
         'message',
-        'Les acquis suivants ne font pas partie du profil cible : recSkill666'
+        'Les acquis suivants ne font pas partie du profil cible : recSkill666',
       );
     });
   });

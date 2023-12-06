@@ -1,6 +1,6 @@
-const { expect, hFake, sinon } = require('../../test-helper');
+import { expect, hFake, sinon } from '../../test-helper.js';
 
-const {
+import {
   AccountRecoveryDemandExpired,
   AdminMemberError,
   AlreadyRegisteredEmailAndUsernameError,
@@ -16,12 +16,16 @@ const {
   UserShouldChangePasswordError,
   MultipleOrganizationLearnersWithDifferentNationalStudentIdError,
   UserHasAlreadyLeftSCO,
-  OrganizationLearnerAlreadyLinkedToInvalidUserError,
   InvalidVerificationCodeError,
+  InvalidSessionSupervisingLoginError,
   EmailModificationDemandNotFoundOrExpiredError,
   CandidateNotAuthorizedToJoinSessionError,
   CandidateNotAuthorizedToResumeCertificationTestError,
   UncancellableOrganizationInvitationError,
+  OidcInvokingTokenEndpointError,
+  OidcMissingFieldsError,
+  OidcUserInfoFormatError,
+  OrganizationLearnerAlreadyLinkedToInvalidUserError,
   OrganizationLearnerCannotBeDissociatedError,
   UserShouldNotBeReconciledOnAnotherAccountError,
   CertificationCandidateOnFinalizedSessionError,
@@ -33,10 +37,15 @@ const {
   UnexpectedOidcStateError,
   InvalidIdentityProviderError,
   SendingEmailToInvalidDomainError,
-} = require('../../../lib/domain/errors');
-const HttpErrors = require('../../../lib/application/http-errors.js');
+  SendingEmailToInvalidEmailAddressError,
+  LocaleFormatError,
+  LocaleNotSupportedError,
+  CertificationCandidateNotFoundError,
+} from '../../../lib/domain/errors.js';
 
-const { handle } = require('../../../lib/application/error-manager');
+import { HttpErrors } from '../../../lib/application/http-errors.js';
+import { handle } from '../../../lib/application/error-manager.js';
+import { SESSION_SUPERVISING } from '../../../lib/domain/constants/session-supervising.js';
 
 describe('Unit | Application | ErrorManager', function () {
   describe('#handle', function () {
@@ -341,6 +350,22 @@ describe('Unit | Application | ErrorManager', function () {
       expect(HttpErrors.ForbiddenError).to.have.been.calledWithExactly(error.message, error.code);
     });
 
+    it('should instantiate ForbiddenError when InvalidSessionSupervisingLoginError', async function () {
+      // given
+      const error = new InvalidSessionSupervisingLoginError();
+      sinon.stub(HttpErrors, 'ForbiddenError');
+      const params = { request: {}, h: hFake, error };
+
+      // when
+      await handle(params.request, params.h, params.error);
+
+      // then
+      expect(HttpErrors.ForbiddenError).to.have.been.calledWithExactly(
+        SESSION_SUPERVISING.INCORRECT_DATA.getMessage(),
+        SESSION_SUPERVISING.INCORRECT_DATA.code,
+      );
+    });
+
     it('should instantiate BadRequestError when OrganizationLearnerAlreadyLinkedToInvalidUserError', async function () {
       // given
       const error = new OrganizationLearnerAlreadyLinkedToInvalidUserError();
@@ -524,8 +549,21 @@ describe('Unit | Application | ErrorManager', function () {
       // then
       expect(HttpErrors.BadRequestError).to.have.been.calledWithExactly(
         error.message,
-        'SENDING_EMAIL_TO_INVALID_DOMAIN'
+        'SENDING_EMAIL_TO_INVALID_DOMAIN',
       );
+    });
+
+    it('should instantiate NotFoundError when CertificationCandidateNotFoundError', async function () {
+      // given
+      const error = new CertificationCandidateNotFoundError();
+      sinon.stub(HttpErrors, 'NotFoundError');
+      const params = { request: {}, h: hFake, error };
+
+      // when
+      await handle(params.request, params.h, params.error);
+
+      // then
+      expect(HttpErrors.NotFoundError).to.have.been.calledWithExactly(error.message, error.code);
     });
 
     describe('SSO specific errors', function () {
@@ -579,6 +617,121 @@ describe('Unit | Application | ErrorManager', function () {
 
         // then
         expect(HttpErrors.ServiceUnavailableError).to.have.been.calledWithExactly(error.message);
+      });
+
+      it('instantiates UnprocessableEntityError when OidcMissingFieldsError', async function () {
+        // given
+        const error = new OidcMissingFieldsError('Some message', 'someCode', 'someMetaData');
+        sinon.stub(HttpErrors, 'UnprocessableEntityError');
+        const params = { request: {}, h: hFake, error };
+
+        // when
+        await handle(params.request, params.h, params.error);
+
+        // then
+        expect(HttpErrors.UnprocessableEntityError).to.have.been.calledWithExactly(
+          error.message,
+          error.code,
+          error.meta,
+        );
+      });
+
+      it('instantiates ServiceUnavailableError when OidcUserInfoFormatError', async function () {
+        // given
+        const error = new OidcUserInfoFormatError('Some message', 'someCode', 'someMetaData');
+        sinon.stub(HttpErrors, 'ServiceUnavailableError');
+        const params = { request: {}, h: hFake, error };
+
+        // when
+        await handle(params.request, params.h, params.error);
+
+        // then
+        expect(HttpErrors.ServiceUnavailableError).to.have.been.calledWithExactly(
+          error.message,
+          error.code,
+          error.meta,
+        );
+      });
+
+      it('instantiates UnprocessableEntityError when OidcInvokingTokenEndpointError', async function () {
+        // given
+        const error = new OidcInvokingTokenEndpointError('Some message', 'someCode', 'someMetaData');
+        sinon.stub(HttpErrors, 'UnprocessableEntityError');
+        const params = { request: {}, h: hFake, error };
+
+        // when
+        await handle(params.request, params.h, params.error);
+
+        // then
+        expect(HttpErrors.UnprocessableEntityError).to.have.been.calledWithExactly(
+          error.message,
+          error.code,
+          error.meta,
+        );
+      });
+    });
+
+    context('Mailing provider errors', function () {
+      context('When receiving SendingEmailToInvalidEmailAddressError', function () {
+        it('instantiates a BadRequest error', function () {
+          // given
+          const error = new SendingEmailToInvalidEmailAddressError(
+            'invalid@email.net',
+            'Mailing provider error message',
+          );
+          sinon.stub(HttpErrors, 'BadRequestError');
+          const params = { request: {}, h: hFake, error };
+
+          // when
+          handle(params.request, params.h, params.error);
+
+          // then
+          expect(HttpErrors.BadRequestError).to.have.been.calledWithExactly(
+            error.message,
+            'SENDING_EMAIL_TO_INVALID_EMAIL_ADDRESS',
+            error.meta,
+          );
+        });
+      });
+    });
+
+    context('Locale errors', function () {
+      context('When receiving LocaleFormatError', function () {
+        it('instantiates a BadRequest error', function () {
+          // given
+          const error = new LocaleFormatError('zzzz');
+          sinon.stub(HttpErrors, 'BadRequestError');
+          const params = { request: {}, h: hFake, error };
+
+          // when
+          handle(params.request, params.h, params.error);
+
+          // then
+          expect(HttpErrors.BadRequestError).to.have.been.calledWithExactly(
+            'Given locale is in invalid format: "zzzz"',
+            'INVALID_LOCALE_FORMAT',
+            { locale: 'zzzz' },
+          );
+        });
+      });
+
+      context('When receiving LocaleNotSupportedError', function () {
+        it('instantiates a BadRequest error', function () {
+          // given
+          const error = new LocaleNotSupportedError('nl-BE');
+          sinon.stub(HttpErrors, 'BadRequestError');
+          const params = { request: {}, h: hFake, error };
+
+          // when
+          handle(params.request, params.h, params.error);
+
+          // then
+          expect(HttpErrors.BadRequestError).to.have.been.calledWithExactly(
+            'Given locale is not supported : "nl-BE"',
+            'LOCALE_NOT_SUPPORTED',
+            { locale: 'nl-BE' },
+          );
+        });
       });
     });
   });

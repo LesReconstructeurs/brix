@@ -1,9 +1,5 @@
-const { AlreadyRegisteredEmailError, EntityValidationError } = require('../errors');
-
-const userValidator = require('../validators/user-validator');
-const passwordValidator = require('../validators/password-validator');
-
-const { getCampaignUrl } = require('../../infrastructure/utils/url-builder');
+import { AlreadyRegisteredEmailError, EntityValidationError } from '../errors.js';
+import { getCampaignUrl } from '../../infrastructure/utils/url-builder.js';
 
 function _manageEmailAvailabilityError(error) {
   return _manageError(error, AlreadyRegisteredEmailError, 'email', 'ALREADY_REGISTERED_EMAIL');
@@ -18,7 +14,7 @@ function _manageError(error, errorType, attribute, message) {
   throw error;
 }
 
-function _validatePassword(password) {
+function _validatePassword(password, passwordValidator) {
   let result;
   try {
     passwordValidator.validate(password);
@@ -28,7 +24,7 @@ function _validatePassword(password) {
   return result;
 }
 
-async function _validateData({ password, user, userRepository }) {
+async function _validateData({ password, user, userRepository, userValidator, passwordValidator }) {
   let userValidatorError;
   try {
     userValidator.validate({ user });
@@ -36,12 +32,12 @@ async function _validateData({ password, user, userRepository }) {
     userValidatorError = err;
   }
 
-  const passwordValidatorError = _validatePassword(password);
+  const passwordValidatorError = _validatePassword(password, passwordValidator);
 
   const validationErrors = [];
   if (user.email) {
     validationErrors.push(
-      await userRepository.checkIfEmailIsAvailable(user.email).catch(_manageEmailAvailabilityError)
+      await userRepository.checkIfEmailIsAvailable(user.email).catch(_manageEmailAvailabilityError),
     );
   }
   validationErrors.push(userValidatorError);
@@ -55,11 +51,11 @@ async function _validateData({ password, user, userRepository }) {
   return true;
 }
 
-module.exports = async function createUser({
-  user,
-  password,
+const createUser = async function ({
   campaignCode,
-  locale,
+  localeFromHeader,
+  password,
+  user,
   authenticationMethodRepository,
   campaignRepository,
   userRepository,
@@ -67,11 +63,15 @@ module.exports = async function createUser({
   encryptionService,
   mailService,
   userService,
+  userValidator,
+  passwordValidator,
 }) {
   const isValid = await _validateData({
     password,
     user,
     userRepository,
+    userValidator,
+    passwordValidator,
   });
 
   const userHasValidatedPixTermsOfService = user.cgu === true;
@@ -94,12 +94,14 @@ module.exports = async function createUser({
     if (campaignCode) {
       const campaign = await campaignRepository.getByCode(campaignCode);
       if (campaign) {
-        redirectionUrl = getCampaignUrl(locale, campaignCode);
+        redirectionUrl = getCampaignUrl(localeFromHeader, campaignCode);
       }
     }
 
-    await mailService.sendAccountCreationEmail(savedUser.email, locale, redirectionUrl);
+    await mailService.sendAccountCreationEmail(savedUser.email, localeFromHeader, redirectionUrl);
 
     return savedUser;
   }
 };
+
+export { createUser };

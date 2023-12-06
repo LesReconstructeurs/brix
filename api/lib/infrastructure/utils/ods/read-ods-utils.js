@@ -1,8 +1,8 @@
-const _ = require('lodash');
-const XLSX = require('xlsx');
+import _ from 'lodash';
+import XLSX from 'xlsx';
 
-const { UnprocessableEntityError } = require('../../../application/http-errors');
-const { loadOdsZip } = require('./common-ods-utils');
+import { UnprocessableEntityError } from '../../../application/http-errors.js';
+import { loadOdsZip } from './common-ods-utils.js';
 
 const CONTENT_XML_IN_ODS = 'content.xml';
 
@@ -27,14 +27,12 @@ async function extractTableDataFromOdsFile({ odsBuffer, tableHeaderTargetPropert
   if (_.isEmpty(dataByLine)) {
     throw new UnprocessableEntityError('No data in table');
   }
-
   return dataByLine;
 }
 
 async function validateOdsHeaders({ odsBuffer, headers }) {
   const sheetDataRows = await getSheetDataRowsFromOdsBuffer({ odsBuffer });
   const headerRow = _findHeaderRow(sheetDataRows, headers);
-
   if (!headerRow) {
     throw new UnprocessableEntityError('Unknown attendance sheet version');
   }
@@ -120,13 +118,8 @@ function _transformSheetDataRow(sheetDataRow, sheetHeaderPropertyMap) {
       target[targetProperty] = transformFn(cellValue);
       return target;
     },
-    {}
+    {},
   );
 }
 
-module.exports = {
-  extractTableDataFromOdsFile,
-  getContentXml,
-  getSheetDataRowsFromOdsBuffer,
-  validateOdsHeaders,
-};
+export { extractTableDataFromOdsFile, getContentXml, getSheetDataRowsFromOdsBuffer, validateOdsHeaders };

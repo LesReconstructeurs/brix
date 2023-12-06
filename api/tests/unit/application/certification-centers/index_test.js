@@ -1,13 +1,16 @@
-const { writeFile, stat, unlink } = require('fs').promises;
+import fs from 'fs';
+import { writeFile, stat, unlink } from 'fs/promises';
 
-const { expect, HttpTestServer, sinon } = require('../../../test-helper');
+import { expect, HttpTestServer, sinon } from '../../../test-helper.js';
+import { securityPreHandlers } from '../../../../lib/application/security-pre-handlers.js';
+import { certificationCenterController } from '../../../../lib/application/certification-centers/certification-center-controller.js';
 
-const securityPreHandlers = require('../../../../lib/application/security-pre-handlers');
-const moduleUnderTest = require('../../../../lib/application/certification-centers');
-const certificationCenterController = require('../../../../lib/application/certification-centers/certification-center-controller');
-const FormData = require('form-data');
-const fs = require('fs');
-const streamToPromise = require('stream-to-promise');
+import * as moduleUnderTest from '../../../../lib/application/certification-centers/index.js';
+import FormData from 'form-data';
+import streamToPromise from 'stream-to-promise';
+
+import * as url from 'url';
+const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 
 describe('Unit | Router | certification-center-router', function () {
   describe('POST /api/certification-centers/{certificationCenterId}/session', function () {
@@ -46,7 +49,7 @@ describe('Unit | Router | certification-center-router', function () {
         h
           .response({ errors: new Error('forbidden') })
           .code(403)
-          .takeover()
+          .takeover(),
       );
 
       const httpTestServer = new HttpTestServer();
@@ -83,7 +86,7 @@ describe('Unit | Router | certification-center-router', function () {
       // when
       const result = await httpTestServer.request(
         'GET',
-        '/api/certification-centers/1/sessions/2/students?filter[unexpected][]=5'
+        '/api/certification-centers/1/sessions/2/students?filter[unexpected][]=5',
       );
 
       // then
@@ -99,7 +102,7 @@ describe('Unit | Router | certification-center-router', function () {
       // when
       const result = await httpTestServer.request(
         'GET',
-        '/api/certification-centers/1/sessions/2/students?filter[divisions][]="3EMEB"'
+        '/api/certification-centers/1/sessions/2/students?filter[divisions][]="3EMEB"',
       );
 
       // then
@@ -115,7 +118,7 @@ describe('Unit | Router | certification-center-router', function () {
       // when
       const result = await httpTestServer.request(
         'GET',
-        '/api/certification-centers/1/sessions/2/students?filter[divisions][]="3EMEB"&filter[divisions][]="3EMEA"'
+        '/api/certification-centers/1/sessions/2/students?filter[divisions][]="3EMEB"&filter[divisions][]="3EMEA"',
       );
 
       // then
@@ -130,7 +133,7 @@ describe('Unit | Router | certification-center-router', function () {
       // when
       const result = await httpTestServer.request(
         'GET',
-        '/api/certification-centers/1/sessions/2/students?filter[divisions]="3EMEA"'
+        '/api/certification-centers/1/sessions/2/students?filter[divisions]="3EMEA"',
       );
 
       // then
@@ -145,7 +148,7 @@ describe('Unit | Router | certification-center-router', function () {
       // when
       const result = await httpTestServer.request(
         'GET',
-        '/api/certification-centers/1/sessions/2/students?page[number]=1&page[size]=25'
+        '/api/certification-centers/1/sessions/2/students?page[number]=1&page[size]=25',
       );
 
       // then
@@ -160,7 +163,7 @@ describe('Unit | Router | certification-center-router', function () {
       // when
       const result = await httpTestServer.request(
         'GET',
-        '/api/certification-centers/1/sessions/2/students?page[number]=a'
+        '/api/certification-centers/1/sessions/2/students?page[number]=a',
       );
 
       // then
@@ -174,7 +177,7 @@ describe('Unit | Router | certification-center-router', function () {
       // when
       const result = await httpTestServer.request(
         'GET',
-        '/api/certification-centers/1/sessions/2/students?page[size]=a'
+        '/api/certification-centers/1/sessions/2/students?page[size]=a',
       );
 
       // then
@@ -246,7 +249,7 @@ describe('Unit | Router | certification-center-router', function () {
       // when
       const result = await httpTestServer.request(
         method,
-        '/api/admin/certification-centers/invalid/certification-center-memberships'
+        '/api/admin/certification-centers/invalid/certification-center-memberships',
       );
 
       // then
@@ -282,7 +285,7 @@ describe('Unit | Router | certification-center-router', function () {
       // when
       const result = await httpTestServer.request(
         method,
-        '/api/admin/certification-centers/invalid/certification-center-memberships'
+        '/api/admin/certification-centers/invalid/certification-center-memberships',
       );
 
       // then
@@ -320,7 +323,7 @@ describe('Unit | Router | certification-center-router', function () {
     });
   });
 
-  describe('POST /api/certification-centers/{certificationCenterId}/sessions/import', function () {
+  describe('POST /api/certification-centers/{certificationCenterId}/sessions/validate-for-mass-import', function () {
     const testFilePath = `${__dirname}/testFile_temp.csv`;
 
     let headers;
@@ -343,7 +346,10 @@ describe('Unit | Router | certification-center-router', function () {
     it('should exist', async function () {
       // given
       sinon.stub(securityPreHandlers, 'checkUserIsMemberOfCertificationCenter').callsFake((_, h) => h.response(true));
-      sinon.stub(certificationCenterController, 'importSessions').returns('ok');
+      sinon
+        .stub(securityPreHandlers, 'checkCertificationCenterIsNotScoManagingStudents')
+        .callsFake((_request, h) => h.response(true));
+      sinon.stub(certificationCenterController, 'validateSessionsForMassImport').returns('ok');
       const certificationCenterId = 123;
       const httpTestServer = new HttpTestServer();
       await httpTestServer.register(moduleUnderTest);
@@ -351,11 +357,56 @@ describe('Unit | Router | certification-center-router', function () {
       // when
       const response = await httpTestServer.request(
         'POST',
-        `/api/certification-centers/${certificationCenterId}/sessions/import`,
+        `/api/certification-centers/${certificationCenterId}/sessions/validate-for-mass-import`,
         payload,
         null,
-        headers
+        headers,
       );
+
+      // then
+      expect(response.statusCode).to.equal(200);
+    });
+
+    context('when user is member of a certification center from a sco organization managing student', function () {
+      it('should forbid access', async function () {
+        // given
+        sinon.stub(securityPreHandlers, 'checkUserIsMemberOfCertificationCenter').callsFake((_, h) => h.response(true));
+        sinon.stub(securityPreHandlers, 'checkCertificationCenterIsNotScoManagingStudents').callsFake((_request, h) => {
+          return Promise.resolve(h.response().code(403).takeover());
+        });
+        sinon.stub(certificationCenterController, 'validateSessionsForMassImport').returns('ok');
+        const certificationCenterId = 123;
+        const httpTestServer = new HttpTestServer();
+        await httpTestServer.register(moduleUnderTest);
+
+        // when
+        const response = await httpTestServer.request(
+          'POST',
+          `/api/certification-centers/${certificationCenterId}/sessions/validate-for-mass-import`,
+          payload,
+          null,
+          headers,
+        );
+
+        // then
+        expect(response.statusCode).to.equal(403);
+      });
+    });
+  });
+
+  describe('GET /api/certification-centers/{certificationCenterId}/import', function () {
+    it('should exist', async function () {
+      // given
+      sinon.stub(securityPreHandlers, 'checkUserIsMemberOfCertificationCenter').callsFake((_, h) => h.response(true));
+      sinon
+        .stub(securityPreHandlers, 'checkCertificationCenterIsNotScoManagingStudents')
+        .callsFake((_, h) => h.response(true));
+      sinon.stub(certificationCenterController, 'getSessionsImportTemplate').returns('ok');
+      const httpTestServer = new HttpTestServer();
+      await httpTestServer.register(moduleUnderTest);
+
+      // when
+      const response = await httpTestServer.request('GET', '/api/certification-centers/123/import');
 
       // then
       expect(response.statusCode).to.equal(200);

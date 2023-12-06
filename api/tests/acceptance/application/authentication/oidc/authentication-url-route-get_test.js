@@ -1,7 +1,7 @@
-const { expect } = require('../../../../test-helper');
-const createServer = require('../../../../../server');
-const OidcIdentityProviders = require('../../../../../lib/domain/constants/oidc-identity-providers');
-const querystring = require('querystring');
+import { expect } from '../../../../test-helper.js';
+import { createServer } from '../../../../../server.js';
+import * as OidcIdentityProviders from '../../../../../lib/domain/constants/oidc-identity-providers.js';
+import querystring from 'querystring';
 
 describe('Acceptance | Route | oidc authentication url', function () {
   let server;
@@ -76,7 +76,7 @@ describe('Acceptance | Route | oidc authentication url', function () {
         expect(redirectTargetUrl.searchParams.get('response_type')).to.equal('code');
         expect(redirectTargetUrl.searchParams.get('realm')).to.equal('/individu');
         expect(redirectTargetUrl.searchParams.get('scope')).to.equal(
-          'application_PIX_POLE_EMPLOI_CLIENT_ID api_peconnect-individuv1 openid profile serviceDigitauxExposition api_peconnect-servicesdigitauxv1'
+          'application_PIX_POLE_EMPLOI_CLIENT_ID api_peconnect-individuv1 openid profile serviceDigitauxExposition api_peconnect-servicesdigitauxv1',
         );
       });
     });

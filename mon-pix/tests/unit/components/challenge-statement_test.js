@@ -17,7 +17,7 @@ module('Unit | Component | challenge statement', function (hooks) {
         id: 'rec_123',
       });
 
-      const component = createGlimmerComponent('component:challenge-statement', { challenge });
+      const component = createGlimmerComponent('challenge-statement', { challenge });
 
       // when
       const challengeEmbedDocument = component.challengeEmbedDocument;
@@ -36,7 +36,7 @@ module('Unit | Component | challenge statement', function (hooks) {
         hasValidEmbedDocument: false,
       });
 
-      const component = createGlimmerComponent('component:challenge-statement', { challenge });
+      const component = createGlimmerComponent('challenge-statement', { challenge });
 
       // when
       const challengeEmbedDocument = component.challengeEmbedDocument;
@@ -50,30 +50,26 @@ module('Unit | Component | challenge statement', function (hooks) {
     test('should return empty array if no attachments', function (assert) {
       // given
       const challenge = EmberObject.create({});
-      const component = createGlimmerComponent('component:challenge-statement', { challenge });
+      const component = createGlimmerComponent('challenge-statement', { challenge });
 
       // when
       const orderedAttachments = component.orderedAttachments;
 
       // then
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(orderedAttachments.length, 0);
+      assert.strictEqual(orderedAttachments.length, 0);
     });
 
     test('should return files using the preferred formats first, then the others', function (assert) {
       // given
       const attachments = ['https://dl.airtable.com/test.odp', 'https://dl.airtable.com/test.docx'];
       const challenge = EmberObject.create({ attachments });
-      const component = createGlimmerComponent('component:challenge-statement', { challenge });
+      const component = createGlimmerComponent('challenge-statement', { challenge });
 
       // when
       const orderedAttachments = component.orderedAttachments;
 
       // then
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(orderedAttachments.length, attachments.length);
+      assert.strictEqual(orderedAttachments.length, attachments.length);
       assert.ok(orderedAttachments[0].includes('docx'));
       assert.ok(orderedAttachments[1].includes('odp'));
     });
@@ -87,15 +83,13 @@ module('Unit | Component | challenge statement', function (hooks) {
         'https://dl.airtable.com/test6.docx',
       ];
       const challenge = EmberObject.create({ attachments });
-      const component = createGlimmerComponent('component:challenge-statement', { challenge });
+      const component = createGlimmerComponent('challenge-statement', { challenge });
 
       // when
       const orderedAttachments = component.orderedAttachments;
 
       // then
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(orderedAttachments.length, attachments.length);
+      assert.strictEqual(orderedAttachments.length, attachments.length);
       assert.ok(orderedAttachments[0].includes('docx'));
       assert.ok(orderedAttachments[1].includes('pptx'));
       assert.ok(orderedAttachments[2].includes('odp'));

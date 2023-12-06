@@ -1,9 +1,32 @@
-const { expect, sinon } = require('../../../test-helper');
-
-const UserToCreate = require('../../../../lib/domain/models/UserToCreate');
+import { expect, sinon } from '../../../test-helper.js';
+import { UserToCreate } from '../../../../lib/domain/models/UserToCreate.js';
 
 describe('Unit | Domain | Models | UserToCreate', function () {
   describe('constructor', function () {
+    it('accepts no locale', function () {
+      // given
+      const users = [
+        new UserToCreate({ locale: '' }),
+        new UserToCreate({ locale: null }),
+        new UserToCreate({ locale: undefined }),
+      ];
+
+      // then
+      expect(users.length).to.equal(3);
+    });
+
+    it('validates and canonicalizes the locale', function () {
+      // given
+      const localeServiceStub = { getCanonicalLocale: sinon.stub().returns('fr-BE') };
+
+      // when
+      const userToCreate = new UserToCreate({ locale: 'fr-be', dependencies: { localeService: localeServiceStub } });
+
+      // then
+      expect(localeServiceStub.getCanonicalLocale).to.have.been.calledWith('fr-be');
+      expect(userToCreate.locale).to.equal('fr-BE');
+    });
+
     it('should build a default user', function () {
       // given / when
       const user = new UserToCreate();
@@ -19,6 +42,7 @@ describe('Unit | Domain | Models | UserToCreate', function () {
         mustValidateTermsOfService: false,
         lastTermsOfServiceValidatedAt: null,
         lang: 'fr',
+        locale: undefined,
         hasSeenNewDashboardInfo: false,
         isAnonymous: false,
         hasSeenFocusedChallengeTooltip: false,
@@ -30,18 +54,19 @@ describe('Unit | Domain | Models | UserToCreate', function () {
   });
 
   describe('#create', function () {
-    it('should create a user', function () {
+    it('creates a user', function () {
       // given
       const now = new Date('2022-04-01');
       const clock = sinon.useFakeTimers({ now });
 
       // when
-      const user = UserToCreate.create({ email: '  anneMAIL@example.net ' });
+      const user = UserToCreate.create({ email: '  anneMAIL@example.net ', locale: 'fr-FR' });
 
       // then
       expect(user.email).to.equal('annemail@example.net');
       expect(user.updatedAt).to.deep.equal(now);
       expect(user.createdAt).to.deep.equal(now);
+      expect(user.locale).to.equal('fr-FR');
       clock.restore();
     });
   });

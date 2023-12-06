@@ -2,7 +2,7 @@ import { module, test } from 'qunit';
 import { setupApplicationTest } from 'ember-qunit';
 import { click, currentURL } from '@ember/test-helpers';
 import { fillByLabel, clickByName, visit, within } from '@1024pix/ember-testing-library';
-import setupMirage from 'ember-cli-mirage/test-support/setup-mirage';
+import { setupMirage } from 'ember-cli-mirage/test-support';
 import { authenticateAdminMemberWithRole } from '../../../../helpers/test-init';
 
 module('Acceptance | Route | routes/authenticated/certifications/certification | informations', function (hooks) {
@@ -32,6 +32,7 @@ module('Acceptance | Route | routes/authenticated/certifications/certification |
       birthplace: 'Sorpen',
       userId: 888,
       sex: 'M',
+      isCancelled: false,
       birthCountry: 'JAPON',
       birthInseeCode: '99217',
       birthPostalCode: null,
@@ -39,6 +40,29 @@ module('Acceptance | Route | routes/authenticated/certifications/certification |
       listChallengesAndAnswers: [],
       createdAt: new Date('2020-01-01'),
     });
+  });
+
+  test('it displays header information', async function (assert) {
+    // given
+    await authenticateAdminMemberWithRole({ isSuperAdmin: true })(server);
+
+    // when
+    const screen = await visit(`/certifications/${certification.id}`);
+
+    // then
+    assert.dom(screen.getByRole('heading', { name: 'Certifications' })).exists();
+    assert.dom(screen.getByRole('textbox', { name: 'Rechercher une session avec un identifiant' })).exists();
+  });
+
+  test('it should set certifications menubar item active', async function (assert) {
+    // given
+    await authenticateAdminMemberWithRole({ isSuperAdmin: true })(server);
+
+    // when
+    const screen = await visit(`/certifications/${certification.id}`);
+
+    // then
+    assert.dom(screen.getByRole('link', { name: 'Certifications' })).hasClass('active');
   });
 
   module('certification information read', function () {
@@ -50,14 +74,14 @@ module('Acceptance | Route | routes/authenticated/certifications/certification |
       const screen = await visit(`/certifications/${certification.id}`);
 
       // then
-      assert.dom(screen.getByText('Prénom : Bora Horza')).exists();
-      assert.dom(screen.getByText('Nom de famille : Gobuchul')).exists();
-      assert.dom(screen.getByText('Date de naissance : 24/07/1987')).exists();
-      assert.dom(screen.getByText('Sexe : M')).exists();
-      assert.dom(screen.getByText('Commune de naissance : Sorpen')).exists();
-      assert.dom(screen.getByText('Code INSEE de naissance : 99217')).exists();
-      assert.dom(screen.getByText('Code postal de naissance :')).exists();
-      assert.dom(screen.getByText('Pays de naissance : JAPON')).exists();
+      assert.dom(_getInfoNodeFromLabel(screen, 'Prénom :').getByText('Bora Horza')).exists();
+      assert.dom(_getInfoNodeFromLabel(screen, 'Nom de famille :').getByText('Gobuchul')).exists();
+      assert.dom(_getInfoNodeFromLabel(screen, 'Date de naissance :').getByText('24/07/1987')).exists();
+      assert.dom(_getInfoNodeFromLabel(screen, 'Sexe :').getByText('M')).exists();
+      assert.dom(_getInfoNodeFromLabel(screen, 'Commune de naissance :').getByText('Sorpen')).exists();
+      assert.dom(_getInfoNodeFromLabel(screen, 'Code INSEE de naissance :').getByText('99217')).exists();
+      assert.dom(_getInfoNodeFromLabel(screen, 'Code postal de naissance :').getByText('')).exists();
+      assert.dom(_getInfoNodeFromLabel(screen, 'Pays de naissance :').getByText('JAPON')).exists();
     });
 
     module('Certification issue reports section', function () {
@@ -116,16 +140,16 @@ module('Acceptance | Route | routes/authenticated/certifications/certification |
         assert
           .dom(
             screen.getByText(
-              'Autre (si aucune des catégories ci-dessus ne correspond au signalement) - Un signalement super impactant'
-            )
+              'Autre (si aucune des catégories ci-dessus ne correspond au signalement) - Un signalement super impactant',
+            ),
           )
           .exists();
         assert.dom(screen.getByText('1 Signalement(s) non impactant(s)')).exists();
         assert
           .dom(
             screen.getByText(
-              'Modification infos candidat : Ajout/modification du temps majoré - Un signalement pas du tout impactant'
-            )
+              'Modification infos candidat : Ajout/modification du temps majoré - Un signalement pas du tout impactant',
+            ),
           )
           .exists();
       });
@@ -148,8 +172,8 @@ module('Acceptance | Route | routes/authenticated/certifications/certification |
         assert
           .dom(
             screen.getByText(
-              'Autre (si aucune des catégories ci-dessus ne correspond au signalement) - Un signalement super impactant'
-            )
+              'Autre (si aucune des catégories ci-dessus ne correspond au signalement) - Un signalement super impactant',
+            ),
           )
           .exists();
         assert.dom(screen.queryByText('Signalement(s) non impactant(s)')).doesNotExist();
@@ -174,8 +198,8 @@ module('Acceptance | Route | routes/authenticated/certifications/certification |
         assert
           .dom(
             screen.getByText(
-              'Modification infos candidat : Ajout/modification du temps majoré - Un signalement pas du tout impactant'
-            )
+              'Modification infos candidat : Ajout/modification du temps majoré - Un signalement pas du tout impactant',
+            ),
           )
           .exists();
         assert.dom(screen.queryByText('Signalement(s) impactant(s)')).doesNotExist();
@@ -239,8 +263,8 @@ module('Acceptance | Route | routes/authenticated/certifications/certification |
           assert
             .dom(
               screen.getByText(
-                "Problème technique sur une question : L'image ne s'affiche pas - image disparue - Question 666"
-              )
+                "Problème technique sur une question : L'image ne s'affiche pas - image disparue - Question 666",
+              ),
             )
             .exists();
         });
@@ -297,8 +321,8 @@ module('Acceptance | Route | routes/authenticated/certifications/certification |
         test('should be possible to update jury level', async function (assert) {
           //given
           await authenticateAdminMemberWithRole({ isSuperAdmin: true })(server);
-          const complementaryCertificationCourseResultsWithExternal = server.create(
-            'complementary-certification-course-results-with-external',
+          const complementaryCertificationCourseResultWithExternal = server.create(
+            'complementary-certification-course-result-with-external',
             {
               complementaryCertificationCourseId: 1234,
               pixResult: 'Pix+ Édu Initiale 1er degré Initié (entrée dans le métier)',
@@ -310,17 +334,17 @@ module('Acceptance | Route | routes/authenticated/certifications/certification |
                   label: 'Pix+ Édu Initiale 1er degré Confirmé',
                 },
               ],
-            }
+            },
           );
           certification.update({
-            complementaryCertificationCourseResultsWithExternal,
+            complementaryCertificationCourseResultWithExternal,
           });
 
           this.server.post('/admin/complementary-certification-course-results', (schema) => {
-            const complementaryCertificationCourseResultsWithExternal =
-              schema.complementaryCertificationCourseResultsWithExternals.first();
+            const complementaryCertificationCourseResultWithExternal =
+              schema.complementaryCertificationCourseResultWithExternals.first();
 
-            complementaryCertificationCourseResultsWithExternal.update({
+            complementaryCertificationCourseResultWithExternal.update({
               externalResult: 'Pix+ Édu Initiale 1er degré Confirmé',
               finalResult: 'Pix+ Édu Initiale 1er degré Initié (entrée dans le métier)',
             });
@@ -366,8 +390,8 @@ module('Acceptance | Route | routes/authenticated/certifications/certification |
             }),
           ];
           const session = server.create('session', { id: 321, juryCertificationSummaries });
-          const complementaryCertificationCourseResultsWithExternal1 = server.create(
-            'complementary-certification-course-results-with-external',
+          const complementaryCertificationCourseResultWithExternal1 = server.create(
+            'complementary-certification-course-result-with-external',
             {
               complementaryCertificationCourseId: 1234,
               pixResult: 'Pix+ Édu Initiale 1er degré Initié (entrée dans le métier)',
@@ -379,18 +403,18 @@ module('Acceptance | Route | routes/authenticated/certifications/certification |
                   label: 'Pix+ Édu Initiale 1er degré Confirmé',
                 },
               ],
-            }
+            },
           );
           const certification1 = this.server.create('certification', {
             id: 398,
             sessionId: session.id,
             userId: 777,
-            complementaryCertificationCourseResultsWithExternal: complementaryCertificationCourseResultsWithExternal1,
+            complementaryCertificationCourseResultWithExternal: complementaryCertificationCourseResultWithExternal1,
             competencesWithMark: [],
           });
 
-          const complementaryCertificationCourseResultsWithExternal2 = server.create(
-            'complementary-certification-course-results-with-external',
+          const complementaryCertificationCourseResultWithExternal2 = server.create(
+            'complementary-certification-course-result-with-external',
             {
               complementaryCertificationCourseId: 5678,
               pixResult: 'Pix+ Édu Initiale 2nd degré Initié (entrée dans le métier)',
@@ -402,13 +426,13 @@ module('Acceptance | Route | routes/authenticated/certifications/certification |
                   label: 'Pix+ Édu Initiale 2nd degré Confirmé',
                 },
               ],
-            }
+            },
           );
           const certification2 = this.server.create('certification', {
             id: 456,
             userId: 666,
             sessionId: session.id,
-            complementaryCertificationCourseResultsWithExternal: complementaryCertificationCourseResultsWithExternal2,
+            complementaryCertificationCourseResultWithExternal: complementaryCertificationCourseResultWithExternal2,
             competencesWithMark: [],
           });
 
@@ -431,52 +455,42 @@ module('Acceptance | Route | routes/authenticated/certifications/certification |
       test('it displays common complementary certifications result', async function (assert) {
         // given
         await authenticateAdminMemberWithRole({ isSuperAdmin: true })(server);
-        const commonComplementaryCertificationCourseResults = [
-          server.create('common-complementary-certification-course-result', {
+        const commonComplementaryCertificationCourseResult = server.create(
+          'common-complementary-certification-course-result',
+          {
             label: 'CléA Numérique',
             status: 'Validée',
-          }),
-          server.create('common-complementary-certification-course-result', {
-            label: 'Pix+ Droit Maître',
-            status: 'Validée',
-          }),
-          server.create('common-complementary-certification-course-result', {
-            label: 'Pix+ Droit Expert',
-            status: 'Rejetée',
-          }),
-        ];
+          },
+        );
 
         certification.update({
-          commonComplementaryCertificationCourseResults,
+          commonComplementaryCertificationCourseResult,
         });
 
         // when
         const screen = await visit(`/certifications/${certification.id}`);
 
         // then
-        assert.dom(screen.getByText('Certifications complémentaires')).exists();
+        assert.dom(screen.getByText('Certification complémentaire')).exists();
         assert.dom(screen.queryByText('Résultats de la certification complémentaire Pix+ Edu :')).doesNotExist();
         assert.dom(screen.getByText('CléA Numérique :')).exists();
-        assert.dom(screen.getByText('Pix+ Droit Maître :')).exists();
-        assert.dom(screen.getByText('Pix+ Droit Expert :')).exists();
-        assert.strictEqual(screen.getAllByText('Validée').length, 2);
-        assert.strictEqual(screen.getAllByText('Rejetée').length, 1);
+        assert.dom(screen.getByText('Validée')).exists();
       });
 
       test('it displays external complementary certifications', async function (assert) {
         // given
         await authenticateAdminMemberWithRole({ isSuperAdmin: true })(server);
-        const complementaryCertificationCourseResultsWithExternal = server.create(
-          'complementary-certification-course-results-with-external',
+        const complementaryCertificationCourseResultWithExternal = server.create(
+          'complementary-certification-course-result-with-external',
           {
             complementaryCertificationCourseId: 1234,
             pixResult: 'Pix+ Édu Initié (entrée dans le métier)',
             externalResult: 'Pix+ Édu Avancé',
             finalResult: 'Pix+ Édu Initié (entrée dans le métier)',
-          }
+          },
         );
         certification.update({
-          complementaryCertificationCourseResultsWithExternal,
+          complementaryCertificationCourseResultWithExternal,
         });
 
         // when
@@ -505,14 +519,13 @@ module('Acceptance | Route | routes/authenticated/certifications/certification |
             await clickByName('Enregistrer');
 
             // then
-            assert.dom(screen.getByText('Prénom : Bora Horza')).exists();
-            assert.dom(screen.getByText('Nom de famille : Summers')).exists();
-            assert.dom(screen.getByText('Date de naissance : 24/07/1987')).exists();
-            assert.dom(screen.getByText('Sexe : M')).exists();
-            assert.dom(screen.getByText('Commune de naissance : Sunnydale')).exists();
-            assert.dom(screen.getByText('Code INSEE de naissance : 99217')).exists();
-            assert.dom(screen.getByText('Code postal de naissance :')).exists();
-            assert.dom(screen.getByText('Pays de naissance : JAPON')).exists();
+            assert.dom(_getInfoNodeFromLabel(screen, 'Prénom :').getByText('Bora Horza')).exists();
+            assert.dom(_getInfoNodeFromLabel(screen, 'Nom de famille :').getByText('Summers')).exists();
+            assert.dom(_getInfoNodeFromLabel(screen, 'Date de naissance :').getByText('24/07/1987')).exists();
+            assert.dom(_getInfoNodeFromLabel(screen, 'Sexe :').getByText('M')).exists();
+            assert.dom(_getInfoNodeFromLabel(screen, 'Commune de naissance :').getByText('Sunnydale')).exists();
+            assert.dom(_getInfoNodeFromLabel(screen, 'Code INSEE de naissance :').getByText('99217')).exists();
+            assert.dom(_getInfoNodeFromLabel(screen, 'Pays de naissance :').getByText('JAPON')).exists();
           });
 
           test('should display a success notification', async function (assert) {
@@ -555,7 +568,7 @@ module('Acceptance | Route | routes/authenticated/certifications/certification |
               () => ({
                 errors: [{ detail: "Candidate's first name must not be blank or empty" }],
               }),
-              422
+              422,
             );
             const screen = await visit(`/certifications/${certification.id}`);
             await clickByName('Modifier les informations du candidat');
@@ -578,7 +591,7 @@ module('Acceptance | Route | routes/authenticated/certifications/certification |
               () => ({
                 errors: [{ detail: "Candidate's first name must not be blank or empty" }],
               }),
-              422
+              422,
             );
             const screen = await visit(`/certifications/${certification.id}`);
             await clickByName('Modifier les informations du candidat');
@@ -601,7 +614,7 @@ module('Acceptance | Route | routes/authenticated/certifications/certification |
               () => ({
                 errors: [{ detail: "Candidate's first name must not be blank or empty" }],
               }),
-              422
+              422,
             );
             const screen = await visit(`/certifications/${certification.id}`);
             await clickByName('Modifier les informations du candidat');
@@ -615,14 +628,13 @@ module('Acceptance | Route | routes/authenticated/certifications/certification |
             await clickByName('Fermer');
 
             // then
-            assert.dom(screen.getByText('Prénom : Bora Horza')).exists();
-            assert.dom(screen.getByText('Nom de famille : Gobuchul')).exists();
-            assert.dom(screen.getByText('Date de naissance : 24/07/1987')).exists();
-            assert.dom(screen.getByText('Sexe : M')).exists();
-            assert.dom(screen.getByText('Commune de naissance : Sorpen')).exists();
-            assert.dom(screen.getByText('Code INSEE de naissance : 99217')).exists();
-            assert.dom(screen.getByText('Code postal de naissance :')).exists();
-            assert.dom(screen.getByText('Pays de naissance : JAPON')).exists();
+            assert.dom(_getInfoNodeFromLabel(screen, 'Prénom :').getByText('Bora Horza')).exists();
+            assert.dom(_getInfoNodeFromLabel(screen, 'Nom de famille :').getByText('Gobuchul')).exists();
+            assert.dom(_getInfoNodeFromLabel(screen, 'Date de naissance :').getByText('24/07/1987')).exists();
+            assert.dom(_getInfoNodeFromLabel(screen, 'Sexe :').getByText('M')).exists();
+            assert.dom(_getInfoNodeFromLabel(screen, 'Commune de naissance :').getByText('Sorpen')).exists();
+            assert.dom(_getInfoNodeFromLabel(screen, 'Code INSEE de naissance :').getByText('99217')).exists();
+            assert.dom(_getInfoNodeFromLabel(screen, 'Pays de naissance :').getByText('JAPON')).exists();
           });
         });
       });
@@ -698,12 +710,12 @@ module('Acceptance | Route | routes/authenticated/certifications/certification |
                   `/certification-issue-reports/${certificationIssueReport.id}`,
                   (schema) => {
                     const certificationIssueReportToUpdate = schema.certificationIssueReports.find(
-                      certificationIssueReport.id
+                      certificationIssueReport.id,
                     );
                     certificationIssueReportToUpdate.update({ resolvedAt: new Date(), resolution });
                     return new Response({});
                   },
-                  204
+                  204,
                 );
 
                 const screen = await visit(`/certifications/${certification.id}`);
@@ -736,7 +748,7 @@ module('Acceptance | Route | routes/authenticated/certifications/certification |
               this.server.patch(
                 `/certification-issue-reports/${certificationIssueReport.id}`,
                 () => new Response({}),
-                500
+                500,
               );
 
               const screen = await visit(`/certifications/${certification.id}`);
@@ -776,8 +788,8 @@ module('Acceptance | Route | routes/authenticated/certifications/certification |
           assert
             .dom(
               screen.getByText(
-                'Êtes-vous sûr·e de vouloir annuler cette certification ? Cliquez sur confirmer pour poursuivre.'
-              )
+                'Êtes-vous sûr·e de vouloir annuler cette certification ? Cliquez sur confirmer pour poursuivre.',
+              ),
             )
             .exists();
         });
@@ -793,7 +805,6 @@ module('Acceptance | Route | routes/authenticated/certifications/certification |
           await clickByName('Fermer');
 
           // then
-          assert.dom(screen.getByText('Validée')).exists();
           assert.dom(screen.getByRole('button', { name: 'Annuler la certification' })).exists();
         });
 
@@ -809,14 +820,13 @@ module('Acceptance | Route | routes/authenticated/certifications/certification |
           await clickByName('Confirmer');
 
           // then
-          assert.dom(screen.getByText('Annulée')).exists();
           assert.dom(screen.getByRole('button', { name: 'Désannuler la certification' })).exists();
         });
       });
 
       module('Uncancel', function (hooks) {
         hooks.beforeEach(async function () {
-          certification.update({ status: 'cancelled' });
+          certification.update({ isCancelled: true });
         });
 
         test('should display confirmation popup for uncancellation when certification is cancelled and uncancellation button is clicked', async function (assert) {
@@ -831,8 +841,8 @@ module('Acceptance | Route | routes/authenticated/certifications/certification |
           assert
             .dom(
               screen.getByText(
-                'Êtes-vous sûr·e de vouloir désannuler cette certification ? Cliquez sur confirmer pour poursuivre.'
-              )
+                'Êtes-vous sûr·e de vouloir désannuler cette certification ? Cliquez sur confirmer pour poursuivre.',
+              ),
             )
             .exists();
         });
@@ -849,7 +859,6 @@ module('Acceptance | Route | routes/authenticated/certifications/certification |
           await clickByName('Fermer');
 
           // then
-          assert.dom(screen.getByText('Annulée')).exists();
           assert.dom(screen.getByRole('button', { name: 'Désannuler la certification' })).exists();
         });
 
@@ -864,7 +873,6 @@ module('Acceptance | Route | routes/authenticated/certifications/certification |
           await clickByName('Confirmer');
 
           // then
-          assert.dom(screen.getByText('Validée')).exists();
           assert.dom(screen.getByRole('button', { name: 'Annuler la certification' })).exists();
         });
       });
@@ -876,4 +884,8 @@ async function _switchCertificationDetail(screen, sessionId, certificationId) {
   await click(screen.getByRole('link', { name: sessionId }));
   await click(screen.getByLabelText('Liste des certifications de la session'));
   await click(screen.getByRole('link', { name: certificationId }));
+}
+
+function _getInfoNodeFromLabel(screen, label) {
+  return within(screen.getByText(label).nextElementSibling);
 }

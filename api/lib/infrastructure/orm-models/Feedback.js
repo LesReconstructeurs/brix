@@ -1,10 +1,10 @@
-const Bookshelf = require('../bookshelf');
+import { Bookshelf } from '../bookshelf.js';
 
-require('./Assessment');
+import './Assessment.js';
 
 const modelName = 'Feedback';
 
-module.exports = Bookshelf.model(
+const BookshelfFeedback = Bookshelf.model(
   modelName,
   {
     tableName: 'feedbacks',
@@ -16,5 +16,7 @@ module.exports = Bookshelf.model(
   },
   {
     modelName,
-  }
+  },
 );
+
+export { BookshelfFeedback as Feedback };

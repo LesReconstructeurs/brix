@@ -1,15 +1,23 @@
-const _ = require('lodash');
-const datasource = require('./datasource');
+import _ from 'lodash';
+import * as datasource from './datasource.js';
 
 const ACTIVE_STATUS = 'actif';
 const OPERATIVE_STATUSES = ['actif', 'archivé'];
 
-module.exports = datasource.extend({
+const skillDatasource = datasource.extend({
   modelName: 'skills',
 
   async findActive() {
     const skills = await this.list();
     return _.filter(skills, { status: ACTIVE_STATUS });
+  },
+
+  async findAllByName(name) {
+    const skills = await this.list();
+    const filteredSkills = _.filter(skills, function (skill) {
+      return _.isEqual(skill.name, name);
+    });
+    return filteredSkills;
   },
 
   async findOperative() {
@@ -25,7 +33,7 @@ module.exports = datasource.extend({
   async findOperativeByRecordIds(skillIds) {
     const skills = await this.list();
     return skills.filter(
-      (skillData) => _.includes(OPERATIVE_STATUSES, skillData.status) && _.includes(skillIds, skillData.id)
+      (skillData) => _.includes(OPERATIVE_STATUSES, skillData.status) && _.includes(skillIds, skillData.id),
     );
   },
 
@@ -48,7 +56,7 @@ module.exports = datasource.extend({
     const skills = await this.list();
     return _.filter(
       skills,
-      (skill) => skill.competenceId === competenceId && _.includes(OPERATIVE_STATUSES, skill.status)
+      (skill) => skill.competenceId === competenceId && _.includes(OPERATIVE_STATUSES, skill.status),
     );
   },
 
@@ -56,7 +64,9 @@ module.exports = datasource.extend({
     const skills = await this.list();
     return _.filter(
       skills,
-      (skill) => competenceIds.includes(skill.competenceId) && _.includes(OPERATIVE_STATUSES, skill.status)
+      (skill) => competenceIds.includes(skill.competenceId) && _.includes(OPERATIVE_STATUSES, skill.status),
     );
   },
 });
+
+export { skillDatasource };

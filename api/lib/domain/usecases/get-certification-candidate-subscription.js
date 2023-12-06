@@ -1,52 +1,51 @@
-const CertificationCandidateSubscription = require('../read-models/CertificationCandidateSubscription');
-const _ = require('lodash');
+import { CertificationCandidateSubscription } from '../read-models/CertificationCandidateSubscription.js';
 
-module.exports = async function getCertificationCandidateSubscription({
+const getCertificationCandidateSubscription = async function ({
   certificationCandidateId,
   certificationBadgesService,
   certificationCandidateRepository,
   certificationCenterRepository,
 }) {
-  const certificationCandidate = await certificationCandidateRepository.getWithComplementaryCertifications(
-    certificationCandidateId
+  const certificationCandidate = await certificationCandidateRepository.getWithComplementaryCertification(
+    certificationCandidateId,
   );
 
-  if (_.isEmpty(certificationCandidate.complementaryCertifications)) {
+  if (!certificationCandidate.complementaryCertification) {
     return new CertificationCandidateSubscription({
       id: certificationCandidateId,
       sessionId: certificationCandidate.sessionId,
-      eligibleSubscriptions: [],
-      nonEligibleSubscriptions: [],
+      eligibleSubscription: null,
+      nonEligibleSubscription: null,
     });
   }
 
   const certificationCenter = await certificationCenterRepository.getBySessionId(certificationCandidate.sessionId);
 
-  const eligibleSubscriptions = [];
-  const nonEligibleSubscriptions = [];
+  let eligibleSubscription = null;
+  let nonEligibleSubscription = null;
   const certifiableBadgeAcquisitions = await certificationBadgesService.findStillValidBadgeAcquisitions({
     userId: certificationCandidate.userId,
   });
 
-  certificationCandidate.complementaryCertifications.forEach((registeredComplementaryCertification) => {
-    if (!certificationCenter.isHabilitated(registeredComplementaryCertification.key)) {
-      return;
-    }
+  if (certificationCenter.isHabilitated(certificationCandidate.complementaryCertification.key)) {
     const isSubscriptionEligible = certifiableBadgeAcquisitions.some(
-      ({ complementaryCertificationKey }) => complementaryCertificationKey === registeredComplementaryCertification.key
+      ({ complementaryCertificationKey }) =>
+        complementaryCertificationKey === certificationCandidate.complementaryCertification.key,
     );
 
     if (isSubscriptionEligible) {
-      eligibleSubscriptions.push(registeredComplementaryCertification);
+      eligibleSubscription = certificationCandidate.complementaryCertification;
     } else {
-      nonEligibleSubscriptions.push(registeredComplementaryCertification);
+      nonEligibleSubscription = certificationCandidate.complementaryCertification;
     }
-  });
+  }
 
   return new CertificationCandidateSubscription({
     id: certificationCandidateId,
     sessionId: certificationCandidate.sessionId,
-    eligibleSubscriptions,
-    nonEligibleSubscriptions,
+    eligibleSubscription,
+    nonEligibleSubscription,
   });
 };
+
+export { getCertificationCandidateSubscription };

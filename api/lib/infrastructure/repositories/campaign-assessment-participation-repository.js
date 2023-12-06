@@ -1,30 +1,27 @@
-const _ = require('lodash');
-const { NotFoundError } = require('../../../lib/domain/errors');
-const CampaignAssessmentParticipation = require('../../../lib/domain/read-models/CampaignAssessmentParticipation');
-const { knex } = require('../../../db/knex-database-connection');
-const knowledgeElementRepository = require('./knowledge-element-repository');
-const campaignRepository = require('./campaign-repository');
+import _ from 'lodash';
+import { NotFoundError } from '../../../lib/domain/errors.js';
+import { CampaignAssessmentParticipation } from '../../../lib/domain/read-models/CampaignAssessmentParticipation.js';
+import { knex } from '../../../db/knex-database-connection.js';
+import * as knowledgeElementRepository from './knowledge-element-repository.js';
+import * as campaignRepository from './campaign-repository.js';
 
-const Assessment = require('../../../lib/domain/models/Assessment');
+import { Assessment } from '../../../lib/domain/models/Assessment.js';
 
-module.exports = {
-  async getByCampaignIdAndCampaignParticipationId({ campaignId, campaignParticipationId }) {
-    const result = await _fetchCampaignAssessmentAttributesFromCampaignParticipation(
-      campaignId,
-      campaignParticipationId
-    );
+const getByCampaignIdAndCampaignParticipationId = async function ({ campaignId, campaignParticipationId }) {
+  const result = await _fetchCampaignAssessmentAttributesFromCampaignParticipation(campaignId, campaignParticipationId);
 
-    return _buildCampaignAssessmentParticipation(result);
-  },
+  return _buildCampaignAssessmentParticipation(result);
 };
+
+export { getByCampaignIdAndCampaignParticipationId };
 
 async function _fetchCampaignAssessmentAttributesFromCampaignParticipation(campaignId, campaignParticipationId) {
   const [campaignAssessmentParticipation] = await knex
     .with('campaignAssessmentParticipation', (qb) => {
       qb.select([
         'campaign-participations.userId',
-        'organization-learners.firstName',
-        'organization-learners.lastName',
+        'view-active-organization-learners.firstName',
+        'view-active-organization-learners.lastName',
         'campaign-participations.id AS campaignParticipationId',
         'campaign-participations.campaignId',
         'campaign-participations.createdAt',
@@ -32,12 +29,18 @@ async function _fetchCampaignAssessmentAttributesFromCampaignParticipation(campa
         'campaign-participations.status',
         'campaign-participations.participantExternalId',
         'campaign-participations.masteryRate',
+        'campaign-participations.validatedSkillsCount',
+        'view-active-organization-learners.id AS organizationLearnerId',
         'assessments.state AS assessmentState',
         _assessmentRankByCreationDate(),
       ])
         .from('campaign-participations')
         .join('assessments', 'assessments.campaignParticipationId', 'campaign-participations.id')
-        .join('organization-learners', 'organization-learners.id', 'campaign-participations.organizationLearnerId')
+        .join(
+          'view-active-organization-learners',
+          'view-active-organization-learners.id',
+          'campaign-participations.organizationLearnerId',
+        )
         .where({
           'campaign-participations.id': campaignParticipationId,
           'campaign-participations.deletedAt': null,
@@ -92,7 +95,7 @@ async function _setSkillsCount(result) {
 function _getTestedSkillsCount(skillIds, knowledgeElements) {
   const testedKnowledgeElements = _.filter(
     knowledgeElements,
-    (knowledgeElement) => knowledgeElement.isValidated || knowledgeElement.isInvalidated
+    (knowledgeElement) => knowledgeElement.isValidated || knowledgeElement.isInvalidated,
   );
   const testedSkillIds = _.map(testedKnowledgeElements, 'skillId');
   const testedTargetedSkillIdsByUser = _.intersection(testedSkillIds, skillIds);

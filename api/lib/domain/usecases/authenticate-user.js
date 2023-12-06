@@ -1,40 +1,36 @@
-const get = require('lodash/get');
+import lodash from 'lodash';
 
-const {
+const { get } = lodash;
+
+import {
   ForbiddenAccess,
+  LocaleFormatError,
+  LocaleNotSupportedError,
   MissingOrInvalidCredentialsError,
   UserShouldChangePasswordError,
-} = require('../../domain/errors');
+} from '../../domain/errors.js';
 
-const apps = require('../constants');
-const endTestScreenRemovalService = require('../../domain/services/end-test-screen-removal-service');
+import { PIX_ORGA, PIX_ADMIN } from '../constants.js';
 
 async function _checkUserAccessScope(scope, user, adminMemberRepository) {
-  if (scope === apps.PIX_ORGA.SCOPE && !user.isLinkedToOrganizations()) {
-    throw new ForbiddenAccess(apps.PIX_ORGA.NOT_LINKED_ORGANIZATION_MSG);
+  if (scope === PIX_ORGA.SCOPE && !user.isLinkedToOrganizations()) {
+    throw new ForbiddenAccess(PIX_ORGA.NOT_LINKED_ORGANIZATION_MSG);
   }
 
-  if (scope === apps.PIX_ADMIN.SCOPE) {
+  if (scope === PIX_ADMIN.SCOPE) {
     const adminMember = await adminMemberRepository.get({ userId: user.id });
     if (!adminMember?.hasAccessToAdminScope) {
-      throw new ForbiddenAccess(apps.PIX_ADMIN.NOT_ALLOWED_MSG);
-    }
-  }
-
-  if (scope === apps.PIX_CERTIF.SCOPE && !user.isLinkedToCertificationCenters()) {
-    const isEndTestScreenRemovalEnabled =
-      await endTestScreenRemovalService.isEndTestScreenRemovalEnabledForSomeCertificationCenter();
-    if (!isEndTestScreenRemovalEnabled) {
-      throw new ForbiddenAccess(apps.PIX_CERTIF.NOT_LINKED_CERTIFICATION_MSG);
+      throw new ForbiddenAccess(PIX_ADMIN.NOT_ALLOWED_MSG);
     }
   }
 }
 
-module.exports = async function authenticateUser({
+const authenticateUser = async function ({
   password,
   scope,
   source,
   username,
+  localeFromCookie,
   refreshTokenService,
   pixAuthenticationService,
   tokenService,
@@ -50,7 +46,7 @@ module.exports = async function authenticateUser({
 
     const shouldChangePassword = get(
       foundUser,
-      'authenticationMethods[0].authenticationComplement.shouldChangePassword'
+      'authenticationMethods[0].authenticationComplement.shouldChangePassword',
     );
 
     if (shouldChangePassword) {
@@ -64,12 +60,24 @@ module.exports = async function authenticateUser({
       refreshToken,
     });
 
+    foundUser.setLocaleIfNotAlreadySet(localeFromCookie);
+    if (foundUser.hasBeenModified) {
+      await userRepository.update({ id: foundUser.id, locale: foundUser.locale });
+    }
+
     await userRepository.updateLastLoggedAt({ userId: foundUser.id });
     return { accessToken, refreshToken, expirationDelaySeconds };
   } catch (error) {
-    if (error instanceof ForbiddenAccess || error instanceof UserShouldChangePasswordError) {
+    if (
+      error instanceof ForbiddenAccess ||
+      error instanceof UserShouldChangePasswordError ||
+      error instanceof LocaleFormatError ||
+      error instanceof LocaleNotSupportedError
+    ) {
       throw error;
     }
     throw new MissingOrInvalidCredentialsError();
   }
 };
+
+export { authenticateUser };

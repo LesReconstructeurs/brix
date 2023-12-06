@@ -1,4 +1,4 @@
-<div class="rounded-panel__row challenge-statement">
+<div class="challenge-statement">
   <h2 class="sr-only">{{t "pages.challenge.parts.instruction"}}</h2>
   {{#if this.challengeInstruction}}
     <div class="challenge-statement__instruction-section">
@@ -31,7 +31,7 @@
         <div class="challenge-statement__action">
           <a
             class="challenge-statement__action-link"
-            href="{{this.orderedAttachments.firstObject}}"
+            href="{{get this.orderedAttachments '0'}}"
             target="_blank"
             rel="noopener noreferrer"
             download

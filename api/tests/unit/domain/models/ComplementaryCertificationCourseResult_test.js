@@ -1,5 +1,5 @@
-const ComplementaryCertificationCourseResult = require('../../../../lib/domain/models/ComplementaryCertificationCourseResult');
-const { expect, domainBuilder } = require('../../../test-helper');
+import { ComplementaryCertificationCourseResult } from '../../../../lib/domain/models/ComplementaryCertificationCourseResult.js';
+import { expect, domainBuilder } from '../../../test-helper.js';
 
 describe('Unit | Domain | Models | ComplementaryCertificationCourseResult', function () {
   describe('#isAcquired', function () {
@@ -60,7 +60,7 @@ describe('Unit | Domain | Models | ComplementaryCertificationCourseResult', func
             partnerKey: 'PARTNER_KEY',
             source: ComplementaryCertificationCourseResult.sources.EXTERNAL,
             complementaryCertificationCourseId: 12,
-          })
+          }),
         );
       });
     });
@@ -89,7 +89,7 @@ describe('Unit | Domain | Models | ComplementaryCertificationCourseResult', func
             partnerKey: 'PARTNER_KEY',
             source: ComplementaryCertificationCourseResult.sources.EXTERNAL,
             complementaryCertificationCourseId: 12,
-          })
+          }),
         );
       });
     });

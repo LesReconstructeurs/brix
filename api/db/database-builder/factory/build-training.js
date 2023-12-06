@@ -1,4 +1,4 @@
-const databaseBuffer = require('../database-buffer');
+import { databaseBuffer } from '../database-buffer.js';
 
 function buildTraining({
   id = databaseBuffer.getNextId(),
@@ -7,10 +7,8 @@ function buildTraining({
   type = 'webinaire',
   duration = '06:00:00',
   locale = 'fr-fr',
-  editorName = "Ministère de l'Éducation nationale et de la Jeunesse",
+  editorName = "Ministère de l'Éducation nationale et de la Jeunesse. Liberté égalité fraternité",
   editorLogoUrl = 'https://images.pix.fr/contenu-formatif/editeur/logo-ministere-education-nationale-et-jeunesse.svg',
-  prerequisiteThreshold = 30,
-  goalThreshold = 70,
   createdAt = new Date(),
   updatedAt = new Date(),
 } = {}) {
@@ -23,8 +21,6 @@ function buildTraining({
     locale,
     editorName,
     editorLogoUrl,
-    prerequisiteThreshold,
-    goalThreshold,
     createdAt,
     updatedAt,
   };
@@ -33,4 +29,5 @@ function buildTraining({
     values,
   });
 }
-module.exports = buildTraining;
+
+export { buildTraining };

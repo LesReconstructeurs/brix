@@ -1,13 +1,14 @@
-const {
+import {
   expect,
   databaseBuilder,
   domainBuilder,
   catchErr,
   learningContentBuilder,
   mockLearningContent,
-} = require('../../../test-helper');
-const { NotFoundError } = require('../../../../lib/domain/errors');
-const certificateRepository = require('../../../../lib/infrastructure/repositories/certificate-repository');
+} from '../../../test-helper.js';
+
+import { NotFoundError } from '../../../../lib/domain/errors.js';
+import * as certificateRepository from '../../../../lib/infrastructure/repositories/certificate-repository.js';
 
 describe('Integration | Infrastructure | Repository | Certificate_private', function () {
   const minimalLearningContent = [
@@ -247,7 +248,7 @@ describe('Integration | Infrastructure | Repository | Certificate_private', func
 
     it('should return a PrivateCertificate', async function () {
       // given
-      const learningContentObjects = learningContentBuilder.buildLearningContent.fromAreas(minimalLearningContent);
+      const learningContentObjects = learningContentBuilder.fromAreas(minimalLearningContent);
       mockLearningContent(learningContentObjects);
 
       const userId = databaseBuilder.factory.buildUser().id;
@@ -304,7 +305,7 @@ describe('Integration | Infrastructure | Repository | Certificate_private', func
 
         const { certificationCourseId, assessmentResultId } = await _buildValidPrivateCertificate(
           privateCertificateData,
-          false
+          false,
         );
 
         const competenceMarks1 = domainBuilder.buildCompetenceMark({
@@ -349,27 +350,22 @@ describe('Integration | Infrastructure | Repository | Certificate_private', func
           framework: null,
         });
 
-        const learningContentObjects = learningContentBuilder.buildLearningContent.fromAreas([
+        const learningContentObjects = learningContentBuilder.fromAreas([
           {
             ...area1,
-            titleFr: area1.title,
-            titleEn: 'title en',
+            title_i18n: { fr: area1.title, en: 'title en' },
             competences: [
               {
                 id: 'recComp1',
                 index: '1.1',
-                nameFr: 'Traiter des données',
-                nameEn: 'Process data',
-                descriptionFr: 'competence1DescriptionFr',
-                descriptionEn: 'competence1DescriptionEn',
+                name_i18n: { fr: 'Traiter des données', en: 'Process data' },
+                description_i18n: { fr: 'competence1DescriptionFr', en: 'competence1DescriptionEn' },
               },
               {
                 id: 'recComp2',
                 index: '1.2',
-                nameFr: 'Traiter des choux',
-                nameEn: 'Process sprouts',
-                descriptionFr: 'competence2DescriptionFr',
-                descriptionEn: 'competence2DescriptionEn',
+                name_i18n: { fr: 'Traiter des choux', en: 'Process sprouts' },
+                description_i18n: { fr: 'competence2DescriptionFr', en: 'competence2DescriptionEn' },
               },
             ],
           },
@@ -420,7 +416,7 @@ describe('Integration | Infrastructure | Repository | Certificate_private', func
 
         const { certificationCourseId, assessmentResultId } = await _buildValidPrivateCertificate(
           privateCertificateData,
-          false
+          false,
         );
 
         const competenceMarks1 = domainBuilder.buildCompetenceMark({
@@ -465,27 +461,22 @@ describe('Integration | Infrastructure | Repository | Certificate_private', func
           framework: null,
         });
 
-        const learningContentObjects = learningContentBuilder.buildLearningContent.fromAreas([
+        const learningContentObjects = learningContentBuilder.fromAreas([
           {
             ...area1,
-            titleFr: area1.title,
-            titleEn: 'title en',
+            title_i18n: { fr: area1.title, en: 'title en' },
             competences: [
               {
                 id: 'recComp1',
                 index: '1.1',
-                nameFr: 'Traiter des données',
-                nameEn: 'Process data',
-                descriptionFr: 'competence1DescriptionFr',
-                descriptionEn: 'competence1DescriptionEn',
+                name_i18n: { fr: 'Traiter des données', en: 'Process data' },
+                description_i18n: { fr: 'competence1DescriptionFr', en: 'competence1DescriptionEn' },
               },
               {
                 id: 'recComp2',
                 index: '1.2',
-                nameFr: 'Traiter des choux',
-                nameEn: 'Process sprouts',
-                descriptionFr: 'competence2DescriptionFr',
-                descriptionEn: 'competence2DescriptionEn',
+                name_i18n: { fr: 'Traiter des choux', en: 'Process sprouts' },
+                description_i18n: { fr: 'competence2DescriptionFr', en: 'competence2DescriptionEn' },
               },
             ],
           },
@@ -535,7 +526,7 @@ describe('Integration | Infrastructure | Repository | Certificate_private', func
           hasExternalJury: true,
         }).id;
 
-        const learningContentObjects = learningContentBuilder.buildLearningContent.fromAreas(minimalLearningContent);
+        const learningContentObjects = learningContentBuilder.fromAreas(minimalLearningContent);
         mockLearningContent(learningContentObjects);
 
         const userId = databaseBuilder.factory.buildUser().id;
@@ -1016,7 +1007,7 @@ async function _buildValidPrivateCertificateWithAcquiredAndNotAcquiredBadges({
         partnerKey: key,
         acquired: true,
       });
-    }
+    },
   );
   await databaseBuilder.commit();
   return { certificationCourseId };

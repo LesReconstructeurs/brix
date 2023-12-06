@@ -1,12 +1,13 @@
-const {
+import {
   expect,
   databaseBuilder,
   domainBuilder,
   mockLearningContent,
   learningContentBuilder,
-} = require('../../../test-helper');
-const badgeForCalculationRepository = require('../../../../lib/infrastructure/repositories/badge-for-calculation-repository');
-const BadgeCriterion = require('../../../../lib/domain/models/BadgeCriterion');
+} from '../../../test-helper.js';
+
+import * as badgeForCalculationRepository from '../../../../lib/infrastructure/repositories/badge-for-calculation-repository.js';
+import { BadgeCriterion } from '../../../../lib/domain/models/BadgeCriterion.js';
 
 describe('Integration | Repository | BadgeForCalculation', function () {
   const campaignSkillsId = [
@@ -99,7 +100,7 @@ describe('Integration | Repository | BadgeForCalculation', function () {
         ],
       },
     ];
-    const learningContentObjects = learningContentBuilder.buildLearningContent(learningContent);
+    const learningContentObjects = learningContentBuilder(learningContent);
     mockLearningContent(learningContentObjects);
     targetProfileId = databaseBuilder.factory.buildTargetProfile().id;
     campaignId = databaseBuilder.factory.buildCampaign({ targetProfileId }).id;
@@ -118,11 +119,11 @@ describe('Integration | Repository | BadgeForCalculation', function () {
       const campaignParticipationId = databaseBuilder.factory.buildCampaignParticipation({ campaignId }).id;
       const expectedBadgeForCalculation1 = _buildBadgeWithCampaignParticipationAndCappedTubes(
         targetProfileId,
-        campaignSkillsId
+        campaignSkillsId,
       );
       const expectedBadgeForCalculation2 = _buildBadgeWithSkillSetsAndCampaignParticipationCriteria(
         targetProfileId,
-        campaignSkillsId
+        campaignSkillsId,
       );
       await databaseBuilder.commit();
 
@@ -143,11 +144,11 @@ describe('Integration | Repository | BadgeForCalculation', function () {
       // given
       const expectedBadgeForCalculation1 = _buildBadgeWithCampaignParticipationAndCappedTubes(
         targetProfileId,
-        campaignSkillsId
+        campaignSkillsId,
       );
       const expectedBadgeForCalculation2 = _buildBadgeWithSkillSetsAndCampaignParticipationCriteria(
         targetProfileId,
-        campaignSkillsId
+        campaignSkillsId,
       );
       _buildBadgeWithUnrealisableCriteria(targetProfileId, campaignSkillsId);
       await databaseBuilder.commit();
@@ -169,7 +170,7 @@ describe('Integration | Repository | BadgeForCalculation', function () {
       // given
       const expectedBadgeForCalculation1 = _buildBadgeWithCampaignParticipationAndCappedTubes(
         targetProfileId,
-        campaignSkillsId
+        campaignSkillsId,
       );
       const certifiableBadgeAcquisition = domainBuilder.buildCertifiableBadgeAcquisition({
         campaignId,

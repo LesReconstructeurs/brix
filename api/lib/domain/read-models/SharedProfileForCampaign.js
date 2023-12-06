@@ -1,38 +1,47 @@
-const map = require('lodash/map');
-const isEmpty = require('lodash/isEmpty');
-const Scorecard = require('../models/Scorecard');
+import lodash from 'lodash';
+
+const { map, isEmpty } = lodash;
+
+import { Scorecard } from '../models/Scorecard.js';
 
 class SharedProfileForCampaign {
   constructor({
     campaignParticipation,
     campaignAllowsRetry,
     isOrganizationLearnerActive,
-    competencesWithArea,
+    competences,
     knowledgeElementsGroupedByCompetenceId,
     userId,
+    allAreas,
+    maxReachableLevel,
+    maxReachablePixScore,
   }) {
     this.id = campaignParticipation?.id;
     this.sharedAt = campaignParticipation?.sharedAt;
     this.pixScore = campaignParticipation?.pixScore || 0;
-    this.scorecards = this._buildScorecards(userId, competencesWithArea, knowledgeElementsGroupedByCompetenceId);
+    this.scorecards = this._buildScorecards(userId, competences, allAreas, knowledgeElementsGroupedByCompetenceId);
     this.canRetry = this._computeCanRetry(
       campaignAllowsRetry,
       this.sharedAt,
       isOrganizationLearnerActive,
-      campaignParticipation?.deletedAt
+      campaignParticipation?.deletedAt,
     );
+    this.maxReachableLevel = maxReachableLevel;
+    this.maxReachablePixScore = maxReachablePixScore;
   }
 
-  _buildScorecards(userId, competencesWithArea, knowledgeElementsGroupedByCompetenceId) {
+  _buildScorecards(userId, competences, allAreas, knowledgeElementsGroupedByCompetenceId) {
     if (isEmpty(knowledgeElementsGroupedByCompetenceId)) return [];
-    return map(competencesWithArea, (competence) => {
+    return map(competences, (competence) => {
       const competenceId = competence.id;
+      const area = allAreas.find((area) => area.id === competence.areaId);
       const knowledgeElements = knowledgeElementsGroupedByCompetenceId[competenceId];
 
       return Scorecard.buildFrom({
         userId,
         knowledgeElements,
         competence,
+        area,
       });
     });
   }
@@ -42,4 +51,4 @@ class SharedProfileForCampaign {
   }
 }
 
-module.exports = SharedProfileForCampaign;
+export { SharedProfileForCampaign };

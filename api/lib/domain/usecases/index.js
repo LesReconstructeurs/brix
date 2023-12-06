@@ -1,452 +1,441 @@
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
+
+import { config } from '../../config.js';
+
+import { repositories } from '../../infrastructure/repositories/index.js';
+
+import * as accountRecoveryDemandRepository from '../../infrastructure/repositories/account-recovery-demand-repository.js';
+import * as adminMemberRepository from '../../infrastructure/repositories/admin-member-repository.js';
+
+import * as TargetProfileForSpecifierRepository from '../../infrastructure/repositories/campaign/target-profile-for-specifier-repository.js';
+import * as algorithmDataFetcherService from '../../domain/services/algorithm-methods/data-fetcher.js';
+import * as activityAnswerRepository from '../../infrastructure/repositories/activity-answer-repository.js';
+import * as answerRepository from '../../infrastructure/repositories/answer-repository.js';
+import * as activityRepository from '../../infrastructure/repositories/activity-repository.js';
+import * as areaRepository from '../../infrastructure/repositories/area-repository.js';
+import * as assessmentRepository from '../../infrastructure/repositories/assessment-repository.js';
+import * as assessmentResultRepository from '../../infrastructure/repositories/assessment-result-repository.js';
+import * as authenticationMethodRepository from '../../infrastructure/repositories/authentication-method-repository.js';
+import * as authenticationServiceRegistry from '../services/authentication/authentication-service-registry.js';
+import * as authenticationSessionService from '../../domain/services/authentication/authentication-session-service.js';
+import * as badgeAcquisitionRepository from '../../infrastructure/repositories/badge-acquisition-repository.js';
+import * as badgeCriteriaRepository from '../../infrastructure/repositories/badge-criteria-repository.js';
+import * as badgeForCalculationRepository from '../../infrastructure/repositories/badge-for-calculation-repository.js';
+import * as badgeRepository from '../../infrastructure/repositories/badge-repository.js';
+import * as campaignAdministrationRepository from '../../infrastructure/repositories/campaigns-administration/campaign-repository.js';
+import * as campaignAnalysisRepository from '../../infrastructure/repositories/campaign-analysis-repository.js';
+import * as campaignAssessmentParticipationRepository from '../../infrastructure/repositories/campaign-assessment-participation-repository.js';
+import * as campaignAssessmentParticipationResultListRepository from '../../infrastructure/repositories/campaign-assessment-participation-result-list-repository.js';
+import * as campaignAssessmentParticipationResultRepository from '../../infrastructure/repositories/campaign-assessment-participation-result-repository.js';
+import * as campaignCodeGenerator from '../services/campaigns/campaign-code-generator.js';
+import * as campaignCollectiveResultRepository from '../../infrastructure/repositories/campaign-collective-result-repository.js';
+import * as campaignCreatorRepository from '../../infrastructure/repositories/campaign-creator-repository.js';
+import * as campaignCsvExportService from '../../domain/services/campaign-csv-export-service.js';
+import * as campaignForArchivingRepository from '../../infrastructure/repositories/campaign/campaign-for-archiving-repository.js';
+import * as campaignManagementRepository from '../../infrastructure/repositories/campaign-management-repository.js';
+import * as campaignParticipantRepository from '../../infrastructure/repositories/campaign-participant-repository.js';
+import * as campaignParticipationInfoRepository from '../../infrastructure/repositories/campaign-participation-info-repository.js';
+import * as campaignParticipationOverviewRepository from '../../infrastructure/repositories/campaign-participation-overview-repository.js';
+import * as campaignParticipationRepository from '../../infrastructure/repositories/campaign-participation-repository.js';
+import * as campaignProfileRepository from '../../infrastructure/repositories/campaign-profile-repository.js';
+import * as campaignProfilesCollectionParticipationSummaryRepository from '../../infrastructure/repositories/campaign-profiles-collection-participation-summary-repository.js';
+import * as campaignReportRepository from '../../infrastructure/repositories/campaign-report-repository.js';
+import * as campaignRepository from '../../infrastructure/repositories/campaign-repository.js';
+import * as campaignToJoinRepository from '../../infrastructure/repositories/campaign-to-join-repository.js';
+import * as campaignValidator from '../validators/campaign-validator.js';
+import * as certifiableProfileForLearningContentRepository from '../../infrastructure/repositories/certifiable-profile-for-learning-content-repository.js';
+import * as certificateRepository from '../../infrastructure/repositories/certificate-repository.js';
+import * as certificationAssessmentRepository from '../../infrastructure/repositories/certification-assessment-repository.js';
+import * as certificationAttestationPdf from '../../infrastructure/utils/pdf/certification-attestation-pdf.js';
+import * as certificationBadgesService from '../../domain/services/certification-badges-service.js';
+import * as certificationCandidateForSupervisingRepository from '../../infrastructure/repositories/certification-candidate-for-supervising-repository.js';
+import * as certificationCandidateRepository from '../../infrastructure/repositories/certification-candidate-repository.js';
+import * as certificationCandidatesOdsService from '../../domain/services/certification-candidates-ods-service.js';
+import * as certificationCenterForAdminRepository from '../../infrastructure/repositories/certification-center-for-admin-repository.js';
+import * as certificationCenterInvitationRepository from '../../infrastructure/repositories/certification-center-invitation-repository.js';
+import * as certificationCenterInvitedUserRepository from '../../infrastructure/repositories/certification-center-invited-user-repository.js';
+import * as certificationCenterMembershipRepository from '../../infrastructure/repositories/certification-center-membership-repository.js';
+import * as certificationCenterRepository from '../../infrastructure/repositories/certification-center-repository.js';
+import * as certificationChallengeRepository from '../../infrastructure/repositories/certification-challenge-repository.js';
+import * as certificationChallengesService from '../../domain/services/certification-challenges-service.js';
+import * as certificationCourseRepository from '../../infrastructure/repositories/certification-course-repository.js';
+import * as certificationCpfCityRepository from '../../infrastructure/repositories/certification-cpf-city-repository.js';
+import * as certificationCpfCountryRepository from '../../infrastructure/repositories/certification-cpf-country-repository.js';
+import * as certificationCpfService from '../../domain/services/certification-cpf-service.js';
+import * as certificationIssueReportRepository from '../../infrastructure/repositories/certification-issue-report-repository.js';
+import * as certificationLsRepository from '../../infrastructure/repositories/certification-livret-scolaire-repository.js';
+import * as certificationOfficerRepository from '../../infrastructure/repositories/certification-officer-repository.js';
+import * as certificationPointOfContactRepository from '../../infrastructure/repositories/certification-point-of-contact-repository.js';
+import * as certificationReportRepository from '../../infrastructure/repositories/certification-report-repository.js';
+import * as certificationRepository from '../../infrastructure/repositories/certification-repository.js';
+import * as certificationResultRepository from '../../infrastructure/repositories/certification-result-repository.js';
+import * as challengeForPixAutoAnswerRepository from '../../infrastructure/repositories/challenge-for-pix-auto-answer-repository.js';
+import * as challengeRepository from '../../infrastructure/repositories/challenge-repository.js';
+import * as cleaCertifiedCandidateRepository from '../../infrastructure/repositories/clea-certified-candidate-repository.js';
+import * as codeUtils from '../../infrastructure/utils/code-utils.js';
+import * as competenceEvaluationRepository from '../../infrastructure/repositories/competence-evaluation-repository.js';
+import * as competenceMarkRepository from '../../infrastructure/repositories/competence-mark-repository.js';
+import * as competenceRepository from '../../infrastructure/repositories/competence-repository.js';
+import * as competenceTreeRepository from '../../infrastructure/repositories/competence-tree-repository.js';
+import * as complementaryCertificationCourseResultRepository from '../../infrastructure/repositories/complementary-certification-course-result-repository.js';
+import * as complementaryCertificationHabilitationRepository from '../../infrastructure/repositories/complementary-certification-habilitation-repository.js';
+import * as complementaryCertificationRepository from '../../infrastructure/repositories/complementary-certification-repository.js';
+import * as complementaryCertificationTargetProfileHistoryRepository from '../../infrastructure/repositories/complementary-certification-target-profile-history-repository.js';
+import * as complementaryCertificationSubscriptionRepository from '../../infrastructure/repositories/complementary-certification-subscription-repository.js';
+import * as countryRepository from '../../infrastructure/repositories/country-repository.js';
+import * as courseRepository from '../../infrastructure/repositories/course-repository.js';
+import * as cpfCertificationResultRepository from '../../infrastructure/repositories/cpf-certification-result-repository.js';
+import * as dataProtectionOfficerRepository from '../../infrastructure/repositories/data-protection-officer-repository.js';
+import * as dateUtils from '../../infrastructure/utils/date-utils.js';
+import * as disabledPoleEmploiNotifier from '../../infrastructure/externals/pole-emploi/disabled-pole-emploi-notifier.js';
+import * as divisionRepository from '../../infrastructure/repositories/division-repository.js';
+import * as encryptionService from '../../domain/services/encryption-service.js';
+import * as finalizedSessionRepository from '../../infrastructure/repositories/sessions/finalized-session-repository.js';
+import * as flashAlgorithmService from '../../domain/services/algorithm-methods/flash.js';
+import * as flashAssessmentResultRepository from '../../infrastructure/repositories/flash-assessment-result-repository.js';
+import * as frameworkRepository from '../../infrastructure/repositories/framework-repository.js';
+import * as groupRepository from '../../infrastructure/repositories/group-repository.js';
+import * as improvementService from '../../domain/services/improvement-service.js';
+import * as issueReportCategoryRepository from '../../infrastructure/repositories/issue-report-category-repository.js';
+import * as juryCertificationRepository from '../../infrastructure/repositories/jury-certification-repository.js';
+import * as juryCertificationSummaryRepository from '../../infrastructure/repositories/jury-certification-summary-repository.js';
+import * as jurySessionRepository from '../../infrastructure/repositories/sessions/jury-session-repository.js';
+import * as knowledgeElementRepository from '../../infrastructure/repositories/knowledge-element-repository.js';
+import * as learningContentConversionService from '../services/learning-content/learning-content-conversion-service.js';
+import * as learningContentRepository from '../../infrastructure/repositories/learning-content-repository.js';
+import * as localeService from '../../domain/services/locale-service.js';
+import * as mailService from '../../domain/services/mail-service.js';
+import * as membershipRepository from '../../infrastructure/repositories/membership-repository.js';
+import * as missionRepository from '../../infrastructure/repositories/mission-repository.js';
+import * as obfuscationService from '../../domain/services/obfuscation-service.js';
+import * as organizationCreationValidator from '../validators/organization-creation-validator.js';
+import * as organizationFeatureRepository from '../../infrastructure/repositories/organizations-administration/organization-feature-repository.js';
+import * as organizationForAdminRepository from '../../infrastructure/repositories/organization-for-admin-repository.js';
+import * as organizationInvitationRepository from '../../infrastructure/repositories/organization-invitation-repository.js';
+import * as organizationInvitationService from '../services/organization-invitation-service.js';
+import * as organizationInvitedUserRepository from '../../infrastructure/repositories/organization-invited-user-repository.js';
+import * as organizationLearnerActivityRepository from '../../infrastructure/repositories/organization-learner-activity-repository.js';
+import * as organizationLearnerFollowUpRepository from '../../infrastructure/repositories/organization-learner-follow-up/organization-learner-repository.js';
+import * as organizationLearnerRepository from '../../infrastructure/repositories/organization-learner-repository.js';
+import * as organizationLearnersCsvService from '../../domain/services/organization-learners-csv-service.js';
+import * as organizationLearnersXmlService from '../../domain/services/organization-learners-xml-service.js';
+import * as organizationMemberIdentityRepository from '../../infrastructure/repositories/organization-member-identity-repository.js';
+import * as organizationParticipantRepository from '../../infrastructure/repositories/organization-participant-repository.js';
+import * as organizationPlacesCapacityRepository from '../../infrastructure/repositories/organization-places-capacity-repository.js';
+import * as organizationPlacesLotRepository from '../../infrastructure/repositories/organizations/organization-places-lot-repository.js';
+import * as organizationRepository from '../../infrastructure/repositories/organization-repository.js';
+import * as organizationTagRepository from '../../infrastructure/repositories/organization-tag-repository.js';
+import * as organizationValidator from '../validators/organization-with-tags-and-target-profiles-script.js';
+import * as organizationsToAttachToTargetProfileRepository from '../../infrastructure/repositories/organizations-to-attach-to-target-profile-repository.js';
+import * as participantResultRepository from '../../infrastructure/repositories/participant-result-repository.js';
+import * as participationsForCampaignManagementRepository from '../../infrastructure/repositories/participations-for-campaign-management-repository.js';
+import * as participationsForUserManagementRepository from '../../infrastructure/repositories/participations-for-user-management-repository.js';
+import * as partnerCertificationScoringRepository from '../../infrastructure/repositories/partner-certification-scoring-repository.js';
+import * as passwordGenerator from '../../domain/services/password-generator.js';
+import * as passwordValidator from '../validators/password-validator.js';
+import * as pixAuthenticationService from '../../domain/services/authentication/pix-authentication-service.js';
+import * as placementProfileService from '../../domain/services/placement-profile-service.js';
+import * as poleEmploiNotifier from '../../infrastructure/externals/pole-emploi/pole-emploi-notifier.js';
+import * as poleEmploiSendingRepository from '../../infrastructure/repositories/pole-emploi-sending-repository.js';
+import * as prescriberRepository from '../../infrastructure/repositories/prescriber-repository.js';
+import * as pseudoRandom from '../../infrastructure/utils/pseudo-random.js';
+import * as readOdsUtils from '../../infrastructure/utils/ods/read-ods-utils.js';
+import * as refreshTokenService from '../../domain/services/refresh-token-service.js';
+import * as resetPasswordDemandRepository from '../../infrastructure/repositories/reset-password-demands-repository.js';
+import * as resetPasswordService from '../../domain/services/reset-password-service.js';
+import * as scoAccountRecoveryService from '../services/sco-account-recovery-service.js';
+import * as scoCertificationCandidateRepository from '../../infrastructure/repositories/sco-certification-candidate-repository.js';
+import * as scoOrganizationParticipantRepository from '../../infrastructure/repositories/sco-organization-participant-repository.js';
+import * as scorecardService from '../../domain/services/scorecard-service.js';
+import * as scoringCertificationService from '../../domain/services/scoring/scoring-certification-service.js';
+import * as sessionCodeService from '../services/session-code-service.js';
+import * as sessionForAttendanceSheetRepository from '../../infrastructure/repositories/sessions/session-for-attendance-sheet-repository.js';
+import * as sessionForSupervisingRepository from '../../infrastructure/repositories/sessions/session-for-supervising-repository.js';
+import * as sessionForSupervisorKitRepository from '../../infrastructure/repositories/sessions/session-for-supervisor-kit-repository.js';
+import * as sessionJuryCommentRepository from '../../infrastructure/repositories/sessions/session-jury-comment-repository.js';
+import * as sessionPublicationService from '../../domain/services/session-publication-service.js';
+import * as sessionRepository from '../../infrastructure/repositories/sessions/session-repository.js';
+import * as sessionSummaryRepository from '../../infrastructure/repositories/sessions/session-summary-repository.js';
+import * as sessionValidator from '../validators/session-validator.js';
+import * as sessionXmlService from '../../domain/services/session-xml-service.js';
+import * as sessionsImportValidationService from '../../domain/services/sessions-mass-import/sessions-import-validation-service.js';
+import * as skillRepository from '../../infrastructure/repositories/skill-repository.js';
+import * as skillSetRepository from '../../infrastructure/repositories/skill-set-repository.js';
+import * as smartRandom from '../../domain/services/algorithm-methods/smart-random.js';
+import * as stageCollectionRepository from '../../infrastructure/repositories/user-campaign-results/stage-collection-repository.js';
+import * as stageCollectionForTargetProfileRepository from '../../infrastructure/repositories/target-profile-management/stage-collection-repository.js';
+import * as studentRepository from '../../infrastructure/repositories/student-repository.js';
+import * as supOrganizationLearnerRepository from '../../infrastructure/repositories/sup-organization-learner-repository.js';
+import * as supOrganizationParticipantRepository from '../../infrastructure/repositories/sup-organization-participant-repository.js';
+import * as supervisorAccessRepository from '../../infrastructure/repositories/supervisor-access-repository.js';
+import * as tagRepository from '../../infrastructure/repositories/tag-repository.js';
+import * as targetProfileForAdminRepository from '../../infrastructure/repositories/target-profile-for-admin-repository.js';
+import * as targetProfileForUpdateRepository from '../../infrastructure/repositories/target-profile-for-update-repository.js';
+import * as targetProfileRepository from '../../infrastructure/repositories/target-profile-repository.js';
+import * as targetProfileShareRepository from '../../infrastructure/repositories/target-profile-share-repository.js';
+import * as targetProfileSummaryForAdminRepository from '../../infrastructure/repositories/target-profile-summary-for-admin-repository.js';
+import * as targetProfileTrainingRepository from '../../infrastructure/repositories/target-profile-training-repository.js';
+import * as temporarySessionsStorageForMassImportService from '../services/sessions-mass-import/temporary-sessions-storage-for-mass-import-service.js';
+import * as thematicRepository from '../../infrastructure/repositories/thematic-repository.js';
+import * as trainingRepository from '../../infrastructure/repositories/training-repository.js';
+import * as trainingTriggerRepository from '../../infrastructure/repositories/training-trigger-repository.js';
+import * as tubeRepository from '../../infrastructure/repositories/tube-repository.js';
+import * as tutorialEvaluationRepository from '../../infrastructure/repositories/tutorial-evaluation-repository.js';
+import * as tutorialRepository from '../../infrastructure/repositories/tutorial-repository.js';
+import * as userEmailRepository from '../../infrastructure/repositories/user-email-repository.js';
+import * as userLoginRepository from '../../infrastructure/repositories/user-login-repository.js';
+import * as userOrgaSettingsRepository from '../../infrastructure/repositories/user-orga-settings-repository.js';
+import * as userOrganizationsForAdminRepository from '../../infrastructure/repositories/user-organizations-for-admin-repository.js';
+import * as userRecommendedTrainingRepository from '../../infrastructure/repositories/user-recommended-training-repository.js';
+import * as userReconciliationService from '../services/user-reconciliation-service.js';
+import * as userRepository from '../../infrastructure/repositories/user-repository.js';
+import * as userSavedTutorialRepository from '../../infrastructure/repositories/user-saved-tutorial-repository.js';
+import * as userService from '../../domain/services/user-service.js';
+import * as userToCreateRepository from '../../infrastructure/repositories/user-to-create-repository.js';
+import * as userValidator from '../validators/user-validator.js';
+import * as verifyCertificateCodeService from '../../domain/services/verify-certificate-code-service.js';
+import * as writeCsvUtils from '../../infrastructure/utils/csv/write-csv-utils.js';
+import * as writeOdsUtils from '../../infrastructure/utils/ods/write-ods-utils.js';
+import { CampaignParticipationsStatsRepository as campaignParticipationsStatsRepository } from '../../infrastructure/repositories/campaign-participations-stats-repository.js';
+import { campaignParticipantActivityRepository } from '../../infrastructure/repositories/campaign-participant-activity-repository.js';
+import { campaignParticipationResultRepository } from '../../infrastructure/repositories/campaign-participation-result-repository.js';
+import { getCompetenceLevel } from '../services/get-competence-level.js';
+import { participantResultsSharedRepository } from '../../infrastructure/repositories/participant-results-shared-repository.js';
+import { pickChallengeService } from '../services/pick-challenge-service.js';
+import { tokenService } from '../services/token-service.js';
+
+import { importNamedExportsFromDirectory } from '../../infrastructure/utils/import-named-exports-from-directory.js';
+import { injectDependencies } from '../../infrastructure/utils/dependency-injection.js';
+import { findTargetProfileOrganizations as findPaginatedFilteredTargetProfileOrganizations } from './find-paginated-filtered-target-profile-organizations.js';
+import { getCampaignManagement as getCampaignDetailsManagement } from './get-campaign-details-management.js';
+
+function requirePoleEmploiNotifier() {
+  if (config.poleEmploi.pushEnabled) {
+    return poleEmploiNotifier;
+  } else {
+    return disabledPoleEmploiNotifier;
+  }
+}
+
 const dependencies = {
-  accountRecoveryDemandRepository: require('../../infrastructure/repositories/account-recovery-demand-repository'),
-  adminMemberRepository: require('../../infrastructure/repositories/admin-member-repository'),
-  algorithmDataFetcherService: require('../../domain/services/algorithm-methods/data-fetcher'),
-  answerRepository: require('../../infrastructure/repositories/answer-repository'),
-  areaRepository: require('../../infrastructure/repositories/area-repository'),
-  assessmentRepository: require('../../infrastructure/repositories/assessment-repository'),
-  assessmentResultRepository: require('../../infrastructure/repositories/assessment-result-repository'),
-  authenticationMethodRepository: require('../../infrastructure/repositories/authentication-method-repository'),
-  authenticationServiceRegistry: require('../services/authentication/authentication-service-registry'),
-  authenticationSessionService: require('../../domain/services/authentication/authentication-session-service'),
-  badgeAcquisitionRepository: require('../../infrastructure/repositories/badge-acquisition-repository'),
-  badgeCriteriaRepository: require('../../infrastructure/repositories/badge-criteria-repository'),
-  badgeForCalculationRepository: require('../../infrastructure/repositories/badge-for-calculation-repository'),
-  badgeRepository: require('../../infrastructure/repositories/badge-repository'),
-  campaignAnalysisRepository: require('../../infrastructure/repositories/campaign-analysis-repository'),
-  campaignAssessmentParticipationRepository: require('../../infrastructure/repositories/campaign-assessment-participation-repository'),
-  campaignAssessmentParticipationResultListRepository: require('../../infrastructure/repositories/campaign-assessment-participation-result-list-repository'),
-  campaignAssessmentParticipationResultRepository: require('../../infrastructure/repositories/campaign-assessment-participation-result-repository'),
-  campaignCreatorRepository: require('../../infrastructure/repositories/campaign-creator-repository'),
-  campaignForArchivingRepository: require('../../infrastructure/repositories/campaign/campaign-for-archiving-repository'),
-  campaignParticipantActivityRepository: require('../../infrastructure/repositories/campaign-participant-activity-repository'),
-  campaignCollectiveResultRepository: require('../../infrastructure/repositories/campaign-collective-result-repository'),
-  campaignManagementRepository: require('../../infrastructure/repositories/campaign-management-repository'),
-  campaignParticipationInfoRepository: require('../../infrastructure/repositories/campaign-participation-info-repository'),
-  campaignParticipantRepository: require('../../infrastructure/repositories/campaign-participant-repository'),
-  campaignParticipationOverviewRepository: require('../../infrastructure/repositories/campaign-participation-overview-repository'),
-  campaignParticipationRepository: require('../../infrastructure/repositories/campaign-participation-repository'),
-  campaignParticipationResultRepository: require('../../infrastructure/repositories/campaign-participation-result-repository'),
-  campaignParticipationsStatsRepository: require('../../infrastructure/repositories/campaign-participations-stats-repository'),
-  campaignProfilesCollectionParticipationSummaryRepository: require('../../infrastructure/repositories/campaign-profiles-collection-participation-summary-repository'),
-  campaignProfileRepository: require('../../infrastructure/repositories/campaign-profile-repository'),
-  campaignReportRepository: require('../../infrastructure/repositories/campaign-report-repository'),
-  campaignRepository: require('../../infrastructure/repositories/campaign-repository'),
-  campaignToJoinRepository: require('../../infrastructure/repositories/campaign-to-join-repository'),
-  campaignCsvExportService: require('../../domain/services/campaign-csv-export-service'),
-  certificateRepository: require('../../infrastructure/repositories/certificate-repository'),
-  certificationAssessmentRepository: require('../../infrastructure/repositories/certification-assessment-repository'),
-  certificationAttestationPdf: require('../../infrastructure/utils/pdf/certification-attestation-pdf'),
-  certificationBadgesService: require('../../domain/services/certification-badges-service'),
-  certificationCandidateRepository: require('../../infrastructure/repositories/certification-candidate-repository'),
-  certificationCandidateForSupervisingRepository: require('../../infrastructure/repositories/certification-candidate-for-supervising-repository'),
-  certificationCandidatesOdsService: require('../../domain/services/certification-candidates-ods-service'),
-  certificationCenterInvitationRepository: require('../../infrastructure/repositories/certification-center-invitation-repository'),
-  certificationCenterInvitedUserRepository: require('../../infrastructure/repositories/certification-center-invited-user-repository'),
-  certificationCenterMembershipRepository: require('../../infrastructure/repositories/certification-center-membership-repository'),
-  certificationCenterForAdminRepository: require('../../infrastructure/repositories/certification-center-for-admin-repository'),
-  certificationCenterRepository: require('../../infrastructure/repositories/certification-center-repository'),
-  certificationChallengeRepository: require('../../infrastructure/repositories/certification-challenge-repository'),
-  certificationChallengesService: require('../../domain/services/certification-challenges-service'),
-  certificationCourseRepository: require('../../infrastructure/repositories/certification-course-repository'),
-  certificationCpfCityRepository: require('../../infrastructure/repositories/certification-cpf-city-repository'),
-  certificationCpfCountryRepository: require('../../infrastructure/repositories/certification-cpf-country-repository'),
-  certificationIssueReportRepository: require('../../infrastructure/repositories/certification-issue-report-repository'),
-  certificationLsRepository: require('../../infrastructure/repositories/certification-livret-scolaire-repository'),
-  certificationOfficerRepository: require('../../infrastructure/repositories/certification-officer-repository'),
-  certificationPointOfContactRepository: require('../../infrastructure/repositories/certification-point-of-contact-repository'),
-  certificationReportRepository: require('../../infrastructure/repositories/certification-report-repository'),
-  certificationRepository: require('../../infrastructure/repositories/certification-repository'),
-  certificationCpfService: require('../../domain/services/certification-cpf-service'),
-  certificationResultRepository: require('../../infrastructure/repositories/certification-result-repository'),
-  challengeRepository: require('../../infrastructure/repositories/challenge-repository'),
-  challengeForPixAutoAnswerRepository: require('../../infrastructure/repositories/challenge-for-pix-auto-answer-repository'),
-  cleaCertifiedCandidateRepository: require('../../infrastructure/repositories/clea-certified-candidate-repository'),
-  competenceEvaluationRepository: require('../../infrastructure/repositories/competence-evaluation-repository'),
-  competenceMarkRepository: require('../../infrastructure/repositories/competence-mark-repository'),
-  competenceRepository: require('../../infrastructure/repositories/competence-repository'),
-  competenceTreeRepository: require('../../infrastructure/repositories/competence-tree-repository'),
-  complementaryCertificationHabilitationRepository: require('../../infrastructure/repositories/complementary-certification-habilitation-repository'),
-  complementaryCertificationRepository: require('../../infrastructure/repositories/complementary-certification-repository'),
-  complementaryCertificationSubscriptionRepository: require('../../infrastructure/repositories/complementary-certification-subscription-repository'),
-  complementaryCertificationCourseResultRepository: require('../../infrastructure/repositories/complementary-certification-course-result-repository'),
-  correctionRepository: require('../../infrastructure/repositories/correction-repository'),
-  countryRepository: require('../../infrastructure/repositories/country-repository'),
-  courseRepository: require('../../infrastructure/repositories/course-repository'),
-  cpfCertificationResultRepository: require('../../infrastructure/repositories/cpf-certification-result-repository'),
-  dataProtectionOfficerRepository: require('../../infrastructure/repositories/data-protection-officer-repository'),
-  divisionRepository: require('../../infrastructure/repositories/division-repository'),
-  encryptionService: require('../../domain/services/encryption-service'),
-  endTestScreenRemovalService: require('../services/end-test-screen-removal-service'),
-  flashAssessmentResultRepository: require('../../infrastructure/repositories/flash-assessment-result-repository'),
-  flashAlgorithmService: require('../../domain/services/algorithm-methods/flash'),
-  frameworkRepository: require('../../infrastructure/repositories/framework-repository'),
-  getCompetenceLevel: require('../../domain/services/get-competence-level'),
-  sessionForSupervisorKitRepository: require('../../infrastructure/repositories/sessions/session-for-supervisor-kit-repository'),
-  groupRepository: require('../../infrastructure/repositories/group-repository'),
-  finalizedSessionRepository: require('../../infrastructure/repositories/sessions/finalized-session-repository'),
-  supOrganizationLearnerRepository: require('../../infrastructure/repositories/sup-organization-learner-repository'),
-  improvementService: require('../../domain/services/improvement-service'),
-  issueReportCategoryRepository: require('../../infrastructure/repositories/issue-report-category-repository'),
-  juryCertificationRepository: require('../../infrastructure/repositories/jury-certification-repository'),
-  juryCertificationSummaryRepository: require('../../infrastructure/repositories/jury-certification-summary-repository'),
-  jurySessionRepository: require('../../infrastructure/repositories/sessions/jury-session-repository'),
-  knowledgeElementRepository: require('../../infrastructure/repositories/knowledge-element-repository'),
-  learningContentRepository: require('../../infrastructure/repositories/learning-content-repository'),
-  mailService: require('../../domain/services/mail-service'),
-  membershipRepository: require('../../infrastructure/repositories/membership-repository'),
-  obfuscationService: require('../../domain/services/obfuscation-service'),
-  organizationMemberIdentityRepository: require('../../infrastructure/repositories/organization-member-identity-repository'),
-  organizationForAdminRepository: require('../../infrastructure/repositories/organization-for-admin-repository'),
-  organizationRepository: require('../../infrastructure/repositories/organization-repository'),
-  organizationPlacesLotRepository: require('../../infrastructure/repositories/organizations/organization-places-lot-repository'),
-  organizationPlacesCapacityRepository: require('../../infrastructure/repositories/organization-places-capacity-repository'),
-  organizationInvitationRepository: require('../../infrastructure/repositories/organization-invitation-repository'),
-  organizationInvitedUserRepository: require('../../infrastructure/repositories/organization-invited-user-repository'),
-  organizationTagRepository: require('../../infrastructure/repositories/organization-tag-repository'),
-  organizationsToAttachToTargetProfileRepository: require('../../infrastructure/repositories/organizations-to-attach-to-target-profile-repository'),
-  participantResultRepository: require('../../infrastructure/repositories/participant-result-repository'),
-  participationsForCampaignManagementRepository: require('../../infrastructure/repositories/participations-for-campaign-management-repository'),
-  participationsForUserManagementRepository: require('../../infrastructure/repositories/participations-for-user-management-repository'),
-  userOrganizationsForAdminRepository: require('../../infrastructure/repositories/user-organizations-for-admin-repository'),
-  partnerCertificationScoringRepository: require('../../infrastructure/repositories/partner-certification-scoring-repository'),
-  passwordGenerator: require('../../domain/services/password-generator'),
-  pickChallengeService: require('../services/pick-challenge-service'),
-  pixAuthenticationService: require('../../domain/services/authentication/pix-authentication-service'),
-  placementProfileService: require('../../domain/services/placement-profile-service'),
-  poleEmploiSendingRepository: require('../../infrastructure/repositories/pole-emploi-sending-repository'),
-  poleEmploiNotifier: require('../../infrastructure/externals/pole-emploi/pole-emploi-notifier'),
-  prescriberRepository: require('../../infrastructure/repositories/prescriber-repository'),
-  resetPasswordService: require('../../domain/services/reset-password-service'),
-  resetPasswordDemandRepository: require('../../infrastructure/repositories/reset-password-demands-repository'),
-  organizationLearnerRepository: require('../../infrastructure/repositories/organization-learner-repository'),
-  organizationParticipantRepository: require('../../infrastructure/repositories/organization-participant-repository'),
-  organizationLearnerActivityRepository: require('../../infrastructure/repositories/organization-learner-activity-repository'),
-  organizationLearnersCsvService: require('../../domain/services/organization-learners-csv-service'),
-  organizationLearnersXmlService: require('../../domain/services/organization-learners-xml-service'),
-  scoAccountRecoveryService: require('../services/sco-account-recovery-service'),
-  scoCertificationCandidateRepository: require('../../infrastructure/repositories/sco-certification-candidate-repository'),
-  scoOrganizationParticipantRepository: require('../../infrastructure/repositories/sco-organization-participant-repository'),
-  scorecardService: require('../../domain/services/scorecard-service'),
-  scoringCertificationService: require('../../domain/services/scoring/scoring-certification-service'),
-  supOrganizationParticipantRepository: require('../../infrastructure/repositories/sup-organization-participant-repository'),
-  sessionForAttendanceSheetRepository: require('../../infrastructure/repositories/sessions/session-for-attendance-sheet-repository'),
-  sessionPublicationService: require('../../domain/services/session-publication-service'),
-  sessionRepository: require('../../infrastructure/repositories/sessions/session-repository'),
-  sessionForSupervisingRepository: require('../../infrastructure/repositories/sessions/session-for-supervising-repository'),
-  sessionJuryCommentRepository: require('../../infrastructure/repositories/sessions/session-jury-comment-repository'),
-  sessionSummaryRepository: require('../../infrastructure/repositories/sessions/session-summary-repository'),
-  settings: require('../../config'),
-  skillRepository: require('../../infrastructure/repositories/skill-repository'),
-  skillSetRepository: require('../../infrastructure/repositories/skill-set-repository'),
-  stageRepository: require('../../infrastructure/repositories/stage-repository'),
-  studentRepository: require('../../infrastructure/repositories/student-repository'),
-  supervisorAccessRepository: require('../../infrastructure/repositories/supervisor-access-repository'),
-  tagRepository: require('../../infrastructure/repositories/tag-repository'),
-  TargetProfileForSpecifierRepository: require('../../infrastructure/repositories/campaign/target-profile-for-specifier-repository'),
-  targetProfileRepository: require('../../infrastructure/repositories/target-profile-repository'),
-  targetProfileSummaryForAdminRepository: require('../../infrastructure/repositories/target-profile-summary-for-admin-repository'),
-  targetProfileForUpdateRepository: require('../../infrastructure/repositories/target-profile-for-update-repository'),
-  targetProfileShareRepository: require('../../infrastructure/repositories/target-profile-share-repository'),
-  targetProfileForAdminRepository: require('../../infrastructure/repositories/target-profile-for-admin-repository'),
-  thematicRepository: require('../../infrastructure/repositories/thematic-repository'),
-  tokenService: require('../../domain/services/token-service'),
-  refreshTokenService: require('../../domain/services/refresh-token-service'),
-  trainingRepository: require('../../infrastructure/repositories/training-repository'),
-  tubeRepository: require('../../infrastructure/repositories/tube-repository'),
-  tutorialEvaluationRepository: require('../../infrastructure/repositories/tutorial-evaluation-repository'),
-  tutorialRepository: require('../../infrastructure/repositories/tutorial-repository'),
-  userEmailRepository: require('../../infrastructure/repositories/user-email-repository'),
-  userLoginRepository: require('../../infrastructure/repositories/user-login-repository'),
-  userOrgaSettingsRepository: require('../../infrastructure/repositories/user-orga-settings-repository'),
-  userRecommendedTrainingRepository: require('../../infrastructure/repositories/user-recommended-training-repository'),
-  userReconciliationService: require('../services/user-reconciliation-service'),
-  userToCreateRepository: require('../../infrastructure/repositories/user-to-create-repository'),
-  userRepository: require('../../infrastructure/repositories/user-repository'),
-  userService: require('../../domain/services/user-service'),
-  userSavedTutorialRepository: require('../../infrastructure/repositories/user-saved-tutorial-repository'),
-  verifyCertificateCodeService: require('../../domain/services/verify-certificate-code-service'),
+  TargetProfileForSpecifierRepository,
+  accountRecoveryDemandRepository,
+  activityAnswerRepository,
+  activityRepository,
+  adminMemberRepository,
+  algorithmDataFetcherService,
+  answerRepository,
+  areaRepository,
+  assessmentRepository,
+  assessmentResultRepository,
+  authenticationMethodRepository,
+  authenticationServiceRegistry,
+  authenticationSessionService,
+  badgeAcquisitionRepository,
+  badgeCriteriaRepository,
+  badgeForCalculationRepository,
+  badgeRepository,
+  campaignAdministrationRepository,
+  campaignAnalysisRepository,
+  campaignAssessmentParticipationRepository,
+  campaignAssessmentParticipationResultListRepository,
+  campaignAssessmentParticipationResultRepository,
+  campaignCodeGenerator,
+  campaignCollectiveResultRepository,
+  campaignCreatorRepository,
+  campaignCsvExportService,
+  campaignForArchivingRepository,
+  campaignManagementRepository,
+  campaignParticipantActivityRepository,
+  campaignParticipantRepository,
+  campaignParticipationInfoRepository,
+  campaignParticipationOverviewRepository,
+  campaignParticipationRepository,
+  campaignParticipationResultRepository,
+  campaignParticipationsStatsRepository,
+  campaignProfileRepository,
+  campaignProfilesCollectionParticipationSummaryRepository,
+  campaignReportRepository,
+  campaignRepository,
+  campaignToJoinRepository,
+  campaignValidator,
+  certifiableProfileForLearningContentRepository,
+  certificateRepository,
+  certificationAssessmentRepository,
+  certificationAttestationPdf,
+  certificationBadgesService,
+  certificationCandidateForSupervisingRepository,
+  certificationCandidateRepository,
+  certificationCandidatesOdsService,
+  certificationCenterForAdminRepository,
+  certificationCenterInvitationRepository,
+  certificationCenterInvitedUserRepository,
+  certificationCenterMembershipRepository,
+  certificationCenterRepository,
+  certificationChallengeRepository,
+  certificationChallengesService,
+  certificationCourseRepository,
+  certificationCpfCityRepository,
+  certificationCpfCountryRepository,
+  certificationCpfService,
+  certificationIssueReportRepository,
+  certificationLsRepository,
+  certificationOfficerRepository,
+  certificationPointOfContactRepository,
+  certificationReportRepository,
+  certificationRepository,
+  certificationResultRepository,
+  challengeForPixAutoAnswerRepository,
+  challengeRepository,
+  cleaCertifiedCandidateRepository,
+  codeUtils,
+  competenceEvaluationRepository,
+  competenceMarkRepository,
+  competenceRepository,
+  competenceTreeRepository,
+  complementaryCertificationCourseResultRepository,
+  complementaryCertificationHabilitationRepository,
+  complementaryCertificationRepository,
+  complementaryCertificationTargetProfileHistoryRepository,
+  complementaryCertificationSubscriptionRepository,
+  config,
+  correctionRepository: repositories.correctionRepository,
+  countryRepository,
+  courseRepository,
+  cpfCertificationResultRepository,
+  dataProtectionOfficerRepository,
+  dateUtils,
+  divisionRepository,
+  encryptionService,
+  finalizedSessionRepository,
+  flashAlgorithmService,
+  flashAssessmentResultRepository,
+  frameworkRepository,
+  getCompetenceLevel,
+  groupRepository,
+  improvementService,
+  issueReportCategoryRepository,
+  juryCertificationRepository,
+  juryCertificationSummaryRepository,
+  jurySessionRepository,
+  knowledgeElementRepository,
+  learningContentConversionService,
+  learningContentRepository,
+  localeService,
+  mailService,
+  membershipRepository,
+  missionRepository,
+  obfuscationService,
+  organizationCreationValidator,
+  organizationFeatureRepository,
+  organizationForAdminRepository,
+  organizationInvitationRepository,
+  organizationInvitationService,
+  organizationInvitedUserRepository,
+  organizationLearnerActivityRepository,
+  organizationLearnerFollowUpRepository,
+  organizationLearnerRepository,
+  organizationLearnersCsvService,
+  organizationLearnersXmlService,
+  organizationMemberIdentityRepository,
+  organizationParticipantRepository,
+  organizationPlacesCapacityRepository,
+  organizationPlacesLotRepository,
+  organizationRepository,
+  organizationTagRepository,
+  organizationValidator,
+  organizationsToAttachToTargetProfileRepository,
+  participantResultRepository,
+  participantResultsSharedRepository,
+  participationsForCampaignManagementRepository,
+  participationsForUserManagementRepository,
+  partnerCertificationScoringRepository,
+  passwordGenerator,
+  passwordValidator,
+  pickChallengeService,
+  pixAuthenticationService,
+  placementProfileService,
+  poleEmploiNotifier: requirePoleEmploiNotifier(),
+  poleEmploiSendingRepository,
+  prescriberRepository,
+  pseudoRandom,
+  readOdsUtils,
+  refreshTokenService,
+  resetPasswordDemandRepository,
+  resetPasswordService,
+  scoAccountRecoveryService,
+  scoCertificationCandidateRepository,
+  scoOrganizationParticipantRepository,
+  scorecardService,
+  scoringCertificationService,
+  sessionCodeService,
+  sessionForAttendanceSheetRepository,
+  sessionForSupervisingRepository,
+  sessionForSupervisorKitRepository,
+  sessionJuryCommentRepository,
+  sessionPublicationService,
+  sessionRepository,
+  sessionSummaryRepository,
+  sessionValidator,
+  sessionXmlService,
+  sessionsImportValidationService,
+  skillRepository,
+  skillSetRepository,
+  smartRandom,
+  stageCollectionRepository,
+  stageCollectionForTargetProfileRepository,
+  studentRepository,
+  supOrganizationLearnerRepository,
+  supOrganizationParticipantRepository,
+  supervisorAccessRepository,
+  tagRepository,
+  targetProfileForAdminRepository,
+  targetProfileForUpdateRepository,
+  targetProfileRepository,
+  targetProfileShareRepository,
+  targetProfileSummaryForAdminRepository,
+  targetProfileTrainingRepository,
+  temporarySessionsStorageForMassImportService,
+  thematicRepository,
+  tokenService,
+  trainingRepository,
+  trainingTriggerRepository,
+  tubeRepository,
+  tutorialEvaluationRepository,
+  tutorialRepository,
+  userEmailRepository,
+  userLoginRepository,
+  userOrgaSettingsRepository,
+  userOrganizationsForAdminRepository,
+  userRecommendedTrainingRepository,
+  userReconciliationService,
+  userRepository,
+  userSavedTutorialRepository,
+  userService,
+  userToCreateRepository,
+  userValidator,
+  verifyCertificateCodeService,
+  writeCsvUtils,
+  writeOdsUtils,
 };
 
-const { injectDependencies } = require('../../infrastructure/utils/dependency-injection');
+const path = dirname(fileURLToPath(import.meta.url));
 
-module.exports = injectDependencies(
-  {
-    abortCertificationCourse: require('./abort-certification-course'),
-    acceptCertificationCenterInvitation: require('./accept-certification-center-invitation'),
-    acceptOrganizationInvitation: require('./accept-organization-invitation'),
-    acceptPixCertifTermsOfService: require('./accept-pix-certif-terms-of-service'),
-    acceptPixLastTermsOfService: require('./accept-pix-last-terms-of-service'),
-    acceptPixOrgaTermsOfService: require('./accept-pix-orga-terms-of-service'),
-    addCertificationCandidateToSession: require('./add-certification-candidate-to-session'),
-    addPixAuthenticationMethodByEmail: require('./add-pix-authentication-method-by-email'),
-    addTutorialEvaluation: require('./add-tutorial-evaluation'),
-    addTutorialToUser: require('./add-tutorial-to-user'),
-    anonymizeUser: require('./anonymize-user'),
-    archiveCampaign: require('./archive-campaign'),
-    archiveOrganization: require('./archive-organization'),
-    assignCertificationOfficerToJurySession: require('./assign-certification-officer-to-jury-session'),
-    attachOrganizationsFromExistingTargetProfile: require('./attach-organizations-from-existing-target-profile'),
-    attachOrganizationsToTargetProfile: require('./attach-organizations-to-target-profile'),
-    attachTargetProfilesToOrganization: require('./attach-target-profiles-to-organization'),
-    authenticateAnonymousUser: require('./authenticate-anonymous-user'),
-    authenticateApplication: require('./authenticate-application'),
-    authenticateExternalUser: require('./authenticate-external-user'),
-    authenticateOidcUser: require('./authentication/authenticate-oidc-user'),
-    authenticateUser: require('./authenticate-user'),
-    authorizeCertificationCandidateToResume: require('./authorize-certification-candidate-to-resume'),
-    authorizeCertificationCandidateToStart: require('./authorize-certification-candidate-to-start'),
-    beginCampaignParticipationImprovement: require('./begin-campaign-participation-improvement'),
-    cancelCertificationCenterInvitation: require('./cancel-certification-center-invitation'),
-    cancelCertificationCourse: require('./cancel-certification-course'),
-    cancelOrganizationInvitation: require('./cancel-organization-invitation'),
-    changeUserLang: require('./change-user-lang'),
-    checkScoAccountRecovery: require('./check-sco-account-recovery'),
-    commentSessionAsJury: require('./comment-session-as-jury'),
-    completeAssessment: require('./complete-assessment'),
-    computeCampaignAnalysis: require('./compute-campaign-analysis'),
-    computeCampaignCollectiveResult: require('./compute-campaign-collective-result'),
-    computeCampaignParticipationAnalysis: require('./compute-campaign-participation-analysis'),
-    correctAnswerThenUpdateAssessment: require('./correct-answer-then-update-assessment'),
-    correctCandidateIdentityInCertificationCourse: require('./correct-candidate-identity-in-certification-course'),
-    createAccessTokenFromRefreshToken: require('./create-access-token-from-refresh-token'),
-    createAndReconcileUserToOrganizationLearner: require('./create-and-reconcile-user-to-organization-learner'),
-    createBadge: require('./create-badge'),
-    createCampaign: require('./create-campaign'),
-    createCertificationCenter: require('./create-certification-center'),
-    createCertificationCenterMembershipByEmail: require('./create-certification-center-membership-by-email'),
-    createCertificationCenterMembershipForScoOrganizationMember: require('./create-certification-center-membership-for-sco-organization-member'),
-    createLcmsRelease: require('./create-lcms-release'),
-    createMembership: require('./create-membership'),
-    createOidcUser: require('./create-oidc-user'),
-    createOrUpdateCertificationCenterInvitationForAdmin: require('./create-or-update-certification-center-invitation-for-admin'),
-    createOrUpdateUserOrgaSettings: require('./create-or-update-user-orga-settings'),
-    createOrganization: require('./create-organization'),
-    createOrganizationInvitationByAdmin: require('./create-organization-invitation-by-admin'),
-    createOrganizationInvitations: require('./create-organization-invitations'),
-    resendOrganizationInvitation: require('./resend-organization-invitation'),
-    createOrganizationPlacesLot: require('./create-organization-places-lot'),
-    createPasswordResetDemand: require('./create-password-reset-demand'),
-    createSession: require('./create-session'),
-    createSessions: require('./create-sessions'),
-    createStage: require('./create-stage'),
-    createTag: require('./create-tag'),
-    createTargetProfile: require('./create-target-profile'),
-    createTraining: require('./create-training'),
-    createUser: require('./create-user'),
-    createUserAndReconcileToOrganizationLearnerFromExternalUser: require('./create-user-and-reconcile-to-organization-learner-from-external-user'),
-    deactivateAdminMember: require('./deactivate-admin-member'),
-    deleteCampaignParticipation: require('./delete-campaign-participation'),
-    deleteCampaignParticipationForAdmin: require('./delete-campaign-participation-for-admin'),
-    deleteCertificationIssueReport: require('./delete-certification-issue-report'),
-    deleteOrganizationPlaceLot: require('./delete-organization-place-lot'),
-    deleteSession: require('./delete-session'),
-    deleteSessionJuryComment: require('./delete-session-jury-comment'),
-    deleteUnassociatedBadge: require('./delete-unassociated-badge'),
-    deleteUnlinkedCertificationCandidate: require('./delete-unlinked-certification-candidate'),
-    deneutralizeChallenge: require('./deneutralize-challenge'),
-    disableCertificationCenterMembership: require('./disable-certification-center-membership'),
-    disableMembership: require('./disable-membership'),
-    dissociateUserFromOrganizationLearner: require('./dissociate-user-from-organization-learner'),
-    endAssessmentBySupervisor: require('./end-assessment-by-supervisor'),
-    enrollStudentsToSession: require('./enroll-students-to-session'),
-    finalizeSession: require('./finalize-session'),
-    findAllTags: require('./find-all-tags'),
-    findAnswerByAssessment: require('./find-answer-by-assessment'),
-    findAnswerByChallengeAndAssessment: require('./find-answer-by-challenge-and-assessment'),
-    findAssessmentParticipationResultList: require('./find-assessment-participation-result-list'),
-    findAssociationBetweenUserAndOrganizationLearner: require('./find-association-between-user-and-organization-learner'),
-    findCampaignParticipationTrainings: require('./find-campaign-participation-trainings'),
-    findCampaignParticipationsForUserManagement: require('./find-campaign-participations-for-user-management'),
-    findCampaignProfilesCollectionParticipationSummaries: require('./find-campaign-profiles-collection-participation-summaries'),
-    findCertificationAttestationsForDivision: require('./certificate/find-certification-attestations-for-division'),
-    findCertificationCenterMembershipsByCertificationCenter: require('./find-certification-center-memberships-by-certification-center'),
-    findCertificationCenterMembershipsByUser: require('./find-certification-center-memberships-by-user'),
-    findCompetenceEvaluationsByAssessment: require('./find-competence-evaluations-by-assessment'),
-    findComplementaryCertifications: require('./find-complementary-certifications'),
-    findCountries: require('./find-countries'),
-    findDivisionsByCertificationCenter: require('./find-divisions-by-certification-center'),
-    findDivisionsByOrganization: require('./find-divisions-by-organization'),
-    findFinalizedSessionsToPublish: require('./find-finalized-sessions-to-publish'),
-    findFinalizedSessionsWithRequiredAction: require('./find-finalized-sessions-with-required-action'),
-    findGroupsByOrganization: require('./find-groups-by-organization'),
-    findLatestOngoingUserCampaignParticipations: require('./find-latest-ongoing-user-campaign-participations'),
-    findOrganizationPlacesLot: require('./find-organization-places-lot'),
-    findOrganizationTargetProfileSummariesForAdmin: require('./find-organization-target-profile-summaries-for-admin'),
-    findPaginatedCampaignManagements: require('./find-paginated-campaign-managements'),
-    findPaginatedCampaignParticipantsActivities: require('./find-paginated-campaign-participants-activities'),
-    findPaginatedCertificationCenterSessionSummaries: require('./find-paginated-certification-center-session-summaries'),
-    findPaginatedFilteredCertificationCenters: require('./find-paginated-filtered-certification-centers'),
-    findPaginatedFilteredOrganizationCampaigns: require('./find-paginated-filtered-organization-campaigns'),
-    findPaginatedFilteredOrganizationMemberships: require('./find-paginated-filtered-organization-memberships'),
-    findPaginatedFilteredOrganizations: require('./find-paginated-filtered-organizations'),
-    findPaginatedFilteredScoParticipants: require('./find-paginated-filtered-sco-participants'),
-    findPaginatedFilteredSupParticipants: require('./find-paginated-filtered-sup-participants'),
-    findPaginatedFilteredTargetProfileOrganizations: require('./find-paginated-filtered-target-profile-organizations'),
-    findPaginatedFilteredTargetProfileSummariesForAdmin: require('./find-paginated-filtered-target-profile-summaries-for-admin'),
-    findPaginatedFilteredTutorials: require('./find-paginated-filtered-tutorials'),
-    findPaginatedFilteredUsers: require('./find-paginated-filtered-users'),
-    findPaginatedParticipationsForCampaignManagement: require('./find-paginated-participations-for-campaign-management'),
-    findPaginatedTrainingSummaries: require('./find-paginated-training-summaries'),
-    findPaginatedUserRecommendedTrainings: require('./find-paginated-user-recommended-trainings'),
-    findPendingCertificationCenterInvitations: require('./find-pending-certification-center-invitations'),
-    findPendingOrganizationInvitations: require('./find-pending-organization-invitations'),
-    findStudentsForEnrollment: require('./find-students-for-enrollment'),
-    findTargetProfileStages: require('./find-target-profile-stages'),
-    findTutorials: require('./find-tutorials'),
-    findUserAuthenticationMethods: require('./find-user-authentication-methods'),
-    findUserCampaignParticipationOverviews: require('./find-user-campaign-participation-overviews'),
-    findUserForOidcReconciliation: require('./find-user-for-oidc-reconciliation'),
-    findUserOrganizationsForAdmin: require('./find-user-organizations-for-admin'),
-    findUserPrivateCertificates: require('./find-user-private-certificates'),
-    flagSessionResultsAsSentToPrescriber: require('./flag-session-results-as-sent-to-prescriber'),
-    generateUsername: require('./generate-username'),
-    generateUsernameWithTemporaryPassword: require('./generate-username-with-temporary-password'),
-    getAccountRecoveryDetails: require('./account-recovery/get-account-recovery-details'),
-    getAdminMemberDetails: require('./get-admin-member-details'),
-    getAdminMembers: require('./get-admin-members'),
-    getAnswer: require('./get-answer'),
-    getAssessment: require('./get-assessment'),
-    getAttendanceSheet: require('./get-attendance-sheet'),
-    getAvailableTargetProfilesForOrganization: require('./get-available-target-profiles-for-organization'),
-    getCampaign: require('./get-campaign'),
-    getCampaignAssessmentParticipation: require('./get-campaign-assessment-participation'),
-    getCampaignAssessmentParticipationResult: require('./get-campaign-assessment-participation-result'),
-    getCampaignByCode: require('./get-campaign-by-code'),
-    getCampaignDetailsManagement: require('./get-campaign-details-management'),
-    getCampaignParticipationsActivityByDay: require('./get-campaign-participations-activity-by-day'),
-    getCampaignParticipationsCountByStage: require('./get-campaign-participations-counts-by-stage'),
-    getCampaignParticipationsCountsByStatus: require('./get-campaign-participations-counts-by-status'),
-    getCampaignProfile: require('./get-campaign-profile'),
-    getCandidateImportSheetData: require('./get-candidate-import-sheet-data'),
-    getCertificationAttestation: require('./certificate/get-certification-attestation'),
-    getCertificationCandidate: require('./get-certification-candidate'),
-    getCertificationCandidateSubscription: require('./get-certification-candidate-subscription'),
-    getCertificationCenter: require('./get-certification-center'),
-    getCertificationCenterInvitation: require('./get-certification-center-invitation'),
-    getCertificationCourse: require('./get-certification-course'),
-    getCertificationDetails: require('./get-certification-details'),
-    getCertificationPointOfContact: require('./get-certification-point-of-contact'),
-    getCertificationsResultsForLS: require('./certificate/get-certifications-results-for-ls'),
-    getChallengeForPixAutoAnswer: require('./get-challenge-for-pix-auto-answer'),
-    getCleaCertifiedCandidateBySession: require('./get-clea-certified-candidate-by-session'),
-    getCorrectionForAnswer: require('./get-correction-for-answer'),
-    getCurrentUser: require('./get-current-user'),
-    getExternalAuthenticationRedirectionUrl: require('./get-external-authentication-redirection-url'),
-    getFrameworkAreas: require('./get-framework-areas'),
-    getFrameworks: require('./get-frameworks'),
-    getJuryCertification: require('./get-jury-certification'),
-    getJurySession: require('./get-jury-session'),
-    getLastChallengeIdFromAssessmentId: require('./get-last-challenge-id-from-assessment-id'),
-    getLearningContentByTargetProfile: require('./get-learning-content-by-target-profile'),
-    getNextChallengeForCampaignAssessment: require('./get-next-challenge-for-campaign-assessment'),
-    getNextChallengeForCertification: require('./get-next-challenge-for-certification'),
-    getNextChallengeForCompetenceEvaluation: require('./get-next-challenge-for-competence-evaluation'),
-    getNextChallengeForDemo: require('./get-next-challenge-for-demo'),
-    getNextChallengeForPreview: require('./get-next-challenge-for-preview'),
-    getOrganizationDetails: require('./get-organization-details'),
-    getOrganizationInvitation: require('./get-organization-invitation'),
-    getOrganizationLearner: require('./get-organization-learner'),
-    getOrganizationLearnerActivity: require('./get-organization-learner-activity'),
-    getOrganizationLearnersCsvTemplate: require('./get-organization-learners-csv-template'),
-    getOrganizationMemberIdentities: require('./get-organization-members-identity'),
-    getOrganizationPlacesCapacity: require('./get-organization-places-capacity'),
-    getPaginatedParticipantsForAnOrganization: require('./get-paginated-participants-for-an-organization'),
-    getParticipantsDivision: require('./get-participants-division'),
-    getParticipantsGroup: require('./get-participants-group'),
-    getParticipationsCountByMasteryRate: require('./get-participations-count-by-mastery-rate'),
-    getPoleEmploiSendings: require('./get-pole-emploi-sendings'),
-    getPrescriber: require('./get-prescriber'),
-    getPrivateCertificate: require('./certificate/get-private-certificate'),
-    getProgression: require('./get-progression'),
-    getScoCertificationResultsByDivision: require('./get-sco-certification-results-by-division'),
-    getScorecard: require('./get-scorecard'),
-    getSession: require('./get-session'),
-    getSessionCertificationCandidates: require('./get-session-certification-candidates'),
-    getSessionCertificationReports: require('./get-session-certification-reports'),
-    getSessionForSupervising: require('./get-session-for-supervising'),
-    getSessionResults: require('./get-session-results'),
-    getSessionResultsByResultRecipientEmail: require('./get-session-results-by-result-recipient-email'),
-    getShareableCertificate: require('./certificate/get-shareable-certificate'),
-    getStageDetails: require('./get-stage-details'),
-    getSupervisorKitSessionInfo: require('./get-supervisor-kit-session-info'),
-    getTargetProfileContentAsJson: require('./get-target-profile-content-as-json'),
-    getTargetProfileForAdmin: require('./get-target-profile-for-admin'),
-    getUserByResetPasswordDemand: require('./get-user-by-reset-password-demand'),
-    getUserCampaignAssessmentResult: require('./get-user-campaign-assessment-result'),
-    getUserCampaignParticipationToCampaign: require('./get-user-campaign-participation-to-campaign'),
-    getUserCertificationEligibility: require('./get-user-certification-eligibility'),
-    getUserDetailsForAdmin: require('./get-user-details-for-admin'),
-    getUserProfile: require('./get-user-profile'),
-    getUserProfileSharedForCampaign: require('./get-user-profile-shared-for-campaign'),
-    handleBadgeAcquisition: require('./handle-badge-acquisition'),
-    handleTrainingRecommendation: require('./handle-training-recommendation'),
-    importCertificationCandidatesFromCandidatesImportSheet: require('./import-certification-candidates-from-candidates-import-sheet'),
-    importOrganizationLearnersFromSIECLEFormat: require('./import-organization-learners-from-siecle'),
-    importSupOrganizationLearners: require('./import-sup-organization-learners'),
-    improveCompetenceEvaluation: require('./improve-competence-evaluation'),
-    linkUserToSessionCertificationCandidate: require('./link-user-to-session-certification-candidate')
-      .linkUserToSessionCertificationCandidate,
-    manuallyResolveCertificationIssueReport: require('./manually-resolve-certification-issue-report'),
-    markTargetProfileAsSimplifiedAccess: require('./mark-target-profile-as-simplified-access'),
-    neutralizeChallenge: require('./neutralize-challenge'),
-    outdateTargetProfile: require('./outdate-target-profile'),
-    publishSession: require('./publish-session'),
-    publishSessionsInBatch: require('./publish-sessions-in-batch'),
-    reassignAuthenticationMethodToAnotherUser: require('./reassign-authentication-method-to-another-user'),
-    reconcileOidcUser: require('./reconcile-oidc-user'),
-    reconcileScoOrganizationLearnerAutomatically: require('./reconcile-sco-organization-learner-automatically'),
-    reconcileScoOrganizationLearnerManually: require('./reconcile-sco-organization-learner-manually'),
-    reconcileSupOrganizationLearner: require('./reconcile-sup-organization-learner'),
-    rememberUserHasSeenAssessmentInstructions: require('./remember-user-has-seen-assessment-instructions'),
-    rememberUserHasSeenChallengeTooltip: require('./remember-user-has-seen-challenge-tooltip'),
-    rememberUserHasSeenLastDataProtectionPolicyInformation: require('./remember-user-has-seen-last-data-protection-policy-information'),
-    rememberUserHasSeenNewDashboardInfo: require('./remember-user-has-seen-new-dashboard-info'),
-    removeAuthenticationMethod: require('./remove-authentication-method'),
-    replaceSupOrganizationLearners: require('./replace-sup-organization-learner'),
-    resetScorecard: require('./reset-scorecard'),
-    retrieveLastOrCreateCertificationCourse: require('./retrieve-last-or-create-certification-course'),
-    revokeRefreshToken: require('./revoke-refresh-token'),
-    saveAdminMember: require('./save-admin-member'),
-    saveCertificationIssueReport: require('./save-certification-issue-report'),
-    saveJuryComplementaryCertificationCourseResult: require('./save-jury-complementary-certification-course-result'),
-    sendEmailForAccountRecovery: require('./account-recovery/send-email-for-account-recovery'),
-    sendScoInvitation: require('./send-sco-invitation'),
-    sendSharedParticipationResultsToPoleEmploi: require('./send-shared-participation-results-to-pole-emploi'),
-    sendVerificationCode: require('./send-verification-code'),
-    shareCampaignResult: require('./share-campaign-result'),
-    simulateFlashScoring: require('./simulate-flash-scoring'),
-    simulateOldScoring: require('./simulate-old-scoring'),
-    startCampaignParticipation: require('./start-campaign-participation'),
-    startOrResumeCompetenceEvaluation: require('./start-or-resume-competence-evaluation'),
-    startWritingCampaignAssessmentResultsToStream: require('./start-writing-campaign-assessment-results-to-stream'),
-    startWritingCampaignProfilesCollectionResultsToStream: require('./start-writing-campaign-profiles-collection-results-to-stream'),
-    superviseSession: require('./supervise-session'),
-    unarchiveCampaign: require('./unarchive-campaign'),
-    unblockUserAccount: require('./unblock-user-account'),
-    uncancelCertificationCourse: require('./uncancel-certification-course'),
-    unpublishSession: require('./unpublish-session'),
-    updateAdminMember: require('./update-admin-member'),
-    updateBadge: require('./update-badge'),
-    updateCampaign: require('./update-campaign'),
-    updateCampaignDetailsManagement: require('./update-campaign-details-management'),
-    updateCertificationCenter: require('./update-certification-center'),
-    updateCertificationCenterReferer: require('./update-certification-center-referer'),
-    updateExpiredPassword: require('./update-expired-password'),
-    updateLastQuestionState: require('./update-last-question-state'),
-    updateMembership: require('./update-membership'),
-    updateOrganizationInformation: require('./update-organization-information'),
-    updateOrganizationLearnerDependentUserPassword: require('./update-organization-learner-dependent-user-password'),
-    updateParticipantExternalId: require('./update-participant-external-id'),
-    updateSession: require('./update-session'),
-    updateStage: require('./update-stage'),
-    updateStudentNumber: require('./update-student-number'),
-    updateTargetProfile: require('./update-target-profile'),
-    updateTraining: require('./update-training'),
-    updateUserDetailsForAdministration: require('./update-user-details-for-administration'),
-    updateUserEmailWithValidation: require('./update-user-email-with-validation'),
-    updateUserForAccountRecovery: require('./account-recovery/update-user-for-account-recovery'),
-    updateUserPassword: require('./update-user-password'),
-  },
-  dependencies
-);
+const usecasesWithoutInjectedDependencies = {
+  ...(await importNamedExportsFromDirectory({ path: join(path, './'), ignoredFileNames: ['index.js'] })),
+  ...(await importNamedExportsFromDirectory({ path: join(path, './account-recovery') })),
+  ...(await importNamedExportsFromDirectory({ path: join(path, './authentication') })),
+  ...(await importNamedExportsFromDirectory({ path: join(path, './campaigns-administration') })),
+  ...(await importNamedExportsFromDirectory({ path: join(path, './certificate') })),
+  ...(await importNamedExportsFromDirectory({ path: join(path, './organization-learners-management') })),
+  ...(await importNamedExportsFromDirectory({ path: join(path, './organizations-administration') })),
+  ...(await importNamedExportsFromDirectory({ path: join(path, './sessions-mass-import') })),
+  ...(await importNamedExportsFromDirectory({ path: join(path, './target-profile-management') })),
+  findPaginatedFilteredTargetProfileOrganizations,
+  getCampaignDetailsManagement,
+};
+
+const usecases = injectDependencies(usecasesWithoutInjectedDependencies, dependencies);
+
+export { usecases };

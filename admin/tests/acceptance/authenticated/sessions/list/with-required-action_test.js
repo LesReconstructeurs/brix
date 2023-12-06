@@ -4,7 +4,7 @@ import { visit } from '@1024pix/ember-testing-library';
 import { setupApplicationTest } from 'ember-qunit';
 import { createAuthenticateSession } from 'pix-admin/tests/helpers/test-init';
 
-import setupMirage from 'ember-cli-mirage/test-support/setup-mirage';
+import { setupMirage } from 'ember-cli-mirage/test-support';
 
 module('Acceptance | authenticated/sessions/list/with required action', function (hooks) {
   setupApplicationTest(hooks);
@@ -44,6 +44,14 @@ module('Acceptance | authenticated/sessions/list/with required action', function
 
       // then
       assert.strictEqual(currentURL(), '/sessions/list/with-required-action');
+    });
+
+    test('it should set sessions menubar item active', async function (assert) {
+      // when
+      const screen = await visit('/sessions/list/with-required-action');
+
+      // then
+      assert.dom(screen.getByRole('link', { name: 'Sessions de certifications' })).hasClass('active');
     });
 
     test('it should display sessions with required action informations', async function (assert) {

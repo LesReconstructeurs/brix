@@ -1,6 +1,6 @@
 import { module, test } from 'qunit';
 import { setupRenderingTest } from 'ember-qunit';
-import hbs from 'htmlbars-inline-precompile';
+import { hbs } from 'ember-cli-htmlbars';
 import { render as renderScreen } from '@1024pix/ember-testing-library';
 import { certificationIssueReportSubcategories } from 'pix-admin/models/certification-issue-report';
 import Service from '@ember/service';
@@ -32,8 +32,8 @@ module('Integration | Component | certifications/issue-report', function (hooks)
     assert
       .dom(
         screen.getByText(
-          "Problème technique non bloquant : Le fichier à télécharger ne se télécharge pas ou ne s'ouvre pas - this is a report - Question 2"
-        )
+          "Problème technique non bloquant : Le fichier à télécharger ne se télécharge pas ou ne s'ouvre pas - this is a report - Question 2",
+        ),
       )
       .exists();
   });

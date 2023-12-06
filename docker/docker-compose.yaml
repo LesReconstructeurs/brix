@@ -4,7 +4,7 @@ version: '3'
 services:
 
   postgres:
-    image: postgres:13.3-alpine
+    image: postgres:14.8-alpine
     container_name: pix-api-postgres
     ports:
       - '${PIX_DATABASE_PORT:-5432}:5432'
@@ -14,7 +14,7 @@ services:
       POSTGRES_HOST_AUTH_METHOD: trust
 
   redis:
-    image: redis:5.0.7-alpine
+    image: redis:6.2.13-alpine
     container_name: pix-api-redis
     ports:
       - '${PIX_CACHE_PORT:-6379}:6379'

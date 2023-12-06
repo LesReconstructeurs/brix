@@ -11,8 +11,8 @@
     outline: 2px transparent;
   }
 
-  label[for^="subcategory-for-category"],
-  label[for^="text-area-for-category"] {
+  label[for^='subcategory-for-category'],
+  label[for^='text-area-for-category'] {
     display: block;
     margin-bottom: 4px;
   }
@@ -22,25 +22,25 @@
     max-width: 100%;
   }
 
-  label[for^="text-area-for-category"] {
+  label[for^='text-area-for-category'] {
     margin-top: 16px;
   }
 
   fieldset {
-    border: 0;
-    padding: 0;
-    margin: 0;
     min-width: 0;
+    margin: 0;
     margin-bottom: 22px;
+    padding: 0;
+    border: 0;
 
-    label[for^="input-radio-for-category"] span {
+    label[for^='input-radio-for-category'] span {
       font-weight: bold;
     }
 
-    input[id|="input-radio-for-category"] {
+    input[id|='input-radio-for-category'] {
+      margin: 0;
       background-color: $pix-communication-light;
       transform: scale(1.2);
-      margin: 0;
       cursor: pointer;
 
       span {
@@ -48,17 +48,17 @@
       }
     }
 
-    input[id|="input-for-category-in-challenge-question-number"] {
+    input[id|='input-for-category-in-challenge-question-number'] {
       box-sizing: border-box;
       margin-left: 8px;
+      padding: 2px  8px;
       border: 1.2px solid $pix-neutral-60;
       border-radius: 4px;
-      padding: 2px  8px;
 
       &:focus {
+        border-color: transparent;
         outline: 2px solid $pix-communication-dark;
         -moz-outline-radius: 4px;
-        border-color: transparent;
       }
 
       &::placeholder {
@@ -66,18 +66,18 @@
       }
 
       &:not(:placeholder-shown):invalid {
+        border: none;
         outline: 2px solid $pix-information-dark;
         -moz-outline-radius: 4px;
-        border: none;
       }
     }
 
-    label[for|="input-radio-for-category"] {
+    label[for|='input-radio-for-category'] {
       margin-left: 16px;
       cursor: pointer;
     }
 
-    label[for|="subcategory-for-category-in-challenge"] {
+    label[for|='subcategory-for-category-in-challenge'] {
       margin: 16px 0 8px;
     }
 
@@ -101,13 +101,13 @@
     }
   }
 
-  div[class$="certification-issue-report-fields__details"] {
+  div[class$='certification-issue-report-fields__details'] {
     margin-top: 16px;
     padding-left: 32px;
 
     textarea {
-      box-shadow: none;
       min-height: 82px;
+      box-shadow: none;
     }
   }
 }

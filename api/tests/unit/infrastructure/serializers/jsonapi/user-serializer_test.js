@@ -1,7 +1,7 @@
-const { expect } = require('../../../../test-helper');
-
-const User = require('../../../../../lib/domain/models/User');
-const serializer = require('../../../../../lib/infrastructure/serializers/jsonapi/user-serializer');
+import { expect, catchErrSync } from '../../../../test-helper.js';
+import { User } from '../../../../../lib/domain/models/User.js';
+import * as serializer from '../../../../../lib/infrastructure/serializers/jsonapi/user-serializer.js';
+import { LocaleFormatError, LocaleNotSupportedError } from '../../../../../lib/domain/errors.js';
 
 describe('Unit | Serializer | JSONAPI | user-serializer', function () {
   describe('#serialize', function () {
@@ -16,6 +16,7 @@ describe('Unit | Serializer | JSONAPI | user-serializer', function () {
         username: 'luke.skywalker1234',
         cgu: true,
         lang: 'fr',
+        locale: 'fr-FR',
         isAnonymous: false,
         lastTermsOfServiceValidatedAt: '2020-05-04T13:18:26.323Z',
         mustValidateTermsOfService: true,
@@ -24,6 +25,8 @@ describe('Unit | Serializer | JSONAPI | user-serializer', function () {
         hasSeenAssessmentInstructions: false,
         hasSeenFocusedChallengeTooltip: false,
         hasSeenOtherChallengesTooltip: false,
+        hasSeenNewDashboardInfo: false,
+        hasSeenLevelSevenInfo: false,
         lastDataProtectionPolicySeenAt: '2022-12-24T10:00:00.000Z',
       });
     });
@@ -42,6 +45,7 @@ describe('Unit | Serializer | JSONAPI | user-serializer', function () {
               username: userModelObject.username,
               cgu: userModelObject.cgu,
               lang: userModelObject.lang,
+              locale: userModelObject.locale,
               'is-anonymous': userModelObject.isAnonymous,
               'last-terms-of-service-validated-at': userModelObject.lastTermsOfServiceValidatedAt,
               'must-validate-terms-of-service': userModelObject.mustValidateTermsOfService,
@@ -49,6 +53,7 @@ describe('Unit | Serializer | JSONAPI | user-serializer', function () {
               'pix-certif-terms-of-service-accepted': userModelObject.pixCertifTermsOfServiceAccepted,
               'has-seen-assessment-instructions': userModelObject.hasSeenAssessmentInstructions,
               'has-seen-new-dashboard-info': userModelObject.hasSeenNewDashboardInfo,
+              'has-seen-level-seven-info': userModelObject.hasSeenLevelSevenInfo,
               'has-seen-focused-challenge-tooltip': userModelObject.hasSeenFocusedChallengeTooltip,
               'has-seen-other-challenges-tooltip': userModelObject.hasSeenOtherChallengesTooltip,
               'last-data-protection-policy-seen-at': userModelObject.lastDataProtectionPolicySeenAt,
@@ -56,24 +61,9 @@ describe('Unit | Serializer | JSONAPI | user-serializer', function () {
                 userModelObject.shouldSeeDataProtectionPolicyInformationBanner,
             },
             relationships: {
-              'certification-center-memberships': {
-                links: {
-                  related: `/api/users/${userModelObject.id}/certification-center-memberships`,
-                },
-              },
-              'pix-score': {
-                links: {
-                  related: `/api/users/${userModelObject.id}/pixscore`,
-                },
-              },
               profile: {
                 links: {
                   related: `/api/users/${userModelObject.id}/profile`,
-                },
-              },
-              scorecards: {
-                links: {
-                  related: `/api/users/${userModelObject.id}/scorecards`,
                 },
               },
               'campaign-participations': {
@@ -151,6 +141,34 @@ describe('Unit | Serializer | JSONAPI | user-serializer', function () {
 
       // then
       expect(user.id).to.be.undefined;
+    });
+
+    context('user with a invalid locale format', function () {
+      it('throws locale format error', function () {
+        // given
+        jsonUser.data.attributes.locale = 'zzzz';
+
+        // when
+        const error = catchErrSync(serializer.deserialize)(jsonUser);
+
+        // then
+        expect(error).to.be.instanceOf(LocaleFormatError);
+        expect(error.message).to.equal('Given locale is in invalid format: "zzzz"');
+      });
+    });
+
+    context('user with a not supported locale', function () {
+      it('throws locale not supported error', function () {
+        // given
+        jsonUser.data.attributes.locale = 'jp';
+
+        // when
+        const error = catchErrSync(serializer.deserialize)(jsonUser);
+
+        // then
+        expect(error).to.be.instanceOf(LocaleNotSupportedError);
+        expect(error.message).to.equal('Given locale is not supported : "jp"');
+      });
     });
   });
 });

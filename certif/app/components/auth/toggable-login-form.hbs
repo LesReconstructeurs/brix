@@ -1,29 +1,31 @@
 <form class="login-form" {{on "submit" this.authenticate}}>
-  <p class="login-form__information">{{t "common.form.mandatory-all-fields"}}</p>
+  <p class="login-form__information">{{t "common.form-errors.mandatory-all-fields"}}</p>
 
   <PixInput
     @id="login-email"
-    @label={{t "pages.login-or-register.login-form.fields.email.label"}}
+    @label={{t "common.forms.login.email"}}
     name="login"
     type="email"
     {{on "focusout" this.validateEmail}}
     {{on "input" this.updateEmail}}
-    @errorMessage={{this.emailValidationMessage}}
     required={{true}}
     aria-required={{true}}
     autocomplete="email"
+    @validationStatus={{this.validation.email.status}}
+    @errorMessage={{this.validation.email.message}}
   />
 
   <PixInputPassword
     @id="login-password"
     name="password"
-    @label={{t "pages.login-or-register.login-form.fields.password.label"}}
+    @label={{t "common.forms.login.password"}}
     autocomplete="current-password"
     required={{true}}
     aria-required={{true}}
     {{on "focusout" this.validatePassword}}
     {{on "input" this.validatePassword}}
-    @errorMessage={{this.passwordValidationMessage}}
+    @validationStatus={{this.validation.password.status}}
+    @errorMessage={{this.validation.password.message}}
   />
 
   {{#if this.isErrorMessagePresent}}
@@ -39,7 +41,7 @@
   <div>
     <div class="login-form__forgotten-password">
       <a href={{this.forgottenPasswordUrl}} target="_blank" rel="noopener noreferrer" class="link">
-        {{t "pages.login-or-register.login-form.fields.password.forgot-password"}}
+        {{t "common.forms.login.forgot-password"}}
       </a>
     </div>
   </div>

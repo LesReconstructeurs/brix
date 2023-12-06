@@ -1,10 +1,9 @@
-const User = require('../../../../lib/domain/models/User');
+import { User } from '../../../../lib/domain/models/User.js';
+import { buildMembership } from './build-membership.js';
+import { buildCertificationCenterMembership } from './build-certification-center-membership.js';
+import { buildAuthenticationMethod } from './build-authentication-method.js';
 
-const buildMembership = require('./build-membership');
-const buildCertificationCenterMembership = require('./build-certification-center-membership');
-const buildAuthenticationMethod = require('./build-authentication-method');
-
-module.exports = function buildUser({
+const buildUser = function ({
   id = 123,
   firstName = 'Lorie',
   lastName = 'MeilleureAmie',
@@ -12,6 +11,7 @@ module.exports = function buildUser({
   username,
   cgu = true,
   lang = 'fr',
+  locale = 'fr-FR',
   lastTermsOfServiceValidatedAt = null,
   lastPixOrgaTermsOfServiceValidatedAt = null,
   lastPixCertifTermsOfServiceValidatedAt = null,
@@ -34,6 +34,7 @@ module.exports = function buildUser({
     username,
     cgu,
     lang,
+    locale,
     lastTermsOfServiceValidatedAt,
     lastPixOrgaTermsOfServiceValidatedAt,
     lastPixCertifTermsOfServiceValidatedAt,
@@ -49,3 +50,5 @@ module.exports = function buildUser({
     hasBeenAnonymisedBy,
   });
 };
+
+export { buildUser };

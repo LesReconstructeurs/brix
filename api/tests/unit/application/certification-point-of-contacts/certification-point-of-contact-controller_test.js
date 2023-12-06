@@ -1,6 +1,6 @@
-const { expect, sinon, domainBuilder, hFake } = require('../../../test-helper');
-const certificationPointOfContactController = require('../../../../lib/application/certification-point-of-contacts/certification-point-of-contact-controller');
-const usecases = require('../../../../lib/domain/usecases');
+import { expect, sinon, domainBuilder, hFake } from '../../../test-helper.js';
+import { certificationPointOfContactController } from '../../../../lib/application/certification-point-of-contacts/certification-point-of-contact-controller.js';
+import { usecases } from '../../../../lib/domain/usecases/index.js';
 
 describe('Unit | Controller | certifications-point-of-contact-controller', function () {
   describe('#get', function () {
@@ -45,6 +45,7 @@ describe('Unit | Controller | certifications-point-of-contact-controller', funct
             'first-name': 'Buffy',
             'last-name': 'Summers',
             email: 'buffy.summers@example.net',
+            lang: 'fr',
             'pix-certif-terms-of-service-accepted': true,
           },
           relationships: {
@@ -75,7 +76,6 @@ describe('Unit | Controller | certifications-point-of-contact-controller', funct
               'pix-certif-sco-blocked-access-date-lycee': null,
               'related-organization-tags': [],
               habilitations: [],
-              'is-end-test-screen-removal-enabled': false,
             },
           },
         ],

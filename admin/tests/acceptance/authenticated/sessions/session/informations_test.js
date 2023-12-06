@@ -3,7 +3,7 @@ import { currentURL } from '@ember/test-helpers';
 import { fillByLabel, clickByName, visit } from '@1024pix/ember-testing-library';
 import { setupApplicationTest } from 'ember-qunit';
 
-import setupMirage from 'ember-cli-mirage/test-support/setup-mirage';
+import { setupMirage } from 'ember-cli-mirage/test-support';
 import { authenticateAdminMemberWithRole } from '../../../../helpers/test-init';
 
 module('Acceptance | authenticated/sessions/session/informations', function (hooks) {
@@ -105,8 +105,8 @@ module('Acceptance | authenticated/sessions/session/informations', function (hoo
             assert
               .dom(
                 screen.getByText(
-                  "Un ou plusieurs candidats étaient présents en session de certification mais n'ont pas pu rejoindre la session."
-                )
+                  "Un ou plusieurs candidats étaient présents en session de certification mais n'ont pas pu rejoindre la session.",
+                ),
               )
               .exists();
           });
@@ -129,8 +129,8 @@ module('Acceptance | authenticated/sessions/session/informations', function (hoo
             assert
               .dom(
                 screen.getByText(
-                  'Malgré un incident survenu pendant la session, les candidats ont pu terminer leur test de certification. Un temps supplémentaire a été accordé à un ou plusieurs candidats.'
-                )
+                  'Malgré un incident survenu pendant la session, les candidats ont pu terminer leur test de certification. Un temps supplémentaire a été accordé à un ou plusieurs candidats.',
+                ),
               )
               .exists();
           });
@@ -228,7 +228,7 @@ module('Acceptance | authenticated/sessions/session/informations', function (hoo
               () => ({
                 errors: [{ detail: "Votre commentaire n'interesse personne." }],
               }),
-              500
+              500,
             );
 
             // when
@@ -257,7 +257,7 @@ module('Acceptance | authenticated/sessions/session/informations', function (hoo
           const screen = await visit('/sessions/4');
           await fillByLabel(
             'Texte du commentaire',
-            "Le surveillant prétend qu'une météorite est tombée sur le centre."
+            "Le surveillant prétend qu'une météorite est tombée sur le centre.",
           );
           await clickByName('Enregistrer');
 
@@ -275,14 +275,14 @@ module('Acceptance | authenticated/sessions/session/informations', function (hoo
             () => ({
               errors: [{ detail: "Votre commentaire n'interesse personne." }],
             }),
-            422
+            422,
           );
 
           // when
           const screen = await visit('/sessions/5');
           await fillByLabel(
             'Texte du commentaire',
-            "Le surveillant prétend qu'une météorite est tombée sur le centre."
+            "Le surveillant prétend qu'une météorite est tombée sur le centre.",
           );
           await clickByName('Enregistrer');
 

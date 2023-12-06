@@ -1,11 +1,17 @@
-const isNil = require('lodash/isNil');
-const endsWith = require('lodash/endsWith');
-const Joi = require('joi').extend(require('@joi/date'));
-const {
-  InvalidCertificationCandidate,
+import lodash from 'lodash';
+
+import BaseJoi from 'joi';
+import JoiDate from '@joi/date';
+import {
   CertificationCandidatePersonalInfoFieldMissingError,
   CertificationCandidatePersonalInfoWrongFormat,
-} = require('../errors');
+  CertificationCandidatesError,
+} from '../errors.js';
+
+import { CERTIFICATION_CANDIDATES_ERRORS } from '../constants/certification-candidates-errors.js';
+
+const Joi = BaseJoi.extend(JoiDate);
+const { isNil, endsWith } = lodash;
 
 const BILLING_MODES = {
   FREE: 'FREE',
@@ -13,39 +19,75 @@ const BILLING_MODES = {
   PREPAID: 'PREPAID',
 };
 
-const certificationCandidateValidationJoiSchema_v1_5 = Joi.object({
-  firstName: Joi.string().required().empty(null),
-  lastName: Joi.string().required().empty(null),
-  sex: Joi.string().valid('M', 'F').required(),
-  birthPostalCode: Joi.string().empty(['', null]),
-  birthINSEECode: Joi.string().empty(['', null]),
-  birthCountry: Joi.string().required().empty(null),
-  email: Joi.string().email().allow(null).empty('').optional(),
-  resultRecipientEmail: Joi.string().email().empty(['', null]).optional(),
-  externalId: Joi.string().allow(null).empty(['', null]).optional(),
-  birthdate: Joi.date().format('YYYY-MM-DD').greater('1900-01-01').required().empty(null),
-  extraTimePercentage: Joi.number().allow(null).optional(),
-  sessionId: Joi.number().required().empty(['', null]),
-  complementaryCertifications: Joi.array().max(1).required(),
+const certificationCandidateValidationJoiSchema = Joi.object({
+  firstName: Joi.string().trim().required().empty(['', null]).messages({
+    'any.required': CERTIFICATION_CANDIDATES_ERRORS.CANDIDATE_FIRST_NAME_REQUIRED.code,
+    'string.base': CERTIFICATION_CANDIDATES_ERRORS.CANDIDATE_FIRST_NAME_MUST_BE_A_STRING.code,
+  }),
+  lastName: Joi.string().trim().required().empty(['', null]).messages({
+    'any.required': CERTIFICATION_CANDIDATES_ERRORS.CANDIDATE_LAST_NAME_REQUIRED.code,
+    'string.base': CERTIFICATION_CANDIDATES_ERRORS.CANDIDATE_LAST_NAME_MUST_BE_A_STRING.code,
+  }),
+  sex: Joi.string().valid('M', 'F').required().empty(['', null]).messages({
+    'any.required': CERTIFICATION_CANDIDATES_ERRORS.CANDIDATE_SEX_REQUIRED.code,
+    'any.only': CERTIFICATION_CANDIDATES_ERRORS.CANDIDATE_SEX_NOT_VALID.code,
+  }),
+  email: Joi.string().allow(null).empty('').optional().messages({
+    'string.email': CERTIFICATION_CANDIDATES_ERRORS.CANDIDATE_EMAIL_NOT_VALID.code,
+  }),
+  resultRecipientEmail: Joi.string().empty(['', null]).optional().messages({
+    'string.email': CERTIFICATION_CANDIDATES_ERRORS.CANDIDATE_RESULT_RECIPIENT_EMAIL_NOT_VALID.code,
+  }),
+  externalId: Joi.string().allow(null).empty(['', null]).optional().messages({
+    'string.base': CERTIFICATION_CANDIDATES_ERRORS.CANDIDATE_EXTERNAL_ID_MUST_BE_A_STRING.code,
+  }),
+  birthdate: Joi.date().format('YYYY-MM-DD').greater('1900-01-01').required().empty(['', null]).messages({
+    'any.required': CERTIFICATION_CANDIDATES_ERRORS.CANDIDATE_BIRTHDATE_REQUIRED.code,
+    'date.format': CERTIFICATION_CANDIDATES_ERRORS.CANDIDATE_BIRTHDATE_FORMAT_NOT_VALID.code,
+    'date.greater': CERTIFICATION_CANDIDATES_ERRORS.CANDIDATE_BIRTHDATE_MUST_BE_GREATER.code,
+  }),
+  extraTimePercentage: Joi.number().allow(null).optional().min(0).less(10).messages({
+    'number.base': CERTIFICATION_CANDIDATES_ERRORS.CANDIDATE_EXTRA_TIME_INTEGER.code,
+    'number.min': CERTIFICATION_CANDIDATES_ERRORS.CANDIDATE_EXTRA_TIME_OUT_OF_RANGE.code,
+    'number.less': CERTIFICATION_CANDIDATES_ERRORS.CANDIDATE_EXTRA_TIME_OUT_OF_RANGE.code,
+  }),
+  sessionId: Joi.when('$isSessionsMassImport', {
+    is: false,
+    then: Joi.number().required().empty(['', null]).messages({
+      'any.required': CERTIFICATION_CANDIDATES_ERRORS.CANDIDATE_SESSION_ID_REQUIRED.code,
+      'number.base': CERTIFICATION_CANDIDATES_ERRORS.CANDIDATE_SESSION_ID_NOT_A_NUMBER.code,
+    }),
+  }),
+  complementaryCertification: Joi.object({
+    id: Joi.number().required(),
+    label: Joi.string().required().empty(null),
+    key: Joi.string().required().empty(null),
+  }).allow(null),
   billingMode: Joi.when('$isSco', {
     is: false,
     then: Joi.string()
       .valid(...Object.values(BILLING_MODES))
-      .required(),
+      .required()
+      .empty(['', null])
+      .messages({
+        'any.required': CERTIFICATION_CANDIDATES_ERRORS.CANDIDATE_BILLING_MODE_REQUIRED.code,
+        'string.base': CERTIFICATION_CANDIDATES_ERRORS.CANDIDATE_BILLING_MODE_MUST_BE_A_STRING.code,
+        'any.only': CERTIFICATION_CANDIDATES_ERRORS.CANDIDATE_BILLING_MODE_NOT_VALID.code,
+      }),
+    otherwise: Joi.valid(null).messages({
+      'any.only': CERTIFICATION_CANDIDATES_ERRORS.CANDIDATE_BILLING_MODE_MUST_BE_EMPTY.code,
+    }),
   }),
   prepaymentCode: Joi.when('billingMode', {
     is: 'PREPAID',
-    then: Joi.string().required().empty(['', null]),
-    otherwise: Joi.valid(null),
+    then: Joi.string().trim().required().empty(['', null]).messages({
+      'any.required': CERTIFICATION_CANDIDATES_ERRORS.CANDIDATE_PREPAYMENT_CODE_REQUIRED.code,
+    }),
+    otherwise: Joi.valid(null).messages({
+      'any.only': CERTIFICATION_CANDIDATES_ERRORS.CANDIDATE_PREPAYMENT_CODE_MUST_BE_EMPTY.code,
+    }),
   }),
-}).assert(
-  '.birthPostalCode',
-  Joi.when('..birthINSEECode', {
-    is: Joi.exist(),
-    then: Joi.string().forbidden(),
-    otherwise: Joi.string().required(),
-  })
-);
+});
 
 const certificationCandidateParticipationJoiSchema = Joi.object({
   id: Joi.any().allow(null).optional(),
@@ -67,7 +109,11 @@ const certificationCandidateParticipationJoiSchema = Joi.object({
   sessionId: Joi.number().required(),
   userId: Joi.any().allow(null).optional(),
   organizationLearnerId: Joi.any().allow(null).optional(),
-  complementaryCertifications: Joi.array(),
+  complementaryCertification: Joi.object({
+    id: Joi.number().required(),
+    label: Joi.string().required().empty(null),
+    key: Joi.string().required().empty(null),
+  }).allow(null),
   billingMode: Joi.string()
     .valid(...Object.values(BILLING_MODES))
     .empty(null),
@@ -95,7 +141,7 @@ class CertificationCandidate {
     sessionId,
     userId,
     organizationLearnerId = null,
-    complementaryCertifications = [],
+    complementaryCertification = null,
     billingMode = null,
     prepaymentCode = null,
   } = {}) {
@@ -118,24 +164,18 @@ class CertificationCandidate {
     this.sessionId = sessionId;
     this.userId = userId;
     this.organizationLearnerId = organizationLearnerId;
-    this.complementaryCertifications = complementaryCertifications;
+    this.complementaryCertification = complementaryCertification;
     this.billingMode = billingMode;
     this.prepaymentCode = prepaymentCode;
   }
 
-  static translateBillingMode(value) {
-    switch (value) {
-      case 'FREE':
-        return 'Gratuite';
-      case 'PAID':
-        return 'Payante';
-      case 'PREPAID':
-        return 'Prépayée';
-      case 'Gratuite':
+  static parseBillingMode({ billingMode, translate }) {
+    switch (billingMode) {
+      case translate('candidate-list-template.billing-mode.free'):
         return 'FREE';
-      case 'Payante':
+      case translate('candidate-list-template.billing-mode.paid'):
         return 'PAID';
-      case 'Prépayée':
+      case translate('candidate-list-template.billing-mode.prepaid'):
         return 'PREPAID';
       case null:
       default:
@@ -143,15 +183,44 @@ class CertificationCandidate {
     }
   }
 
+  static translateBillingMode({ billingMode, translate }) {
+    switch (billingMode) {
+      case 'FREE':
+        return translate('candidate-list-template.billing-mode.free');
+      case 'PAID':
+        return translate('candidate-list-template.billing-mode.paid');
+      case 'PREPAID':
+        return translate('candidate-list-template.billing-mode.prepaid');
+      case null:
+      default:
+        return '';
+    }
+  }
+
   validate(isSco = false) {
-    const { error } = certificationCandidateValidationJoiSchema_v1_5.validate(this, {
+    const { error } = certificationCandidateValidationJoiSchema.validate(this, {
       allowUnknown: true,
       context: {
         isSco,
+        isSessionsMassImport: false,
       },
     });
     if (error) {
-      throw InvalidCertificationCandidate.fromJoiErrorDetail(error.details[0]);
+      throw new CertificationCandidatesError({ code: error.details?.[0]?.message });
+    }
+  }
+
+  validateForMassSessionImport(isSco = false) {
+    const { error } = certificationCandidateValidationJoiSchema.validate(this, {
+      abortEarly: false,
+      allowUnknown: true,
+      context: {
+        isSco,
+        isSessionsMassImport: true,
+      },
+    });
+    if (error) {
+      return error.details.map(({ message }) => message);
     }
   }
 
@@ -167,10 +236,6 @@ class CertificationCandidate {
     if (this.isBillingModePrepaid() && !this.prepaymentCode) {
       throw new CertificationCandidatePersonalInfoFieldMissingError();
     }
-  }
-
-  get translatedBillingMode() {
-    return CertificationCandidate.translateBillingMode(this.billingMode);
   }
 
   isAuthorizedToStart() {
@@ -193,14 +258,18 @@ class CertificationCandidate {
   }
 
   isGranted(key) {
-    return this.complementaryCertifications.some((comp) => comp.key === key);
+    return this.complementaryCertification?.key === key;
   }
 
   isBillingModePrepaid() {
     return this.billingMode === CertificationCandidate.BILLING_MODES.PREPAID;
   }
+
+  convertExtraTimePercentageToDecimal() {
+    this.extraTimePercentage = this.extraTimePercentage / 100;
+  }
 }
 
 CertificationCandidate.BILLING_MODES = BILLING_MODES;
 
-module.exports = CertificationCandidate;
+export { CertificationCandidate };

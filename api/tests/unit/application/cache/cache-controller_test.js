@@ -1,8 +1,7 @@
-const { expect, sinon, hFake } = require('../../../test-helper');
-const cacheController = require('../../../../lib/application/cache/cache-controller');
-const learningContentDatasources = require('../../../../lib/infrastructure/datasources/learning-content');
-const learningContentDatasource = require('../../../../lib/infrastructure/datasources/learning-content/datasource');
-const logger = require('../../../../lib/infrastructure/logger');
+import { expect, sinon, hFake } from '../../../test-helper.js';
+import { cacheController } from '../../../../lib/application/cache/cache-controller.js';
+import * as learningContentDatasources from '../../../../lib/infrastructure/datasources/learning-content/index.js';
+import { logger } from '../../../../lib/infrastructure/logger.js';
 
 describe('Unit | Controller | cache-controller', function () {
   describe('#refreshCacheEntry', function () {
@@ -17,33 +16,33 @@ describe('Unit | Controller | cache-controller', function () {
     };
 
     beforeEach(function () {
-      sinon.stub(learningContentDatasources.ChallengeDatasource, 'refreshLearningContentCacheRecord');
+      sinon.stub(learningContentDatasources.challengeDatasource, 'refreshLearningContentCacheRecord');
     });
 
     it('should reply with null when the cache key exists', async function () {
       // given
-      learningContentDatasources.ChallengeDatasource.refreshLearningContentCacheRecord.resolves();
+      learningContentDatasources.challengeDatasource.refreshLearningContentCacheRecord.resolves();
 
       // when
       const response = await cacheController.refreshCacheEntry(request, hFake);
 
       // then
       expect(
-        learningContentDatasources.ChallengeDatasource.refreshLearningContentCacheRecord
+        learningContentDatasources.challengeDatasource.refreshLearningContentCacheRecord,
       ).to.have.been.calledWithExactly('recId', { property: 'updatedValue' });
       expect(response).to.be.null;
     });
 
     it('should reply with null when the cache key does not exist', async function () {
       // given
-      learningContentDatasources.ChallengeDatasource.refreshLearningContentCacheRecord.resolves();
+      learningContentDatasources.challengeDatasource.refreshLearningContentCacheRecord.resolves();
 
       // when
       const response = await cacheController.refreshCacheEntry(request, hFake);
 
       // Then
       expect(
-        learningContentDatasources.ChallengeDatasource.refreshLearningContentCacheRecord
+        learningContentDatasources.challengeDatasource.refreshLearningContentCacheRecord,
       ).to.have.been.calledWithExactly('recId', { property: 'updatedValue' });
       expect(response).to.be.null;
     });
@@ -51,18 +50,25 @@ describe('Unit | Controller | cache-controller', function () {
 
   describe('#refreshCacheEntries', function () {
     const request = {};
+    let learningContentDatasourceStub;
+
+    beforeEach(function () {
+      learningContentDatasourceStub = { refreshLearningContentCacheRecords: sinon.stub() };
+    });
 
     context('nominal case', function () {
       it('should reply with http status 202', async function () {
         // given
         const numberOfDeletedKeys = 0;
-        sinon.stub(learningContentDatasource, 'refreshLearningContentCacheRecords').resolves(numberOfDeletedKeys);
+        learningContentDatasourceStub.refreshLearningContentCacheRecords.resolves(numberOfDeletedKeys);
 
         // when
-        const response = await cacheController.refreshCacheEntries(request, hFake);
+        const response = await cacheController.refreshCacheEntries(request, hFake, {
+          learningContentDatasource: learningContentDatasourceStub,
+        });
 
         // then
-        expect(learningContentDatasource.refreshLearningContentCacheRecords).to.have.been.calledOnce;
+        expect(learningContentDatasourceStub.refreshLearningContentCacheRecords).to.have.been.calledOnce;
         expect(response.statusCode).to.equal(202);
       });
     });
@@ -73,10 +79,12 @@ describe('Unit | Controller | cache-controller', function () {
       beforeEach(async function () {
         // given
         sinon.stub(logger, 'error');
-        sinon.stub(learningContentDatasource, 'refreshLearningContentCacheRecords').rejects();
+        learningContentDatasourceStub.refreshLearningContentCacheRecords.rejects();
 
         // when
-        response = await cacheController.refreshCacheEntries(request, hFake);
+        response = await cacheController.refreshCacheEntries(request, hFake, {
+          learningContentDatasource: learningContentDatasourceStub,
+        });
       });
 
       it('should reply with http status 202', async function () {

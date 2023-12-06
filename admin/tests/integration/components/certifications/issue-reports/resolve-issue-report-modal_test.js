@@ -1,6 +1,6 @@
 import { module, test } from 'qunit';
 import { setupRenderingTest } from 'ember-qunit';
-import hbs from 'htmlbars-inline-precompile';
+import { hbs } from 'ember-cli-htmlbars';
 import { clickByName, fillByLabel, render as renderScreen } from '@1024pix/ember-testing-library';
 import sinon from 'sinon';
 
@@ -159,7 +159,7 @@ module('Integration | Component | certifications/issue-reports/resolve-issue-rep
         sinon.assert.calledWith(
           this.resolveIssueReport,
           this.issueReport,
-          'This is a fraud, its certification has been revoked'
+          'This is a fraud, its certification has been revoked',
         );
         assert.ok(true);
       });

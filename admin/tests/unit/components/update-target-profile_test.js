@@ -13,6 +13,7 @@ module('Unit | Component | update-target-profile', function (hooks) {
         model: {
           name: 'Karam',
           category: 'OTHER',
+          imageUrl: 'image url',
           save: sinon.stub(),
           rollbackAttributes: sinon.stub(),
         },
@@ -25,6 +26,7 @@ module('Unit | Component | update-target-profile', function (hooks) {
       component.args.model = {
         name: 'Karam',
         category: 'OTHER',
+        imageUrl: 'image url',
         save: sinon.stub(),
         rollbackAttributes: sinon.stub(),
       };
@@ -43,6 +45,7 @@ module('Unit | Component | update-target-profile', function (hooks) {
         model: {
           name: 'Karam',
           category: 'OTHER',
+          imageUrl: 'image url',
           save: sinon.stub(),
           rollbackAttributes: sinon.stub(),
         },
@@ -54,6 +57,7 @@ module('Unit | Component | update-target-profile', function (hooks) {
       component.args.model = {
         name: 'Karam',
         category: 'OTHER',
+        imageUrl: 'image url',
         save: sinon.stub(),
         rollbackAttributes: sinon.stub(),
       };
@@ -64,9 +68,39 @@ module('Unit | Component | update-target-profile', function (hooks) {
 
       // then
       assert.ok(event.preventDefault.called);
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(component.args.model.name, 'Edited name');
+      assert.strictEqual(component.args.model.name, 'Edited name');
+    });
+
+    test('it should update the imageUrl of the target profile', async function (assert) {
+      // given
+      const component = createGlimmerComponent('component:target-profiles/update-target-profile', {
+        model: {
+          name: 'Karam',
+          category: 'OTHER',
+          imageUrl: 'image url',
+          save: sinon.stub(),
+          rollbackAttributes: sinon.stub(),
+        },
+      });
+      const event = {
+        preventDefault: sinon.stub(),
+      };
+      component.form.imageUrl = 'Edited image url';
+      component.args.model = {
+        name: 'Karam',
+        category: 'OTHER',
+        imageUrl: 'image url',
+        save: sinon.stub(),
+        rollbackAttributes: sinon.stub(),
+      };
+      component.notifications = { success: sinon.stub(), error: sinon.stub() };
+
+      // when
+      await component.updateProfile(event);
+
+      // then
+      assert.ok(event.preventDefault.called);
+      assert.strictEqual(component.args.model.imageUrl, 'Edited image url');
     });
 
     test('it should update the description of the target profile', async function (assert) {
@@ -75,6 +109,7 @@ module('Unit | Component | update-target-profile', function (hooks) {
         model: {
           name: 'Karam',
           category: 'OTHER',
+          imageUrl: 'image url',
           description: null,
           save: sinon.stub(),
           rollbackAttributes: sinon.stub(),
@@ -88,6 +123,7 @@ module('Unit | Component | update-target-profile', function (hooks) {
         name: 'Karam',
         category: 'OTHER',
         description: null,
+        imageUrl: 'image url',
         save: sinon.stub(),
         rollbackAttributes: sinon.stub(),
       };
@@ -95,10 +131,9 @@ module('Unit | Component | update-target-profile', function (hooks) {
 
       // when
       await component.updateProfile(event);
+
       // then
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(component.args.model.description, 'Edited description');
+      assert.strictEqual(component.args.model.description, 'Edited description');
     });
 
     test('it should update the comment of the target profile', async function (assert) {
@@ -107,6 +142,7 @@ module('Unit | Component | update-target-profile', function (hooks) {
         model: {
           name: 'Karam',
           category: 'OTHER',
+          imageUrl: 'image url',
           comment: null,
           save: sinon.stub(),
           rollbackAttributes: sinon.stub(),
@@ -119,6 +155,7 @@ module('Unit | Component | update-target-profile', function (hooks) {
       component.args.model = {
         name: 'Karam',
         category: 'OTHER',
+        imageUrl: 'image url',
         comment: null,
         save: sinon.stub(),
         rollbackAttributes: sinon.stub(),
@@ -128,9 +165,7 @@ module('Unit | Component | update-target-profile', function (hooks) {
       // when
       await component.updateProfile(event);
       // then
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(component.args.model.comment, 'Edited comment');
+      assert.strictEqual(component.args.model.comment, 'Edited comment');
     });
 
     test('it should do nothing when form is not valid', async function (assert) {
@@ -139,6 +174,7 @@ module('Unit | Component | update-target-profile', function (hooks) {
         model: {
           name: 'Karam',
           category: 'OTHER',
+          imageUrl: 'image url',
           save: sinon.stub(),
           rollbackAttributes: sinon.stub(),
         },
@@ -162,6 +198,7 @@ module('Unit | Component | update-target-profile', function (hooks) {
         model: {
           name: 'Karam',
           category: 'OTHER',
+          imageUrl: 'image url',
           save: sinon.stub(),
           rollbackAttributes: sinon.stub(),
         },

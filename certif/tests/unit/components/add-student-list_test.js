@@ -16,7 +16,7 @@ module('Unit | Component | add-student-list', function (hooks) {
     store = this.owner.lookup('service:store');
   });
 
-  module('#computed hasCheckedSomething', function () {
+  module('#computed _hasCheckedSomething()', function () {
     test('it should be false if has no checked student', function (assert) {
       // given
       const studentList = ArrayProxy.create({
@@ -25,7 +25,7 @@ module('Unit | Component | add-student-list', function (hooks) {
       component.args.studentList = studentList;
 
       // when
-      const hasCheckedSomething = component.hasCheckedSomething;
+      const hasCheckedSomething = component._hasCheckedSomething();
 
       // then
       assert.false(hasCheckedSomething);
@@ -39,14 +39,14 @@ module('Unit | Component | add-student-list', function (hooks) {
       component.args.studentList = studentList;
 
       // when
-      const hasCheckedSomething = component.hasCheckedSomething;
+      const hasCheckedSomething = component._hasCheckedSomething();
 
       // then
       assert.true(hasCheckedSomething);
     });
   });
 
-  module('#computed hasCheckedEverything', function () {
+  module('#computed _hasCheckedEverything()', function () {
     test('it should be false if they are not all checked', function (assert) {
       // given
       const studentList = ArrayProxy.create({
@@ -55,7 +55,7 @@ module('Unit | Component | add-student-list', function (hooks) {
       component.args.studentList = studentList;
 
       // when
-      const hasCheckedEverything = component.hasCheckedEverything;
+      const hasCheckedEverything = component._hasCheckedEverything();
 
       // then
       assert.false(hasCheckedEverything);
@@ -69,7 +69,7 @@ module('Unit | Component | add-student-list', function (hooks) {
       component.args.studentList = studentList;
 
       // when
-      const hasCheckedEverything = component.hasCheckedEverything;
+      const hasCheckedEverything = component._hasCheckedEverything();
 
       // then
       assert.true(hasCheckedEverything);
@@ -86,13 +86,12 @@ module('Unit | Component | add-student-list', function (hooks) {
       component.toggleItem(student);
 
       // then
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(student.isSelected, !initialValue);
+
+      assert.strictEqual(student.isSelected, !initialValue);
     });
   });
 
-  module('#action enrollStudents', function () {
+  module('#action enrolStudents', function () {
     test('it should save only selected students via the session', async function (assert) {
       // given
       const sessionId = 1;
@@ -106,7 +105,7 @@ module('Unit | Component | add-student-list', function (hooks) {
       sinon.stub(store, 'peekAll').withArgs('student').returns(selectedStudents);
 
       // when
-      await component.enrollStudents();
+      await component.enrolStudents();
 
       // then
       sinon.assert.calledWith(component.args.session.save, {
@@ -125,7 +124,7 @@ module('Unit | Component | add-student-list', function (hooks) {
       component.args.returnToSessionCandidates = sinon.spy();
 
       // when
-      await component.enrollStudents();
+      await component.enrolStudents();
 
       // then
       sinon.assert.calledOnce(component.notifications.error);

@@ -1,11 +1,11 @@
 import { setupApplicationTest } from 'ember-qunit';
 import { setupMirage } from 'ember-cli-mirage/test-support';
-import { click, currentURL, find, visit } from '@ember/test-helpers';
+import { click, currentURL } from '@ember/test-helpers';
+import { visit } from '@1024pix/ember-testing-library';
 import { module, test } from 'qunit';
 import { authenticate } from '../helpers/authentication';
 import { fillCertificationJoiner, fillCertificationStarter } from '../helpers/certification';
 import setupIntl from '../helpers/setup-intl';
-import { contains } from '../helpers/contains';
 import { assessmentStates } from 'mon-pix/models/assessment';
 import { Response } from 'miragejs';
 
@@ -17,33 +17,31 @@ module('Acceptance | Certification | Certification Course', function (hooks) {
   let user;
 
   module('Start a certification course', function () {
-    module('When user is not logged in', function (hooks) {
-      hooks.beforeEach(async function () {
+    module('When user is not logged in', function () {
+      test('should redirect to login page', async function (assert) {
+        // given
         user = server.create('user', 'withEmail');
-        await visit('/certifications');
-      });
 
-      test('should redirect to login page', function (assert) {
+        // when
+        await visit('/certifications');
+
         // then
         assert.ok(/connexion/.test(currentURL()));
       });
     });
 
     module('When user is logged in', function () {
-      module('When user is not certifiable', function (hooks) {
-        hooks.beforeEach(async function () {
+      module('When user is not certifiable', function () {
+        test('should render the not certifiable template', async function (assert) {
+          // given
           user = server.create('user', 'withEmail', 'notCertifiable');
           await authenticate(user);
-          return visit('/certifications');
-        });
 
-        test('should render the not certifiable template', function (assert) {
-          // TODO: Fix this the next time the file is edited.
-          // eslint-disable-next-line qunit/no-assert-equal
-          assert.equal(
-            find('.certification-not-certifiable__title').textContent.trim(),
-            "Votre profil n'est pas encore certifiable."
-          );
+          // when
+          const screen = await visit('/certifications');
+
+          // then
+          assert.dom(screen.getByRole('heading', { name: "Votre profil n'est pas encore certifiable." })).exists();
         });
       });
 
@@ -51,16 +49,21 @@ module('Acceptance | Certification | Certification Course', function (hooks) {
         hooks.beforeEach(async function () {
           user = server.create('user', 'withEmail', 'certifiable', { hasSeenOtherChallengesTooltip: true });
           await authenticate(user);
-          return visit('/certifications');
         });
 
         test("should display a link to user's certifications", async function (assert) {
+          // when
+          const screen = await visit('/certifications');
+
           // then
-          assert.ok(contains(this.intl.t('pages.certification-start.link-to-user-certification')));
+          assert.dom(screen.getByRole('link', { name: 'Certification' })).exists();
         });
 
-        module('when no candidate with given info has been registered in the given session', function (hooks) {
-          hooks.beforeEach(async function () {
+        module('when no candidate with given info has been registered in the given session', function () {
+          test('should display an error message', async function (assert) {
+            // given
+            const screen = await visit('/certifications');
+
             // when
             await fillCertificationJoiner({
               sessionId: '1',
@@ -71,18 +74,27 @@ module('Acceptance | Certification | Certification Course', function (hooks) {
               yearOfBirth: '1990',
               intl: this.intl,
             });
-          });
 
-          test('should display an error message', function (assert) {
             // then
-            assert.ok(contains(this.intl.t('pages.certification-joiner.error-messages.generic.disclaimer')));
-            assert.ok(contains(this.intl.t('pages.certification-joiner.error-messages.generic.check-session-number')));
-            assert.ok(contains(this.intl.t('pages.certification-joiner.error-messages.generic.check-personal-info')));
+            assert
+              .dom(screen.getByText('Les informations saisies ne correspondent à aucun candidat inscrit à la session.'))
+              .exists();
+            assert.dom(screen.getByText('Vérifiez le numéro de session.')).exists();
+            assert
+              .dom(
+                screen.getByText(
+                  "Vérifiez auprès du surveillant la correspondance de vos informations personnelles avec la feuille d'émargement.",
+                ),
+              )
+              .exists();
           });
         });
 
-        module('when several candidates with given info are found in the given session', function (hooks) {
-          hooks.beforeEach(async function () {
+        module('when several candidates with given info are found in the given session', function () {
+          test('should display an error message', async function (assert) {
+            // given
+            const screen = await visit('/certifications');
+
             // when
             await fillCertificationJoiner({
               sessionId: '1',
@@ -93,18 +105,27 @@ module('Acceptance | Certification | Certification Course', function (hooks) {
               yearOfBirth: '1990',
               intl: this.intl,
             });
-          });
 
-          test('should display an error message', function (assert) {
             // then
-            assert.ok(contains(this.intl.t('pages.certification-joiner.error-messages.generic.disclaimer')));
-            assert.ok(contains(this.intl.t('pages.certification-joiner.error-messages.generic.check-session-number')));
-            assert.ok(contains(this.intl.t('pages.certification-joiner.error-messages.generic.check-personal-info')));
+            assert
+              .dom(screen.getByText('Les informations saisies ne correspondent à aucun candidat inscrit à la session.'))
+              .exists();
+            assert.dom(screen.getByText('Vérifiez le numéro de session.')).exists();
+            assert
+              .dom(
+                screen.getByText(
+                  "Vérifiez auprès du surveillant la correspondance de vos informations personnelles avec la feuille d'émargement.",
+                ),
+              )
+              .exists();
           });
         });
 
-        module('when user has already been linked to another candidate in the session', function (hooks) {
-          hooks.beforeEach(async function () {
+        module('when user has already been linked to another candidate in the session', function () {
+          test('should display an error message', async function (assert) {
+            // given
+            const screen = await visit('/certifications');
+
             // when
             await fillCertificationJoiner({
               sessionId: '1',
@@ -115,19 +136,26 @@ module('Acceptance | Certification | Certification Course', function (hooks) {
               yearOfBirth: '1990',
               intl: this.intl,
             });
-          });
 
-          test('should display an error message', function (assert) {
             // then
-            assert.ok(contains(this.intl.t('pages.certification-joiner.error-messages.generic.disclaimer')));
-            assert.ok(contains(this.intl.t('pages.certification-joiner.error-messages.generic.check-session-number')));
-            assert.ok(contains(this.intl.t('pages.certification-joiner.error-messages.generic.check-personal-info')));
+            assert
+              .dom(screen.getByText('Les informations saisies ne correspondent à aucun candidat inscrit à la session.'))
+              .exists();
+            assert.dom(screen.getByText('Vérifiez le numéro de session.')).exists();
+            assert
+              .dom(
+                screen.getByText(
+                  "Vérifiez auprès du surveillant la correspondance de vos informations personnelles avec la feuille d'émargement.",
+                ),
+              )
+              .exists();
           });
         });
 
-        module('when user is already linked to this candidate', function (hooks) {
-          hooks.beforeEach(async function () {
+        module('when user is already linked to this candidate', function () {
+          test('should redirect to certification start route', async function (assert) {
             // given
+            await visit('/certifications');
             this.server.schema.certificationCandidates.create({
               id: 1,
               firstName: 'Laura',
@@ -138,9 +166,10 @@ module('Acceptance | Certification | Certification Course', function (hooks) {
             this.server.create('certification-candidate-subscription', {
               id: 1,
               sessionId: 1,
-              eligibleSubscriptions: [],
-              nonEligibleSubscriptions: [],
+              eligibleSubscription: null,
+              nonEligibleSubscription: null,
             });
+
             // when
             await fillCertificationJoiner({
               sessionId: '1',
@@ -151,24 +180,21 @@ module('Acceptance | Certification | Certification Course', function (hooks) {
               yearOfBirth: '1990',
               intl: this.intl,
             });
-          });
 
-          test('should redirect to certification start route', function (assert) {
             // then
-            // TODO: Fix this the next time the file is edited.
-            // eslint-disable-next-line qunit/no-assert-equal
-            assert.equal(currentURL(), '/certifications/candidat/1');
+            assert.strictEqual(currentURL(), '/certifications/candidat/1');
           });
         });
 
-        module('when user is successfully linked to the candidate', function (hooks) {
-          hooks.beforeEach(async function () {
+        module('when user is successfully linked to the candidate', function () {
+          test('should redirect to certification start route', async function (assert) {
             // given
+            await visit('/certifications');
             this.server.create('certification-candidate-subscription', {
               id: 2,
               sessionId: 1,
-              eligibleSubscriptions: [],
-              nonEligibleSubscriptions: [],
+              eligibleSubscription: null,
+              nonEligibleSubscription: null,
             });
 
             // when
@@ -181,13 +207,9 @@ module('Acceptance | Certification | Certification Course', function (hooks) {
               yearOfBirth: '1990',
               intl: this.intl,
             });
-          });
 
-          test('should redirect to certification start route', function (assert) {
             // then
-            // TODO: Fix this the next time the file is edited.
-            // eslint-disable-next-line qunit/no-assert-equal
-            assert.equal(currentURL(), '/certifications/candidat/2');
+            assert.strictEqual(currentURL(), '/certifications/candidat/2');
           });
         });
 
@@ -212,14 +234,37 @@ module('Acceptance | Certification | Certification Course', function (hooks) {
             this.server.create('certification-candidate-subscription', {
               id: 2,
               sessionId: 1,
-              eligibleSubscriptions: [],
-              nonEligibleSubscriptions: [],
+              eligibleSubscription: null,
+              nonEligibleSubscription: null,
             });
           });
 
-          module('when user enter a correct code session', function (hooks) {
-            hooks.beforeEach(async function () {
+          module('when user enter a correct code session', function () {
+            test('should be redirected on the first challenge of an assessment', async function (assert) {
+              // given
+              await visit('/certifications');
+
+              await fillCertificationJoiner({
+                sessionId: '1',
+                firstName: 'Laura',
+                lastName: 'Bravo',
+                dayOfBirth: '04',
+                monthOfBirth: '01',
+                yearOfBirth: '1990',
+                intl: this.intl,
+              });
+
               // when
+              await fillCertificationStarter({ accessCode: 'ABCD12', intl: this.intl });
+
+              // then
+              assert.true(currentURL().startsWith(`/assessments/${assessment.id}/challenges`));
+            });
+
+            test('should navigate to next challenge when we click pass', async function (assert) {
+              // given
+              const screen = await visit('/certifications');
+
               await fillCertificationJoiner({
                 sessionId: '1',
                 firstName: 'Laura',
@@ -230,41 +275,37 @@ module('Acceptance | Certification | Certification Course', function (hooks) {
                 intl: this.intl,
               });
               await fillCertificationStarter({ accessCode: 'ABCD12', intl: this.intl });
-            });
 
-            test('should be redirected on the first challenge of an assessment', async function (assert) {
-              // then
-              assert.true(currentURL().startsWith(`/assessments/${assessment.id}/challenges`));
-            });
-
-            test('should navigate to next challenge when we click pass', async function (assert) {
               // when
-              await click('.challenge-actions__action-skip-text');
+              await click(screen.getByRole('button', { name: 'Je passe et je vais à la prochaine question' }));
+
               // then
               assert.true(currentURL().startsWith(`/assessments/${assessment.id}/challenges`));
             });
 
             module('after skipping the all challenges of the certification course', function () {
               test('should navigate to redirect to certification result page at the end of the assessment', async function (assert) {
+                // given
+                const screen = await visit('/certifications');
+
+                await fillCertificationJoiner({
+                  sessionId: '1',
+                  firstName: 'Laura',
+                  lastName: 'Bravo',
+                  dayOfBirth: '04',
+                  monthOfBirth: '01',
+                  yearOfBirth: '1990',
+                  intl: this.intl,
+                });
+                await fillCertificationStarter({ accessCode: 'ABCD12', intl: this.intl });
+
                 // when
                 for (let i = 0; i < NB_CHALLENGES; ++i) {
-                  await click('.challenge-actions__action-skip');
+                  await click(screen.getByRole('button', { name: 'Je passe et je vais à la prochaine question' }));
                 }
 
                 // then
-                // TODO: Fix this the next time the file is edited.
-                // eslint-disable-next-line qunit/no-assert-equal
-                assert.equal(currentURL(), `/certifications/${certificationCourse.id}/results`);
-              });
-
-              test('should display the "presque terminé" message', async function (assert) {
-                // when
-                for (let i = 0; i < NB_CHALLENGES; ++i) {
-                  await click('.challenge-actions__action-skip');
-                }
-
-                // then
-                assert.ok(contains('Vous avez presque terminé'));
+                assert.strictEqual(currentURL(), `/certifications/${certificationCourse.id}/results`);
               });
             });
           });
@@ -272,6 +313,7 @@ module('Acceptance | Certification | Certification Course', function (hooks) {
           module('When stop and relaunch the certification course', function () {
             test('should be redirected directly on the certification course', async function (assert) {
               // given
+              const screen = await visit('/certifications');
               await fillCertificationJoiner({
                 sessionId: '1',
                 firstName: 'Laura',
@@ -283,8 +325,9 @@ module('Acceptance | Certification | Certification Course', function (hooks) {
               });
               await fillCertificationStarter({ accessCode: 'ABCD12', intl: this.intl });
 
-              await click('.challenge-actions__action-skip');
+              await click(screen.getByRole('button', { name: 'Je passe et je vais à la prochaine question' }));
               await visit('/');
+
               // when
               await visit(`/certifications/${certificationCourse.id}`);
 
@@ -295,61 +338,56 @@ module('Acceptance | Certification | Certification Course', function (hooks) {
         });
       });
 
-      module('when is isEndTestScreenRemovalEnabled is true', function () {
-        test('should display "Test terminé !"', async function (assert) {
-          assert.timeout(5000);
-          // given
-          user = server.create('user', 'withEmail', 'certifiable', { hasSeenOtherChallengesTooltip: true });
+      test('should display "Test terminé !"', async function (assert) {
+        assert.timeout(5000);
+        // given
+        user = server.create('user', 'withEmail', 'certifiable', { hasSeenOtherChallengesTooltip: true });
 
-          const NB_CHALLENGES = 3;
-          for (let i = 0; i < NB_CHALLENGES; ++i) {
-            server.create('challenge', 'forCertification');
-          }
-          this.server.create('certification-course', {
-            accessCode: 'ABCD12',
-            sessionId: 1,
-            nbChallenges: NB_CHALLENGES,
-            firstName: 'Laura',
-            lastName: 'Bravo',
-            isEndTestScreenRemovalEnabled: true,
-          });
-          this.server.create('certification-candidate-subscription', {
-            id: 2,
-            sessionId: 1,
-            eligibleSubscriptions: [],
-            nonEligibleSubscriptions: [],
-          });
-
-          await authenticate(user);
-          await visit('/certifications');
-          await fillCertificationJoiner({
-            sessionId: '1',
-            firstName: 'Laura',
-            lastName: 'Bravo',
-            dayOfBirth: '04',
-            monthOfBirth: '01',
-            yearOfBirth: '1990',
-            intl: this.intl,
-          });
-          await fillCertificationStarter({ accessCode: 'ABCD12', intl: this.intl });
-
-          // when
-          for (let i = 0; i < NB_CHALLENGES; ++i) {
-            await click('.challenge-actions__action-skip');
-          }
-
-          // then
-          assert.ok(contains('Test terminé !'));
+        const NB_CHALLENGES = 3;
+        for (let i = 0; i < NB_CHALLENGES; ++i) {
+          server.create('challenge', 'forCertification');
+        }
+        this.server.create('certification-course', {
+          accessCode: 'ABCD12',
+          sessionId: 1,
+          nbChallenges: NB_CHALLENGES,
+          firstName: 'Laura',
+          lastName: 'Bravo',
         });
+        this.server.create('certification-candidate-subscription', {
+          id: 2,
+          sessionId: 1,
+          eligibleSubscription: null,
+          nonEligibleSubscription: null,
+        });
+
+        await authenticate(user);
+        const screen = await visit('/certifications');
+        await fillCertificationJoiner({
+          sessionId: '1',
+          firstName: 'Laura',
+          lastName: 'Bravo',
+          dayOfBirth: '04',
+          monthOfBirth: '01',
+          yearOfBirth: '1990',
+          intl: this.intl,
+        });
+        await fillCertificationStarter({ accessCode: 'ABCD12', intl: this.intl });
+
+        // when
+        for (let i = 0; i < NB_CHALLENGES; ++i) {
+          await click(screen.getByRole('button', { name: 'Je passe et je vais à la prochaine question' }));
+        }
+
+        // then
+        assert.dom(screen.getByRole('heading', { name: 'Test terminé !' })).exists();
       });
 
       module('when test was ended by supervisor', function () {
         test('should display "Votre surveillant a mis fin…"', async function (assert) {
           // given
           const user = server.create('user', 'withEmail', 'certifiable', { hasSeenOtherChallengesTooltip: true });
-          const certificationCourse = this.server.create('certification-course', {
-            isEndTestScreenRemovalEnabled: true,
-          });
+          const certificationCourse = this.server.create('certification-course', {});
           this.server.create('assessment', {
             type: 'CERTIFICATION',
             certificationCourseId: certificationCourse.id,
@@ -358,14 +396,16 @@ module('Acceptance | Certification | Certification Course', function (hooks) {
 
           // when
           await authenticate(user);
-          await visit(`/certifications/${certificationCourse.id}/results`);
+          const screen = await visit(`/certifications/${certificationCourse.id}/results`);
 
           // then
-          assert.ok(
-            contains(
-              'Votre surveillant a mis fin à votre test de certification. Vous ne pouvez plus continuer de répondre aux questions.'
+          assert
+            .dom(
+              screen.getByText(
+                'Votre surveillant a mis fin à votre test de certification. Vous ne pouvez plus continuer de répondre aux questions.',
+              ),
             )
-          );
+            .exists();
         });
       });
 
@@ -383,7 +423,6 @@ module('Acceptance | Certification | Certification Course', function (hooks) {
               nbChallenges: 2,
               firstName: 'Laura',
               lastName: 'Bravo',
-              isEndTestScreenRemovalEnabled: true,
             });
             const assessment = server.create('assessment', {
               certificationCourseId: 99,
@@ -393,12 +432,12 @@ module('Acceptance | Certification | Certification Course', function (hooks) {
             server.create('certification-candidate-subscription', {
               id: 2,
               sessionId: 1,
-              eligibleSubscriptions: [],
-              nonEligibleSubscriptions: [],
+              eligibleSubscription: null,
+              nonEligibleSubscription: null,
             });
 
             await authenticate(user);
-            await visit('/certifications');
+            const screen = await visit('/certifications');
             await fillCertificationJoiner({
               sessionId: '1',
               firstName: 'Laura',
@@ -413,14 +452,17 @@ module('Acceptance | Certification | Certification Course', function (hooks) {
             // when
             assessment.update({ state: assessmentStates.ENDED_BY_SUPERVISOR });
             this.server.post('/answers', generate400Error('Le surveillant a mis fin à votre test de certification.'));
-            await click('.challenge-actions__action-skip');
+
+            await click(screen.getByRole('button', { name: 'Je passe et je vais à la prochaine question' }));
 
             // then
-            assert.ok(
-              contains(
-                'Votre surveillant a mis fin à votre test de certification. Vous ne pouvez plus continuer de répondre aux questions.'
+            assert
+              .dom(
+                screen.getByText(
+                  'Votre surveillant a mis fin à votre test de certification. Vous ne pouvez plus continuer de répondre aux questions.',
+                ),
               )
-            );
+              .exists();
           });
         });
       });
@@ -429,9 +471,7 @@ module('Acceptance | Certification | Certification Course', function (hooks) {
         test('should display "La session a été finalisée par votre centre de certification..."', async function (assert) {
           // given
           const user = server.create('user', 'withEmail', 'certifiable', { hasSeenOtherChallengesTooltip: true });
-          const certificationCourse = this.server.create('certification-course', {
-            isEndTestScreenRemovalEnabled: false,
-          });
+          const certificationCourse = this.server.create('certification-course', {});
           this.server.create('assessment', {
             certificationCourseId: certificationCourse.id,
             state: assessmentStates.ENDED_DUE_TO_FINALIZATION,
@@ -439,14 +479,16 @@ module('Acceptance | Certification | Certification Course', function (hooks) {
 
           // when
           await authenticate(user);
-          await visit(`/certifications/${certificationCourse.id}/results`);
+          const screen = await visit(`/certifications/${certificationCourse.id}/results`);
 
           // then
-          assert.ok(
-            contains(
-              'La session a été finalisée par votre centre de certification. Vous ne pouvez plus continuer de répondre aux questions.'
+          assert
+            .dom(
+              screen.getByText(
+                'La session a été finalisée par votre centre de certification. Vous ne pouvez plus continuer de répondre aux questions.',
+              ),
             )
-          );
+            .exists();
         });
       });
     });
@@ -460,7 +502,7 @@ function generate400Error(detail) {
       {},
       {
         errors: [{ status: '400', detail }],
-      }
+      },
     );
   };
 }

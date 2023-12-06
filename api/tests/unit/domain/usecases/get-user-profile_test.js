@@ -1,7 +1,8 @@
-const { sinon, expect, domainBuilder } = require('../../../test-helper');
-const Scorecard = require('../../../../lib/domain/models/Scorecard');
-const getUserProfile = require('../../../../lib/domain/usecases/get-user-profile');
-const _ = require('lodash');
+import { sinon, expect, domainBuilder } from '../../../test-helper.js';
+import { Scorecard } from '../../../../lib/domain/models/Scorecard.js';
+import { getUserProfile } from '../../../../lib/domain/usecases/get-user-profile.js';
+import { constants } from '../../../../lib/domain/constants.js';
+import _ from 'lodash';
 
 function assertScorecard(userScorecard, expectedUserScorecard) {
   expect(userScorecard.earnedPix).to.equal(expectedUserScorecard.earnedPix);
@@ -12,6 +13,7 @@ function assertScorecard(userScorecard, expectedUserScorecard) {
 
 describe('Unit | UseCase | get-user-profile', function () {
   let competenceRepository;
+  let areaRepository;
   let knowledgeElementRepository;
   let competenceEvaluationRepository;
   const scorecard = { id: 'foo' };
@@ -19,13 +21,10 @@ describe('Unit | UseCase | get-user-profile', function () {
 
   beforeEach(function () {
     competenceRepository = { listPixCompetencesOnly: sinon.stub() };
+    areaRepository = { list: sinon.stub() };
     knowledgeElementRepository = { findUniqByUserIdGroupedByCompetenceId: sinon.stub() };
     competenceEvaluationRepository = { findByUserId: sinon.stub() };
     sinon.stub(Scorecard, 'buildFrom').returns(scorecard);
-  });
-
-  afterEach(function () {
-    sinon.restore();
   });
 
   context('When user is authenticated', function () {
@@ -33,24 +32,6 @@ describe('Unit | UseCase | get-user-profile', function () {
     const earnedPixDefaultValue = 4;
 
     context('And user asks for his own scorecards', function () {
-      it('should resolve', function () {
-        // given
-        competenceRepository.listPixCompetencesOnly.withArgs({ locale: 'fr' }).resolves([]);
-        knowledgeElementRepository.findUniqByUserIdGroupedByCompetenceId.resolves({});
-        competenceEvaluationRepository.findByUserId.resolves([]);
-
-        // when
-        const promise = getUserProfile({
-          userId,
-          knowledgeElementRepository,
-          competenceRepository,
-          competenceEvaluationRepository,
-        });
-
-        // then
-        return expect(promise).to.be.fulfilled;
-      });
-
       it('should return related user scorecards and pix score', async function () {
         // given
         const earnedPixForCompetenceId1 = 8;
@@ -60,11 +41,13 @@ describe('Unit | UseCase | get-user-profile', function () {
         const levelForCompetenceId2 = 0;
         const pixScoreAheadOfNextLevelForCompetenceId2 = 4;
         const competenceList = [
-          domainBuilder.buildCompetence({ id: 1 }),
-          domainBuilder.buildCompetence({ id: 2 }),
-          domainBuilder.buildCompetence({ id: 3 }),
+          domainBuilder.buildCompetence({ id: 1, areaId: 'area' }),
+          domainBuilder.buildCompetence({ id: 2, areaId: 'area' }),
+          domainBuilder.buildCompetence({ id: 3, areaId: 'area' }),
         ];
+        const area = domainBuilder.buildArea({ id: 'area' });
         competenceRepository.listPixCompetencesOnly.resolves(competenceList);
+        areaRepository.list.resolves([area]);
 
         const assessmentFinishedOfCompetence1 = domainBuilder.buildAssessment({
           type: 'COMPETENCE_EVALUATION',
@@ -126,7 +109,7 @@ describe('Unit | UseCase | get-user-profile', function () {
         ];
 
         knowledgeElementRepository.findUniqByUserIdGroupedByCompetenceId.resolves(
-          knowledgeElementGroupedByCompetenceId
+          knowledgeElementGroupedByCompetenceId,
         );
         competenceEvaluationRepository.findByUserId.resolves([competenceEvaluationOfCompetence1]);
 
@@ -136,6 +119,7 @@ describe('Unit | UseCase | get-user-profile', function () {
             knowledgeElements: knowledgeElementGroupedByCompetenceId[1],
             competence: competenceList[0],
             competenceEvaluation: competenceEvaluationOfCompetence1,
+            area,
           })
           .returns(expectedUserScorecard[0]);
 
@@ -145,6 +129,7 @@ describe('Unit | UseCase | get-user-profile', function () {
             knowledgeElements: knowledgeElementGroupedByCompetenceId[2],
             competence: competenceList[1],
             competenceEvaluation: undefined,
+            area,
           })
           .returns(expectedUserScorecard[1]);
 
@@ -154,8 +139,14 @@ describe('Unit | UseCase | get-user-profile', function () {
             knowledgeElements: undefined,
             competence: competenceList[2],
             competenceEvaluation: undefined,
+            area,
           })
           .returns(expectedUserScorecard[2]);
+
+        const expectedMaxReachableLevel = Symbol('maxReachableLevel');
+        const expectedMaxReachablePixScore = Symbol('maxReachablePixCount');
+        sinon.stub(constants, 'MAX_REACHABLE_LEVEL').value(expectedMaxReachableLevel);
+        sinon.stub(constants, 'MAX_REACHABLE_PIX_SCORE').value(expectedMaxReachablePixScore);
 
         const expectedPixScore = _.sumBy(expectedUserScorecard, 'earnedPix');
 
@@ -164,12 +155,15 @@ describe('Unit | UseCase | get-user-profile', function () {
           userId,
           knowledgeElementRepository,
           competenceRepository,
+          areaRepository,
           competenceEvaluationRepository,
           locale,
         });
 
         //then
         expect(userProfile.pixScore).to.equal(expectedPixScore);
+        expect(userProfile.maxReachableLevel).to.equal(expectedMaxReachableLevel);
+        expect(userProfile.maxReachablePixScore).to.equal(expectedMaxReachablePixScore);
         assertScorecard(userProfile.scorecards[0], expectedUserScorecard[0]);
         assertScorecard(userProfile.scorecards[1], expectedUserScorecard[1]);
         assertScorecard(userProfile.scorecards[2], expectedUserScorecard[2]);

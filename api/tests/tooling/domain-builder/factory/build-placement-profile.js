@@ -1,6 +1,6 @@
-const _ = require('lodash');
-const PlacementProfile = require('../../../../lib/domain/models/PlacementProfile');
-const buildUserCompetence = require('./build-user-competence');
+import _ from 'lodash';
+import { PlacementProfile } from '../../../../lib/domain/models/PlacementProfile.js';
+import { buildUserCompetence } from './build-user-competence.js';
 
 const buildPlacementProfile = function buildPlacementProfile({
   profileDate = new Date('2020-01-01'),
@@ -14,11 +14,7 @@ const buildPlacementProfile = function buildPlacementProfile({
   });
 };
 
-buildPlacementProfile.buildForCompetences = function buildForCompetences({
-  profileDate,
-  userId,
-  competencesData, // [{competence, level, score}, ...]
-}) {
+buildPlacementProfile.buildForCompetences = function buildForCompetences({ profileDate, userId, competencesData }) {
   const userCompetences = _.map(competencesData, (competenceData) => {
     return buildUserCompetence({
       id: competenceData.id,
@@ -36,4 +32,4 @@ buildPlacementProfile.buildForCompetences = function buildForCompetences({
   });
 };
 
-module.exports = buildPlacementProfile;
+export { buildPlacementProfile };

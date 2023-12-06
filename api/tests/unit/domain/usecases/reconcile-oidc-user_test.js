@@ -1,7 +1,7 @@
-const { expect, sinon, catchErr } = require('../../../test-helper');
-const reconcileOidcUser = require('../../../../lib/domain/usecases/reconcile-oidc-user');
-const { AuthenticationKeyExpired, MissingUserAccountError } = require('../../../../lib/domain/errors');
-const AuthenticationMethod = require('../../../../lib/domain/models/AuthenticationMethod');
+import { expect, sinon, catchErr } from '../../../test-helper.js';
+import { reconcileOidcUser } from '../../../../lib/domain/usecases/reconcile-oidc-user.js';
+import { AuthenticationKeyExpired, MissingUserAccountError } from '../../../../lib/domain/errors.js';
+import { AuthenticationMethod } from '../../../../lib/domain/models/AuthenticationMethod.js';
 
 describe('Unit | UseCase | reconcile-oidc-user', function () {
   let authenticationMethodRepository, userRepository, authenticationSessionService, oidcAuthenticationService;
@@ -19,10 +19,6 @@ describe('Unit | UseCase | reconcile-oidc-user', function () {
     };
   });
 
-  afterEach(function () {
-    sinon.restore();
-  });
-
   it('should retrieve user session content', async function () {
     // given
     const sessionContent = { idToken: 'idToken' };
@@ -33,7 +29,7 @@ describe('Unit | UseCase | reconcile-oidc-user', function () {
     oidcAuthenticationService.createAuthenticationComplement
       .withArgs({ sessionContent })
       .returns(
-        new AuthenticationMethod.OidcAuthenticationComplement({ accessToken: 'accessToken', expiredDate: new Date() })
+        new AuthenticationMethod.OidcAuthenticationComplement({ accessToken: 'accessToken', expiredDate: new Date() }),
       );
 
     // when
@@ -61,7 +57,7 @@ describe('Unit | UseCase | reconcile-oidc-user', function () {
     oidcAuthenticationService.createAuthenticationComplement
       .withArgs({ sessionContent })
       .returns(
-        new AuthenticationMethod.OidcAuthenticationComplement({ accessToken: 'accessToken', expiredDate: new Date() })
+        new AuthenticationMethod.OidcAuthenticationComplement({ accessToken: 'accessToken', expiredDate: new Date() }),
       );
 
     // when
@@ -78,7 +74,7 @@ describe('Unit | UseCase | reconcile-oidc-user', function () {
     const { authenticationMethod } = authenticationMethodRepository.create.firstCall.args[0];
     expect(authenticationMethod).to.deep.contain({ identityProvider, externalIdentifier, userId });
     expect(authenticationMethod.authenticationComplement).to.be.instanceOf(
-      AuthenticationMethod.OidcAuthenticationComplement
+      AuthenticationMethod.OidcAuthenticationComplement,
     );
   });
 
@@ -94,7 +90,7 @@ describe('Unit | UseCase | reconcile-oidc-user', function () {
     oidcAuthenticationService.createAuthenticationComplement
       .withArgs({ sessionContent })
       .returns(
-        new AuthenticationMethod.OidcAuthenticationComplement({ accessToken: 'accessToken', expiredDate: new Date() })
+        new AuthenticationMethod.OidcAuthenticationComplement({ accessToken: 'accessToken', expiredDate: new Date() }),
       );
     oidcAuthenticationService.createAccessToken.withArgs(userId).returns('accessToken');
     oidcAuthenticationService.saveIdToken

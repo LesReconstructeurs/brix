@@ -1,10 +1,13 @@
 <div class="language">
-  <PixSelect
-    @options={{this.options}}
-    @onChange={{this.onChangeLang}}
-    @value={{@model.lang}}
-    @label={{t "pages.user-account.language.lang"}}
-    @hideDefaultOption={{true}}
-    data-test-lang
+  <LanguageSwitcher
+    @label="{{t 'pages.user-account.language.lang'}}"
+    @selectedLanguage={{@model.lang}}
+    @onLanguageChange={{this.onLanguageChange}}
   />
+
+  {{#if this.shouldDisplayLanguageUpdatedMessage}}
+    <PixMessage @type="success" @withIcon={{true}}>
+      {{t "pages.user-account.language.update-successful"}}
+    </PixMessage>
+  {{/if}}
 </div>

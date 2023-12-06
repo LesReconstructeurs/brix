@@ -42,7 +42,7 @@ module('Unit | Controller | authenticated/certifications/certification/details',
           competence(false, 'ok', 'timedout', 'ok'),
           competence(false, 'ok', 'ok', 'ok'),
         ],
-      })
+      }),
     );
 
     // when
@@ -51,9 +51,7 @@ module('Unit | Controller | authenticated/certifications/certification/details',
     });
 
     // then
-    // TODO: Fix this the next time the file is edited.
-    // eslint-disable-next-line qunit/no-assert-equal
-    assert.equal(controller.get('juryRate'), 78.57);
+    assert.strictEqual(controller.get('juryRate'), 78.57);
   });
 
   test('it computes jury score correctly', function (assert) {
@@ -69,7 +67,7 @@ module('Unit | Controller | authenticated/certifications/certification/details',
           competence(false, 'ok', 'timedout', 'ok'),
           competence(true, 'ok', 'ok', 'ok'),
         ],
-      })
+      }),
     );
 
     // when
@@ -79,9 +77,7 @@ module('Unit | Controller | authenticated/certifications/certification/details',
 
     // then
     // 3 jury scores + 2 obtained scores
-    // TODO: Fix this the next time the file is edited.
-    // eslint-disable-next-line qunit/no-assert-equal
-    assert.equal(controller.get('juryScore'), 12 * 3 + 26 * 2);
+    assert.strictEqual(controller.get('juryScore'), 12 * 3 + 26 * 2);
   });
 
   module('#shouldDisplayJuryScore', function () {

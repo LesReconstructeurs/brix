@@ -1,17 +1,21 @@
-const { sinon, expect } = require('../../../test-helper');
+import { sinon, expect } from '../../../test-helper.js';
 
-const mailService = require('../../../../lib/domain/services/mail-service');
-const mailer = require('../../../../lib/infrastructure/mailers/mailer');
-const tokenService = require('../../../../lib/domain/services/token-service');
-const settings = require('../../../../lib/config');
-const { getI18n } = require('../../../tooling/i18n/i18n');
+import * as mailService from '../../../../lib/domain/services/mail-service.js';
+import { mailer } from '../../../../lib/infrastructure/mailers/mailer.js';
+import { tokenService } from '../../../../lib/domain/services/token-service.js';
+import { config as settings } from '../../../../lib/config.js';
+import { getI18n } from '../../../tooling/i18n/i18n.js';
+import fr from '../../../../translations/fr.json' assert { type: 'json' };
+import en from '../../../../translations/en.json' assert { type: 'json' };
 
 const mainTranslationsMapping = {
-  fr: require('../../../../translations/fr'),
-  en: require('../../../../translations/en'),
+  fr,
+  en,
 };
 
-const { ENGLISH_SPOKEN, FRENCH_FRANCE, FRENCH_SPOKEN } = require('../../../../lib/domain/constants').LOCALE;
+import { LOCALE } from '../../../../lib/domain/constants.js';
+
+const { ENGLISH_SPOKEN, FRENCH_FRANCE, FRENCH_SPOKEN } = LOCALE;
 
 describe('Unit | Service | MailService', function () {
   const senderEmailAddress = 'ne-pas-repondre@pix.fr';
@@ -123,9 +127,10 @@ describe('Unit | Service | MailService', function () {
   });
 
   describe('#sendCertificationResultEmail', function () {
-    it('should use mailer to send an email with given options', async function () {
+    it(`should call sendEmail with from, to, template, tags, ${FRENCH_FRANCE} and ${ENGLISH_SPOKEN} translations`, async function () {
       // given
       sinon.stub(settings.domain, 'pixApp').value('https://pix.app');
+      const translate = getI18n().__;
       const sessionDate = '2020-10-03';
       const sessionId = '3';
       const certificationCenterName = 'Vincennes';
@@ -134,18 +139,6 @@ describe('Unit | Service | MailService', function () {
       const tokenServiceStub = sinon.stub(tokenService, 'createCertificationResultsByRecipientEmailLinkToken');
       tokenServiceStub.withArgs({ sessionId, resultRecipientEmail, daysBeforeExpiration }).returns('token-1');
       const link = 'https://pix.app.org/api/sessions/download-results/token-1';
-      const expectedOptions = {
-        from: senderEmailAddress,
-        fromName: 'PIX - Ne pas répondre',
-        to: userEmailAddress,
-        template: 'test-certification-result-template-id',
-        variables: {
-          link,
-          sessionId,
-          certificationCenterName,
-          sessionDate: '03/10/2020',
-        },
-      };
 
       // when
       await mailService.sendCertificationResultEmail({
@@ -155,10 +148,39 @@ describe('Unit | Service | MailService', function () {
         certificationCenterName,
         resultRecipientEmail,
         daysBeforeExpiration,
+        translate,
       });
 
       // then
-      expect(mailer.sendEmail).to.have.been.calledWithExactly(expectedOptions);
+      const options = mailer.sendEmail.firstCall.args[0];
+
+      expect(options).to.deep.equal({
+        from: 'ne-pas-repondre@pix.fr',
+        fromName: 'PIX - Ne pas répondre / PIX - Noreply',
+        to: userEmailAddress,
+        template: 'test-certification-result-template-id',
+        variables: {
+          fr: {
+            ...mainTranslationsMapping.fr['certification-result-email'].params,
+            title: translate('certification-result-email.title', { sessionId }),
+            homeName: 'pix.fr',
+            homeUrl: 'https://pix.fr',
+            homeNameInternational: 'pix.org',
+            homeUrlInternational: 'https://pix.org/fr/',
+            link: `${link}?lang=fr`,
+          },
+          en: {
+            ...mainTranslationsMapping.en['certification-result-email'].params,
+            title: translate({ phrase: 'certification-result-email.title', locale: 'en' }, { sessionId }),
+            homeName: 'pix.org',
+            homeUrl: 'https://pix.org/en-gb/',
+            link: `${link}?lang=en`,
+          },
+          sessionId,
+          sessionDate: '03/10/2020',
+          certificationCenterName,
+        },
+      });
     });
   });
 
@@ -523,7 +545,7 @@ describe('Unit | Service | MailService', function () {
       const sendEmailParameters = mailer.sendEmail.firstCall.args[0];
 
       expect(sendEmailParameters.subject).to.equal(
-        mainTranslationsMapping.fr['certification-center-invitation-email'].subject
+        mainTranslationsMapping.fr['certification-center-invitation-email'].subject,
       );
       expect(sendEmailParameters.from).to.equal(senderEmailAddress);
       expect(sendEmailParameters.fromName).to.equal('Pix Certif - Ne pas répondre');
@@ -556,7 +578,7 @@ describe('Unit | Service | MailService', function () {
         // then
         const sendEmailParameters = mailer.sendEmail.firstCall.args[0];
         expect(sendEmailParameters.subject).to.equal(
-          mainTranslationsMapping.fr['certification-center-invitation-email'].subject
+          mainTranslationsMapping.fr['certification-center-invitation-email'].subject,
         );
         expect(sendEmailParameters.fromName).to.equal('Pix Certif - Ne pas répondre');
         expect(sendEmailParameters.variables).to.include({
@@ -588,7 +610,7 @@ describe('Unit | Service | MailService', function () {
         // then
         const sendEmailParameters = mailer.sendEmail.firstCall.args[0];
         expect(sendEmailParameters.subject).to.equal(
-          mainTranslationsMapping.en['certification-center-invitation-email'].subject
+          mainTranslationsMapping.en['certification-center-invitation-email'].subject,
         );
         expect(sendEmailParameters.fromName).to.equal('Pix Certif - Noreply');
         expect(sendEmailParameters.variables).to.include({
@@ -710,7 +732,7 @@ describe('Unit | Service | MailService', function () {
       // then
       const options = mailer.sendEmail.firstCall.args[0];
       expect(options.subject).to.equal(
-        translate({ phrase: 'verification-code-email.subject', locale: 'en' }, { code })
+        translate({ phrase: 'verification-code-email.subject', locale: 'en' }, { code }),
       );
       expect(options.variables).to.include({
         homeName: 'pix.org',

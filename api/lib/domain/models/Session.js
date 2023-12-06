@@ -1,5 +1,6 @@
-const _ = require('lodash');
-const config = require('../../config');
+import _ from 'lodash';
+import { config } from '../../config.js';
+import { CertificationVersion } from './CertificationVersion.js';
 
 const CREATED = 'created';
 const FINALIZED = 'finalized';
@@ -39,7 +40,8 @@ class Session {
     certificationCandidates,
     certificationCenterId,
     assignedCertificationOfficerId,
-    supervisorPassword,
+    supervisorPassword = Session.generateSupervisorPassword(),
+    version = CertificationVersion.V2,
   } = {}) {
     this.id = id;
     this.accessCode = accessCode;
@@ -60,6 +62,7 @@ class Session {
     this.certificationCenterId = certificationCenterId;
     this.assignedCertificationOfficerId = assignedCertificationOfficerId;
     this.supervisorPassword = supervisorPassword;
+    this.version = version;
   }
 
   areResultsFlaggedAsSent() {
@@ -87,22 +90,27 @@ class Session {
     return this.status === statuses.CREATED;
   }
 
-  generateSupervisorPassword() {
-    this.supervisorPassword = _.times(NB_CHAR, _randomCharacter).join('');
+  static generateSupervisorPassword() {
+    return _.times(NB_CHAR, _randomCharacter).join('');
   }
 
   isSupervisable(supervisorPassword) {
     return this.supervisorPassword === supervisorPassword;
   }
 
-  canEnrollCandidate() {
+  canEnrolCandidate() {
     return _.isNull(this.finalizedAt);
+  }
+
+  isSessionScheduledInThePast() {
+    const sessionDate = new Date(`${this.date}T${this.time}`);
+    return sessionDate < new Date();
   }
 }
 
-module.exports = Session;
-module.exports.statuses = statuses;
-module.exports.NO_EXAMINER_GLOBAL_COMMENT = NO_EXAMINER_GLOBAL_COMMENT;
+Session.statuses = statuses;
+
+export { Session, statuses, NO_EXAMINER_GLOBAL_COMMENT };
 
 function _randomCharacter() {
   return _.sample(availableCharactersForPasswordGeneration);

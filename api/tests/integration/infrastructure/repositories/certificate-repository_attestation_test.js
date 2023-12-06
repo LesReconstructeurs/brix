@@ -1,14 +1,15 @@
-const {
+import {
   expect,
   databaseBuilder,
   domainBuilder,
   catchErr,
   learningContentBuilder,
   mockLearningContent,
-} = require('../../../test-helper');
-const { NotFoundError } = require('../../../../lib/domain/errors');
-const certificationRepository = require('../../../../lib/infrastructure/repositories/certificate-repository');
-const { status } = require('../../../../lib/domain/models/AssessmentResult');
+} from '../../../test-helper.js';
+
+import { NotFoundError } from '../../../../lib/domain/errors.js';
+import * as certificationRepository from '../../../../lib/infrastructure/repositories/certificate-repository.js';
+import { status } from '../../../../lib/domain/models/AssessmentResult.js';
 
 describe('Integration | Infrastructure | Repository | Certification Attestation', function () {
   const minimalLearningContent = [
@@ -65,7 +66,7 @@ describe('Integration | Infrastructure | Repository | Certification Attestation'
 
       // when
       const error = await catchErr(certificationRepository.getCertificationAttestation)(
-        certificationAttestationData.id
+        certificationAttestationData.id,
       );
 
       // then
@@ -103,7 +104,7 @@ describe('Integration | Infrastructure | Repository | Certification Attestation'
 
       // when
       const error = await catchErr(certificationRepository.getCertificationAttestation)(
-        certificationAttestationData.id
+        certificationAttestationData.id,
       );
 
       // then
@@ -141,7 +142,7 @@ describe('Integration | Infrastructure | Repository | Certification Attestation'
 
       // when
       const error = await catchErr(certificationRepository.getCertificationAttestation)(
-        certificationAttestationData.id
+        certificationAttestationData.id,
       );
 
       // then
@@ -179,7 +180,7 @@ describe('Integration | Infrastructure | Repository | Certification Attestation'
 
       // when
       const error = await catchErr(certificationRepository.getCertificationAttestation)(
-        certificationAttestationData.id
+        certificationAttestationData.id,
       );
 
       // then
@@ -189,7 +190,7 @@ describe('Integration | Infrastructure | Repository | Certification Attestation'
 
     it('should return a CertificationAttestation', async function () {
       // given
-      const learningContentObjects = learningContentBuilder.buildLearningContent.fromAreas(minimalLearningContent);
+      const learningContentObjects = learningContentBuilder.fromAreas(minimalLearningContent);
       mockLearningContent(learningContentObjects);
 
       const certificationAttestationData = {
@@ -293,14 +294,15 @@ describe('Integration | Infrastructure | Repository | Certification Attestation'
       const area1 = domainBuilder.buildArea({
         id: 'recArea1',
         code: '1',
-        competences: [competence1, competence2],
+        competences: [
+          { ...competence1, name_i18n: { fr: competence1.name } },
+          { ...competence2, name_i18n: { fr: competence2.name } },
+        ],
         title: 'titre test',
         framework: null,
       });
 
-      const learningContentObjects = learningContentBuilder.buildLearningContent.fromAreas([
-        { ...area1, titleFr: area1.title },
-      ]);
+      const learningContentObjects = learningContentBuilder.fromAreas([{ ...area1, title_i18n: { fr: area1.title } }]);
       mockLearningContent(learningContentObjects);
 
       // when
@@ -317,7 +319,7 @@ describe('Integration | Infrastructure | Repository | Certification Attestation'
 
     it('should take into account the latest validated assessment result of a student', async function () {
       // given
-      const learningContentObjects = learningContentBuilder.buildLearningContent.fromAreas(minimalLearningContent);
+      const learningContentObjects = learningContentBuilder.fromAreas(minimalLearningContent);
       mockLearningContent(learningContentObjects);
       const certificationAttestationData = {
         id: 123,
@@ -348,7 +350,7 @@ describe('Integration | Infrastructure | Repository | Certification Attestation'
 
       // when
       const certificationAttestation = await certificationRepository.getCertificationAttestation(
-        certificationAttestationData.id
+        certificationAttestationData.id,
       );
 
       // then
@@ -362,7 +364,7 @@ describe('Integration | Infrastructure | Repository | Certification Attestation'
     context('acquired certifiable badges', function () {
       it(`should get the certified badge images when the certifications were acquired`, async function () {
         // given
-        const learningContentObjects = learningContentBuilder.buildLearningContent.fromAreas(minimalLearningContent);
+        const learningContentObjects = learningContentBuilder.fromAreas(minimalLearningContent);
         mockLearningContent(learningContentObjects);
         const certificationAttestationData = {
           id: 123,
@@ -475,7 +477,7 @@ describe('Integration | Infrastructure | Repository | Certification Attestation'
   describe('#findByDivisionForScoIsManagingStudentsOrganization', function () {
     it('should return an empty array when there are no certification attestations for given organization', async function () {
       // given
-      const learningContentObjects = learningContentBuilder.buildLearningContent.fromAreas(minimalLearningContent);
+      const learningContentObjects = learningContentBuilder.fromAreas(minimalLearningContent);
       mockLearningContent(learningContentObjects);
       databaseBuilder.factory.buildOrganization({ id: 123, type: 'SCO', isManagingStudents: true });
       databaseBuilder.factory.buildOrganization({ id: 456, type: 'SCO', isManagingStudents: true });
@@ -524,7 +526,7 @@ describe('Integration | Infrastructure | Repository | Certification Attestation'
 
     it('should return an empty array when the organization is not SCO IS MANAGING STUDENTS', async function () {
       // given
-      const learningContentObjects = learningContentBuilder.buildLearningContent.fromAreas(minimalLearningContent);
+      const learningContentObjects = learningContentBuilder.fromAreas(minimalLearningContent);
       mockLearningContent(learningContentObjects);
       databaseBuilder.factory.buildOrganization({ id: 123, type: 'SUP', isManagingStudents: false });
       const certificationAttestationData = {
@@ -572,7 +574,7 @@ describe('Integration | Infrastructure | Repository | Certification Attestation'
 
     it('should return an empty array when the certification does not belong to an organization learner in the right division', async function () {
       // given
-      const learningContentObjects = learningContentBuilder.buildLearningContent.fromAreas(minimalLearningContent);
+      const learningContentObjects = learningContentBuilder.fromAreas(minimalLearningContent);
       mockLearningContent(learningContentObjects);
       databaseBuilder.factory.buildOrganization({ id: 123, type: 'SCO', isManagingStudents: true });
       const certificationAttestationData = {
@@ -620,7 +622,7 @@ describe('Integration | Infrastructure | Repository | Certification Attestation'
 
     it('should not return certifications that have no validated assessment-result', async function () {
       // given
-      const learningContentObjects = learningContentBuilder.buildLearningContent.fromAreas(minimalLearningContent);
+      const learningContentObjects = learningContentBuilder.fromAreas(minimalLearningContent);
       mockLearningContent(learningContentObjects);
       databaseBuilder.factory.buildOrganization({ id: 123, type: 'SCO', isManagingStudents: true });
       const certificationAttestationData = {
@@ -668,7 +670,7 @@ describe('Integration | Infrastructure | Repository | Certification Attestation'
 
     it('should not return cancelled certifications', async function () {
       // given
-      const learningContentObjects = learningContentBuilder.buildLearningContent.fromAreas(minimalLearningContent);
+      const learningContentObjects = learningContentBuilder.fromAreas(minimalLearningContent);
       mockLearningContent(learningContentObjects);
       databaseBuilder.factory.buildOrganization({ id: 123, type: 'SCO', isManagingStudents: true });
       const certificationAttestationData = {
@@ -716,7 +718,7 @@ describe('Integration | Infrastructure | Repository | Certification Attestation'
 
     it('should not return non published certifications', async function () {
       // given
-      const learningContentObjects = learningContentBuilder.buildLearningContent.fromAreas(minimalLearningContent);
+      const learningContentObjects = learningContentBuilder.fromAreas(minimalLearningContent);
       mockLearningContent(learningContentObjects);
       databaseBuilder.factory.buildOrganization({ id: 123, type: 'SCO', isManagingStudents: true });
       const certificationAttestationData = {
@@ -764,7 +766,7 @@ describe('Integration | Infrastructure | Repository | Certification Attestation'
 
     it('should return an array of certification attestations ordered by last name, first name', async function () {
       // given
-      const learningContentObjects = learningContentBuilder.buildLearningContent.fromAreas(minimalLearningContent);
+      const learningContentObjects = learningContentBuilder.fromAreas(minimalLearningContent);
       mockLearningContent(learningContentObjects);
       databaseBuilder.factory.buildOrganization({ id: 123, type: 'SCO', isManagingStudents: true });
       const certificationAttestationDataA = {
@@ -888,7 +890,7 @@ describe('Integration | Infrastructure | Repository | Certification Attestation'
 
     it('should ignore disabled shooling-registrations', async function () {
       // given
-      const learningContentObjects = learningContentBuilder.buildLearningContent.fromAreas(minimalLearningContent);
+      const learningContentObjects = learningContentBuilder.fromAreas(minimalLearningContent);
       mockLearningContent(learningContentObjects);
       databaseBuilder.factory.buildOrganization({ id: 123, type: 'SCO', isManagingStudents: true });
       const certificationAttestationDataA = {
@@ -1010,7 +1012,7 @@ describe('Integration | Infrastructure | Repository | Certification Attestation'
     describe('when the last certification is rejected', function () {
       it('should take into account the latest valid certification', async function () {
         // given
-        const learningContentObjects = learningContentBuilder.buildLearningContent.fromAreas(minimalLearningContent);
+        const learningContentObjects = learningContentBuilder.fromAreas(minimalLearningContent);
         mockLearningContent(learningContentObjects);
         databaseBuilder.factory.buildOrganization({ id: 123, type: 'SCO', isManagingStudents: true });
         const certificationAttestationData = {
@@ -1093,7 +1095,7 @@ describe('Integration | Infrastructure | Repository | Certification Attestation'
 
     it('should take into account the latest certification of an organization learner', async function () {
       // given
-      const learningContentObjects = learningContentBuilder.buildLearningContent.fromAreas(minimalLearningContent);
+      const learningContentObjects = learningContentBuilder.fromAreas(minimalLearningContent);
       mockLearningContent(learningContentObjects);
       databaseBuilder.factory.buildOrganization({ id: 123, type: 'SCO', isManagingStudents: true });
       const organizationLearnerId = databaseBuilder.factory.buildOrganizationLearner({
@@ -1171,7 +1173,7 @@ describe('Integration | Infrastructure | Repository | Certification Attestation'
 
       // then
       const expectedCertificationAttestation = domainBuilder.buildCertificationAttestation(
-        certificationAttestationDataNewest
+        certificationAttestationDataNewest,
       );
       expect(certificationAttestations).to.have.length(1);
       expect(certificationAttestations[0]).to.deepEqualInstanceOmitting(expectedCertificationAttestation, [

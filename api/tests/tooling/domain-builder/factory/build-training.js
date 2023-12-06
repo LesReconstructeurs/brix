@@ -1,6 +1,6 @@
-const Training = require('../../../../lib/domain/models/Training');
+import { Training } from '../../../../lib/domain/models/Training.js';
 
-module.exports = function buildTraining({
+const buildTraining = function ({
   id = 'training1',
   title = 'Training 1',
   link = 'https://example.net',
@@ -12,8 +12,7 @@ module.exports = function buildTraining({
   targetProfileIds = [1],
   editorName = 'Ministère education nationale',
   editorLogoUrl = 'https://images.pix.fr/contenu-formatif/editeur/editor_logo_url.svg',
-  goalThreshold = 70,
-  prerequisiteThreshold = 30,
+  trainingTriggers,
 } = {}) {
   return new Training({
     id,
@@ -25,7 +24,8 @@ module.exports = function buildTraining({
     targetProfileIds,
     editorName,
     editorLogoUrl,
-    goalThreshold,
-    prerequisiteThreshold,
+    trainingTriggers,
   });
 };
+
+export { buildTraining };

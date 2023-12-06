@@ -1,8 +1,6 @@
-const { expect, sinon, catchErr, domainBuilder } = require('../../../test-helper');
-
-const { AlreadyExistingEntityError } = require('../../../../lib/domain/errors');
-
-const updateStudentNumber = require('../../../../lib/domain/usecases/update-student-number');
+import { expect, sinon, catchErr, domainBuilder } from '../../../test-helper.js';
+import { AlreadyExistingEntityError } from '../../../../lib/domain/errors.js';
+import { updateStudentNumber } from '../../../../lib/domain/usecases/update-student-number.js';
 
 describe('Unit | UseCase | update-student-number', function () {
   const organizationId = 2;
@@ -66,7 +64,7 @@ describe('Unit | UseCase | update-student-number', function () {
       // then
       expect(supOrganizationLearnerRepository.updateStudentNumber).to.have.been.calledWith(
         organizationLearnerId,
-        studentNumber
+        studentNumber,
       );
     });
   });

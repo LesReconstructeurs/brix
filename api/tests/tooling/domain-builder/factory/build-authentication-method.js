@@ -1,9 +1,11 @@
-const isUndefined = require('lodash/isUndefined');
+import lodash from 'lodash';
+const { isUndefined } = lodash;
 
-const encrypt = require('../../../../lib/domain/services/encryption-service');
-const User = require('../../../../lib/domain/models/User');
-const AuthenticationMethod = require('../../../../lib/domain/models/AuthenticationMethod');
-const OidcIdentityProviders = require('../../../../lib/domain/constants/oidc-identity-providers');
+import * as encrypt from '../../../../lib/domain/services/encryption-service.js';
+import { User } from '../../../../lib/domain/models/User.js';
+import { AuthenticationMethod } from '../../../../lib/domain/models/AuthenticationMethod.js';
+import { NON_OIDC_IDENTITY_PROVIDERS } from '../../../../lib/domain/constants/identity-providers.js';
+import * as OidcIdentityProviders from '../../../../lib/domain/constants/oidc-identity-providers.js';
 
 function _buildUser() {
   return new User({
@@ -18,7 +20,7 @@ const buildAuthenticationMethod = {};
 
 buildAuthenticationMethod.withGarAsIdentityProvider = function ({
   id = 123,
-  identityProvider = AuthenticationMethod.identityProviders.GAR,
+  identityProvider = NON_OIDC_IDENTITY_PROVIDERS.GAR.code,
   externalIdentifier = `externalId${id}`,
   userId = 456,
   userFirstName = 'Margotte',
@@ -56,7 +58,7 @@ buildAuthenticationMethod.withPixAsIdentityProviderAndRawPassword = function ({
 
   return new AuthenticationMethod({
     id,
-    identityProvider: AuthenticationMethod.identityProviders.PIX,
+    identityProvider: NON_OIDC_IDENTITY_PROVIDERS.PIX.code,
     authenticationComplement: new AuthenticationMethod.PixAuthenticationComplement({
       password,
       shouldChangePassword,
@@ -81,7 +83,7 @@ buildAuthenticationMethod.withPixAsIdentityProviderAndHashedPassword = function 
 
   return new AuthenticationMethod({
     id,
-    identityProvider: AuthenticationMethod.identityProviders.PIX,
+    identityProvider: NON_OIDC_IDENTITY_PROVIDERS.PIX.code,
     authenticationComplement: new AuthenticationMethod.PixAuthenticationComplement({
       password,
       shouldChangePassword,
@@ -148,4 +150,4 @@ buildAuthenticationMethod.withIdentityProvider = function ({
   });
 };
 
-module.exports = buildAuthenticationMethod;
+export { buildAuthenticationMethod };

@@ -1,152 +1,224 @@
-const usecases = require('../../domain/usecases');
-const scoOrganizationLearnerSerializer = require('../../infrastructure/serializers/jsonapi/sco-organization-learner-serializer');
-const { extractLocaleFromRequest } = require('../../infrastructure/utils/request-response-utils');
-const studentInformationForAccountRecoverySerializer = require('../../infrastructure/serializers/jsonapi/student-information-for-account-recovery-serializer');
+import dayjs from 'dayjs';
+import { usecases } from '../../domain/usecases/index.js';
+import * as scoOrganizationLearnerSerializer from '../../infrastructure/serializers/jsonapi/sco-organization-learner-serializer.js';
+import * as requestResponseUtils from '../../infrastructure/utils/request-response-utils.js';
+import * as studentInformationForAccountRecoverySerializer from '../../infrastructure/serializers/jsonapi/student-information-for-account-recovery-serializer.js';
+import { DomainTransaction } from '../../infrastructure/DomainTransaction.js';
 
-module.exports = {
-  async reconcileScoOrganizationLearnerManually(request, h) {
-    const authenticatedUserId = request.auth.credentials.userId;
-    const payload = request.payload.data.attributes;
-    const campaignCode = payload['campaign-code'];
-    const withReconciliation = request.query.withReconciliation === 'true';
+const reconcileScoOrganizationLearnerManually = async function (
+  request,
+  h,
+  dependencies = { scoOrganizationLearnerSerializer },
+) {
+  const authenticatedUserId = request.auth.credentials.userId;
+  const payload = request.payload.data.attributes;
+  const campaignCode = payload['campaign-code'];
+  const withReconciliation = request.query.withReconciliation === 'true';
 
-    const reconciliationInfo = {
-      id: authenticatedUserId,
-      firstName: payload['first-name'],
-      lastName: payload['last-name'],
-      birthdate: payload['birthdate'],
-    };
+  const reconciliationInfo = {
+    id: authenticatedUserId,
+    firstName: payload['first-name'],
+    lastName: payload['last-name'],
+    birthdate: payload['birthdate'],
+  };
 
-    const organizationLearner = await usecases.reconcileScoOrganizationLearnerManually({
-      campaignCode,
-      reconciliationInfo,
-      withReconciliation,
-    });
+  const organizationLearner = await usecases.reconcileScoOrganizationLearnerManually({
+    campaignCode,
+    reconciliationInfo,
+    withReconciliation,
+  });
 
-    let response;
-    if (withReconciliation) {
-      const serializedData = scoOrganizationLearnerSerializer.serializeIdentity(organizationLearner);
-      response = h.response(serializedData).code(200);
-    } else {
-      response = h.response().code(204);
-    }
-    return response;
+  let response;
+  if (withReconciliation) {
+    const serializedData = dependencies.scoOrganizationLearnerSerializer.serializeIdentity(organizationLearner);
+    response = h.response(serializedData).code(200);
+  } else {
+    response = h.response().code(204);
+  }
+  return response;
+};
+
+const reconcileScoOrganizationLearnerAutomatically = async function (
+  request,
+  h,
+  dependencies = { scoOrganizationLearnerSerializer },
+) {
+  const authenticatedUserId = request.auth.credentials.userId;
+  const payload = request.payload.data.attributes;
+  const campaignCode = payload['campaign-code'];
+  const organizationLearner = await usecases.reconcileScoOrganizationLearnerAutomatically({
+    userId: authenticatedUserId,
+    campaignCode,
+  });
+
+  return h.response(dependencies.scoOrganizationLearnerSerializer.serializeIdentity(organizationLearner));
+};
+
+const generateUsername = async function (request, h, dependencies = { scoOrganizationLearnerSerializer }) {
+  const payload = request.payload.data.attributes;
+  const { 'campaign-code': campaignCode } = payload;
+
+  const studentInformation = {
+    firstName: payload['first-name'],
+    lastName: payload['last-name'],
+    birthdate: payload['birthdate'],
+  };
+
+  const username = await usecases.generateUsername({ campaignCode, studentInformation });
+
+  const scoOrganizationLearner = {
+    ...studentInformation,
+    username,
+    campaignCode,
+  };
+
+  return h
+    .response(dependencies.scoOrganizationLearnerSerializer.serializeWithUsernameGeneration(scoOrganizationLearner))
+    .code(200);
+};
+
+const createAndReconcileUserToOrganizationLearner = async function (
+  request,
+  h,
+  dependencies = {
+    scoOrganizationLearnerSerializer,
+    requestResponseUtils,
   },
+) {
+  const payload = request.payload.data.attributes;
+  const userAttributes = {
+    firstName: payload['first-name'],
+    lastName: payload['last-name'],
+    birthdate: payload['birthdate'],
+    email: payload.email,
+    username: payload.username,
+    withUsername: payload['with-username'],
+  };
+  const locale = dependencies.requestResponseUtils.extractLocaleFromRequest(request);
 
-  async reconcileScoOrganizationLearnerAutomatically(request, h) {
-    const authenticatedUserId = request.auth.credentials.userId;
-    const payload = request.payload.data.attributes;
-    const campaignCode = payload['campaign-code'];
-    const organizationLearner = await usecases.reconcileScoOrganizationLearnerAutomatically({
-      userId: authenticatedUserId,
-      campaignCode,
-    });
+  await usecases.createAndReconcileUserToOrganizationLearner({
+    userAttributes,
+    password: payload.password,
+    campaignCode: payload['campaign-code'],
+    locale,
+  });
 
-    return h.response(scoOrganizationLearnerSerializer.serializeIdentity(organizationLearner));
-  },
+  return h.response().code(204);
+};
 
-  async generateUsername(request, h) {
-    const payload = request.payload.data.attributes;
-    const { 'campaign-code': campaignCode } = payload;
+const createUserAndReconcileToOrganizationLearnerFromExternalUser = async function (
+  request,
+  h,
+  dependencies = { scoOrganizationLearnerSerializer },
+) {
+  const { birthdate, 'campaign-code': campaignCode, 'external-user-token': token } = request.payload.data.attributes;
 
-    const studentInformation = {
-      firstName: payload['first-name'],
-      lastName: payload['last-name'],
-      birthdate: payload['birthdate'],
-    };
+  const accessToken = await usecases.createUserAndReconcileToOrganizationLearnerFromExternalUser({
+    birthdate,
+    campaignCode,
+    token,
+  });
 
-    const username = await usecases.generateUsername({ campaignCode, studentInformation });
+  const scoOrganizationLearner = {
+    accessToken,
+  };
 
-    const scoOrganizationLearner = {
-      ...studentInformation,
-      username,
-      campaignCode,
-    };
+  return h.response(dependencies.scoOrganizationLearnerSerializer.serializeExternal(scoOrganizationLearner)).code(200);
+};
 
-    return h
-      .response(scoOrganizationLearnerSerializer.serializeWithUsernameGeneration(scoOrganizationLearner))
-      .code(200);
-  },
+const updatePassword = async function (request, h, dependencies = { scoOrganizationLearnerSerializer }) {
+  const payload = request.payload.data.attributes;
+  const userId = request.auth.credentials.userId;
+  const organizationId = payload['organization-id'];
+  const organizationLearnerId = payload['organization-learner-id'];
 
-  async createAndReconcileUserToOrganizationLearner(request, h) {
-    const payload = request.payload.data.attributes;
-    const userAttributes = {
-      firstName: payload['first-name'],
-      lastName: payload['last-name'],
-      birthdate: payload['birthdate'],
-      email: payload.email,
-      username: payload.username,
-      withUsername: payload['with-username'],
-    };
-    const locale = extractLocaleFromRequest(request);
+  const generatedPassword = await usecases.updateOrganizationLearnerDependentUserPassword({
+    userId,
+    organizationId,
+    organizationLearnerId,
+  });
 
-    await usecases.createAndReconcileUserToOrganizationLearner({
-      userAttributes,
-      password: payload.password,
-      campaignCode: payload['campaign-code'],
-      locale,
-    });
+  const scoOrganizationLearner = {
+    generatedPassword,
+  };
 
-    return h.response().code(204);
-  },
+  return h
+    .response(dependencies.scoOrganizationLearnerSerializer.serializeCredentialsForDependent(scoOrganizationLearner))
+    .code(200);
+};
 
-  async createUserAndReconcileToOrganizationLearnerFromExternalUser(request, h) {
-    const { birthdate, 'campaign-code': campaignCode, 'external-user-token': token } = request.payload.data.attributes;
+const generateUsernameWithTemporaryPassword = async function (
+  request,
+  h,
+  dependencies = { scoOrganizationLearnerSerializer },
+) {
+  const payload = request.payload.data.attributes;
+  const organizationId = payload['organization-id'];
+  const organizationLearnerId = payload['organization-learner-id'];
 
-    const accessToken = await usecases.createUserAndReconcileToOrganizationLearnerFromExternalUser({
-      birthdate,
-      campaignCode,
-      token,
-    });
+  const result = await usecases.generateUsernameWithTemporaryPassword({
+    organizationLearnerId,
+    organizationId,
+  });
 
-    const scoOrganizationLearner = {
-      accessToken,
-    };
+  return h.response(dependencies.scoOrganizationLearnerSerializer.serializeCredentialsForDependent(result)).code(200);
+};
 
-    return h.response(scoOrganizationLearnerSerializer.serializeExternal(scoOrganizationLearner)).code(200);
-  },
+const checkScoAccountRecovery = async function (
+  request,
+  h,
+  dependencies = { studentInformationForAccountRecoverySerializer },
+) {
+  const studentInformation = await dependencies.studentInformationForAccountRecoverySerializer.deserialize(
+    request.payload,
+  );
 
-  async updatePassword(request, h) {
-    const payload = request.payload.data.attributes;
-    const userId = request.auth.credentials.userId;
-    const organizationId = payload['organization-id'];
-    const organizationLearnerId = payload['organization-learner-id'];
+  const studentInformationForAccountRecovery = await usecases.checkScoAccountRecovery({
+    studentInformation,
+  });
 
-    const generatedPassword = await usecases.updateOrganizationLearnerDependentUserPassword({
+  return h.response(
+    dependencies.studentInformationForAccountRecoverySerializer.serialize(studentInformationForAccountRecovery),
+  );
+};
+
+const updateOrganizationLearnersPassword = async function (request, h) {
+  const payload = request.payload.data.attributes;
+  const userId = request.auth.credentials.userId;
+  const organizationId = payload['organization-id'];
+  const organizationLearnersId = payload['organization-learners-id'];
+
+  const generatedCsvContent = await DomainTransaction.execute(async (domainTransaction) => {
+    const organizationLearnersPasswordResets = await usecases.resetOrganizationLearnersPassword({
       userId,
       organizationId,
-      organizationLearnerId,
+      organizationLearnersId,
+      domainTransaction,
     });
-
-    const scoOrganizationLearner = {
-      generatedPassword,
-    };
-
-    return h
-      .response(scoOrganizationLearnerSerializer.serializeCredentialsForDependent(scoOrganizationLearner))
-      .code(200);
-  },
-
-  async generateUsernameWithTemporaryPassword(request, h) {
-    const payload = request.payload.data.attributes;
-    const organizationId = payload['organization-id'];
-    const organizationLearnerId = payload['organization-learner-id'];
-
-    const result = await usecases.generateUsernameWithTemporaryPassword({
-      organizationLearnerId,
-      organizationId,
+    return usecases.generateResetOrganizationLearnersPasswordCsvContent({
+      organizationLearnersPasswordResets,
     });
+  });
 
-    return h.response(scoOrganizationLearnerSerializer.serializeCredentialsForDependent(result)).code(200);
-  },
+  const dateWithTime = dayjs().locale('fr').format('YYYYMMDD_HHmm');
+  const generatedCsvContentFileName = `${dateWithTime}_organization_learners_password_reset.csv`;
 
-  async checkScoAccountRecovery(request, h) {
-    const studentInformation = await studentInformationForAccountRecoverySerializer.deserialize(request.payload);
-
-    const studentInformationForAccountRecovery = await usecases.checkScoAccountRecovery({
-      studentInformation,
-    });
-
-    return h.response(studentInformationForAccountRecoverySerializer.serialize(studentInformationForAccountRecovery));
-  },
+  return h
+    .response(generatedCsvContent)
+    .header('Content-Type', 'text/csv;charset=utf-8')
+    .header('Content-Disposition', `attachment; filename=${generatedCsvContentFileName}`);
 };
+
+const scoOrganizationLearnerController = {
+  reconcileScoOrganizationLearnerManually,
+  reconcileScoOrganizationLearnerAutomatically,
+  generateUsername,
+  createAndReconcileUserToOrganizationLearner,
+  createUserAndReconcileToOrganizationLearnerFromExternalUser,
+  updatePassword,
+  generateUsernameWithTemporaryPassword,
+  checkScoAccountRecovery,
+  updateOrganizationLearnersPassword,
+};
+
+export { scoOrganizationLearnerController };

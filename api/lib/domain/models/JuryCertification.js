@@ -1,8 +1,4 @@
-const CompetenceMark = require('./CompetenceMark');
-
-const status = {
-  CANCELLED: 'cancelled',
-};
+import { CompetenceMark } from './CompetenceMark.js';
 
 class JuryCertification {
   constructor({
@@ -21,6 +17,7 @@ class JuryCertification {
     createdAt,
     completedAt,
     status,
+    isCancelled,
     isPublished,
     juryId,
     pixScore,
@@ -29,8 +26,9 @@ class JuryCertification {
     commentForOrganization,
     commentForJury,
     certificationIssueReports,
-    complementaryCertificationCourseResultsWithExternal,
-    commonComplementaryCertificationCourseResults,
+    complementaryCertificationCourseResultWithExternal,
+    commonComplementaryCertificationCourseResult,
+    version,
   }) {
     this.certificationCourseId = certificationCourseId;
     this.sessionId = sessionId;
@@ -47,6 +45,7 @@ class JuryCertification {
     this.createdAt = createdAt;
     this.completedAt = completedAt;
     this.status = status;
+    this.isCancelled = isCancelled;
     this.isPublished = isPublished;
     this.juryId = juryId;
     this.pixScore = pixScore;
@@ -55,22 +54,23 @@ class JuryCertification {
     this.commentForOrganization = commentForOrganization;
     this.commentForJury = commentForJury;
     this.certificationIssueReports = certificationIssueReports;
-    this.complementaryCertificationCourseResultsWithExternal = complementaryCertificationCourseResultsWithExternal;
-    this.commonComplementaryCertificationCourseResults = commonComplementaryCertificationCourseResults;
+    this.complementaryCertificationCourseResultWithExternal = complementaryCertificationCourseResultWithExternal;
+    this.commonComplementaryCertificationCourseResult = commonComplementaryCertificationCourseResult;
+    this.version = version;
   }
 
   static from({
     juryCertificationDTO,
     certificationIssueReports,
     competenceMarkDTOs,
-    complementaryCertificationCourseResultsWithExternal,
-    commonComplementaryCertificationCourseResults,
+    complementaryCertificationCourseResultWithExternal,
+    commonComplementaryCertificationCourseResult,
   }) {
     const competenceMarks = competenceMarkDTOs.map(
       (competenceMarkDTO) =>
         new CompetenceMark({
           ...competenceMarkDTO,
-        })
+        }),
     );
 
     return new JuryCertification({
@@ -88,7 +88,8 @@ class JuryCertification {
       birthPostalCode: juryCertificationDTO.birthPostalCode,
       createdAt: juryCertificationDTO.createdAt,
       completedAt: juryCertificationDTO.completedAt,
-      status: _getStatus(juryCertificationDTO.assessmentResultStatus, juryCertificationDTO.isCancelled),
+      status: juryCertificationDTO.assessmentResultStatus,
+      isCancelled: juryCertificationDTO.isCancelled,
       isPublished: juryCertificationDTO.isPublished,
       juryId: juryCertificationDTO.juryId,
       pixScore: juryCertificationDTO.pixScore,
@@ -97,15 +98,11 @@ class JuryCertification {
       commentForOrganization: juryCertificationDTO.commentForOrganization,
       commentForJury: juryCertificationDTO.commentForJury,
       certificationIssueReports,
-      complementaryCertificationCourseResultsWithExternal,
-      commonComplementaryCertificationCourseResults,
+      complementaryCertificationCourseResultWithExternal,
+      commonComplementaryCertificationCourseResult,
+      version: juryCertificationDTO.version,
     });
   }
 }
 
-function _getStatus(assessmentResultStatus, isCourseCancelled) {
-  if (isCourseCancelled) return status.CANCELLED;
-  return assessmentResultStatus;
-}
-
-module.exports = JuryCertification;
+export { JuryCertification };

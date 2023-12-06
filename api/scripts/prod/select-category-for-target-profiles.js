@@ -1,15 +1,14 @@
-#! /usr/bin/env node
-require('dotenv').config();
-const bluebird = require('bluebird');
-const groupBy = require('lodash/groupBy');
-const sum = require('lodash/sum');
-const has = require('lodash/has');
-const partition = require('lodash/partition');
-const negate = require('lodash/negate');
+import dotenv from 'dotenv';
 
-const { readCsvFile, parseCsvData } = require('../helpers/csvHelpers');
-const { categories } = require('../../lib/domain/models/TargetProfile');
-const { knex, disconnect } = require('../../db/knex-database-connection');
+dotenv.config();
+import bluebird from 'bluebird';
+import lodash from 'lodash';
+const { groupBy, sum, has, partition, negate } = lodash;
+
+import { readCsvFile, parseCsvData } from '../helpers/csvHelpers.js';
+import { categories } from '../../lib/domain/models/TargetProfile.js';
+import { knex, disconnect } from '../../db/knex-database-connection.js';
+import * as url from 'url';
 
 const TARGET_PROFILE_ID_COLUMN = 'targetProfileId';
 const CATEGORY_COLUMN = 'category';
@@ -36,7 +35,7 @@ async function setCategoriesToTargetProfiles(csvData) {
   const result = await bluebird.mapSeries(validCategories, function (category) {
     const targetProfiles = targetProfilesGroupedByCategory[category].map((row) => row[TARGET_PROFILE_ID_COLUMN]);
     const [validTargetProfilesIds, invalidTargetProfilesIds] = partition(targetProfiles, (targetProfileId) =>
-      Number.isInteger(parseInt(targetProfileId))
+      Number.isInteger(parseInt(targetProfileId)),
     );
     invalidTargetProfiles = [...invalidTargetProfiles, ...invalidTargetProfilesIds];
 
@@ -57,7 +56,8 @@ function _isSupportedCategory(category) {
   return supportedCategories.includes(category);
 }
 
-const isLaunchedFromCommandLine = require.main === module;
+const modulePath = url.fileURLToPath(import.meta.url);
+const isLaunchedFromCommandLine = process.argv[1] === modulePath;
 
 async function main() {
   console.log('Starting script select-category-for-target-profiles');
@@ -94,7 +94,4 @@ async function main() {
   }
 })();
 
-module.exports = {
-  setCategoriesToTargetProfiles,
-  setCategoryToTargetProfiles,
-};
+export { setCategoriesToTargetProfiles, setCategoryToTargetProfiles };

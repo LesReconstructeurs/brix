@@ -2,6 +2,10 @@ import { module, test } from 'qunit';
 import sinon from 'sinon';
 import { setupTest } from 'ember-qunit';
 import Service from '@ember/service';
+import { DEFAULT_LOCALE, FRENCH_FRANCE_LOCALE, FRENCH_INTERNATIONAL_LOCALE } from 'mon-pix/services/locale';
+
+const FRANCE_TLD = 'fr';
+const INTERNATIONAL_TLD = 'org';
 
 module('Unit | Services | session', function (hooks) {
   setupTest(hooks);
@@ -14,8 +18,12 @@ module('Unit | Services | session', function (hooks) {
     sessionService = this.owner.lookup('service:session');
     sessionService.currentUser = { load: sinon.stub(), user: null };
     sessionService.currentDomain = { getExtension: sinon.stub() };
-    sessionService.intl = { setLocale: sinon.stub() };
-    sessionService.dayjs = { setLocale: sinon.stub(), self: { locale: sinon.stub() } };
+    sessionService.locale = {
+      setLocaleCookie: sinon.stub(),
+      hasLocaleCookie: sinon.stub(),
+      handleUnsupportedLanguage: sinon.stub(),
+      setLocale: sinon.stub(),
+    };
     sessionService._getRouteAfterInvalidation = sinon.stub();
     sessionService._logoutUser = sinon.stub();
 
@@ -33,7 +41,7 @@ module('Unit | Services | session', function (hooks) {
       const expectedScope = 'mon-pix';
       const expectedLogin = 'user';
       const expectedPassword = 'secret';
-      sessionService.currentDomain.getExtension.returns('fr');
+      sessionService.currentDomain.getExtension.returns(FRANCE_TLD);
 
       // when
       await sessionService.authenticateUser(expectedLogin, expectedPassword);
@@ -49,7 +57,7 @@ module('Unit | Services | session', function (hooks) {
 
     test('should delete expectedUserId', async function (assert) {
       // given
-      sessionService.currentDomain.getExtension.returns('fr');
+      sessionService.currentDomain.getExtension.returns(FRANCE_TLD);
       sessionService.data.expectedUserId = 1;
 
       // when
@@ -61,7 +69,7 @@ module('Unit | Services | session', function (hooks) {
 
     test('should delete externalUser', async function (assert) {
       // given
-      sessionService.currentDomain.getExtension.returns('fr');
+      sessionService.currentDomain.getExtension.returns(FRANCE_TLD);
       sessionService.data.externalUser = 1;
 
       // when
@@ -93,39 +101,35 @@ module('Unit | Services | session', function (hooks) {
     module('when current URL domain extension is .fr', function () {
       test('should load current user and set locale to fr', async function (assert) {
         // given
-        sessionService.currentDomain.getExtension.returns('fr');
+        sessionService.currentDomain.getExtension.returns(FRANCE_TLD);
 
         // when
         await sessionService.handleAuthentication();
 
         // then
         sinon.assert.calledOnce(sessionService.currentUser.load);
-        sinon.assert.calledWith(sessionService.intl.setLocale, ['fr', 'fr']);
-        sinon.assert.calledWith(sessionService.dayjs.setLocale, 'fr');
+        sinon.assert.calledWith(sessionService.locale.setLocale, DEFAULT_LOCALE);
         assert.ok(true);
       });
     });
 
-    // TODO: Fix this the next time the file is edited.
-    // eslint-disable-next-line qunit/no-async-module-callbacks
-    module('when current URL domain extension is .org', async function () {
+    module('when current URL domain extension is .org', function () {
       test('should load current user and set locale to fr', async function (assert) {
         // given
-        sessionService.currentDomain.getExtension.returns('org');
+        sessionService.currentDomain.getExtension.returns(INTERNATIONAL_TLD);
 
         // when
         await sessionService.handleAuthentication();
 
         // then
         sinon.assert.calledOnce(sessionService.currentUser.load);
-        sinon.assert.calledWith(sessionService.intl.setLocale, ['fr', 'fr']);
-        sinon.assert.calledWith(sessionService.dayjs.setLocale, 'fr');
+        sinon.assert.calledWith(sessionService.locale.setLocale, DEFAULT_LOCALE);
         assert.ok(true);
       });
 
       test('should load current user and set locale to user language', async function (assert) {
         // given
-        sessionService.currentDomain.getExtension.returns('org');
+        sessionService.currentDomain.getExtension.returns(INTERNATIONAL_TLD);
         sessionService.currentUser.user = { lang: 'nl' };
 
         // when
@@ -133,15 +137,15 @@ module('Unit | Services | session', function (hooks) {
 
         // then
         sinon.assert.calledOnce(sessionService.currentUser.load);
-        sinon.assert.calledWith(sessionService.intl.setLocale, ['nl', 'fr']);
-        sinon.assert.calledWith(sessionService.dayjs.setLocale, 'nl');
+        sinon.assert.calledWith(sessionService.locale.setLocale, 'nl');
         assert.ok(true);
       });
     });
 
     test('should replace the URL with the one set before the identity provider authentication', async function (assert) {
       // given
-      sessionService.data = { nextURL: '/campagnes', authenticated: { identityProviderCode: 'OIDC_PARTNER' } };
+      sessionService.data.nextURL = '/campagnes';
+      sessionService.data.authenticated = { identityProviderCode: 'OIDC_PARTNER' };
 
       // when
       await sessionService.handleAuthentication();
@@ -181,66 +185,71 @@ module('Unit | Services | session', function (hooks) {
   });
 
   module('#handleUserLanguageAndLocale', function () {
+    module('when the current domain  is "fr"', function () {
+      module('when there is no cookie locale', function () {
+        test('add a cookie locale with "fr-FR" as value', async function (assert) {
+          // given
+          sessionService.locale.hasLocaleCookie.returns(false);
+          sessionService.currentDomain.getExtension.returns(FRANCE_TLD);
+
+          // when
+          await sessionService.handleUserLanguageAndLocale();
+
+          // then
+          sinon.assert.calledWith(sessionService.locale.setLocaleCookie, FRENCH_FRANCE_LOCALE);
+          assert.ok(true);
+        });
+      });
+
+      module('when there is a cookie locale', function () {
+        test('does not update cookie locale', async function (assert) {
+          // given
+          sessionService.locale.hasLocaleCookie.returns(true);
+          sessionService.currentDomain.getExtension.returns(FRANCE_TLD);
+
+          // when
+          await sessionService.handleUserLanguageAndLocale();
+
+          // then
+          sinon.assert.notCalled(sessionService.locale.setLocaleCookie);
+          assert.ok(true);
+        });
+      });
+    });
+
     module('when the language is specified in the query parameters', function () {
       module('when the current domain extension is "org"', function () {
         module('when no user is loaded', function () {
           test('should set the current language with the value from the query parameter', async function (assert) {
             // given
             const transition = { to: { queryParams: { lang: 'de' } } };
-            sessionService.currentDomain.getExtension.returns('org');
+            sessionService.locale.handleUnsupportedLanguage.returns('de');
+            sessionService.currentDomain.getExtension.returns(INTERNATIONAL_TLD);
 
             // when
             await sessionService.handleUserLanguageAndLocale(transition);
 
             // then
-            sinon.assert.calledWith(sessionService.intl.setLocale, ['de', 'fr']);
-            sinon.assert.calledWith(sessionService.dayjs.setLocale, 'de');
+            sinon.assert.calledWith(sessionService.locale.setLocale, 'de');
             assert.ok(true);
           });
         });
 
         module('when user is loaded', function () {
           module('when there is no error', function () {
-            test('should set the current language with the value from the query parameter', async function (assert) {
+            test('sets the current language with the value from the query parameter', async function (assert) {
               // given
               const transition = { to: { queryParams: { lang: 'de' } } };
-              sessionService.currentDomain.getExtension.returns('org');
-              sessionService.currentUser.user = { lang: 'ru', save: sinon.stub() };
+              sessionService.locale.handleUnsupportedLanguage.returns('de');
+              sessionService.currentDomain.getExtension.returns(INTERNATIONAL_TLD);
+              sessionService.currentUser.user = { lang: FRENCH_INTERNATIONAL_LOCALE };
 
               // when
               await sessionService.handleUserLanguageAndLocale(transition);
 
               // then
-              sinon.assert.calledWith(sessionService.currentUser.user.save, { adapterOptions: { lang: 'de' } });
-              sinon.assert.calledWith(sessionService.intl.setLocale, ['de', 'fr']);
-              sinon.assert.calledWith(sessionService.dayjs.setLocale, 'de');
-              assert.strictEqual(sessionService.currentUser.user.lang, 'de');
-            });
-          });
-
-          module('when an error occurs', function () {
-            module('with an HTTP status code 400', function () {
-              test('should set the current language with the user language value', async function (assert) {
-                // given
-                const transition = { to: { queryParams: { lang: 'de' } } };
-                sessionService.currentDomain.getExtension.returns('org');
-                sessionService.currentUser.user = {
-                  lang: 'ru',
-                  save: sinon.stub().throws({ errors: [{ status: '400' }] }),
-                  rollbackAttributes: function () {
-                    sessionService.currentUser.user.lang = 'ru';
-                  },
-                };
-
-                // when
-                await sessionService.handleUserLanguageAndLocale(transition);
-
-                // then
-                sinon.assert.calledWith(sessionService.currentUser.user.save, { adapterOptions: { lang: 'de' } });
-                sinon.assert.calledWith(sessionService.intl.setLocale, ['ru', 'fr']);
-                sinon.assert.calledWith(sessionService.dayjs.setLocale, 'ru');
-                assert.ok(true);
-              });
+              sinon.assert.calledWith(sessionService.locale.setLocale, 'de');
+              assert.ok(true);
             });
           });
         });
@@ -252,14 +261,13 @@ module('Unit | Services | session', function (hooks) {
         module('when no user is loaded', function () {
           test('should set the current language with the default locale value', async function (assert) {
             // given
-            sessionService.currentDomain.getExtension.returns('org');
+            sessionService.currentDomain.getExtension.returns(INTERNATIONAL_TLD);
 
             // when
             await sessionService.handleUserLanguageAndLocale();
 
             // then
-            sinon.assert.calledWith(sessionService.intl.setLocale, ['fr', 'fr']);
-            sinon.assert.calledWith(sessionService.dayjs.setLocale, 'fr');
+            sinon.assert.calledWith(sessionService.locale.setLocale, DEFAULT_LOCALE);
             assert.ok(true);
           });
         });
@@ -267,15 +275,14 @@ module('Unit | Services | session', function (hooks) {
         module('when user is loaded', function () {
           test('should set the current language with the user language value', async function (assert) {
             // given
-            sessionService.currentDomain.getExtension.returns('org');
+            sessionService.currentDomain.getExtension.returns(INTERNATIONAL_TLD);
             sessionService.currentUser.user = { lang: 'ru' };
 
             // when
             await sessionService.handleUserLanguageAndLocale();
 
             // then
-            sinon.assert.calledWith(sessionService.intl.setLocale, ['ru', 'fr']);
-            sinon.assert.calledWith(sessionService.dayjs.setLocale, 'ru');
+            sinon.assert.calledWith(sessionService.locale.setLocale, 'ru');
             assert.ok(true);
           });
         });
@@ -288,7 +295,8 @@ module('Unit | Services | session', function (hooks) {
       test('should redirect user to terms of service page', async function (assert) {
         // given
         const transition = { from: 'campaigns.campaign-landing-page' };
-        sessionService.isAuthenticated = true;
+        sessionService.setup();
+        sessionService.session.isAuthenticated = true;
         sessionService.currentUser.user = { mustValidateTermsOfService: true };
 
         // when

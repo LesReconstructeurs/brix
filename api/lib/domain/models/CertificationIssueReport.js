@@ -1,17 +1,19 @@
-const Joi = require('joi');
-const {
+import Joi from 'joi';
+
+import {
   InvalidCertificationIssueReportForSaving,
   DeprecatedCertificationIssueReportCategoryError,
   DeprecatedCertificationIssueReportSubcategoryError,
-} = require('../errors');
-const {
-  CertificationIssueReportCategories,
+} from '../errors.js';
+
+import {
+  CertificationIssueReportCategory as CertificationIssueReportCategories,
   CertificationIssueReportSubcategories,
   ImpactfulCategories,
   ImpactfulSubcategories,
   DeprecatedCategories,
   DeprecatedSubcategories,
-} = require('./CertificationIssueReportCategory');
+} from './CertificationIssueReportCategory.js';
 
 const categoryNonBlockingTechnicalIssueJoiSchema = Joi.object({
   certificationCourseId: Joi.number().required().empty(null),
@@ -39,7 +41,7 @@ const categoryCandidateInformationChangesJoiSchema = Joi.object({
     .required()
     .valid(
       CertificationIssueReportSubcategories.NAME_OR_BIRTHDATE,
-      CertificationIssueReportSubcategories.EXTRA_TIME_PERCENTAGE
+      CertificationIssueReportSubcategories.EXTRA_TIME_PERCENTAGE,
     ),
 });
 
@@ -61,7 +63,7 @@ const categoryInChallengeJoiSchema = Joi.object({
       CertificationIssueReportSubcategories.SOFTWARE_NOT_WORKING,
       CertificationIssueReportSubcategories.UNINTENTIONAL_FOCUS_OUT,
       CertificationIssueReportSubcategories.SKIP_ON_OOPS,
-      CertificationIssueReportSubcategories.ACCESSIBILITY_ISSUE
+      CertificationIssueReportSubcategories.ACCESSIBILITY_ISSUE,
     ),
 });
 
@@ -113,17 +115,12 @@ class CertificationIssueReport {
 
     if (
       [
-        CertificationIssueReportCategories.CONNECTION_OR_END_SCREEN,
         CertificationIssueReportCategories.NON_BLOCKING_CANDIDATE_ISSUE,
         CertificationIssueReportCategories.NON_BLOCKING_TECHNICAL_ISSUE,
         CertificationIssueReportCategories.SIGNATURE_ISSUE,
       ].includes(this.category)
     ) {
       this.subcategory = null;
-    }
-
-    if (this.category === CertificationIssueReportCategories.CONNECTION_OR_END_SCREEN) {
-      this.description = null;
     }
 
     if (this.category !== CertificationIssueReportCategories.IN_CHALLENGE) {
@@ -185,7 +182,7 @@ class CertificationIssueReport {
   }
 }
 
-module.exports = CertificationIssueReport;
+export { CertificationIssueReport };
 
 function _isImpactful({ category, subcategory }) {
   return ImpactfulCategories.includes(category) || ImpactfulSubcategories.includes(subcategory);

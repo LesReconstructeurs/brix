@@ -1,11 +1,10 @@
-const UserCompetence = require('../../../../lib/domain/models/UserCompetence');
-const buildArea = require('./build-area');
+import { UserCompetence } from '../../../../lib/domain/models/UserCompetence.js';
 
-module.exports = function buildUserCompetence({
+const buildUserCompetence = function ({
   id = 'recUserComp',
   index = '1.1',
   name = 'name',
-  area = buildArea(),
+  areaId = 'recArea',
   pixScore = 42,
   estimatedLevel = 1,
   skills = [],
@@ -14,9 +13,11 @@ module.exports = function buildUserCompetence({
     id,
     index,
     name,
-    area,
+    areaId,
     pixScore,
     estimatedLevel,
     skills,
   });
 };
+
+export { buildUserCompetence };

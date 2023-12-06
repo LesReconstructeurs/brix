@@ -1,9 +1,9 @@
-const { expect, databaseBuilder, catchErr } = require('../../../test-helper');
-const campaignToJoinRepository = require('../../../../lib/infrastructure/repositories/campaign-to-join-repository');
-const CampaignToJoin = require('../../../../lib/domain/read-models/CampaignToJoin');
-const { NotFoundError } = require('../../../../lib/domain/errors');
-const DomainTransaction = require('../../../../lib/infrastructure/DomainTransaction');
-const OidcIdentityProviders = require('../../../../lib/domain/constants/oidc-identity-providers');
+import { expect, databaseBuilder, catchErr } from '../../../test-helper.js';
+import * as campaignToJoinRepository from '../../../../lib/infrastructure/repositories/campaign-to-join-repository.js';
+import { CampaignToJoin } from '../../../../lib/domain/read-models/CampaignToJoin.js';
+import { NotFoundError } from '../../../../lib/domain/errors.js';
+import { DomainTransaction } from '../../../../lib/infrastructure/DomainTransaction.js';
+import * as OidcIdentityProviders from '../../../../lib/domain/constants/oidc-identity-providers.js';
 
 describe('Integration | Repository | CampaignToJoin', function () {
   describe('#get', function () {
@@ -32,7 +32,7 @@ describe('Integration | Repository | CampaignToJoin', function () {
       expect(actualCampaign.customLandingPageText).to.equal(expectedCampaign.customLandingPageText);
       expect(actualCampaign.externalIdHelpImageUrl).to.equal(expectedCampaign.externalIdHelpImageUrl);
       expect(actualCampaign.alternativeTextToExternalIdHelpImage).to.equal(
-        expectedCampaign.alternativeTextToExternalIdHelpImage
+        expectedCampaign.alternativeTextToExternalIdHelpImage,
       );
       expect(actualCampaign.archivedAt).to.equal(expectedCampaign.archivedAt);
       expect(actualCampaign.type).to.equal(expectedCampaign.type);
@@ -92,7 +92,7 @@ describe('Integration | Repository | CampaignToJoin', function () {
       expect(actualCampaign.customLandingPageText).to.equal(expectedCampaign.customLandingPageText);
       expect(actualCampaign.externalIdHelpImageUrl).to.equal(expectedCampaign.externalIdHelpImageUrl);
       expect(actualCampaign.alternativeTextToExternalIdHelpImage).to.equal(
-        expectedCampaign.alternativeTextToExternalIdHelpImage
+        expectedCampaign.alternativeTextToExternalIdHelpImage,
       );
       expect(actualCampaign.archivedAt).to.equal(expectedCampaign.archivedAt);
       expect(actualCampaign.type).to.equal(expectedCampaign.type);

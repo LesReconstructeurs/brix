@@ -1,8 +1,8 @@
-const getCorrectionForAnswer = require('../../../../lib/domain/usecases/get-correction-for-answer');
-const Assessment = require('../../../../lib/domain/models/Assessment');
-const Answer = require('../../../../lib/domain/models/Answer');
-const { AssessmentNotCompletedError, NotFoundError } = require('../../../../lib/domain/errors');
-const { expect, sinon, catchErr, domainBuilder } = require('../../../test-helper');
+import { getCorrectionForAnswer } from '../../../../lib/domain/usecases/get-correction-for-answer.js';
+import { Assessment } from '../../../../lib/domain/models/Assessment.js';
+import { Answer } from '../../../../lib/domain/models/Answer.js';
+import { AssessmentNotCompletedError, NotFoundError } from '../../../../lib/domain/errors.js';
+import { expect, sinon, catchErr, domainBuilder } from '../../../test-helper.js';
 
 describe('Unit | UseCase | getCorrectionForAnswer', function () {
   const assessmentRepository = { get: () => undefined };
@@ -19,7 +19,7 @@ describe('Unit | UseCase | getCorrectionForAnswer', function () {
     sinon.stub(answerRepository, 'get');
     sinon.stub(correctionRepository, 'getByChallengeId');
 
-    answer = new Answer({ assessmentId, challengeId: 12 });
+    answer = new Answer({ assessmentId, challengeId: 12, value: 'lareponse' });
     answerRepository.get.withArgs(answerId).resolves(answer);
   });
 
@@ -59,7 +59,7 @@ describe('Unit | UseCase | getCorrectionForAnswer', function () {
 
         const correction = Symbol('A correction');
         correctionRepository.getByChallengeId
-          .withArgs({ challengeId, userId: assessment.userId, locale })
+          .withArgs({ challengeId, answerValue: answer.value, userId: assessment.userId, locale })
           .resolves(correction);
 
         // when
@@ -88,7 +88,7 @@ describe('Unit | UseCase | getCorrectionForAnswer', function () {
 
         const correction = Symbol('A correction');
         correctionRepository.getByChallengeId
-          .withArgs({ challengeId, userId: assessment.userId, locale })
+          .withArgs({ challengeId, answerValue: answer.value, userId: assessment.userId, locale })
           .resolves(correction);
 
         // when
@@ -115,7 +115,7 @@ describe('Unit | UseCase | getCorrectionForAnswer', function () {
 
       const correction = Symbol('A correction');
       correctionRepository.getByChallengeId
-        .withArgs({ challengeId, userId: assessment.userId, locale })
+        .withArgs({ challengeId, answerValue: answer.value, userId: assessment.userId, locale })
         .resolves(correction);
 
       // when

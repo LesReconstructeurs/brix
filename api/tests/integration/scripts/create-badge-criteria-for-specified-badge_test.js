@@ -1,11 +1,11 @@
-const { expect, catchErr, databaseBuilder, knex } = require('../../test-helper');
-const {
+import { expect, catchErr, databaseBuilder, knex } from '../../test-helper.js';
+import {
   checkBadgeExistence,
   checkCriteriaFormat,
   checkSkillSetIds,
   copySkillSets,
-} = require('../../../scripts/create-badge-criteria-for-specified-badge.js');
-const BadgeCriterion = require('../../../lib/domain/models/BadgeCriterion');
+} from '../../../scripts/create-badge-criteria-for-specified-badge.js';
+import { BadgeCriterion } from '../../../lib/domain/models/BadgeCriterion.js';
 
 describe('Integration | Scripts | create-badge-criteria-for-specified-badge', function () {
   describe('#checkBadgeExistence', function () {
@@ -98,7 +98,7 @@ describe('Integration | Scripts | create-badge-criteria-for-specified-badge', fu
           // then
           expect(error).to.be.an.instanceof(Error);
           expect(error.message).to.equal(
-            'Badge criterion is invalid : SkillSetIds provided for CampaignParticipation scope'
+            'Badge criterion is invalid : SkillSetIds provided for CampaignParticipation scope',
           );
         });
       });
@@ -120,7 +120,7 @@ describe('Integration | Scripts | create-badge-criteria-for-specified-badge', fu
           // then
           expect(error).to.be.an.instanceof(Error);
           expect(error.message).to.equal(
-            'Badge criterion is invalid : SkillSetIds should be provided for SkillSet scope'
+            'Badge criterion is invalid : SkillSetIds should be provided for SkillSet scope',
           );
         });
       });

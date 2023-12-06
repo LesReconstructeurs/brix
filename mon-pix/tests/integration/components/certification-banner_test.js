@@ -1,8 +1,8 @@
 import EmberObject from '@ember/object';
 import { module, test } from 'qunit';
 import setupIntlRenderingTest from '../../helpers/setup-intl-rendering';
-import { find, render } from '@ember/test-helpers';
-import hbs from 'htmlbars-inline-precompile';
+import { render } from '@1024pix/ember-testing-library';
+import { hbs } from 'ember-cli-htmlbars';
 
 module('Integration | Component | Certification Banner', function (hooks) {
   setupIntlRenderingTest(hooks);
@@ -26,22 +26,19 @@ module('Integration | Component | Certification Banner', function (hooks) {
 
     test('should render component with user fullName', async function (assert) {
       // when
-      await render(hbs`<CertificationBanner @certification={{this.certification}} />`);
+      const screen = await render(hbs`<CertificationBanner @certification={{this.certification}} />`);
 
       // then
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(find('.assessment-banner__title').textContent.trim(), fullName);
+      assert.dom(screen.getByRole('heading', { name: fullName })).exists();
     });
 
     test('should render component with certificationNumber', async function (assert) {
       // when
-      await render(hbs`<CertificationBanner @certificationNumber={{this.certificationNumber}} />`);
+      const screen = await render(hbs`<CertificationBanner @certificationNumber={{this.certificationNumber}} />`);
 
       // then
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(find('.certification-number__value').textContent.trim(), `${certificationNumber}`);
+      assert.dom(screen.getByText('N° de certification')).exists();
+      assert.dom(screen.getByText(certificationNumber)).exists();
     });
   });
 });

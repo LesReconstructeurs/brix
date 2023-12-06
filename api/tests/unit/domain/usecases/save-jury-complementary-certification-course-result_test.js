@@ -1,8 +1,7 @@
-const { expect, sinon, catchErr, domainBuilder } = require('../../../test-helper');
-
-const saveJuryComplementaryCertificationCourseResult = require('../../../../lib/domain/usecases/save-jury-complementary-certification-course-result');
-const { NotFoundError, InvalidJuryLevelError } = require('../../../../lib/domain/errors');
-const ComplementaryCertificationCourseResult = require('../../../../lib/domain/models/ComplementaryCertificationCourseResult');
+import { expect, sinon, catchErr, domainBuilder } from '../../../test-helper.js';
+import { saveJuryComplementaryCertificationCourseResult } from '../../../../lib/domain/usecases/save-jury-complementary-certification-course-result.js';
+import { NotFoundError, InvalidJuryLevelError } from '../../../../lib/domain/errors.js';
+import { ComplementaryCertificationCourseResult } from '../../../../lib/domain/models/ComplementaryCertificationCourseResult.js';
 
 describe('Unit | UseCase | save-jury-complementary-certification-course-results', function () {
   describe('#saveJuryComplementaryCertificationCourseResult', function () {
@@ -33,7 +32,7 @@ describe('Unit | UseCase | save-jury-complementary-certification-course-results'
         // then
         expect(error).to.be.instanceOf(NotFoundError);
         expect(error.message).to.be.equal(
-          "Aucun résultat de certification Pix n'a été trouvé pour cette certification complémentaire."
+          "Aucun résultat de certification Pix n'a été trouvé pour cette certification complémentaire.",
         );
       });
     });
@@ -49,7 +48,7 @@ describe('Unit | UseCase | save-jury-complementary-certification-course-results'
                 partnerKey: 'KEY_1',
                 complementaryCertificationCourseId: 1234,
                 source: ComplementaryCertificationCourseResult.sources.PIX,
-              })
+              }),
             );
 
           complementaryCertificationCourseResultRepository.getAllowedJuryLevelByBadgeKey
@@ -78,7 +77,7 @@ describe('Unit | UseCase | save-jury-complementary-certification-course-results'
                 partnerKey: 'KEY_1',
                 complementaryCertificationCourseId: 1234,
                 source: ComplementaryCertificationCourseResult.sources.PIX,
-              })
+              }),
             );
 
           complementaryCertificationCourseResultRepository.getAllowedJuryLevelByBadgeKey
@@ -99,7 +98,7 @@ describe('Unit | UseCase | save-jury-complementary-certification-course-results'
               source: ComplementaryCertificationCourseResult.sources.EXTERNAL,
               acquired: true,
               complementaryCertificationCourseId: 1234,
-            })
+            }),
           );
         });
       });

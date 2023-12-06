@@ -1,6 +1,5 @@
-#! /usr/bin/env node
-/* eslint no-console: ["off"] */
-const PgClient = require('./PgClient');
+import { PgClient } from './PgClient.js';
+import * as url from 'url';
 
 async function initialize() {
   const client = await PgClient.getClient(process.env.DATABASE_URL);
@@ -62,7 +61,7 @@ class UserEraser {
   delete_dependent_data_from_fetched_assessment_ids() {
     if (this.assessmentIds.length === 0) {
       console.log(
-        'No assessment found: skipping deletion of feedbacks, answers, competence-marks and assessment-results'
+        'No assessment found: skipping deletion of feedbacks, answers, competence-marks and assessment-results',
       );
       return Promise.resolve();
     }
@@ -141,7 +140,7 @@ class ScriptQueryBuilder {
   delete_competence_marks_from_assessment_ids(assessment_ids) {
     this._precondition_array_must_not_be_empty(assessment_ids);
     return `DELETE FROM "competence-marks" WHERE "assessmentResultId" IN ( SELECT id from "assessment-results" WHERE "assessmentId" IN (${assessment_ids.join(
-      ','
+      ',',
     )}) )`;
   }
 
@@ -167,12 +166,10 @@ class ScriptQueryBuilder {
 
 /*=================== tests =============================*/
 
-if (require.main === module) {
+const modulePath = url.fileURLToPath(import.meta.url);
+const isLaunchedFromCommandLine = process.argv[1] === modulePath;
+if (isLaunchedFromCommandLine) {
   main();
 }
 
-module.exports = {
-  ScriptQueryBuilder,
-  ClientQueryAdapter,
-  UserEraser,
-};
+export { ScriptQueryBuilder, ClientQueryAdapter, UserEraser };

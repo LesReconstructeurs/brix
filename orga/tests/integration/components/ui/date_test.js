@@ -1,6 +1,6 @@
 import { module, test } from 'qunit';
 import { render } from '@1024pix/ember-testing-library';
-import hbs from 'htmlbars-inline-precompile';
+import { hbs } from 'ember-cli-htmlbars';
 import setupIntlRenderingTest from '../../../helpers/setup-intl-rendering';
 
 module('Integration | Component | Ui | Date', function (hooks) {
@@ -17,9 +17,9 @@ module('Integration | Component | Ui | Date', function (hooks) {
 
   test('it should display a dash if no date is given', async function (assert) {
     // when
-    await render(hbs`<Ui::Date />`);
+    const screen = await render(hbs`<Ui::Date />`);
 
     // then
-    assert.contains('–');
+    assert.dom(screen.getByText(this.intl.t('components.date.no-date'))).exists();
   });
 });

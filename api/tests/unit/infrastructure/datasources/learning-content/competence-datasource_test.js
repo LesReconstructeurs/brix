@@ -1,11 +1,11 @@
-const { expect, sinon } = require('../../../../test-helper');
-const competenceDatasource = require('../../../../../lib/infrastructure/datasources/learning-content/competence-datasource');
-const lcms = require('../../../../../lib/infrastructure/lcms');
-const cache = require('../../../../../lib/infrastructure/caches/learning-content-cache');
+import { expect, sinon } from '../../../../test-helper.js';
+import { competenceDatasource } from '../../../../../lib/infrastructure/datasources/learning-content/competence-datasource.js';
+import { lcms } from '../../../../../lib/infrastructure/lcms.js';
+import { learningContentCache } from '../../../../../lib/infrastructure/caches/learning-content-cache.js';
 
 describe('Unit | Infrastructure | Datasource | Learning Content | CompetenceDatasource', function () {
   beforeEach(function () {
-    sinon.stub(cache, 'get').callsFake((generator) => generator());
+    sinon.stub(learningContentCache, 'get').callsFake((generator) => generator());
   });
 
   describe('#findByRecordIds', function () {

@@ -1,6 +1,6 @@
 const TABLE_NAME = 'flash-assessment-results';
 
-exports.up = async function (knex) {
+const up = async function (knex) {
   await knex.schema.raw('alter table "flash-assessment-results" alter column id type bigint');
 
   await knex.schema.table(TABLE_NAME, (t) => {
@@ -22,7 +22,7 @@ exports.up = async function (knex) {
   });
 };
 
-exports.down = async function (knex) {
+const down = async function (knex) {
   await knex(TABLE_NAME)
     .whereIn(
       'answerId',
@@ -35,11 +35,11 @@ exports.down = async function (knex) {
             function () {
               this.orderBy('createdAt', 'desc');
             },
-            'assessmentId'
+            'assessmentId',
           ),
       })
         .select('answerRanked.answerId')
-        .where('answerRanked.rank', '>', 1)
+        .where('answerRanked.rank', '>', 1),
     )
     .delete();
 
@@ -59,3 +59,5 @@ exports.down = async function (knex) {
     t.dropColumn('answerId');
   });
 };
+
+export { up, down };

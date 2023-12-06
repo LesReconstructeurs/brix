@@ -1,7 +1,6 @@
-const sinon = require('sinon');
-const { expect, databaseBuilder } = require('../../../test-helper');
-const organizationPlacesCapacityRepository = require('../../../../lib/infrastructure/repositories/organization-places-capacity-repository');
-const categories = require('../../../../lib/domain/constants/organization-places-categories');
+import { expect, databaseBuilder, sinon } from '../../../test-helper.js';
+import * as organizationPlacesCapacityRepository from '../../../../lib/infrastructure/repositories/organization-places-capacity-repository.js';
+import * as categories from '../../../../lib/domain/constants/organization-places-categories.js';
 
 describe('Integration | Infrastructure | Repository | OrganizationPlacesCapacityRepository', function () {
   describe('#findByOrganizationId', function () {
@@ -20,7 +19,7 @@ describe('Integration | Infrastructure | Repository | OrganizationPlacesCapacity
 
     it('should return 0 if there is no places', async function () {
       const organizationPlacesCapacity = await organizationPlacesCapacityRepository.findByOrganizationId(
-        organizationId
+        organizationId,
       );
 
       expect(organizationPlacesCapacity.categories).to.have.deep.members([
@@ -42,7 +41,7 @@ describe('Integration | Infrastructure | Repository | OrganizationPlacesCapacity
       await databaseBuilder.commit();
 
       const organizationPlacesCapacity = await organizationPlacesCapacityRepository.findByOrganizationId(
-        organizationId
+        organizationId,
       );
 
       expect(organizationPlacesCapacity.categories).to.have.deep.members([
@@ -67,7 +66,7 @@ describe('Integration | Infrastructure | Repository | OrganizationPlacesCapacity
       await databaseBuilder.commit();
 
       const organizationPlacesCapacity = await organizationPlacesCapacityRepository.findByOrganizationId(
-        organizationId
+        organizationId,
       );
 
       expect(organizationPlacesCapacity.categories).to.have.deep.members([
@@ -85,7 +84,7 @@ describe('Integration | Infrastructure | Repository | OrganizationPlacesCapacity
       await databaseBuilder.commit();
 
       const organizationPlacesCapacity = await organizationPlacesCapacityRepository.findByOrganizationId(
-        organizationId
+        organizationId,
       );
 
       expect(organizationPlacesCapacity.categories).to.include.deep.members([
@@ -104,7 +103,7 @@ describe('Integration | Infrastructure | Repository | OrganizationPlacesCapacity
       await databaseBuilder.commit();
 
       const organizationPlacesCapacity = await organizationPlacesCapacityRepository.findByOrganizationId(
-        organizationId
+        organizationId,
       );
 
       expect(organizationPlacesCapacity.categories).to.include.deep.members([
@@ -123,7 +122,7 @@ describe('Integration | Infrastructure | Repository | OrganizationPlacesCapacity
       await databaseBuilder.commit();
 
       const organizationPlacesCapacity = await organizationPlacesCapacityRepository.findByOrganizationId(
-        organizationId
+        organizationId,
       );
 
       expect(organizationPlacesCapacity.categories).to.include.deep.members([
@@ -142,7 +141,7 @@ describe('Integration | Infrastructure | Repository | OrganizationPlacesCapacity
       await databaseBuilder.commit();
 
       const organizationPlacesCapacity = await organizationPlacesCapacityRepository.findByOrganizationId(
-        organizationId
+        organizationId,
       );
 
       expect(organizationPlacesCapacity.categories).to.include.deep.members([

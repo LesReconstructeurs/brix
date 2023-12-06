@@ -1,18 +1,19 @@
-const jsonwebtoken = require('jsonwebtoken');
-const {
+import jsonwebtoken from 'jsonwebtoken';
+
+import {
   expect,
   databaseBuilder,
   knex,
   nock,
   sinon,
   generateValidRequestAuthorizationHeader,
-} = require('../../../../test-helper');
+} from '../../../../test-helper.js';
 
-const createServer = require('../../../../../server');
-const settings = require('../../../../../lib/config');
-const AuthenticationSessionContent = require('../../../../../lib/domain/models/AuthenticationSessionContent');
-const authenticationSessionService = require('../../../../../lib/domain/services/authentication/authentication-session-service');
-const OidcIdentityProviders = require('../../../../../lib/domain/constants/oidc-identity-providers');
+import { createServer } from '../../../../../server.js';
+import { config as settings } from '../../../../../lib/config.js';
+import { AuthenticationSessionContent } from '../../../../../lib/domain/models/AuthenticationSessionContent.js';
+import * as authenticationSessionService from '../../../../../lib/domain/services/authentication/authentication-session-service.js';
+import * as OidcIdentityProviders from '../../../../../lib/domain/constants/oidc-identity-providers.js';
 
 const uuidPattern = new RegExp(/^[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/i);
 
@@ -55,7 +56,7 @@ describe('Acceptance | Route | oidc | token', function () {
             nonce: 'nonce',
             sub: 'sub',
           },
-          'secret'
+          'secret',
         );
 
         const getAccessTokenResponse = {
@@ -126,7 +127,7 @@ describe('Acceptance | Route | oidc | token', function () {
           nonce: 'nonce',
           sub: externalIdentifier,
         },
-        'secret'
+        'secret',
       );
       const getAccessTokenResponse = {
         access_token: 'access_token',
@@ -151,8 +152,8 @@ describe('Acceptance | Route | oidc | token', function () {
       expect(response.result['logout_url_uuid']).to.match(uuidPattern);
     });
 
-    context('when the identity provider API does not respond within timeout', function () {
-      it('should return 503', async function () {
+    context('when the identity provider token route API does not respond within timeout', function () {
+      it('should return 422', async function () {
         // given
         const firstName = 'John';
         const lastName = 'Doe';
@@ -180,7 +181,7 @@ describe('Acceptance | Route | oidc | token', function () {
             nonce: 'nonce',
             sub: externalIdentifier,
           },
-          'secret'
+          'secret',
         );
         const getAccessTokenResponse = {
           access_token: 'access_token',
@@ -204,10 +205,10 @@ describe('Acceptance | Route | oidc | token', function () {
         });
 
         // then
-        expect(response.statusCode).to.equal(503);
+        expect(response.statusCode).to.equal(422);
         expect(getAccessTokenRequest.isDone()).to.be.true;
         expect(response.payload).to.equal(
-          '{"errors":[{"status":"503","title":"ServiceUnavailable","detail":"Erreur lors de la récupération des tokens du partenaire."}]}'
+          '{"errors":[{"status":"422","title":"Unprocessable entity","detail":"Erreur lors de la récupération des tokens du partenaire."}]}',
         );
       });
     });
@@ -222,7 +223,7 @@ describe('Acceptance | Route | oidc | token', function () {
             nonce: 'nonce',
             sub: 'sub',
           },
-          'secret'
+          'secret',
         );
         const getAccessTokenResponse = {
           access_token: 'access_token',
@@ -245,7 +246,7 @@ describe('Acceptance | Route | oidc | token', function () {
       });
 
       context('When user has a valid token but with missing required data', function () {
-        context('When identity provider userinfo does not respond within timeout', function () {
+        context('When identity provider userinfo does not respond within timeout or fails', function () {
           it('should return 503', async function () {
             // given
             const firstName = 'John';
@@ -272,7 +273,7 @@ describe('Acceptance | Route | oidc | token', function () {
                 nonce: 'nonce',
                 sub: externalIdentifier,
               },
-              'secret'
+              'secret',
             );
 
             const getAccessTokenResponse = {
@@ -304,7 +305,7 @@ describe('Acceptance | Route | oidc | token', function () {
             expect(getAccessTokenRequest.isDone()).to.be.true;
             expect(getUserInfoRequest.isDone()).to.be.true;
             expect(response.payload).to.equal(
-              '{"errors":[{"status":"503","title":"ServiceUnavailable","detail":"Une erreur est survenue en récupérant les informations des utilisateurs."}]}'
+              '{"errors":[{"status":"503","title":"ServiceUnavailable","detail":"Une erreur est survenue en récupérant les informations des utilisateurs."}]}',
             );
           });
         });

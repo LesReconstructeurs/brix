@@ -1,5 +1,5 @@
-const { knex } = require('../../../db/knex-database-connection');
-const CampaignParticipationStatuses = require('../../domain/models/CampaignParticipationStatuses');
+import { knex } from '../../../db/knex-database-connection.js';
+import { CampaignParticipationStatuses } from '../../domain/models/CampaignParticipationStatuses.js';
 
 const { SHARED } = CampaignParticipationStatuses;
 
@@ -30,10 +30,10 @@ async function _getCumulativeParticipationCountsByDay(campaignId, column) {
     FROM "campaign-participations"
     WHERE "campaignId" = :campaignId AND :column: IS NOT NULL AND "isImproved" = false AND "deletedAt" is null
     GROUP BY "day"`,
-    { column, campaignId }
+    { column, campaignId },
   );
 
   return data.map(({ day, count }) => ({ day, count: Number(count) }));
 }
 
-module.exports = CampaignParticipationsStatsRepository;
+export { CampaignParticipationsStatsRepository };

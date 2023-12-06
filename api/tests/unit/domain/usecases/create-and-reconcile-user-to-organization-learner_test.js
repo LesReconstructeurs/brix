@@ -1,18 +1,15 @@
-const { expect, sinon, domainBuilder, catchErr } = require('../../../test-helper');
+import { expect, sinon, domainBuilder, catchErr } from '../../../test-helper.js';
 
-const passwordValidator = require('../../../../lib/domain/validators/password-validator');
-const userValidator = require('../../../../lib/domain/validators/user-validator');
-
-const {
+import {
   AlreadyRegisteredEmailError,
   AlreadyRegisteredUsernameError,
   CampaignCodeError,
   EntityValidationError,
   OrganizationLearnerAlreadyLinkedToUserError,
   NotFoundError,
-} = require('../../../../lib/domain/errors');
+} from '../../../../lib/domain/errors.js';
 
-const usecases = require('../../../../lib/domain/usecases');
+import { usecases } from '../../../../lib/domain/usecases/index.js';
 
 describe('Unit | UseCase | create-and-reconcile-user-to-organization-learner', function () {
   const organizationId = 1;
@@ -33,6 +30,9 @@ describe('Unit | UseCase | create-and-reconcile-user-to-organization-learner', f
   let obfuscationService;
   let userReconciliationService;
   let userService;
+
+  let passwordValidator;
+  let userValidator;
 
   beforeEach(function () {
     campaignCode = 'ABCD12';
@@ -61,14 +61,18 @@ describe('Unit | UseCase | create-and-reconcile-user-to-organization-learner', f
       sendAccountCreationEmail: sinon.stub(),
     };
     userReconciliationService = {
-      findMatchingOrganizationLearnerIdForGivenOrganizationIdAndUser: sinon.stub(),
+      findMatchingOrganizationLearnerForGivenOrganizationIdAndReconciliationInfo: sinon.stub(),
     };
     userService = {
       createAndReconcileUserToOrganizationLearner: sinon.stub(),
     };
 
-    sinon.stub(passwordValidator, 'validate');
-    sinon.stub(userValidator, 'validate');
+    passwordValidator = {
+      validate: sinon.stub(),
+    };
+    userValidator = {
+      validate: sinon.stub(),
+    };
 
     campaignRepository.getByCode
       .withArgs(campaignCode)
@@ -102,6 +106,8 @@ describe('Unit | UseCase | create-and-reconcile-user-to-organization-learner', f
         obfuscationService,
         userReconciliationService,
         userService,
+        passwordValidator,
+        userValidator,
       });
 
       // then
@@ -112,8 +118,8 @@ describe('Unit | UseCase | create-and-reconcile-user-to-organization-learner', f
   context('When no organizationLearner found', function () {
     it('should throw a Not Found error', async function () {
       // given
-      userReconciliationService.findMatchingOrganizationLearnerIdForGivenOrganizationIdAndUser.throws(
-        new NotFoundError('Error message')
+      userReconciliationService.findMatchingOrganizationLearnerForGivenOrganizationIdAndReconciliationInfo.throws(
+        new NotFoundError('Error message'),
       );
 
       // when
@@ -131,6 +137,8 @@ describe('Unit | UseCase | create-and-reconcile-user-to-organization-learner', f
         obfuscationService,
         userReconciliationService,
         userService,
+        passwordValidator,
+        userValidator,
       });
 
       // then
@@ -146,8 +154,8 @@ describe('Unit | UseCase | create-and-reconcile-user-to-organization-learner', f
     beforeEach(function () {
       createdUser = domainBuilder.buildUser();
 
-      userReconciliationService.findMatchingOrganizationLearnerIdForGivenOrganizationIdAndUser.resolves(
-        organizationLearnerId
+      userReconciliationService.findMatchingOrganizationLearnerForGivenOrganizationIdAndReconciliationInfo.resolves(
+        organizationLearnerId,
       );
       encryptionService.hashPassword.resolves(encryptedPassword);
 
@@ -176,12 +184,12 @@ describe('Unit | UseCase | create-and-reconcile-user-to-organization-learner', f
           userValidator.validate.throws(
             new EntityValidationError({
               invalidAttributes: [userInvalidAttribute],
-            })
+            }),
           );
           passwordValidator.validate.throws(
             new EntityValidationError({
               invalidAttributes: [passwordInvalidAttribute],
-            })
+            }),
           );
 
           const expectedInvalidAttributes = [userInvalidAttribute, passwordInvalidAttribute];
@@ -201,6 +209,8 @@ describe('Unit | UseCase | create-and-reconcile-user-to-organization-learner', f
             obfuscationService,
             userReconciliationService,
             userService,
+            passwordValidator,
+            userValidator,
           });
 
           // then
@@ -229,6 +239,8 @@ describe('Unit | UseCase | create-and-reconcile-user-to-organization-learner', f
             obfuscationService,
             userReconciliationService,
             userService,
+            passwordValidator,
+            userValidator,
           });
 
           // then
@@ -257,6 +269,8 @@ describe('Unit | UseCase | create-and-reconcile-user-to-organization-learner', f
             obfuscationService,
             userReconciliationService,
             userService,
+            passwordValidator,
+            userValidator,
           });
 
           // then
@@ -282,13 +296,15 @@ describe('Unit | UseCase | create-and-reconcile-user-to-organization-learner', f
             obfuscationService,
             userReconciliationService,
             userService,
+            passwordValidator,
+            userValidator,
           });
 
           // then
           expect(mailService.sendAccountCreationEmail).to.have.been.calledWith(
             userAttributes.email,
             locale,
-            expectedRedirectionUrl
+            expectedRedirectionUrl,
           );
         });
 
@@ -296,7 +312,7 @@ describe('Unit | UseCase | create-and-reconcile-user-to-organization-learner', f
           it('should nor create nor associate organizationLearner', async function () {
             // given
             userService.createAndReconcileUserToOrganizationLearner.throws(
-              new OrganizationLearnerAlreadyLinkedToUserError()
+              new OrganizationLearnerAlreadyLinkedToUserError(),
             );
 
             // when
@@ -314,6 +330,8 @@ describe('Unit | UseCase | create-and-reconcile-user-to-organization-learner', f
               obfuscationService,
               userReconciliationService,
               userService,
+              passwordValidator,
+              userValidator,
             });
 
             // then
@@ -349,6 +367,8 @@ describe('Unit | UseCase | create-and-reconcile-user-to-organization-learner', f
             obfuscationService,
             userReconciliationService,
             userService,
+            passwordValidator,
+            userValidator,
           });
 
           // then
@@ -373,6 +393,8 @@ describe('Unit | UseCase | create-and-reconcile-user-to-organization-learner', f
             obfuscationService,
             userReconciliationService,
             userService,
+            passwordValidator,
+            userValidator,
           });
 
           // then
@@ -383,7 +405,7 @@ describe('Unit | UseCase | create-and-reconcile-user-to-organization-learner', f
           it('should nor create nor associate organizationLearner', async function () {
             // given
             userService.createAndReconcileUserToOrganizationLearner.throws(
-              new OrganizationLearnerAlreadyLinkedToUserError()
+              new OrganizationLearnerAlreadyLinkedToUserError(),
             );
 
             // when
@@ -401,6 +423,8 @@ describe('Unit | UseCase | create-and-reconcile-user-to-organization-learner', f
               obfuscationService,
               userReconciliationService,
               userService,
+              passwordValidator,
+              userValidator,
             });
 
             // then

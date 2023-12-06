@@ -1,7 +1,10 @@
-const axios = require('axios');
-const util = require('util');
-const fs = require('fs');
-const streamPipeline = util.promisify(require('stream').pipeline);
+import axios from 'axios';
+import util from 'util';
+import fs from 'fs';
+
+import pipeline from 'stream';
+
+const streamPipeline = util.promisify(pipeline);
 
 class ScalingoDBClient {
   constructor(dbId, client) {
@@ -33,7 +36,7 @@ class ScalingoDBClient {
       return response.data.download_url;
     } catch (error) {
       throw new Error(
-        `Unable to get the backup download link with Scalingo Database API. Response was ${error.message}`
+        `Unable to get the backup download link with Scalingo Database API. Response was ${error.message}`,
       );
     }
   }
@@ -52,4 +55,4 @@ class ScalingoDBClient {
   }
 }
 
-module.exports = ScalingoDBClient;
+export { ScalingoDBClient };

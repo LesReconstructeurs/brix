@@ -1,7 +1,10 @@
-const { AlreadyExistingMembershipError } = require('../../domain/errors');
-const { NotFoundError, AlreadyAcceptedOrCancelledInvitationError } = require('../errors');
-const { roles } = require('./Membership');
-const OrganizationInvitation = require('./OrganizationInvitation');
+import {
+  AlreadyExistingMembershipError,
+  NotFoundError,
+  AlreadyAcceptedOrCancelledInvitationError,
+} from '../../domain/errors.js';
+import { roles } from './Membership.js';
+import { OrganizationInvitation } from './OrganizationInvitation.js';
 
 class OrganizationInvitedUser {
   constructor({ userId, invitation, currentRole, organizationHasMemberships, currentMembershipId, status } = {}) {
@@ -24,7 +27,7 @@ class OrganizationInvitedUser {
 
     if (this.currentRole && !this.invitation.role) {
       throw new AlreadyExistingMembershipError(
-        `User is already member of organisation ${this.invitation.organizationId}`
+        `User is already member of organisation ${this.invitation.organizationId}`,
       );
     }
 
@@ -42,4 +45,4 @@ class OrganizationInvitedUser {
   }
 }
 
-module.exports = OrganizationInvitedUser;
+export { OrganizationInvitedUser };

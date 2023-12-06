@@ -1,8 +1,10 @@
-const isEmpty = require('lodash/isEmpty');
+import lodash from 'lodash';
 
-const { UserNotAuthorizedToUpdatePasswordError } = require('../errors');
+const { isEmpty } = lodash;
 
-module.exports = async function updateOrganizationLearnerDependentUserPassword({
+import { UserNotAuthorizedToUpdatePasswordError } from '../errors.js';
+
+const updateOrganizationLearnerDependentUserPassword = async function ({
   organizationId,
   organizationLearnerId,
   userId,
@@ -20,14 +22,14 @@ module.exports = async function updateOrganizationLearnerDependentUserPassword({
     organizationLearner.organizationId !== organizationId
   ) {
     throw new UserNotAuthorizedToUpdatePasswordError(
-      `L'utilisateur ${userId} n'est pas autorisé à modifier le mot de passe des élèves de l'organisation ${organizationId} car il n'y appartient pas.`
+      `L'utilisateur ${userId} n'est pas autorisé à modifier le mot de passe des élèves de l'organisation ${organizationId} car il n'y appartient pas.`,
     );
   }
 
   const userStudent = await userRepository.get(organizationLearner.userId);
   if (isEmpty(userStudent.username) && isEmpty(userStudent.email)) {
     throw new UserNotAuthorizedToUpdatePasswordError(
-      `Le changement de mot de passe n'est possible que si l'élève (utilisateur:  ${organizationLearner.userId}) utilise les méthodes d'authentification email ou identifiant.`
+      `Le changement de mot de passe n'est possible que si l'élève (utilisateur:  ${organizationLearner.userId}) utilise les méthodes d'authentification email ou identifiant.`,
     );
   }
 
@@ -41,3 +43,5 @@ module.exports = async function updateOrganizationLearnerDependentUserPassword({
 
   return generatedPassword;
 };
+
+export { updateOrganizationLearnerDependentUserPassword };

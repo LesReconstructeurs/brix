@@ -1,19 +1,21 @@
-const { expect, sinon, catchErr, domainBuilder } = require('../../../test-helper');
-
-const organizationInvitationService = require('../../../../lib/domain/services/organization-invitation-service');
-
-const createOrganizationInvitations = require('../../../../lib/domain/usecases/create-organization-invitations');
-const { OrganizationArchivedError } = require('../../../../lib/domain/errors');
+import { expect, sinon, catchErr, domainBuilder } from '../../../test-helper.js';
+import { createOrganizationInvitations } from '../../../../lib/domain/usecases/create-organization-invitations.js';
+import { OrganizationArchivedError } from '../../../../lib/domain/errors.js';
 
 describe('Unit | UseCase | create-organization-invitations', function () {
-  let organizationInvitationRepository, organizationRepository;
+  let organizationInvitationRepository, organizationRepository, organizationInvitationService;
 
   beforeEach(function () {
     const organization = domainBuilder.buildOrganization();
     organizationRepository = {
-      get: sinon.stub().resolves(organization),
+      get: sinon.stub(),
     };
-    sinon.stub(organizationInvitationService, 'createOrUpdateOrganizationInvitation').resolves();
+    organizationRepository.get.resolves(organization);
+
+    organizationInvitationService = {
+      createOrUpdateOrganizationInvitation: sinon.stub(),
+    };
+    organizationInvitationService.createOrUpdateOrganizationInvitation.resolves();
   });
 
   describe('#createOrganizationInvitations', function () {
@@ -30,6 +32,7 @@ describe('Unit | UseCase | create-organization-invitations', function () {
         locale,
         organizationRepository,
         organizationInvitationRepository,
+        organizationInvitationService,
       });
 
       // then
@@ -54,6 +57,7 @@ describe('Unit | UseCase | create-organization-invitations', function () {
         emails,
         organizationRepository,
         organizationInvitationRepository,
+        organizationInvitationService,
       });
 
       // then
@@ -72,6 +76,7 @@ describe('Unit | UseCase | create-organization-invitations', function () {
         emails,
         organizationRepository,
         organizationInvitationRepository,
+        organizationInvitationService,
       });
 
       // then

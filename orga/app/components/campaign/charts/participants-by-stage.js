@@ -1,7 +1,7 @@
 import Component from '@glimmer/component';
 import { tracked } from '@glimmer/tracking';
 import { action } from '@ember/object';
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 import maxBy from 'lodash/maxBy';
 import sumBy from 'lodash/sumBy';
 import { htmlSafe } from '@ember/template';
@@ -26,7 +26,7 @@ export default class ParticipantsByStage extends Component {
       this.totalStage = data.length - 1;
 
       this.data = data.map((stage, index) => {
-        const percentage = totalValues !== 0 ? Math.round((stage.value / totalValues) * 100) : 0;
+        const masteryRate = totalValues !== 0 ? stage.value / totalValues : 0;
         const width = maxValue !== 0 ? Math.round((stage.value / maxValue) * 100) : 0;
         return {
           index,
@@ -34,7 +34,7 @@ export default class ParticipantsByStage extends Component {
           value: stage.value,
           title: stage.title,
           description: stage.description,
-          percentage,
+          masteryRate,
           barWidth: `width: ${width}%`,
           tooltip: buildTooltipText(stage.title, stage.description),
           displayTooltip: stage.title || stage.description,

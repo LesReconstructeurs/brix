@@ -3,7 +3,9 @@ import { setupApplicationTest } from 'ember-qunit';
 import { setupMirage } from 'ember-cli-mirage/test-support';
 import { getPageTitle } from 'ember-page-title/test-support';
 import { authenticate } from '../helpers/authentication';
-import { click, find, triggerEvent, visit } from '@ember/test-helpers';
+// eslint-disable-next-line no-restricted-imports
+import { click, find, triggerEvent } from '@ember/test-helpers';
+import { visit } from '@1024pix/ember-testing-library';
 
 module('Acceptance | Displaying a challenge of any type', function (hooks) {
   setupApplicationTest(hooks);
@@ -76,8 +78,8 @@ module('Acceptance | Displaying a challenge of any type', function (hooks) {
 
               test('should enable input and buttons', async function (assert) {
                 // then
-                assert.notOk(find('.challenge-actions__action-skip').getAttribute('disabled'));
-                assert.notOk(find('.challenge-actions__action-validate').getAttribute('disabled'));
+                assert.ok(find('.challenge-actions__action-skip').getAttribute('aria-disabled').includes('false'));
+                assert.ok(find('.challenge-actions__action-validate').getAttribute('aria-disabled').includes('false'));
                 assert.notOk(find('[data-test="challenge-response-proposal-selector"]').getAttribute('disabled'));
               });
 
@@ -141,8 +143,8 @@ module('Acceptance | Displaying a challenge of any type', function (hooks) {
 
             test('should enable input and buttons', async function (assert) {
               // then
-              assert.notOk(find('.challenge-actions__action-skip').getAttribute('disabled'));
-              assert.notOk(find('.challenge-actions__action-validate').getAttribute('disabled'));
+              assert.ok(find('.challenge-actions__action-skip').getAttribute('aria-disabled').includes('false'));
+              assert.ok(find('.challenge-actions__action-validate').getAttribute('aria-disabled').includes('false'));
               assert.notOk(find('[data-test="challenge-response-proposal-selector"]').getAttribute('disabled'));
             });
           });
@@ -253,8 +255,8 @@ module('Acceptance | Displaying a challenge of any type', function (hooks) {
 
           test('should enable input and buttons', async function (assert) {
             // then
-            assert.notOk(find('.challenge-actions__action-skip').getAttribute('disabled'));
-            assert.notOk(find('.challenge-actions__action-validate').getAttribute('disabled'));
+            assert.ok(find('.challenge-actions__action-skip').getAttribute('aria-disabled').includes('false'));
+            assert.ok(find('.challenge-actions__action-validate').getAttribute('aria-disabled').includes('false'));
             assert.notOk(find('[data-test="challenge-response-proposal-selector"]').getAttribute('disabled'));
           });
 
@@ -278,7 +280,7 @@ module('Acceptance | Displaying a challenge of any type', function (hooks) {
               const assessment1 = server.create(
                 'assessment',
                 'ofCompetenceEvaluationType',
-                'withCurrentChallengeUnfocus'
+                'withCurrentChallengeUnfocus',
               );
               const assessment2 = server.create('assessment', 'ofCompetenceEvaluationType');
               server.create('challenge', 'forCompetenceEvaluation', data.challengeType, 'withFocused');
@@ -360,8 +362,10 @@ module('Acceptance | Displaying a challenge of any type', function (hooks) {
 
                 test('should enable input and buttons', async function (assert) {
                   // then
-                  assert.notOk(find('.challenge-actions__action-skip').getAttribute('disabled'));
-                  assert.notOk(find('.challenge-actions__action-validate').getAttribute('disabled'));
+                  assert.ok(find('.challenge-actions__action-skip').getAttribute('aria-disabled').includes('false'));
+                  assert.ok(
+                    find('.challenge-actions__action-validate').getAttribute('aria-disabled').includes('false'),
+                  );
                   assert.notOk(find('[data-test="challenge-response-proposal-selector"]').getAttribute('disabled'));
                 });
               });
@@ -388,8 +392,8 @@ module('Acceptance | Displaying a challenge of any type', function (hooks) {
 
               test('should enable input and buttons', async function (assert) {
                 // then
-                assert.notOk(find('.challenge-actions__action-skip').getAttribute('disabled'));
-                assert.notOk(find('.challenge-actions__action-validate').getAttribute('disabled'));
+                assert.ok(find('.challenge-actions__action-skip').getAttribute('aria-disabled').includes('false'));
+                assert.ok(find('.challenge-actions__action-validate').getAttribute('aria-disabled').includes('false'));
                 assert.notOk(find('[data-test="challenge-response-proposal-selector"]').getAttribute('disabled'));
               });
             });
@@ -408,7 +412,7 @@ module('Acceptance | Displaying a challenge of any type', function (hooks) {
                   'challenge',
                   'forCompetenceEvaluation',
                   `${data.challengeType}`,
-                  'withFocused'
+                  'withFocused',
                 ),
               });
 
@@ -463,6 +467,6 @@ module('Acceptance | Displaying a challenge of any type', function (hooks) {
           });
         });
       });
-    }
+    },
   );
 });

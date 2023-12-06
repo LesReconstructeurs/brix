@@ -1,8 +1,6 @@
 'use strict';
 
 const EmberApp = require('ember-cli/lib/broccoli/ember-app');
-const environment = process.env.environment;
-const pluginsToBlacklist = environment === 'production' ? ['ember-freestyle'] : [];
 
 module.exports = function (defaults) {
   const app = new EmberApp(defaults, {
@@ -14,18 +12,14 @@ module.exports = function (defaults) {
       sourceMaps: 'inline',
       plugins: [require.resolve('ember-auto-import/babel-plugin')],
     },
-    addons: {
-      blacklist: pluginsToBlacklist,
-    },
     flatpickr: {
       locales: ['fr'],
     },
+    'ember-simple-auth': {
+      useSessionSetupMethod: true,
+    },
     'ember-cli-template-lint': {
       testGenerator: 'qunit',
-    },
-    'ember-dayjs': {
-      locales: ['fr'],
-      plugins: ['customParseFormat'],
     },
   });
 
@@ -42,5 +36,6 @@ module.exports = function (defaults) {
   // please specify an object with the list of modules as keys
   // along with the exports of each module as its value.
 
-  return app.toTree();
+  const { Webpack } = require('@embroider/webpack');
+  return require('@embroider/compat').compatBuild(app, Webpack);
 };

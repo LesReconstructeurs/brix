@@ -1,8 +1,9 @@
 import Controller from '@ember/controller';
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
 import progressInAssessment from 'mon-pix/utils/progress-in-assessment';
 import { action } from '@ember/object';
+
 const defaultPageTitle = 'pages.challenge.title.default';
 const timedOutPageTitle = 'pages.challenge.title.timed-out';
 const focusedPageTitle = 'pages.challenge.title.focused';
@@ -33,7 +34,7 @@ export default class ChallengeController extends Controller {
   get pageTitle() {
     const stepNumber = progressInAssessment.getCurrentStepNumber(
       this.model.assessment,
-      this.model.currentChallengeNumber
+      this.model.currentChallengeNumber,
     );
     const totalChallengeNumber = progressInAssessment.getMaxStepsNumber(this.model.assessment);
 

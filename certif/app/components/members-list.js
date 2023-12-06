@@ -1,5 +1,5 @@
 import Component from '@glimmer/component';
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 
 export default class MembersList extends Component {
   @service featureToggles;
@@ -23,9 +23,6 @@ export default class MembersList extends Component {
   }
 
   get shouldDisplayRefererColumn() {
-    return (
-      this.args.hasCleaHabilitation &&
-      this.featureToggles.featureToggles.isCleaResultsRetrievalByHabilitatedCertificationCentersEnabled
-    );
+    return this.args.hasCleaHabilitation;
   }
 }

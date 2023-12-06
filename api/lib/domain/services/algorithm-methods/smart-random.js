@@ -1,9 +1,9 @@
-const _ = require('lodash');
-const catAlgorithm = require('./cat-algorithm');
-const { getFilteredSkillsForNextChallenge, getFilteredSkillsForFirstChallenge } = require('./skills-filter');
-const { computeTubesFromSkills } = require('./../tube-service');
+import _ from 'lodash';
+import * as catAlgorithm from './cat-algorithm.js';
+import { getFilteredSkillsForNextChallenge, getFilteredSkillsForFirstChallenge } from './skills-filter.js';
+import { computeTubesFromSkills } from './../tube-service.js';
 
-module.exports = { getPossibleSkillsForNextChallenge };
+export { getPossibleSkillsForNextChallenge };
 
 function getPossibleSkillsForNextChallenge({
   knowledgeElements,
@@ -85,7 +85,7 @@ function _getSkillsWithAddedInformations({ targetSkills, filteredChallenges, loc
   return _.map(targetSkills, (skill) => {
     const challenges = _.filter(
       filteredChallenges,
-      (challenge) => challenge.skill.id === skill.id && challenge.locales.includes(locale)
+      (challenge) => challenge.skill.id === skill.id && challenge.locales.includes(locale),
     );
     const [firstChallenge] = challenges;
     const skillCopy = Object.create(skill);

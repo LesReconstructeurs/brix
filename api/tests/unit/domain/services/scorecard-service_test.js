@@ -1,15 +1,16 @@
-const { expect, sinon, domainBuilder } = require('../../../test-helper');
-const Assessment = require('../../../../lib/domain/models/Assessment');
-const Scorecard = require('../../../../lib/domain/models/Scorecard');
-const CompetenceEvaluation = require('../../../../lib/domain/models/CompetenceEvaluation');
-const scorecardService = require('../../../../lib/domain/services/scorecard-service');
-const CampaignParticipationStatuses = require('../../../../lib/domain/models/CampaignParticipationStatuses');
+import { expect, sinon, domainBuilder } from '../../../test-helper.js';
+import { Assessment } from '../../../../lib/domain/models/Assessment.js';
+import { Scorecard } from '../../../../lib/domain/models/Scorecard.js';
+import { CompetenceEvaluation } from '../../../../lib/domain/models/CompetenceEvaluation.js';
+import * as scorecardService from '../../../../lib/domain/services/scorecard-service.js';
+import { CampaignParticipationStatuses } from '../../../../lib/domain/models/CampaignParticipationStatuses.js';
 
 const { STARTED, SHARED } = CampaignParticipationStatuses;
 
 describe('Unit | Service | ScorecardService', function () {
   describe('#computeScorecard', function () {
     let competenceRepository;
+    let areaRepository;
     let knowledgeElementRepository;
     let competenceEvaluationRepository;
     let buildFromStub;
@@ -20,13 +21,10 @@ describe('Unit | Service | ScorecardService', function () {
       competenceId = 1;
       authenticatedUserId = 1;
       competenceRepository = { get: sinon.stub() };
+      areaRepository = { get: sinon.stub() };
       knowledgeElementRepository = { findUniqByUserIdAndCompetenceId: sinon.stub() };
       competenceEvaluationRepository = { findByUserId: sinon.stub() };
       buildFromStub = sinon.stub(Scorecard, 'buildFrom');
-    });
-
-    afterEach(function () {
-      sinon.restore();
     });
 
     context('And user asks for his own scorecard', function () {
@@ -36,9 +34,11 @@ describe('Unit | Service | ScorecardService', function () {
         const levelForCompetenceId1 = 1;
         const pixScoreAheadOfNextLevelForCompetenceId1 = 0;
 
-        const competence = domainBuilder.buildCompetence({ id: 1 });
+        const competence = domainBuilder.buildCompetence({ id: 1, areaId: 'area' });
+        const area = domainBuilder.buildArea({ id: 'area' });
 
         competenceRepository.get.resolves(competence);
+        areaRepository.get.resolves(area);
 
         const knowledgeElementList = [
           domainBuilder.buildKnowledgeElement({ competenceId: 1 }),
@@ -68,6 +68,7 @@ describe('Unit | Service | ScorecardService', function () {
             userId: authenticatedUserId,
             knowledgeElements: knowledgeElementList,
             competence,
+            area,
             competenceEvaluation,
             allowExcessLevel: false,
             allowExcessPix: false,
@@ -78,6 +79,7 @@ describe('Unit | Service | ScorecardService', function () {
         const userScorecard = await scorecardService.computeScorecard({
           userId: authenticatedUserId,
           competenceId,
+          areaRepository,
           competenceRepository,
           competenceEvaluationRepository,
           knowledgeElementRepository,
@@ -218,7 +220,7 @@ describe('Unit | Service | ScorecardService', function () {
           });
           expect(resetKnowledgeElements).to.deep.equal([resetKnowledgeElement1, resetKnowledgeElement2]);
         });
-      }
+      },
     );
 
     context('when campaign exists', function () {

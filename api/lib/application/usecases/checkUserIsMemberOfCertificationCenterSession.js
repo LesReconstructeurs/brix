@@ -1,12 +1,16 @@
-const certificationCourseRepository = require('../../infrastructure/repositories/certification-course-repository');
-const sessionRepository = require('../../infrastructure/repositories/sessions/session-repository');
+import * as certificationCourseRepository from '../../infrastructure/repositories/certification-course-repository.js';
+import * as sessionRepository from '../../infrastructure/repositories/sessions/session-repository.js';
 
-module.exports = {
-  async execute({ userId, certificationCourseId }) {
-    const certificationCourse = await certificationCourseRepository.get(certificationCourseId);
-    return sessionRepository.doesUserHaveCertificationCenterMembershipForSession(
-      userId,
-      certificationCourse.getSessionId()
-    );
-  },
+const execute = async function ({
+  userId,
+  certificationCourseId,
+  dependencies = { certificationCourseRepository, sessionRepository },
+}) {
+  const certificationCourse = await dependencies.certificationCourseRepository.get(certificationCourseId);
+  return dependencies.sessionRepository.doesUserHaveCertificationCenterMembershipForSession(
+    userId,
+    certificationCourse.getSessionId(),
+  );
 };
+
+export { execute };

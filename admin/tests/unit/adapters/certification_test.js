@@ -34,10 +34,10 @@ module('Unit | Adapter | certification', function (hooks) {
   module('#urlForUpdateMarks', function () {
     test('should build update marks url from certification id', function (assert) {
       // when
-      const url = adapter.urlForUpdateMarks();
+      const url = adapter.urlForUpdateMarks(1001);
 
       // then
-      assert.ok(url.endsWith('/admin/assessment-results/'));
+      assert.ok(url.endsWith('/admin/certification-courses/1001/assessment-results/'));
     });
   });
 
@@ -66,7 +66,7 @@ module('Unit | Adapter | certification', function (hooks) {
         await adapter.updateRecord(
           store,
           { modelName: 'someModelName' },
-          { id: 123, adapterOptions: { updateMarks: true } }
+          { id: 123, adapterOptions: { updateMarks: true } },
         );
 
         // then
@@ -83,9 +83,9 @@ module('Unit | Adapter | certification', function (hooks) {
         };
         sinon.assert.calledWith(
           adapter.ajax,
-          'http://localhost:3000/api/admin/assessment-results/',
+          'http://localhost:3000/api/admin/certification-courses/123/assessment-results/',
           'POST',
-          expectedData
+          expectedData,
         );
         assert.ok(adapter); /* required because QUnit wants at least one expect (and does not accept Sinon's one) */
       });

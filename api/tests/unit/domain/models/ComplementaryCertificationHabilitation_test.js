@@ -1,6 +1,6 @@
-const ComplementaryCertificationHabilitation = require('../../../../lib/domain/models/ComplementaryCertificationHabilitation');
-const { expect, domainBuilder } = require('../../../test-helper');
-const _ = require('lodash');
+import { ComplementaryCertificationHabilitation } from '../../../../lib/domain/models/ComplementaryCertificationHabilitation.js';
+import { expect, domainBuilder } from '../../../test-helper.js';
+import _ from 'lodash';
 
 const COMPLEMENTARY_CERTIFICATION_HABILITATION_PROPS = ['id', 'complementaryCertificationId', 'certificationCenterId'];
 
@@ -20,7 +20,7 @@ describe('Unit | Domain | Models | ComplementaryCertificationHabilitation', func
 
   it('should create an object with all the requires properties', function () {
     expect(_.keys(complementaryCertificationHabilitation)).to.have.deep.members(
-      COMPLEMENTARY_CERTIFICATION_HABILITATION_PROPS
+      COMPLEMENTARY_CERTIFICATION_HABILITATION_PROPS,
     );
   });
 

@@ -1,4 +1,4 @@
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 import Route from '@ember/routing/route';
 
 export default class ListRoute extends Route {
@@ -27,16 +27,11 @@ export default class ListRoute extends Route {
           size: params.pageSize,
         },
       },
-      { reload: true }
+      { reload: true },
     );
-
-    const refreshModel = () => {
-      this.refresh();
-    };
 
     return {
       sessionSummaries,
-      refreshModel,
     };
   }
 

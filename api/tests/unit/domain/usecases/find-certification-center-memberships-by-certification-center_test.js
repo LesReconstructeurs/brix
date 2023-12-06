@@ -1,6 +1,5 @@
-const { domainBuilder, expect, sinon } = require('../../../test-helper');
-
-const usecases = require('../../../../lib/domain/usecases');
+import { domainBuilder, expect, sinon } from '../../../test-helper.js';
+import { usecases } from '../../../../lib/domain/usecases/index.js';
 
 describe('Unit | UseCase | find-certification-center-memberships-by-certification-center', function () {
   it('should result certification-center-memberships by certification center id', async function () {
@@ -9,7 +8,7 @@ describe('Unit | UseCase | find-certification-center-memberships-by-certificatio
     const certificationCenterMemberships = [domainBuilder.buildCertificationCenterMembership()];
     const certificationCenterMembershipRepository = { findActiveByCertificationCenterIdSortedById: sinon.stub() };
     certificationCenterMembershipRepository.findActiveByCertificationCenterIdSortedById.resolves(
-      certificationCenterMemberships
+      certificationCenterMemberships,
     );
 
     // when
@@ -20,7 +19,7 @@ describe('Unit | UseCase | find-certification-center-memberships-by-certificatio
 
     // then
     expect(certificationCenterMembershipRepository.findActiveByCertificationCenterIdSortedById).to.have.been.calledWith(
-      { certificationCenterId }
+      { certificationCenterId },
     );
     expect(foundCertificationCenterMemberships).to.deep.equal(certificationCenterMemberships);
   });

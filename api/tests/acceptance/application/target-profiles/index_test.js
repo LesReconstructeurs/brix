@@ -1,19 +1,23 @@
-const {
+import {
+  databaseBuilder,
   expect,
   generateValidRequestAuthorizationHeader,
-  databaseBuilder,
   knex,
-  mockLearningContent,
   learningContentBuilder,
   MockDate,
-} = require('../../../test-helper');
-const createServer = require('../../../../server');
-const omit = require('lodash/omit');
+  mockLearningContent,
+} from '../../../test-helper.js';
+
+import { createServer } from '../../../../server.js';
+import lodash from 'lodash';
+
+const { omit } = lodash;
 
 describe('Acceptance | Route | target-profiles', function () {
   let server;
 
   const skillId = 'recArea1_Competence1_Tube1_Skill1';
+  const tubeId = 'recArea1_Competence1_Tube1';
 
   const learningContent = {
     areas: [{ id: 'recArea1', competenceIds: ['recArea1_Competence1'] }],
@@ -83,6 +87,9 @@ describe('Acceptance | Route | target-profiles', function () {
 
     it('should return 200', async function () {
       // given
+      databaseBuilder.factory.buildOrganization({ id: 1 });
+      await databaseBuilder.commit();
+
       const options = {
         method: 'POST',
         url: '/api/admin/target-profiles',
@@ -96,8 +103,9 @@ describe('Acceptance | Route | target-profiles', function () {
               comment: 'coucou papa',
               'is-public': false,
               'image-url': 'http://some/image.ok',
-              'owner-organization-id': null,
+              'owner-organization-id': '1',
               tubes: [{ id: 'recTube1', level: 5 }],
+              'are-knowledge-elements-resettable': true,
             },
           },
         },
@@ -107,7 +115,9 @@ describe('Acceptance | Route | target-profiles', function () {
       const response = await server.inject(options);
 
       // then
-      const { id: targetProfileId } = await knex('target-profiles').select('id').first();
+      const { id: targetProfileId, areKnowledgeElementsResettable } = await knex('target-profiles')
+        .select('id', 'areKnowledgeElementsResettable')
+        .first();
       expect(response.statusCode).to.equal(200);
       expect(response.result).to.deep.equal({
         data: {
@@ -115,34 +125,89 @@ describe('Acceptance | Route | target-profiles', function () {
           id: `${targetProfileId}`,
         },
       });
+      expect(areKnowledgeElementsResettable).to.be.true;
     });
   });
 
   describe('GET /api/admin/target-profiles/{id}', function () {
     let user;
-    let targetProfileId;
+    let targetProfile;
+    let options;
 
     beforeEach(async function () {
       mockLearningContent(learningContent);
-      targetProfileId = databaseBuilder.factory.buildTargetProfile().id;
-      databaseBuilder.factory.buildTargetProfileSkill({ targetProfileId, skillId: skillId });
+      targetProfile = databaseBuilder.factory.buildTargetProfile({
+        name: 'Savoir tout faire',
+        imageUrl: 'https://test',
+        isPublic: true,
+        isSimplifiedAccess: false,
+        createdAt: new Date('2020-01-01'),
+        outdated: false,
+        description: 'Une description',
+        comment: 'Un beau profil cible',
+        category: 'TEST',
+        migration_status: 'N/A',
+        areKnowledgeElementsResettable: false,
+      });
+      databaseBuilder.factory.buildTargetProfileTube({ targetProfileId: targetProfile.id, tubeId, level: 7 });
       user = databaseBuilder.factory.buildUser.withRole();
-
-      await databaseBuilder.commit();
+      options = {
+        method: 'GET',
+        url: `/api/admin/target-profiles/${targetProfile.id}`,
+        headers: { authorization: generateValidRequestAuthorizationHeader(user.id) },
+      };
     });
 
     it('should return 200', async function () {
-      const options = {
-        method: 'GET',
-        url: `/api/admin/target-profiles/${targetProfileId}`,
-        headers: { authorization: generateValidRequestAuthorizationHeader(user.id) },
-      };
+      // given
+      await databaseBuilder.commit();
 
       // when
       const response = await server.inject(options);
 
       // then
       expect(response.statusCode).to.equal(200);
+      expect(response.result.data.attributes['has-linked-campaign']).to.equal(false);
+    });
+
+    it('should return the target-profile corresponding to the given {id}', async function () {
+      // given
+      await databaseBuilder.commit();
+      const expectedTargetProfile = {
+        'are-knowledge-elements-resettable': false,
+        category: 'TEST',
+        comment: 'Un beau profil cible',
+        description: 'Une description',
+        'created-at': new Date('2020-01-01'),
+        'has-linked-campaign': false,
+        'image-url': 'https://test',
+        'is-public': true,
+        'is-simplified-access': false,
+        name: 'Savoir tout faire',
+        outdated: false,
+        'owner-organization-id': targetProfile.ownerOrganizationId,
+        'max-level': -Infinity,
+      };
+
+      // when
+      const response = await server.inject(options);
+
+      // then
+      expect(response.result.data.attributes).to.deep.equal(expectedTargetProfile);
+    });
+
+    context('when target profile is linked to a campaign', function () {
+      it('should return a target profile with has-linked-campaign equal to true', async function () {
+        // given
+        databaseBuilder.factory.buildCampaign({ targetProfileId: targetProfile.id });
+        await databaseBuilder.commit();
+
+        // when
+        const response = await server.inject(options);
+
+        // then
+        expect(response.result.data.attributes['has-linked-campaign']).to.equal(true);
+      });
     });
   });
 
@@ -164,7 +229,7 @@ describe('Acceptance | Route | target-profiles', function () {
           ],
         },
       ];
-      const learningContentObjects = learningContentBuilder.buildLearningContent.fromAreas(learningContent);
+      const learningContentObjects = learningContentBuilder.fromAreas(learningContent);
       mockLearningContent(learningContentObjects);
       targetProfileId = databaseBuilder.factory.buildTargetProfile().id;
       user = databaseBuilder.factory.buildUser.withRole();
@@ -293,6 +358,8 @@ describe('Acceptance | Route | target-profiles', function () {
               description: 'Amazing description',
               comment: 'Amazing comment',
               category: 'OTHER',
+              'image-url': 'http://valid-uri.com/image.png',
+              'are-knowledge-elements-resettable': false,
             },
           },
         },
@@ -743,75 +810,6 @@ describe('Acceptance | Route | target-profiles', function () {
     });
   });
 
-  describe('GET /api/admin/target-profiles/{id}/stages', function () {
-    let user;
-    let targetProfileId;
-    let stage;
-
-    beforeEach(async function () {
-      const learningContent = [
-        {
-          id: 'recArea',
-          competences: [
-            {
-              id: 'recCompetence',
-              tubes: [
-                {
-                  id: 'recTube',
-                  skills: [
-                    {
-                      id: 'recSkill',
-                      nom: '@recSkill',
-                    },
-                  ],
-                },
-              ],
-            },
-          ],
-        },
-      ];
-
-      const learningContentObjects = learningContentBuilder.buildLearningContent.fromAreas(learningContent);
-      mockLearningContent(learningContentObjects);
-
-      targetProfileId = databaseBuilder.factory.buildTargetProfile().id;
-      databaseBuilder.factory.buildTargetProfileSkill({ targetProfileId, skillId: 'recSkill' });
-      stage = databaseBuilder.factory.buildStage({ targetProfileId });
-      user = databaseBuilder.factory.buildUser.withRole();
-
-      await databaseBuilder.commit();
-    });
-
-    it('should return 200', async function () {
-      const options = {
-        method: 'GET',
-        url: `/api/admin/target-profiles/${targetProfileId}/stages`,
-        headers: { authorization: generateValidRequestAuthorizationHeader(user.id) },
-      };
-
-      // when
-      const response = await server.inject(options);
-
-      // then
-      expect(response.statusCode).to.equal(200);
-      const expectedData = [
-        {
-          type: 'stages',
-          id: stage.id.toString(),
-          attributes: {
-            message: stage.message,
-            title: stage.title,
-            threshold: stage.threshold,
-            level: stage.level,
-            'prescriber-title': stage.prescriberTitle,
-            'prescriber-description': stage.prescriberDescription,
-          },
-        },
-      ];
-      expect(response.result.data).to.deep.equal(expectedData);
-    });
-  });
-
   describe('GET /api/admin/target-profiles/{id}/content-json', function () {
     let user;
     let targetProfileId;
@@ -856,9 +854,49 @@ describe('Acceptance | Route | target-profiles', function () {
       expect(response.statusCode).to.equal(200);
       expect(response.payload).to.equal('[{"id":"recTube","level":6,"frameworkId":"recFmwk","skills":["recSkill"]}]');
       expect(response.headers['content-disposition']).to.equal(
-        'attachment; filename=20201101_profil_cible_Roxane est tr_s jolie.json'
+        'attachment; filename=20201101_profil_cible_Roxane est tr_s jolie.json',
       );
       expect(response.headers['content-type']).to.equal('text/json;charset=utf-8');
+    });
+  });
+
+  describe('GET /api/admin/target-profiles/{id}/training-summaries', function () {
+    let user;
+    let targetProfileId;
+    let training;
+
+    beforeEach(async function () {
+      targetProfileId = databaseBuilder.factory.buildTargetProfile().id;
+      training = databaseBuilder.factory.buildTraining();
+      databaseBuilder.factory.buildTargetProfileTraining({ targetProfileId, trainingId: training.id });
+      user = databaseBuilder.factory.buildUser.withRole();
+
+      await databaseBuilder.commit();
+    });
+
+    it('should return 200', async function () {
+      const options = {
+        method: 'GET',
+        url: `/api/admin/target-profiles/${targetProfileId}/training-summaries`,
+        headers: { authorization: generateValidRequestAuthorizationHeader(user.id) },
+      };
+
+      // when
+      const response = await server.inject(options);
+
+      // then
+      expect(response.statusCode).to.equal(200);
+      const expectedData = [
+        {
+          type: 'training-summaries',
+          id: training.id.toString(),
+          attributes: {
+            title: 'title',
+            'is-recommendable': false,
+          },
+        },
+      ];
+      expect(response.result.data).to.deep.equal(expectedData);
     });
   });
 });

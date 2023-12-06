@@ -1,12 +1,13 @@
-const {
+import {
   expect,
   catchErr,
   databaseBuilder,
   learningContentBuilder,
   mockLearningContent,
-} = require('../../../test-helper');
-const usecases = require('../../../../lib/domain/usecases');
-const { UserNotAuthorizedToAccessEntityError, NoStagesForCampaign } = require('../../../../lib/domain/errors');
+} from '../../../test-helper.js';
+
+import { usecases } from '../../../../lib/domain/usecases/index.js';
+import { UserNotAuthorizedToAccessEntityError, NoStagesForCampaign } from '../../../../lib/domain/errors.js';
 
 describe('Integration | UseCase | get-campaign-participations-counts-by-stage', function () {
   let organizationId;
@@ -15,7 +16,7 @@ describe('Integration | UseCase | get-campaign-participations-counts-by-stage', 
   let stage1, stage2, stage3;
 
   beforeEach(async function () {
-    const learningContentObjects = learningContentBuilder.buildLearningContent.fromAreas([
+    const learningContentObjects = learningContentBuilder.fromAreas([
       {
         id: 'recArea1',
         title_i18n: {
@@ -110,9 +111,16 @@ describe('Integration | UseCase | get-campaign-participations-counts-by-stage', 
 
       // then
       expect(result).to.deep.equal([
-        { id: stage1.id, value: 1, title: stage1.prescriberTitle, description: stage1.prescriberDescription },
-        { id: stage2.id, value: 1, title: null, description: null },
-        { id: stage3.id, value: 1, title: null, description: null },
+        {
+          id: stage1.id,
+          value: 1,
+          title: stage1.prescriberTitle,
+          description: stage1.prescriberDescription,
+          reachedStage: 1,
+          totalStage: 3,
+        },
+        { id: stage2.id, value: 1, title: null, description: null, reachedStage: 2, totalStage: 3 },
+        { id: stage3.id, value: 1, title: null, description: null, reachedStage: 3, totalStage: 3 },
       ]);
     });
 
@@ -124,9 +132,16 @@ describe('Integration | UseCase | get-campaign-participations-counts-by-stage', 
 
       // then
       expect(result).to.deep.equal([
-        { id: stage1.id, value: 0, title: stage1.prescriberTitle, description: stage1.prescriberDescription },
-        { id: stage2.id, value: 0, title: null, description: null },
-        { id: stage3.id, value: 0, title: null, description: null },
+        {
+          id: stage1.id,
+          value: 0,
+          title: stage1.prescriberTitle,
+          description: stage1.prescriberDescription,
+          reachedStage: 1,
+          totalStage: 3,
+        },
+        { id: stage2.id, value: 0, title: null, description: null, reachedStage: 2, totalStage: 3 },
+        { id: stage3.id, value: 0, title: null, description: null, reachedStage: 3, totalStage: 3 },
       ]);
     });
   });

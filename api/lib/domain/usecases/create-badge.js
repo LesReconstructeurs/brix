@@ -1,7 +1,7 @@
-const DomainTransaction = require('../../infrastructure/DomainTransaction');
-const { MissingBadgeCriterionError } = require('../errors');
+import { DomainTransaction } from '../../infrastructure/DomainTransaction.js';
+import { MissingBadgeCriterionError } from '../errors.js';
 
-module.exports = async function createBadge({
+const createBadge = async function ({
   targetProfileId,
   badgeCreation,
   badgeRepository,
@@ -34,7 +34,7 @@ module.exports = async function createBadge({
             scope: 'CampaignParticipation',
           },
         },
-        domainTransaction
+        domainTransaction,
       );
     }
 
@@ -49,7 +49,7 @@ module.exports = async function createBadge({
             skillIds: skillSetSkillsIds,
           },
         },
-        domainTransaction
+        domainTransaction,
       );
 
       await badgeCriteriaRepository.save(
@@ -61,7 +61,7 @@ module.exports = async function createBadge({
             skillSetIds: [skillSetId],
           },
         },
-        domainTransaction
+        domainTransaction,
       );
     }
 
@@ -70,7 +70,7 @@ module.exports = async function createBadge({
 
       await targetProfileRepository.hasTubesWithLevels(
         { targetProfileId, tubesWithLevels: allCappedTubes },
-        domainTransaction
+        domainTransaction,
       );
 
       for (const criterion of cappedTubesCriteria) {
@@ -84,10 +84,12 @@ module.exports = async function createBadge({
               cappedTubes: criterion.cappedTubes,
             },
           },
-          domainTransaction
+          domainTransaction,
         );
       }
     }
     return savedBadge;
   });
 };
+
+export { createBadge };

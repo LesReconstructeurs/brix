@@ -2,7 +2,7 @@ import { module, test } from 'qunit';
 import { setupRenderingTest } from 'ember-qunit';
 import { render } from '@1024pix/ember-testing-library';
 
-import hbs from 'htmlbars-inline-precompile';
+import { hbs } from 'ember-cli-htmlbars';
 
 module('Integration | Component | certifications/certified-profile', function (hooks) {
   setupRenderingTest(hooks);
@@ -43,7 +43,7 @@ module('Integration | Component | certifications/certified-profile', function (h
 
       // when
       const screen = await render(
-        hbs`<Certifications::CertifiedProfile @certifiedProfile={{this.certifiedProfile}} />`
+        hbs`<Certifications::CertifiedProfile @certifiedProfile={{this.certifiedProfile}} />`,
       );
 
       // then
@@ -76,7 +76,7 @@ module('Integration | Component | certifications/certified-profile', function (h
 
       // when
       const screen = await render(
-        hbs`<Certifications::CertifiedProfile @certifiedProfile={{this.certifiedProfile}} />`
+        hbs`<Certifications::CertifiedProfile @certifiedProfile={{this.certifiedProfile}} />`,
       );
 
       // then
@@ -125,7 +125,7 @@ module('Integration | Component | certifications/certified-profile', function (h
 
       // when
       const screen = await render(
-        hbs`<Certifications::CertifiedProfile @certifiedProfile={{this.certifiedProfile}} />`
+        hbs`<Certifications::CertifiedProfile @certifiedProfile={{this.certifiedProfile}} />`,
       );
 
       // then
@@ -169,7 +169,7 @@ module('Integration | Component | certifications/certified-profile', function (h
 
       // when
       const screen = await render(
-        hbs`<Certifications::CertifiedProfile @certifiedProfile={{this.certifiedProfile}} />`
+        hbs`<Certifications::CertifiedProfile @certifiedProfile={{this.certifiedProfile}} />`,
       );
 
       // then

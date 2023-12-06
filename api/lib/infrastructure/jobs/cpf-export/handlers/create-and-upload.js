@@ -1,33 +1,39 @@
-const { createGzip } = require('node:zlib');
-const logger = require('../../../logger');
-const dayjs = require('dayjs');
-const utc = require('dayjs/plugin/utc');
-const timezone = require('dayjs/plugin/timezone');
+import { createGzip } from 'node:zlib';
+
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc.js';
+import timezone from 'dayjs/plugin/timezone.js';
+
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-module.exports = async function createAndUpload({
+import * as uuid from 'uuid';
+
+const createAndUpload = async function ({
   data,
+  logger,
   cpfCertificationResultRepository,
   cpfCertificationXmlExportService,
   cpfExternalStorage,
+  uuidService = uuid,
 }) {
+  const { batchId } = data;
   const start = new Date();
-  const { jobId } = data;
-  const cpfCertificationResults = await cpfCertificationResultRepository.findByBatchId(jobId);
+  const cpfCertificationResults = await cpfCertificationResultRepository.findByBatchId(batchId);
 
   if (cpfCertificationResults.length == 0) {
-    logger.error(`CpfExportBuilderJob: create CPF results, with no certification found (jobId ${jobId})`);
+    logger.error(`Create CPF results, with no certification found (batchId ${batchId})`);
     return;
   }
 
   const certificationCourseIds = cpfCertificationResults.map(({ id }) => id);
-  logger.info(`CpfExportBuilderJob: create CPF results for ${certificationCourseIds.length} certifications`);
+  logger.info(`Create CPF results for ${certificationCourseIds.length} certifications (batchId ${batchId})`);
 
   const gzipStream = createGzip();
   cpfCertificationXmlExportService.buildXmlExport({
     cpfCertificationResults,
     writableStream: gzipStream,
+    uuidService,
   });
 
   const now = dayjs().tz('Europe/Paris').format('YYYYMMDD-HHmmss');
@@ -44,6 +50,8 @@ module.exports = async function createAndUpload({
 
   logger.info(`${filename} generated in ${_getTimeInSec(start)}s.`);
 };
+
+export { createAndUpload };
 
 function _getTimeInSec(start) {
   return Math.floor((new Date().getTime() - start) / 1024);

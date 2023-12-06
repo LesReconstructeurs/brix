@@ -1,4 +1,4 @@
-const Session = require('../../../../lib/domain/models/Session');
+import { Session } from '../../../../lib/domain/models/Session.js';
 
 const buildSession = function ({
   id = 123,
@@ -20,6 +20,7 @@ const buildSession = function ({
   assignedCertificationOfficerId = null,
   supervisorPassword = 'PIX12',
   certificationCandidates = [],
+  version = 2,
 } = {}) {
   return new Session({
     id,
@@ -41,6 +42,7 @@ const buildSession = function ({
     assignedCertificationOfficerId,
     supervisorPassword,
     certificationCandidates,
+    version,
   });
 };
 
@@ -56,6 +58,7 @@ buildSession.created = function ({
   room,
   time,
   certificationCandidates,
+  version = 2,
 } = {}) {
   return buildSession({
     id,
@@ -76,6 +79,7 @@ buildSession.created = function ({
     resultsSentToPrescriberAt: null,
     publishedAt: null,
     assignedCertificationOfficerId: null,
+    version,
   });
 };
 
@@ -184,4 +188,4 @@ buildSession.processed = function ({
   });
 };
 
-module.exports = buildSession;
+export { buildSession };

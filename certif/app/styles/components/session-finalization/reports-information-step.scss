@@ -6,7 +6,8 @@
     background: $pix-success-10;
     margin: 8px;
     color: $pix-success-70;
-    font-weight: bold;
+    font-size: 0.875rem;
+    font-weight: normal;
     padding: 20px 0 20px 24px;
 
     &--hidden {
@@ -37,13 +38,10 @@
     }
   }
 
-  &__row {
-    display: flex;
-    align-items: center;
-  }
-
   &__checker {
-    margin-right: 16px;
+    .pix-checkbox__label {
+      font-size: 0.8125rem;
+    }
   }
 
   .finalization-report-examiner-comment {
@@ -90,5 +88,10 @@
         }
       }
     }
+  }
+
+  &__icon {
+    height: 14px;
+    margin-right: 8px;
   }
 }

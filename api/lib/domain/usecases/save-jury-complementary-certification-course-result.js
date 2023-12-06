@@ -1,7 +1,7 @@
-const { NotFoundError, InvalidJuryLevelError } = require('../errors');
-const ComplementaryCertificationCourseResult = require('../models/ComplementaryCertificationCourseResult');
+import { NotFoundError, InvalidJuryLevelError } from '../errors.js';
+import { ComplementaryCertificationCourseResult } from '../models/ComplementaryCertificationCourseResult.js';
 
-module.exports = async function saveJuryComplementaryCertificationCourseResult({
+const saveJuryComplementaryCertificationCourseResult = async function ({
   complementaryCertificationCourseId,
   juryLevel,
   complementaryCertificationCourseResultRepository,
@@ -13,7 +13,7 @@ module.exports = async function saveJuryComplementaryCertificationCourseResult({
 
   if (!pixSourceComplementaryCertificationCourseResult) {
     throw new NotFoundError(
-      "Aucun résultat de certification Pix n'a été trouvé pour cette certification complémentaire."
+      "Aucun résultat de certification Pix n'a été trouvé pour cette certification complémentaire.",
     );
   }
 
@@ -35,3 +35,5 @@ module.exports = async function saveJuryComplementaryCertificationCourseResult({
 
   return complementaryCertificationCourseResultRepository.save(externalComplementaryCertificationCourseResult);
 };
+
+export { saveJuryComplementaryCertificationCourseResult };

@@ -1,9 +1,9 @@
-const adminMemberController = require('./admin-member-controller');
-const securityPreHandlers = require('../security-pre-handlers');
-const identifiersType = require('../../domain/types/identifiers-type');
-const Joi = require('joi');
+import { adminMemberController } from './admin-member-controller.js';
+import { securityPreHandlers } from '../security-pre-handlers.js';
+import { identifiersType } from '../../domain/types/identifiers-type.js';
+import Joi from 'joi';
 
-exports.register = async function (server) {
+const register = async function (server) {
   server.route([
     {
       method: 'GET',
@@ -123,4 +123,5 @@ exports.register = async function (server) {
   ]);
 };
 
-exports.name = 'admin-members-api';
+const name = 'admin-members-api';
+export { register, name };

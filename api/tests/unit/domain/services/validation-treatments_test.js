@@ -1,10 +1,11 @@
-const { expect } = require('../../../test-helper');
-const {
+import { expect } from '../../../test-helper.js';
+
+import {
   normalizeAndRemoveAccents,
   removeSpecialCharacters,
   applyPreTreatments,
   applyTreatments,
-} = require('../../../../lib/domain/services/validation-treatments');
+} from '../../../../lib/domain/services/validation-treatments.js';
 
 describe('Unit | Service | Validation Treatments', function () {
   describe('#normalizeAndRemoveAccents', function () {
@@ -50,12 +51,24 @@ describe('Unit | Service | Validation Treatments', function () {
 
     it('should return the good result even for complex phrase', function () {
       expect(
-        removeSpecialCharacters('Th!!is., -/ is #! an $ % ^ & * example ;: {} of a = -_ string with `~)() punctuation')
+        removeSpecialCharacters('Th!!is., -/ is #! an $ % ^ & * example ;: {} of a = -_ string with `~)() punctuation'),
       ).to.equal('This is an example of a string with punctuation');
     });
   });
 
   describe('#applyPreTreatments', function () {
+    it('should return a copy of the given string with utf8 nfc normaliztion. \u0065\u0301 -> \u00e9', function () {
+      // given
+      const unnormalizedStr = '\u0065\u0301';
+      const normalizedStr = '\u00e9';
+
+      // when
+      const actual = applyPreTreatments(unnormalizedStr);
+
+      // then
+      expect(actual).to.equal(normalizedStr);
+    });
+
     it('should return a copy of the given string with unbreakable spaces replaced by normal spaces', function () {
       // given
       const stringWithUnbreakableSpaces = ' Shi Foo-Bar ';

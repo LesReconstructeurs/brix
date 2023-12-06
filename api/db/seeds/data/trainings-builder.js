@@ -1,14 +1,12 @@
-const { TARGET_PROFILE_PIX_EDU_FORMATION_INITIALE_2ND_DEGRE } = require('./target-profiles-builder');
+import { TARGET_PROFILE_PIX_EDU_FORMATION_INITIALE_2ND_DEGRE } from './target-profiles-builder.js';
 
 function trainingBuilder({ databaseBuilder }) {
   const training1 = databaseBuilder.factory.buildTraining({
-    title: 'Apprendre en s\'amusant',
+    title: "Apprendre en s'amusant",
     link: 'http://www.example.net',
     type: 'webinaire',
     duration: '06:00:00',
     locale: 'fr-fr',
-    prerequisiteThreshold: 20,
-    goalThreshold: 90,
   });
   const training2 = databaseBuilder.factory.buildTraining({
     title: 'Speed training',
@@ -18,8 +16,6 @@ function trainingBuilder({ databaseBuilder }) {
     locale: 'fr-fr',
     editorName: 'Autre ministère',
     editorLogoUrl: 'https://images.pix.fr/contenu-formatif/editeur/autre_logo_url.svg',
-    prerequisiteThreshold: null,
-    goalThreshold: 90,
   });
   const training3 = databaseBuilder.factory.buildTraining({
     title: 'Comment toiletter son chien',
@@ -27,8 +23,6 @@ function trainingBuilder({ databaseBuilder }) {
     type: 'autoformation',
     duration: '10:00:00',
     locale: 'fr-fr',
-    prerequisiteThreshold: 10,
-    goalThreshold: 10,
   });
   const training4 = databaseBuilder.factory.buildTraining({
     title: 'Créer un tabouret',
@@ -36,17 +30,13 @@ function trainingBuilder({ databaseBuilder }) {
     type: 'webinaire',
     duration: '47:00:00',
     locale: 'fr-fr',
-    prerequisiteThreshold: 20,
-    goalThreshold: null,
   });
   const training5 = databaseBuilder.factory.buildTraining({
-    title: 'Manger bun\'s tous les midis',
+    title: "Manger bun's tous les midis",
     link: 'http://www.example5.net',
     type: 'webinaire',
     duration: '06:00:00',
     locale: 'fr-fr',
-    prerequisiteThreshold: 35,
-    goalThreshold: 40,
   });
   const training6 = databaseBuilder.factory.buildTraining({
     title: 'Apprendre à jouer à la coinche',
@@ -54,8 +44,6 @@ function trainingBuilder({ databaseBuilder }) {
     type: 'autoformation',
     duration: '50:00:50',
     locale: 'fr-fr',
-    prerequisiteThreshold: 20,
-    goalThreshold: 60,
   });
   const training7 = databaseBuilder.factory.buildTraining({
     title: 'Savoir coudre',
@@ -63,8 +51,6 @@ function trainingBuilder({ databaseBuilder }) {
     type: 'webinaire',
     duration: '00:05:00',
     locale: 'fr-fr',
-    prerequisiteThreshold: 20,
-    goalThreshold: 30,
   });
   const training8 = databaseBuilder.factory.buildTraining({
     title: 'Apprendre à faire du cidre breton',
@@ -72,8 +58,6 @@ function trainingBuilder({ databaseBuilder }) {
     type: 'autoformation',
     duration: '01:00:00',
     locale: 'fr-fr',
-    prerequisiteThreshold: 0,
-    goalThreshold: 20,
   });
   const training9 = databaseBuilder.factory.buildTraining({
     title: 'Apprendre à compter',
@@ -81,8 +65,6 @@ function trainingBuilder({ databaseBuilder }) {
     type: 'webinaire',
     duration: '10:00:00',
     locale: 'fr-fr',
-    prerequisiteThreshold: 50,
-    goalThreshold: 95,
   });
   const training10 = databaseBuilder.factory.buildTraining({
     title: 'Devenir influenceur de bonheur',
@@ -90,8 +72,6 @@ function trainingBuilder({ databaseBuilder }) {
     type: 'autoformation',
     duration: '10:00:00',
     locale: 'fr-fr',
-    prerequisiteThreshold: 20,
-    goalThreshold: 90,
   });
   const training11 = databaseBuilder.factory.buildTraining({
     title: 'Faire carrière dans la haute couture',
@@ -99,8 +79,6 @@ function trainingBuilder({ databaseBuilder }) {
     type: 'autoformation',
     duration: '07:00:00',
     locale: 'fr-fr',
-    prerequisiteThreshold: null,
-    goalThreshold: null,
   });
   const training12 = databaseBuilder.factory.buildTraining({
     title: 'Devenir tiktokeur professionel',
@@ -108,8 +86,26 @@ function trainingBuilder({ databaseBuilder }) {
     type: 'autoformation',
     duration: '12:00:00',
     locale: 'fr-fr',
-    prerequisiteThreshold: 0,
-    goalThreshold: 0,
+  });
+  const trainingTrigger1 = databaseBuilder.factory.buildTrainingTrigger({
+    trainingId: training1.id,
+    threshold: 0,
+    type: 'prerequisite',
+  });
+  databaseBuilder.factory.buildTrainingTriggerTube({
+    trainingTriggerId: trainingTrigger1.id,
+    tubeId: 'recs1vdbHxX8X55G9',
+    level: 2,
+  });
+  databaseBuilder.factory.buildTrainingTriggerTube({
+    trainingTriggerId: trainingTrigger1.id,
+    tubeId: 'reccqGUKgzIOK8f9U',
+    level: 3,
+  });
+  databaseBuilder.factory.buildTrainingTriggerTube({
+    trainingTriggerId: trainingTrigger1.id,
+    tubeId: 'recBbCIEKgrQi7eb6',
+    level: 5,
   });
   databaseBuilder.factory.buildTargetProfileTraining({
     trainingId: training1.id,
@@ -161,6 +157,4 @@ function trainingBuilder({ databaseBuilder }) {
   });
 }
 
-module.exports = {
-  trainingBuilder,
-};
+export { trainingBuilder };

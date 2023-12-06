@@ -1,5 +1,5 @@
 const BATCH_SIZE = 10;
-const logger = require('../lib/infrastructure/logger');
+import { logger } from '../lib/infrastructure/logger.js';
 
 function batch(knex, elementsToUpdate, treatment) {
   function _innerTreatment(knex, remainingElementsToUpdate, countOfBatches, batchesDone) {
@@ -21,7 +21,7 @@ function batch(knex, elementsToUpdate, treatment) {
         logger.info(
           `---- Lot ${batchesDone} : ${results.length} processed - (total: ${countOfBatches} lots, ${
             (batchesDone / countOfBatches) * 100
-          }%)`
+          }%)`,
         );
       })
       .then(() => _innerTreatment(knex, remainingElementsToUpdate, countOfBatches, batchesDone + 1));
@@ -32,6 +32,4 @@ function batch(knex, elementsToUpdate, treatment) {
   return Promise.resolve().then(() => _innerTreatment(knex, elementsToUpdate, numberOfTotalBatches, 0));
 }
 
-module.exports = {
-  batch,
-};
+export { batch };

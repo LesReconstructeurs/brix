@@ -1,14 +1,15 @@
-const _ = require('lodash');
-const { knex } = require('../../../db/knex-database-connection');
-const { NoSkillsInCampaignError, NotFoundError } = require('../../domain/errors');
-const tubeRepository = require('./tube-repository');
-const thematicRepository = require('./thematic-repository');
-const campaignRepository = require('./campaign-repository');
-const competenceRepository = require('./competence-repository');
-const frameworkRepository = require('./framework-repository');
-const LearningContent = require('../../domain/models/LearningContent');
-// TODO pas satisfaisant comme dépendance
-const learningContentConversionService = require('../../domain/services/learning-content/learning-content-conversion-service');
+import _ from 'lodash';
+import { knex } from '../../../db/knex-database-connection.js';
+import { NoSkillsInCampaignError, NotFoundError } from '../../domain/errors.js';
+import * as tubeRepository from './tube-repository.js';
+import * as thematicRepository from './thematic-repository.js';
+import * as campaignRepository from './campaign-repository.js';
+import * as competenceRepository from './competence-repository.js';
+import * as areaRepository from './area-repository.js';
+import * as frameworkRepository from './framework-repository.js';
+import * as skillRepository from './skill-repository.js';
+import { LearningContent } from '../../domain/models/LearningContent.js';
+import * as learningContentConversionService from '../../domain/services/learning-content/learning-content-conversion-service.js';
 
 async function findByCampaignId(campaignId, locale) {
   const skills = await campaignRepository.findSkills({ campaignId });
@@ -43,6 +44,16 @@ async function findByTargetProfileId(targetProfileId, locale) {
   return new LearningContent(frameworks);
 }
 
+async function findByFrameworkNames({ frameworkNames, locale }) {
+  const baseFrameworks = [];
+  for (const frameworkName of frameworkNames) {
+    baseFrameworks.push(await frameworkRepository.getByName(frameworkName));
+  }
+
+  const frameworks = await _getLearningContentByFrameworks(baseFrameworks, locale);
+  return new LearningContent(frameworks);
+}
+
 async function _getLearningContentBySkillIds(skills, locale) {
   if (_.isEmpty(skills)) {
     throw new NoSkillsInCampaignError();
@@ -64,7 +75,7 @@ async function _getLearningContentByCappedTubes(cappedTubesDTO, locale) {
 
   const tubes = await tubeRepository.findByRecordIds(
     cappedTubesDTO.map((dto) => dto.id),
-    locale
+    locale,
   );
 
   tubes.forEach((tube) => {
@@ -95,13 +106,12 @@ async function _getLearningContentByTubes(tubes, locale) {
     });
   });
 
-  const areas = _.uniqBy(
-    competences.map(({ area }) => area),
-    'id'
-  );
+  const allAreaIds = _.map(competences, (competence) => competence.areaId);
+  const uniqAreaIds = _.uniq(allAreaIds, 'id');
+  const areas = await areaRepository.findByRecordIds({ areaIds: uniqAreaIds, locale });
   for (const area of areas) {
     area.competences = competences.filter((competence) => {
-      return competence.area.id === area.id;
+      return competence.areaId === area.id;
     });
   }
 
@@ -116,8 +126,26 @@ async function _getLearningContentByTubes(tubes, locale) {
   return frameworks;
 }
 
-module.exports = {
-  findByCampaignId,
-  findByTargetProfileId,
-  findByCampaignParticipationId,
-};
+async function _getLearningContentByFrameworks(frameworks, locale) {
+  for (const framework of frameworks) {
+    framework.areas = await areaRepository.findByFrameworkId({ frameworkId: framework.id, locale });
+    for (const area of framework.areas) {
+      area.competences = await competenceRepository.findByAreaId({ areaId: area.id, locale });
+      for (const competence of area.competences) {
+        competence.thematics = await thematicRepository.findByCompetenceIds([competence.id], locale);
+        for (const thematic of competence.thematics) {
+          const tubes = await tubeRepository.findActiveByRecordIds(thematic.tubeIds, locale);
+          thematic.tubes = tubes;
+          competence.tubes.push(...tubes);
+          for (const tube of thematic.tubes) {
+            tube.skills = await skillRepository.findActiveByTubeId(tube.id);
+          }
+        }
+      }
+    }
+  }
+
+  return frameworks;
+}
+
+export { findByCampaignId, findByTargetProfileId, findByCampaignParticipationId, findByFrameworkNames };

@@ -1,7 +1,8 @@
-const { ReproducibilityRate } = require('../../../../lib/domain/models/ReproducibilityRate');
-const ComplementaryCertificationCourseResult = require('../../../../lib/domain/models/ComplementaryCertificationCourseResult');
-const { catchErr, expect, sinon, domainBuilder } = require('../../../test-helper');
-const { handleComplementaryCertificationsScoring } = require('../../../../lib/domain/events')._forTestOnly.handlers;
+import { ReproducibilityRate } from '../../../../lib/domain/models/ReproducibilityRate.js';
+import { ComplementaryCertificationCourseResult } from '../../../../lib/domain/models/ComplementaryCertificationCourseResult.js';
+import { catchErr, expect, sinon, domainBuilder } from '../../../test-helper.js';
+import { _forTestOnly } from '../../../../lib/domain/events/index.js';
+const { handleComplementaryCertificationsScoring } = _forTestOnly.handlers;
 
 describe('Unit | Domain | Events | handle-complementary-certification-certifications-scoring', function () {
   const certificationAssessmentRepository = {};
@@ -32,7 +33,7 @@ describe('Unit | Domain | Events | handle-complementary-certification-certificat
 
     // then
     expect(error.message).to.equal(
-      'event must be one of types CertificationScoringCompleted, CertificationRescoringCompleted'
+      'event must be one of types CertificationScoringCompleted, CertificationRescoringCompleted',
     );
   });
 
@@ -388,7 +389,7 @@ describe('Unit | Domain | Events | handle-complementary-certification-certificat
             domainBuilder.buildAssessmentResult.validated({
               pixScore: 45,
               reproducibilityRate: 70,
-            })
+            }),
           );
           const complementaryCertificationScoringCriteria = [
             domainBuilder.buildComplementaryCertificationScoringCriteria({
@@ -472,7 +473,7 @@ describe('Unit | Domain | Events | handle-complementary-certification-certificat
             domainBuilder.buildAssessmentResult.validated({
               pixScore: 60,
               reproducibilityRate: 70,
-            })
+            }),
           );
 
           // when
@@ -540,7 +541,7 @@ describe('Unit | Domain | Events | handle-complementary-certification-certificat
             domainBuilder.buildAssessmentResult.validated({
               pixScore: 45,
               reproducibilityRate: 75,
-            })
+            }),
           );
 
           // when
@@ -608,7 +609,7 @@ describe('Unit | Domain | Events | handle-complementary-certification-certificat
             domainBuilder.buildAssessmentResult.validated({
               pixScore: 120,
               reproducibilityRate: 75,
-            })
+            }),
           );
 
           // when

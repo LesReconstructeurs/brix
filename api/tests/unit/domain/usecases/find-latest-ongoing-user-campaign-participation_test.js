@@ -1,5 +1,5 @@
-const { expect, sinon, domainBuilder } = require('../../../test-helper');
-const findCampaignParticipationsRelatedToUser = require('../../../../lib/domain/usecases/find-latest-ongoing-user-campaign-participations');
+import { expect, sinon, domainBuilder } from '../../../test-helper.js';
+import { findLatestOngoingUserCampaignParticipations as findCampaignParticipationsRelatedToUser } from '../../../../lib/domain/usecases/find-latest-ongoing-user-campaign-participations.js';
 
 describe('Unit | UseCase | find-latest-user-campaign-participations', function () {
   let userId;
@@ -27,10 +27,10 @@ describe('Unit | UseCase | find-latest-user-campaign-participations', function (
   it('should return user with his campaign participations', async function () {
     // given
     const campaignParticipation1 = campaignParticipationRepository.findLatestOngoingByUserId.resolves(
-      domainBuilder.buildCampaignParticipation({ userId })
+      domainBuilder.buildCampaignParticipation({ userId }),
     );
     const campaignParticipation2 = campaignParticipationRepository.findLatestOngoingByUserId.resolves(
-      domainBuilder.buildCampaignParticipation({ userId })
+      domainBuilder.buildCampaignParticipation({ userId }),
     );
     campaignParticipationRepository.findLatestOngoingByUserId.resolves([
       campaignParticipation1,

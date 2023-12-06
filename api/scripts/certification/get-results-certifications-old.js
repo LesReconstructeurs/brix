@@ -1,8 +1,7 @@
-#! /usr/bin/env node
-
-const request = require('request-promise-native');
-const json2csv = require('json2csv');
-const moment = require('moment-timezone');
+import request from 'request-promise-native';
+import json2csv from 'json2csv';
+import moment from 'moment-timezone';
+import * as url from 'url';
 
 // request.debug = true;
 const HEADERS = [
@@ -79,7 +78,7 @@ function main() {
   const authToken = process.argv[3];
   const ids = parseArgs(process.argv.slice(4));
   const requests = Promise.all(
-    ids.map((id) => buildRequestObject(baseUrl, authToken, id)).map((requestObject) => makeRequest(requestObject))
+    ids.map((id) => buildRequestObject(baseUrl, authToken, id)).map((requestObject) => makeRequest(requestObject)),
   );
 
   requests
@@ -89,7 +88,7 @@ function main() {
         data: res,
         fieldNames: HEADERS,
         del: ';',
-      })
+      }),
     )
     .then((csv) => {
       console.log(`\n\n${csv}\n\n`);
@@ -98,15 +97,10 @@ function main() {
 }
 
 /*=================== tests =============================*/
-
-if (require.main === module) {
+const modulePath = url.fileURLToPath(import.meta.url);
+const isLaunchedFromCommandLine = process.argv[1] === modulePath;
+if (isLaunchedFromCommandLine) {
   main();
-} else {
-  module.exports = {
-    parseArgs,
-    toCSVRow,
-    buildRequestObject,
-    findCompetence,
-    HEADERS,
-  };
 }
+
+export { parseArgs, toCSVRow, buildRequestObject, findCompetence, HEADERS };

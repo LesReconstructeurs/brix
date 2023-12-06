@@ -1,6 +1,6 @@
 import some from 'lodash/some';
 
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
 import Controller from '@ember/controller';
 // eslint-disable-next-line ember/no-computed-properties-in-native-classes
@@ -21,7 +21,7 @@ export default class ListController extends Controller {
   @computed('model.juryCertificationSummaries.@each.status')
   get canPublish() {
     return !some(this.model.juryCertificationSummaries.toArray(), (certif) =>
-      ['error', 'started'].includes(certif.status)
+      ['error', 'started'].includes(certif.status),
     );
   }
 

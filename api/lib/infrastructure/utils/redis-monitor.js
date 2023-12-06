@@ -1,10 +1,10 @@
-const settings = require('../../config');
-const RedisClient = require('./RedisClient');
+import { config } from '../../config.js';
+import { RedisClient } from './RedisClient.js';
 
 class RedisMonitor {
   constructor() {
-    if (settings.caching.redisUrl) {
-      this._client = new RedisClient(settings.caching.redisUrl, { name: 'redis-monitor' });
+    if (config.caching.redisUrl) {
+      this._client = new RedisClient(config.caching.redisUrl, { name: 'redis-monitor' });
     }
   }
 
@@ -20,4 +20,6 @@ class RedisMonitor {
   }
 }
 
-module.exports = new RedisMonitor();
+const redisMonitor = new RedisMonitor();
+
+export { redisMonitor };

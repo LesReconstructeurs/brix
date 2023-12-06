@@ -1,37 +1,46 @@
-const _ = require('lodash');
+import _ from 'lodash';
 
-const Correction = require('../../domain/models/Correction');
-const Hint = require('../../domain/models/Hint');
-const challengeDatasource = require('../datasources/learning-content/challenge-datasource');
-const skillDatasource = require('../datasources/learning-content/skill-datasource');
-const tutorialRepository = require('./tutorial-repository');
+import { Correction } from '../../domain/models/Correction.js';
+import { Hint } from '../../domain/models/Hint.js';
+import { challengeDatasource } from '../datasources/learning-content/challenge-datasource.js';
+import { skillDatasource } from '../datasources/learning-content/skill-datasource.js';
+import { getTranslatedKey } from '../../domain/services/get-translated-text.js';
+
 const VALIDATED_HINT_STATUSES = ['Validé', 'pré-validé'];
-const { getTranslatedKey } = require('../../domain/services/get-translated-text');
 
-module.exports = {
-  async getByChallengeId({ challengeId, userId, locale }) {
-    const challenge = await challengeDatasource.get(challengeId);
-    const skill = await _getSkill(challenge);
-    const hint = await _getHint({ skill, locale });
+const getByChallengeId = async function ({ challengeId, userId, locale, tutorialRepository } = {}) {
+  const challenge = await challengeDatasource.get(challengeId);
+  const skill = await _getSkill(challenge);
+  const hint = await _getHint({ skill, locale });
+  let correctionDetails;
 
-    const tutorials = await _getTutorials({ userId, skill, tutorialIdsProperty: 'tutorialIds', locale });
-    const learningMoreTutorials = await _getTutorials({
-      userId,
-      skill,
-      tutorialIdsProperty: 'learningMoreTutorialIds',
-      locale,
-    });
+  const tutorials = await _getTutorials({
+    userId,
+    skill,
+    tutorialIdsProperty: 'tutorialIds',
+    locale,
+    tutorialRepository,
+  });
+  const learningMoreTutorials = await _getTutorials({
+    userId,
+    skill,
+    tutorialIdsProperty: 'learningMoreTutorialIds',
+    locale,
+    tutorialRepository,
+  });
 
-    return new Correction({
-      id: challenge.id,
-      solution: challenge.solution,
-      solutionToDisplay: challenge.solutionToDisplay,
-      hint,
-      tutorials,
-      learningMoreTutorials: learningMoreTutorials,
-    });
-  },
+  return new Correction({
+    id: challenge.id,
+    solution: challenge.solution,
+    solutionToDisplay: challenge.solutionToDisplay,
+    hint,
+    tutorials,
+    learningMoreTutorials: learningMoreTutorials,
+    answersEvaluation: correctionDetails?.answersEvaluation || [],
+    solutionsWithoutGoodAnswers: correctionDetails?.solutionsWithoutGoodAnswers || [],
+  });
 };
+export { getByChallengeId };
 
 async function _getHint({ skill, locale }) {
   if (_hasValidatedHint(skill)) {
@@ -54,7 +63,7 @@ function _convertSkillToHint({ skill, locale }) {
   });
 }
 
-async function _getTutorials({ userId, skill, tutorialIdsProperty, locale }) {
+async function _getTutorials({ userId, skill, tutorialIdsProperty, locale, tutorialRepository }) {
   const tutorialIds = skill[tutorialIdsProperty];
   if (!_.isEmpty(tutorialIds)) {
     const tutorials = await tutorialRepository.findByRecordIdsForCurrentUser({ ids: tutorialIds, userId, locale });

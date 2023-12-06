@@ -1,7 +1,7 @@
-const { expect, mockLearningContent, databaseBuilder, knex } = require('../../../test-helper');
-const computeParticipationResults = require('../../../../scripts/prod/compute-participation-results');
-const CampaignTypes = require('../../../../lib/domain/models/CampaignTypes');
-const CampaignParticipationStatuses = require('../../../../lib/domain/models/CampaignParticipationStatuses');
+import { expect, mockLearningContent, databaseBuilder, knex } from '../../../test-helper.js';
+import { computeParticipantResultsShared as computeParticipationResults } from '../../../../scripts/prod/compute-participation-results.js';
+import { CampaignTypes } from '../../../../lib/domain/models/CampaignTypes.js';
+import { CampaignParticipationStatuses } from '../../../../lib/domain/models/CampaignParticipationStatuses.js';
 
 const { STARTED } = CampaignParticipationStatuses;
 
@@ -183,7 +183,7 @@ describe('computeParticipationResults', function () {
           expect(campaignParticipation.validatedSkillsCount).to.equals(10);
           expect(campaignParticipation.isCertifiable).to.be.true;
         });
-      }
+      },
     );
 
     context('when there are campaign participation on assessment campaign with pixScore already computed', function () {

@@ -1,9 +1,8 @@
-const { databaseBuilder, expect, knex, domainBuilder, catchErr } = require('../../../../test-helper');
-const _ = require('lodash');
-const { NotFoundError } = require('../../../../../lib/domain/errors');
-const Session = require('../../../../../lib/domain/models/Session');
-const { statuses } = require('../../../../../lib/domain/models/Session');
-const sessionRepository = require('../../../../../lib/infrastructure/repositories/sessions/session-repository');
+import { databaseBuilder, expect, knex, domainBuilder, catchErr } from '../../../../test-helper.js';
+import _ from 'lodash';
+import { NotFoundError } from '../../../../../lib/domain/errors.js';
+import { Session, statuses } from '../../../../../lib/domain/models/Session.js';
+import * as sessionRepository from '../../../../../lib/infrastructure/repositories/sessions/session-repository.js';
 
 describe('Integration | Repository | Session', function () {
   describe('#save', function () {
@@ -29,6 +28,7 @@ describe('Integration | Repository | Session', function () {
         assignedCertificationOfficerId: null,
         accessCode: 'XXXX',
         supervisorPassword: 'AB2C7',
+        version: 2,
       });
 
       await databaseBuilder.commit();
@@ -55,45 +55,6 @@ describe('Integration | Repository | Session', function () {
       expect(savedSession).to.be.an.instanceOf(Session);
       expect(savedSession).to.have.property('id').and.not.null;
       expect(savedSession).to.deepEqualInstance(new Session({ ...session, id: savedSession.id }));
-    });
-  });
-
-  describe('#isSessionCodeAvailable', function () {
-    beforeEach(function () {
-      databaseBuilder.factory.buildSession({
-        certificationCenter: 'Paris',
-        address: 'Paris',
-        room: 'The lost room',
-        examiner: 'Bernard',
-        date: '2018-02-23',
-        time: '12:00',
-        description: 'The lost examen',
-        accessCode: 'ABC123',
-      });
-
-      return databaseBuilder.commit();
-    });
-
-    it('should return true if the accessCode is not in database', async function () {
-      // given
-      const accessCode = 'DEF123';
-
-      // when
-      const isAvailable = await sessionRepository.isSessionCodeAvailable(accessCode);
-
-      // then
-      expect(isAvailable).to.be.equal(true);
-    });
-
-    it('should return false if the accessCode is in database', async function () {
-      // given
-      const accessCode = 'ABC123';
-
-      // when
-      const isAvailable = await sessionRepository.isSessionCodeAvailable(accessCode);
-
-      // then
-      expect(isAvailable).to.be.equal(false);
     });
   });
 
@@ -185,6 +146,7 @@ describe('Integration | Repository | Session', function () {
         time: '12:00:00',
         description: 'CertificationPix pour les jeunes',
         accessCode: 'NJR10',
+        version: 2,
       });
       await databaseBuilder.commit();
 
@@ -222,7 +184,7 @@ describe('Integration | Repository | Session', function () {
 
       // then
       const actualCandidates = _.map(actualSession.certificationCandidates, (item) =>
-        _.pick(item, ['sessionId', 'lastName', 'firstName'])
+        _.pick(item, ['sessionId', 'lastName', 'firstName']),
       );
       expect(actualCandidates).to.have.deep.ordered.members([
         { sessionId: session.id, lastName: 'Jackson', firstName: 'Janet' },
@@ -243,18 +205,16 @@ describe('Integration | Repository | Session', function () {
       expect(actualSession.certificationCandidates).to.deep.equal([]);
     });
 
-    it('should return candidates complementary certifications', async function () {
+    it('should return candidates complementary certification', async function () {
       // given
       const session = databaseBuilder.factory.buildSession();
+
       const pixPlusFoot = databaseBuilder.factory.buildComplementaryCertification({ label: 'Pix+ Foot', key: 'FOOT' });
       const pixPlusRugby = databaseBuilder.factory.buildComplementaryCertification({
         label: 'Pix+ Rugby',
         key: 'RUGBY',
       });
-      const pixPlusTennis = databaseBuilder.factory.buildComplementaryCertification({
-        label: 'Pix+ Tennis',
-        key: 'TENNIS',
-      });
+
       const firstCandidate = databaseBuilder.factory.buildCertificationCandidate({
         lastName: 'Jackson',
         firstName: 'Michael',
@@ -265,6 +225,7 @@ describe('Integration | Repository | Session', function () {
         firstName: 'Ziggy',
         sessionId: session.id,
       });
+
       databaseBuilder.factory.buildComplementaryCertificationSubscription({
         certificationCandidateId: firstCandidate.id,
         complementaryCertificationId: pixPlusRugby.id,
@@ -273,10 +234,7 @@ describe('Integration | Repository | Session', function () {
         certificationCandidateId: secondCandidate.id,
         complementaryCertificationId: pixPlusFoot.id,
       });
-      databaseBuilder.factory.buildComplementaryCertificationSubscription({
-        certificationCandidateId: secondCandidate.id,
-        complementaryCertificationId: pixPlusTennis.id,
-      });
+
       await databaseBuilder.commit();
 
       // when
@@ -284,16 +242,15 @@ describe('Integration | Repository | Session', function () {
 
       // then
       const [firstCandidateFromSession, secondCandidateFromSession] = actualSession.certificationCandidates;
-      expect(firstCandidateFromSession.complementaryCertifications).to.deep.equal([
+      expect(firstCandidateFromSession.complementaryCertification).to.deep.equal(
         domainBuilder.buildComplementaryCertification(pixPlusRugby),
-      ]);
-      expect(secondCandidateFromSession.complementaryCertifications).to.deep.equal([
+      );
+      expect(secondCandidateFromSession.complementaryCertification).to.deep.equal(
         domainBuilder.buildComplementaryCertification(pixPlusFoot),
-        domainBuilder.buildComplementaryCertification(pixPlusTennis),
-      ]);
+      );
     });
 
-    it('should return an empty candidates complementary certifications if there is no complementary certifications', async function () {
+    it('should return an empty candidates complementary certifications if there is no complementary certification', async function () {
       // given
       const session = databaseBuilder.factory.buildSession();
       databaseBuilder.factory.buildCertificationCandidate({
@@ -313,8 +270,8 @@ describe('Integration | Repository | Session', function () {
 
       // then
       const [firstCandidateFromSession, secondCandidateFromSession] = actualSession.certificationCandidates;
-      expect(firstCandidateFromSession.complementaryCertifications).to.deep.equal([]);
-      expect(secondCandidateFromSession.complementaryCertifications).to.deep.equal([]);
+      expect(firstCandidateFromSession.complementaryCertification).to.equal(null);
+      expect(secondCandidateFromSession.complementaryCertification).to.equal(null);
     });
 
     it('should return a Not found error when no session was found', async function () {
@@ -394,7 +351,7 @@ describe('Integration | Repository | Session', function () {
       // when
       const hasMembership = await sessionRepository.doesUserHaveCertificationCenterMembershipForSession(
         userId,
-        sessionId
+        sessionId,
       );
 
       // then
@@ -415,7 +372,7 @@ describe('Integration | Repository | Session', function () {
       // when
       const hasMembership = await sessionRepository.doesUserHaveCertificationCenterMembershipForSession(
         userId,
-        sessionId
+        sessionId,
       );
 
       // then
@@ -442,7 +399,7 @@ describe('Integration | Repository | Session', function () {
       // when
       const hasMembership = await sessionRepository.doesUserHaveCertificationCenterMembershipForSession(
         userIdNotAllowed,
-        sessionId
+        sessionId,
       );
 
       // then
@@ -595,7 +552,7 @@ describe('Integration | Repository | Session', function () {
           await databaseBuilder.commit();
 
           // when
-          await sessionRepository.delete(sessionId);
+          await sessionRepository.remove(sessionId);
 
           // then
           const foundSession = await knex('sessions').select('id').where({ id: sessionId }).first();
@@ -621,7 +578,7 @@ describe('Integration | Repository | Session', function () {
             await databaseBuilder.commit();
 
             // when
-            await sessionRepository.delete(sessionId);
+            await sessionRepository.remove(sessionId);
 
             // then
             const foundSession = await knex('sessions').select('id').where({ id: sessionId }).first();
@@ -644,7 +601,7 @@ describe('Integration | Repository | Session', function () {
           await databaseBuilder.commit();
 
           // when
-          await sessionRepository.delete(sessionId);
+          await sessionRepository.remove(sessionId);
 
           // then
           const foundSession = await knex('sessions').select('id').where({ id: sessionId }).first();
@@ -662,7 +619,7 @@ describe('Integration | Repository | Session', function () {
           await databaseBuilder.commit();
 
           // when
-          await sessionRepository.delete(sessionId);
+          await sessionRepository.remove(sessionId);
 
           // then
           const foundSession = await knex('sessions').select('id').where({ id: sessionId }).first();
@@ -677,7 +634,7 @@ describe('Integration | Repository | Session', function () {
         const sessionId = 123456;
 
         // when
-        const error = await catchErr(sessionRepository.delete)(sessionId);
+        const error = await catchErr(sessionRepository.remove)(sessionId);
 
         // then
         expect(error).to.be.instanceOf(NotFoundError);
@@ -898,6 +855,88 @@ describe('Integration | Repository | Session', function () {
 
         // then
         expect(unfinishedCertificationsCount).to.equal(2);
+      });
+    });
+  });
+
+  describe('#isSessionExisting', function () {
+    it('should return true if the session already exists', async function () {
+      // given
+      const session = {
+        address: 'rue de Bercy',
+        room: 'Salle A',
+        examiner: 'madame examinatrice',
+        date: '2018-02-23',
+        time: '12:00:00',
+      };
+      databaseBuilder.factory.buildSession({ ...session, examiner: 'Monsieur Examinateur, Madame Examinatrice' });
+
+      await databaseBuilder.commit();
+
+      // when
+      const result = await sessionRepository.isSessionExisting({ ...session });
+
+      // then
+      expect(result).to.equal(true);
+    });
+
+    it('should return false if the session does not already exist', async function () {
+      // given
+      const session = {
+        address: 'rue de Bercy',
+        room: 'Salle A',
+        examiner: 'Monsieur Examinateur',
+        date: '2018-02-23',
+        time: '12:00:00',
+      };
+
+      // when
+      const result = await sessionRepository.isSessionExisting({ ...session });
+
+      // then
+      expect(result).to.equal(false);
+    });
+  });
+
+  describe('#isSessionExistingBySessionAndCertificationCenterIds', function () {
+    context('when session exists', function () {
+      it('should return true', async function () {
+        // given
+        const certificationCenter = databaseBuilder.factory.buildCertificationCenter();
+        const session = databaseBuilder.factory.buildSession({
+          certificationCenterId: certificationCenter.id,
+        });
+        await databaseBuilder.commit();
+
+        // when
+        const result = await sessionRepository.isSessionExistingBySessionAndCertificationCenterIds({
+          sessionId: session.id,
+          certificationCenterId: certificationCenter.id,
+        });
+
+        // then
+        expect(result).to.be.true;
+      });
+    });
+
+    context('when session does not exist', function () {
+      it('should return false', async function () {
+        // given
+        const certificationCenter = databaseBuilder.factory.buildCertificationCenter();
+        databaseBuilder.factory.buildSession({
+          id: 567,
+          certificationCenterId: certificationCenter.id,
+        });
+        await databaseBuilder.commit();
+
+        // when
+        const result = await sessionRepository.isSessionExistingBySessionAndCertificationCenterIds({
+          sessionId: 678,
+          certificationCenterId: certificationCenter.id,
+        });
+
+        // then
+        expect(result).to.be.false;
       });
     });
   });

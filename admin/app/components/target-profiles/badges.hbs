@@ -17,7 +17,7 @@
           <tr aria-label="Informations du badge {{badge.title}}">
             <td class="table__column table__column--id">{{badge.id}}</td>
             <td class="badges-table__image"><img src={{badge.imageUrl}} alt={{badge.altMessage}} /></td>
-            <td>{{badge.key}}</td>
+            <td class="key-table">{{badge.key}}</td>
             <td>{{badge.title}}</td>
             <td>{{badge.message}}</td>
             <td>
@@ -37,9 +37,10 @@
                 @size="small"
                 @backgroundColor="red"
                 @triggerAction={{fn this.toggleDisplayConfirm badge.id}}
-                class="badges-table-actions__button badges-table-actions__button--delete"
+                class="badges-table-actions-delete"
+                @iconBefore="trash"
               >
-                <FaIcon @icon="trash" />Supprimer
+                Supprimer
               </PixButton>
             </td>
           </tr>

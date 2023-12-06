@@ -1,5 +1,5 @@
-const BadgeCriterion = require('../../../lib/domain/models/BadgeCriterion');
-const databaseBuffer = require('../database-buffer');
+import { BadgeCriterion } from '../../../lib/domain/models/BadgeCriterion.js';
+import { databaseBuffer } from '../database-buffer.js';
 
 const buildBadgeCriterion = function ({
   id = databaseBuffer.getNextId(),
@@ -8,6 +8,7 @@ const buildBadgeCriterion = function ({
   badgeId,
   skillSetIds = [],
   cappedTubes,
+  name = null,
 } = {}) {
   const values = {
     id,
@@ -16,6 +17,7 @@ const buildBadgeCriterion = function ({
     badgeId,
     skillSetIds,
     cappedTubes,
+    name,
   };
   return databaseBuffer.pushInsertable({
     tableName: 'badge-criteria',
@@ -23,12 +25,13 @@ const buildBadgeCriterion = function ({
   });
 };
 
-buildBadgeCriterion.scopeCampaignParticipation = function ({ id, threshold, badgeId } = {}) {
+buildBadgeCriterion.scopeCampaignParticipation = function ({ id, threshold, badgeId, name } = {}) {
   return buildBadgeCriterion({
     id,
     scope: BadgeCriterion.SCOPES.CAMPAIGN_PARTICIPATION,
     threshold,
     badgeId,
+    name,
     skillSetIds: [],
     cappedTubes: [],
   });
@@ -45,15 +48,16 @@ buildBadgeCriterion.scopeSkillSets = function ({ id, threshold, badgeId, skillSe
   });
 };
 
-buildBadgeCriterion.scopeCappedTubes = function ({ id, threshold, badgeId, cappedTubes } = {}) {
+buildBadgeCriterion.scopeCappedTubes = function ({ id, threshold, badgeId, cappedTubes, name } = {}) {
   return buildBadgeCriterion({
     id,
     scope: BadgeCriterion.SCOPES.CAPPED_TUBES,
     threshold,
     badgeId,
+    name,
     skillSetIds: [],
     cappedTubes,
   });
 };
 
-module.exports = buildBadgeCriterion;
+export { buildBadgeCriterion };

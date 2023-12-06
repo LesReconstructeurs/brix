@@ -1,11 +1,12 @@
-const jsYaml = require('js-yaml');
-const levenshtein = require('fast-levenshtein');
-const _ = require('../../infrastructure/utils/lodash-utils');
-const logger = require('../../infrastructure/logger');
-const { applyPreTreatments, applyTreatments } = require('./validation-treatments');
-const { YamlParsingError } = require('../../domain/errors');
-
-const AnswerStatus = require('../models/AnswerStatus');
+import jsYaml from 'js-yaml';
+import levenshtein from 'fast-levenshtein';
+import { _ } from '../../infrastructure/utils/lodash-utils.js';
+import { logger } from '../../infrastructure/logger.js';
+import { applyPreTreatments, applyTreatments } from './validation-treatments.js';
+import { YamlParsingError } from '../../domain/errors.js';
+import { LEVENSHTEIN_DISTANCE_MAX_RATE } from '../constants.js';
+import { useLevenshteinRatio } from './services-utils.js';
+import { AnswerStatus } from '../models/AnswerStatus.js';
 
 function _applyTreatmentsToSolutions(solutions, enabledTreatments, qrocBlocksTypes = {}) {
   return _.forEach(solutions, (solution, solutionKey) => {
@@ -36,7 +37,7 @@ function _areApproximatelyEqualAccordingToLevenshteinDistanceRatio(answer, solut
     smallestLevenshteinDistance = Math.min(smallestLevenshteinDistance, levenshteinDistance);
   });
   const ratio = smallestLevenshteinDistance / answer.length;
-  return ratio <= 0.25;
+  return ratio <= LEVENSHTEIN_DISTANCE_MAX_RATE;
 }
 
 function _compareAnswersAndSolutions(answers, solutions, enabledTreatments, qrocBlocksTypes = {}) {
@@ -45,11 +46,13 @@ function _compareAnswersAndSolutions(answers, solutions, enabledTreatments, qroc
     const solutionVariants = solutions[answerKey];
     if (!solutionVariants) {
       logger.warn(
-        `[ERREUR CLE ANSWER] La clé ${answerKey} n'existe pas. Première clé de l'épreuve : ${Object.keys(solutions)[0]}`
+        `[ERREUR CLE ANSWER] La clé ${answerKey} n'existe pas. Première clé de l'épreuve : ${
+          Object.keys(solutions)[0]
+        }`,
       );
       throw new YamlParsingError();
     }
-    if (enabledTreatments.includes('t3') && qrocBlocksTypes[answerKey] != 'select') {
+    if (useLevenshteinRatio(enabledTreatments) && qrocBlocksTypes[answerKey] != 'select') {
       results[answerKey] = _areApproximatelyEqualAccordingToLevenshteinDistanceRatio(answer, solutionVariants);
     } else if (solutionVariants) {
       results[answerKey] = solutionVariants.includes(answer);
@@ -68,52 +71,47 @@ function _formatResult(resultDetails) {
   return result;
 }
 
-module.exports = {
-  _applyTreatmentsToSolutions,
-  _applyTreatmentsToAnswers,
-  _compareAnswersAndSolutions,
-  _formatResult,
+function match({ answerValue, solution }) {
+  const yamlSolution = solution.value;
+  const enabledTreatments = solution.enabledTreatments;
+  const qrocBlocksTypes = solution.qrocBlocksTypes || {};
 
-  match({ answerValue, solution }) {
-    const yamlSolution = solution.value;
-    const enabledTreatments = solution.enabledTreatments;
-    const qrocBlocksTypes = solution.qrocBlocksTypes || {};
+  // Input checking
+  if (!_.isString(answerValue) || _.isEmpty(yamlSolution) || !_.includes(yamlSolution, '\n')) {
+    return { result: AnswerStatus.KO };
+  }
 
-    // Input checking
-    if (!_.isString(answerValue) || _.isEmpty(yamlSolution) || !_.includes(yamlSolution, '\n')) {
-      return { result: AnswerStatus.KO };
-    }
+  // Pre-treatments
+  const preTreatedAnswers = applyPreTreatments(answerValue);
+  const preTreatedSolutions = applyPreTreatments(yamlSolution);
 
-    // Pre-treatments
-    const preTreatedAnswers = applyPreTreatments(answerValue);
-    const preTreatedSolutions = applyPreTreatments(yamlSolution);
+  // Convert YAML to JSObject
+  let answers, solutions;
 
-    // Convert YAML to JSObject
-    let answers, solutions;
+  try {
+    answers = jsYaml.load(preTreatedAnswers, { schema: jsYaml.FAILSAFE_SCHEMA });
+    solutions = jsYaml.load(preTreatedSolutions, { schema: jsYaml.FAILSAFE_SCHEMA });
+  } catch (error) {
+    throw new YamlParsingError();
+  }
 
-    try {
-      answers = jsYaml.load(preTreatedAnswers, { schema: jsYaml.FAILSAFE_SCHEMA });
-      solutions = jsYaml.load(preTreatedSolutions, { schema: jsYaml.FAILSAFE_SCHEMA });
-    } catch (error) {
-      throw new YamlParsingError();
-    }
+  // Treatments
+  const treatedSolutions = _applyTreatmentsToSolutions(solutions, enabledTreatments, qrocBlocksTypes);
+  const treatedAnswers = _applyTreatmentsToAnswers(answers, enabledTreatments, qrocBlocksTypes);
 
-    // Treatments
-    const treatedSolutions = _applyTreatmentsToSolutions(solutions, enabledTreatments, qrocBlocksTypes);
-    const treatedAnswers = _applyTreatmentsToAnswers(answers, enabledTreatments, qrocBlocksTypes);
+  // Comparison
+  const resultDetails = _compareAnswersAndSolutions(
+    treatedAnswers,
+    treatedSolutions,
+    enabledTreatments,
+    qrocBlocksTypes,
+  );
 
-    // Comparison
-    const resultDetails = _compareAnswersAndSolutions(
-      treatedAnswers,
-      treatedSolutions,
-      enabledTreatments,
-      qrocBlocksTypes
-    );
+  // Restitution
+  return {
+    result: _formatResult(resultDetails),
+    resultDetails: resultDetails,
+  };
+}
 
-    // Restitution
-    return {
-      result: _formatResult(resultDetails),
-      resultDetails: resultDetails,
-    };
-  },
-};
+export { _applyTreatmentsToSolutions, _applyTreatmentsToAnswers, _compareAnswersAndSolutions, _formatResult, match };

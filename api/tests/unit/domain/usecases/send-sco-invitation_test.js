@@ -1,19 +1,22 @@
-const { expect, sinon, catchErr, domainBuilder } = require('../../../test-helper');
-const usecases = require('../../../../lib/domain/usecases');
-const {
+import { expect, sinon, catchErr, domainBuilder } from '../../../test-helper.js';
+import { sendScoInvitation } from '../../../../lib/domain/usecases/send-sco-invitation.js';
+
+import {
   OrganizationNotFoundError,
   OrganizationWithoutEmailError,
   ManyOrganizationsFoundError,
   OrganizationArchivedError,
-} = require('../../../../lib/domain/errors');
-const organizationInvitationService = require('../../../../lib/domain/services/organization-invitation-service');
+} from '../../../../lib/domain/errors.js';
 
 describe('Unit | UseCase | send-sco-invitation', function () {
-  let organizationRepository, organizationInvitationRepository;
+  let organizationRepository, organizationInvitationRepository, organizationInvitationService;
 
   beforeEach(function () {
     organizationRepository = {
       findScoOrganizationsByUai: sinon.stub(),
+    };
+    organizationInvitationService = {
+      createScoOrganizationInvitation: sinon.stub(),
     };
   });
 
@@ -30,16 +33,16 @@ describe('Unit | UseCase | send-sco-invitation', function () {
       email: 'sco.orga@example.net',
     });
 
-    sinon.stub(organizationInvitationService, 'createScoOrganizationInvitation').resolves();
     organizationRepository.findScoOrganizationsByUai.withArgs({ uai }).resolves([organization]);
 
-    await usecases.sendScoInvitation({
+    await sendScoInvitation({
       firstName,
       lastName,
       locale,
       uai,
       organizationRepository,
       organizationInvitationRepository,
+      organizationInvitationService,
     });
 
     expect(organizationInvitationService.createScoOrganizationInvitation).to.have.been.calledOnceWithExactly({
@@ -62,7 +65,7 @@ describe('Unit | UseCase | send-sco-invitation', function () {
 
         organizationRepository.findScoOrganizationsByUai.withArgs({ uai }).resolves([]);
 
-        const requestErr = await catchErr(usecases.sendScoInvitation)({
+        const requestErr = await catchErr(sendScoInvitation)({
           uai,
           organizationRepository,
         });
@@ -80,14 +83,14 @@ describe('Unit | UseCase | send-sco-invitation', function () {
 
         organizationRepository.findScoOrganizationsByUai.withArgs({ uai }).resolves([organization]);
 
-        const requestErr = await catchErr(usecases.sendScoInvitation)({
+        const requestErr = await catchErr(sendScoInvitation)({
           uai,
           organizationRepository,
         });
 
         expect(requestErr).to.be.instanceOf(OrganizationWithoutEmailError);
         expect(requestErr.message).to.be.equal(
-          "Nous n’avons pas d’adresse e-mail de contact associée à l'établissement concernant l'UAI/RNE 1234567A."
+          "Nous n’avons pas d’adresse e-mail de contact associée à l'établissement concernant l'UAI/RNE 1234567A.",
         );
       });
     });
@@ -102,7 +105,7 @@ describe('Unit | UseCase | send-sco-invitation', function () {
         organizationRepository.findScoOrganizationsByUai.withArgs({ uai }).resolves([organization1, organization2]);
 
         // when
-        const requestErr = await catchErr(usecases.sendScoInvitation)({
+        const requestErr = await catchErr(sendScoInvitation)({
           uai,
           organizationRepository,
         });
@@ -110,7 +113,7 @@ describe('Unit | UseCase | send-sco-invitation', function () {
         // then
         expect(requestErr).to.be.instanceOf(ManyOrganizationsFoundError);
         expect(requestErr.message).to.be.equal(
-          "Plusieurs établissements de type SCO ont été retrouvés pour L'UAI/RNE 1234567A."
+          "Plusieurs établissements de type SCO ont été retrouvés pour L'UAI/RNE 1234567A.",
         );
       });
     });
@@ -128,7 +131,7 @@ describe('Unit | UseCase | send-sco-invitation', function () {
         organizationRepository.findScoOrganizationsByUai.withArgs({ uai }).resolves([archivedOrganization]);
 
         // when
-        const requestErr = await catchErr(usecases.sendScoInvitation)({
+        const requestErr = await catchErr(sendScoInvitation)({
           uai,
           organizationRepository,
         });

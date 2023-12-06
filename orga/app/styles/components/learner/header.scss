@@ -1,0 +1,20 @@
+.learner-header {
+  margin: $pix-spacing-l 0;
+
+  &__breadcrumb {
+    margin-bottom: $pix-spacing-m;
+    text-transform: capitalize;
+  }
+
+  &__informations-line {
+    display: flex;
+    gap: $pix-spacing-xxl;
+    align-items: center;
+  }
+
+  &__title {
+    @extend %pix-title-m;
+    
+    text-transform: capitalize;
+  }
+}

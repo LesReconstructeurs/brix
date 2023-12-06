@@ -1,10 +1,9 @@
-const Joi = require('joi');
-const { EntityValidationError } = require('../errors');
-const Organization = require('../models/Organization');
-const Membership = require('../models/Membership');
-const OidcIdentityProviders = require('../../../lib/domain/constants/oidc-identity-providers');
-
-const validProviders = Object.values(OidcIdentityProviders).map((provider) => provider.code);
+import Joi from 'joi';
+import { EntityValidationError } from '../errors.js';
+import { Organization } from '../models/Organization.js';
+import { Membership } from '../models/Membership.js';
+import { getValidOidcProviderCodes } from '../constants/oidc-identity-providers.js';
+import { NON_OIDC_IDENTITY_PROVIDERS } from '../constants/identity-providers.js';
 
 const schema = Joi.object({
   type: Joi.string()
@@ -29,9 +28,9 @@ const schema = Joi.object({
   }),
   identityProviderForCampaigns: Joi.string()
     .allow(null)
-    .valid('GAR', ...validProviders)
+    .valid(NON_OIDC_IDENTITY_PROVIDERS.GAR.code, ...getValidOidcProviderCodes())
     .messages({
-      'any.only': `L'organisme fourni doit avoir l'une des valeurs suivantes : GAR,${validProviders}`,
+      'any.only': `L'organisme fourni doit avoir l'une des valeurs suivantes : GAR,${getValidOidcProviderCodes()}`,
     }),
   provinceCode: Joi.string().required().allow('', null),
   credit: Joi.number().required().messages({
@@ -52,17 +51,18 @@ const schema = Joi.object({
     .messages({
       'any.only': "Le rôle fourni doit avoir l'une des valeurs suivantes : ADMIN ou MEMBER",
     }),
-  createdBy: Joi.number().required().messages({
-    'number.base': "L'id du créateur doit être un nombre",
+  createdBy: Joi.number().empty('').required().messages({
+    'any.required': "L'id du créateur est manquant",
+    'number.base': "L'id du créateur n'est pas un nombre",
   }),
 });
 
-module.exports = {
-  validate(organization) {
-    const { error } = schema.validate(organization, { abortEarly: false, allowUnknown: true });
-    if (error) {
-      throw EntityValidationError.fromJoiErrors(error.details);
-    }
-    return true;
-  },
+const validate = function (organization) {
+  const { error } = schema.validate(organization, { abortEarly: false, allowUnknown: true });
+  if (error) {
+    throw EntityValidationError.fromJoiErrors(error.details);
+  }
+  return true;
 };
+
+export { validate };

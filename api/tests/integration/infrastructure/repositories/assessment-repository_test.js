@@ -1,11 +1,11 @@
-const { expect, knex, databaseBuilder, domainBuilder, catchErr } = require('../../../test-helper');
-const _ = require('lodash');
-const DomainTransaction = require('../../../../lib/infrastructure/DomainTransaction');
-const { NotFoundError } = require('../../../../lib/domain/errors');
-const assessmentRepository = require('../../../../lib/infrastructure/repositories/assessment-repository');
-const Answer = require('../../../../lib/domain/models/Answer');
-const Assessment = require('../../../../lib/domain/models/Assessment');
-const AssessmentResult = require('../../../../lib/domain/models/AssessmentResult');
+import { expect, knex, databaseBuilder, domainBuilder, catchErr } from '../../../test-helper.js';
+import _ from 'lodash';
+import { DomainTransaction } from '../../../../lib/infrastructure/DomainTransaction.js';
+import { NotFoundError } from '../../../../lib/domain/errors.js';
+import * as assessmentRepository from '../../../../lib/infrastructure/repositories/assessment-repository.js';
+import { Answer } from '../../../../lib/domain/models/Answer.js';
+import { Assessment } from '../../../../lib/domain/models/Assessment.js';
+import { AssessmentResult } from '../../../../lib/domain/models/AssessmentResult.js';
 
 describe('Integration | Infrastructure | Repositories | assessment-repository', function () {
   afterEach(async function () {
@@ -44,7 +44,7 @@ describe('Integration | Infrastructure | Repositories | assessment-repository', 
           ],
           (answer) => {
             databaseBuilder.factory.buildAnswer(answer);
-          }
+          },
         );
         await databaseBuilder.commit();
 
@@ -299,7 +299,7 @@ describe('Integration | Infrastructure | Repositories | assessment-repository', 
         ({ assessment, assessmentResult }) => {
           const assessmentId = databaseBuilder.factory.buildAssessment(assessment).id;
           databaseBuilder.factory.buildAssessmentResult({ ...assessmentResult, assessmentId });
-        }
+        },
       );
 
       await databaseBuilder.commit();
@@ -324,19 +324,20 @@ describe('Integration | Infrastructure | Repositories | assessment-repository', 
           competenceId: johnAssessmentToRemember.competenceId,
           assessmentResults: [],
           method: 'SMART_RANDOM',
+          missionId: null,
         }),
       ];
 
       // when
       const assessments = await assessmentRepository.findLastCompletedAssessmentsForEachCompetenceByUser(
         johnUserId,
-        limitDate
+        limitDate,
       );
 
       // then
       const assessmentsWithoutUserId = _.map(assessments, (assessment) => _.omit(assessment, ['userId', 'updatedAt']));
       const expectedAssessmentsWithoutUserId = _.map(expectedAssessments, (assessment) =>
-        _.omit(assessment, ['userId', 'updatedAt'])
+        _.omit(assessment, ['userId', 'updatedAt']),
       );
       expect(assessmentsWithoutUserId).to.deep.equal(expectedAssessmentsWithoutUserId);
     });

@@ -1,19 +1,20 @@
-const _ = require('lodash');
-const {
+import _ from 'lodash';
+
+import {
   OrganizationNotFoundError,
   OrganizationWithoutEmailError,
   ManyOrganizationsFoundError,
   OrganizationArchivedError,
-} = require('../errors');
-const organizationInvitationService = require('../../domain/services/organization-invitation-service');
+} from '../errors.js';
 
-module.exports = async function sendScoInvitation({
+const sendScoInvitation = async function ({
   uai,
   firstName,
   lastName,
   locale,
   organizationRepository,
   organizationInvitationRepository,
+  organizationInvitationService,
 }) {
   const organizationWithGivenUAI = await _getOrganizationWithGivenUAI({ uai, organizationRepository });
   _ensureOrganizationHasAnEmail({ email: organizationWithGivenUAI.email, uai });
@@ -29,6 +30,8 @@ module.exports = async function sendScoInvitation({
     organizationInvitationRepository,
   });
 };
+
+export { sendScoInvitation };
 
 async function _getOrganizationWithGivenUAI({ uai, organizationRepository }) {
   const organizationsFound = await organizationRepository.findScoOrganizationsByUai({ uai: uai.trim() });

@@ -2,7 +2,7 @@ import { module, test } from 'qunit';
 import { currentURL } from '@ember/test-helpers';
 import { setupApplicationTest } from 'ember-qunit';
 import { clickByName, visit } from '@1024pix/ember-testing-library';
-import setupMirage from 'ember-cli-mirage/test-support/setup-mirage';
+import { setupMirage } from 'ember-cli-mirage/test-support';
 import { authenticateAdminMemberWithRole } from 'pix-admin/tests/helpers/test-init';
 
 module('Acceptance | Target Profiles | List', function (hooks) {
@@ -33,6 +33,14 @@ module('Acceptance | Target Profiles | List', function (hooks) {
         assert.strictEqual(currentURL(), '/target-profiles/list');
       });
 
+      test('it should set target-profiles menubar item active', async function (assert) {
+        // when
+        const screen = await visit(`/target-profiles/list`);
+
+        // then
+        assert.dom(screen.getByRole('link', { name: 'Profils cibles' })).hasClass('active');
+      });
+
       test('it should list target profile summaries', async function (assert) {
         // given
         server.create('target-profile-summary', { id: 1, name: 'COUCOU', outdated: true });
@@ -48,13 +56,12 @@ module('Acceptance | Target Profiles | List', function (hooks) {
 
       test('it should redirect to target profile details on click', async function (assert) {
         // given
-        const area = server.create('new-area', { id: 'area1', title: 'Area 1', code: '1' });
+        const area = server.create('area', { id: 'area1', title: 'Area 1', code: '1' });
 
         server.create('target-profile', {
           id: 1,
           name: 'Profil Cible',
-          newAreas: [area],
-          isNewFormat: true,
+          areas: [area],
         });
         server.create('target-profile-summary', { id: 1, name: 'Profil Cible', outdated: true });
         const screen = await visit('/target-profiles/list');
@@ -63,7 +70,7 @@ module('Acceptance | Target Profiles | List', function (hooks) {
         await clickByName('Profil Cible');
 
         // then
-        assert.strictEqual(currentURL(), '/target-profiles/1');
+        assert.strictEqual(currentURL(), '/target-profiles/1/details');
         assert.dom(screen.getByText('1 · Area 1')).exists();
       });
 

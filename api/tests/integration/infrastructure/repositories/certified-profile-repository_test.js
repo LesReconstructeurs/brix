@@ -1,8 +1,8 @@
-const { expect, databaseBuilder, mockLearningContent, domainBuilder, catchErr } = require('../../../test-helper');
-const { CertifiedProfile } = require('../../../../lib/domain/read-models/CertifiedProfile');
-const KnowledgeElement = require('../../../../lib/domain/models/KnowledgeElement');
-const certifiedProfileRepository = require('../../../../lib/infrastructure/repositories/certified-profile-repository');
-const { NotFoundError } = require('../../../../lib/domain/errors');
+import { expect, databaseBuilder, mockLearningContent, domainBuilder, catchErr } from '../../../test-helper.js';
+import { CertifiedProfile } from '../../../../lib/domain/read-models/CertifiedProfile.js';
+import { KnowledgeElement } from '../../../../lib/domain/models/KnowledgeElement.js';
+import * as certifiedProfileRepository from '../../../../lib/infrastructure/repositories/certified-profile-repository.js';
+import { NotFoundError } from '../../../../lib/domain/errors.js';
 
 describe('Integration | Repository | Certified Profile', function () {
   describe('#get', function () {
@@ -303,10 +303,10 @@ describe('Integration | Repository | Certified Profile', function () {
 
       // then
       const certifiedSkill1_1_1_2 = certifiedProfile.certifiedSkills.find(
-        (skill) => skill.id === 'recArea1_Competence1_Tube1_Skill2'
+        (skill) => skill.id === 'recArea1_Competence1_Tube1_Skill2',
       );
       const certifiedSkill1_2_1_1 = certifiedProfile.certifiedSkills.find(
-        (skill) => skill.id === 'recArea1_Competence2_Tube1_Skill1'
+        (skill) => skill.id === 'recArea1_Competence2_Tube1_Skill1',
       );
       expect(certifiedSkill1_1_1_2.hasBeenAskedInCertif).to.be.true;
       expect(certifiedSkill1_2_1_1.hasBeenAskedInCertif).to.be.false;

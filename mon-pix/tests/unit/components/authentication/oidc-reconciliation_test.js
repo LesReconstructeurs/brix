@@ -13,7 +13,7 @@ module('Unit | Component | authentication | oidc-reconciliation', function (hook
   module('#backToLoginOrRegisterForm', function () {
     test('should redirect back to login or register page', function (assert) {
       // given
-      const component = createGlimmerComponent('component:authentication/oidc-reconciliation');
+      const component = createGlimmerComponent('authentication/oidc-reconciliation');
       component.args.toggleOidcReconciliation = sinon.stub();
 
       // when
@@ -33,8 +33,9 @@ module('Unit | Component | authentication | oidc-reconciliation', function (hook
           return ['France Connect', 'Impots.gouv'];
         }
       }
+
       this.owner.register('service:oidcIdentityProviders', OidcIdentityProvidersStub);
-      const component = createGlimmerComponent('component:authentication/oidc-reconciliation');
+      const component = createGlimmerComponent('authentication/oidc-reconciliation');
       component.args.authenticationMethods = [EmberObject.create({ identityProvider: 'FRANCE_CONNECT' })];
 
       // then
@@ -46,7 +47,7 @@ module('Unit | Component | authentication | oidc-reconciliation', function (hook
     module('when gar authentication method exist', function () {
       test('should display authentication method', function (assert) {
         // given & when
-        const component = createGlimmerComponent('component:authentication/oidc-reconciliation');
+        const component = createGlimmerComponent('authentication/oidc-reconciliation');
         component.args.authenticationMethods = [EmberObject.create({ identityProvider: 'GAR' })];
 
         // then
@@ -57,7 +58,7 @@ module('Unit | Component | authentication | oidc-reconciliation', function (hook
     module('when gar authentication method does not exist', function () {
       test('should not display authentication method', function (assert) {
         // given & when
-        const component = createGlimmerComponent('component:authentication/oidc-reconciliation');
+        const component = createGlimmerComponent('authentication/oidc-reconciliation');
         component.args.authenticationMethods = [EmberObject.create({ identityProvider: 'OIDC' })];
 
         // then
@@ -73,18 +74,18 @@ module('Unit | Component | authentication | oidc-reconciliation', function (hook
         id: 'oidc-partner',
         organizationName: 'Partenaire OIDC',
       };
+
       class OidcIdentityProvidersStub extends Service {
         'oidc-partner' = oidcPartner;
         list = [oidcPartner];
       }
+
       this.owner.register('service:oidcIdentityProviders', OidcIdentityProvidersStub);
-      const component = createGlimmerComponent('component:authentication/oidc-reconciliation');
+      const component = createGlimmerComponent('authentication/oidc-reconciliation');
       component.args.identityProviderSlug = 'oidc-partner';
 
       // then
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(component.identityProviderOrganizationName, 'Partenaire OIDC');
+      assert.strictEqual(component.identityProviderOrganizationName, 'Partenaire OIDC');
     });
   });
 
@@ -92,7 +93,7 @@ module('Unit | Component | authentication | oidc-reconciliation', function (hook
     module('when email exist', function () {
       test('should display email', function (assert) {
         // given & when
-        const component = createGlimmerComponent('component:authentication/oidc-reconciliation');
+        const component = createGlimmerComponent('authentication/oidc-reconciliation');
         component.args.email = 'lloyd.ce@example.net';
 
         // then
@@ -103,7 +104,7 @@ module('Unit | Component | authentication | oidc-reconciliation', function (hook
     module('when email does not exist', function () {
       test('should not display email', function (assert) {
         // given & when
-        const component = createGlimmerComponent('component:authentication/oidc-reconciliation');
+        const component = createGlimmerComponent('authentication/oidc-reconciliation');
         component.args.email = null;
 
         // then
@@ -116,7 +117,7 @@ module('Unit | Component | authentication | oidc-reconciliation', function (hook
     module('when username exist', function () {
       test('should display username', function (assert) {
         // given & when
-        const component = createGlimmerComponent('component:authentication/oidc-reconciliation');
+        const component = createGlimmerComponent('authentication/oidc-reconciliation');
         component.args.username = 'lloyd.ce1122';
 
         // then
@@ -127,7 +128,7 @@ module('Unit | Component | authentication | oidc-reconciliation', function (hook
     module('when username does not exist', function () {
       test('should not display username', function (assert) {
         // given & when
-        const component = createGlimmerComponent('component:authentication/oidc-reconciliation');
+        const component = createGlimmerComponent('authentication/oidc-reconciliation');
         component.args.username = null;
 
         // then
@@ -136,52 +137,107 @@ module('Unit | Component | authentication | oidc-reconciliation', function (hook
     });
   });
 
-  module('when authentication key has expired', function () {
-    test('should display error', async function (assert) {
-      // given
-      const component = createGlimmerComponent('component:authentication/oidc-reconciliation');
-      const authenticateStub = sinon.stub().rejects({ errors: [{ status: '401' }] });
-      class SessionStub extends Service {
-        authenticate = authenticateStub;
-      }
-      this.owner.register('service:session', SessionStub);
-      component.args.identityProviderSlug = 'super-idp';
-      component.args.authenticationKey = 'super-key';
-      component.isTermsOfServiceValidated = true;
+  module('#reconcile', function () {
+    module('completes successfully', function () {
+      test('user authenticates with reconciliation', async function (assert) {
+        // given
+        const component = createGlimmerComponent('authentication/oidc-reconciliation');
+        const authenticateStub = sinon.stub();
 
-      // when
-      await component.reconcile();
+        class SessionStub extends Service {
+          authenticate = authenticateStub;
+        }
 
-      // then
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(
-        component.reconcileErrorMessage,
-        this.intl.t('pages.login-or-register-oidc.error.expired-authentication-key')
-      );
+        this.owner.register('service:session', SessionStub);
+        component.args.identityProviderSlug = 'super-idp';
+        component.args.authenticationKey = 'super-key';
+        component.isTermsOfServiceValidated = true;
+
+        // when
+        await component.reconcile();
+
+        // then
+        sinon.assert.calledWith(authenticateStub, 'authenticator:oidc', {
+          authenticationKey: 'super-key',
+          identityProviderSlug: 'super-idp',
+          hostSlug: 'user/reconcile',
+        });
+        assert.false(component.isLoading);
+      });
     });
-  });
+    module('completes with error', function () {
+      module('when authentication key has expired', function () {
+        test('should display error', async function (assert) {
+          // given
+          const component = createGlimmerComponent('authentication/oidc-reconciliation');
+          const authenticateStub = sinon.stub().rejects({ errors: [{ status: '401' }] });
 
-  module('when an error happens', function () {
-    test('should display generic error message', async function (assert) {
-      // given
-      const component = createGlimmerComponent('component:authentication/oidc-reconciliation');
-      const authenticateStub = sinon.stub().rejects({ errors: [{ status: '400' }] });
-      class SessionStub extends Service {
-        authenticate = authenticateStub;
-      }
-      this.owner.register('service:session', SessionStub);
-      component.args.identityProviderSlug = 'super-idp';
-      component.args.authenticationKey = 'super-key';
-      component.isTermsOfServiceValidated = true;
+          class SessionStub extends Service {
+            authenticate = authenticateStub;
+          }
 
-      // when
-      await component.reconcile();
+          this.owner.register('service:session', SessionStub);
+          component.args.identityProviderSlug = 'super-idp';
+          component.args.authenticationKey = 'super-key';
+          component.isTermsOfServiceValidated = true;
 
-      // then
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(component.reconcileErrorMessage, this.intl.t('common.error'));
+          // when
+          await component.reconcile();
+
+          // then
+          assert.strictEqual(
+            component.reconcileErrorMessage,
+            this.intl.t('pages.login-or-register-oidc.error.expired-authentication-key'),
+          );
+          assert.false(component.isLoading);
+        });
+      });
+
+      module('when an error happens', function () {
+        test('should display generic error message', async function (assert) {
+          // given
+          const component = createGlimmerComponent('authentication/oidc-reconciliation');
+          const authenticateStub = sinon.stub().rejects({ errors: [{ status: '400' }] });
+
+          class SessionStub extends Service {
+            authenticate = authenticateStub;
+          }
+
+          this.owner.register('service:session', SessionStub);
+          component.args.identityProviderSlug = 'super-idp';
+          component.args.authenticationKey = 'super-key';
+          component.isTermsOfServiceValidated = true;
+
+          // when
+          await component.reconcile();
+
+          // then
+          assert.strictEqual(component.reconcileErrorMessage, this.intl.t('common.error'));
+          assert.false(component.isLoading);
+        });
+      });
+    });
+    module('while waiting for submission completion', function () {
+      test('isLoading is true', async function (assert) {
+        // given
+        let inflightLoading;
+        const component = createGlimmerComponent('authentication/oidc-reconciliation');
+        const authenticateStub = function () {
+          inflightLoading = component.isLoading;
+          return Promise.resolve();
+        };
+
+        class SessionStub extends Service {
+          authenticate = authenticateStub;
+        }
+        this.owner.register('service:session', SessionStub);
+
+        // when
+        await component.reconcile();
+
+        // then
+        assert.true(inflightLoading);
+      });
     });
   });
 });

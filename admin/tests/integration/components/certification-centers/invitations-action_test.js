@@ -1,7 +1,7 @@
 import { module, test } from 'qunit';
 import { setupRenderingTest } from 'ember-qunit';
 import { render } from '@1024pix/ember-testing-library';
-import hbs from 'htmlbars-inline-precompile';
+import { hbs } from 'ember-cli-htmlbars';
 import sinon from 'sinon';
 import { click } from '@ember/test-helpers';
 
@@ -19,7 +19,7 @@ module('Integration | Component | certification-center-invitations-action', func
       hbs`<CertificationCenters::InvitationsAction
   @createInvitation={{this.createInvitation}}
   @onChangeUserEmailToInvite={{this.noop}}
-/>`
+/>`,
     );
     await click(screen.getByRole('button', { name: 'Inviter un membre' }));
 
@@ -38,7 +38,7 @@ module('Integration | Component | certification-center-invitations-action', func
       hbs`<CertificationCenters::InvitationsAction
   @createInvitation={{this.createInvitation}}
   @onChangeUserEmailToInvite={{this.noop}}
-/>`
+/>`,
     );
 
     await click(screen.getByRole('button', { name: 'Choisir la langue de l’email d’invitation' }));

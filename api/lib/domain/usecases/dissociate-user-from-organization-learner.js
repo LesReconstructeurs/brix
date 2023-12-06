@@ -1,11 +1,11 @@
-const { OrganizationLearnerCannotBeDissociatedError } = require('../errors');
+import { OrganizationLearnerCannotBeDissociatedError } from '../errors.js';
 
-module.exports = async function dissociateUserFromOrganizationLearner({
+const dissociateUserFromOrganizationLearner = async function ({
   organizationLearnerId,
   organizationLearnerRepository,
 }) {
   const organizationLearnerForAdmin = await organizationLearnerRepository.getOrganizationLearnerForAdmin(
-    organizationLearnerId
+    organizationLearnerId,
   );
   if (!organizationLearnerForAdmin.canBeDissociated) {
     throw new OrganizationLearnerCannotBeDissociatedError();
@@ -13,3 +13,5 @@ module.exports = async function dissociateUserFromOrganizationLearner({
 
   await organizationLearnerRepository.dissociateUserFromOrganizationLearner(organizationLearnerId);
 };
+
+export { dissociateUserFromOrganizationLearner };

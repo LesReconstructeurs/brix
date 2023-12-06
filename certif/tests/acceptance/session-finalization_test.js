@@ -1,5 +1,5 @@
 import { module, test } from 'qunit';
-import { click, currentURL } from '@ember/test-helpers';
+import { click, currentURL, fillIn } from '@ember/test-helpers';
 import { setupApplicationTest } from 'ember-qunit';
 import { authenticateSession } from '../helpers/test-init';
 import { visit as visitScreen, visit } from '@1024pix/ember-testing-library';
@@ -18,6 +18,8 @@ module('Acceptance | Session Finalization', function (hooks) {
   let session;
 
   hooks.beforeEach(function () {
+    server.create('feature-toggle', { isMassiveSessionManagementEnabled: true });
+
     allowedCertificationCenterAccess = server.create('allowed-certification-center-access', {
       isAccessBlockedCollege: false,
       isAccessBlockedLycee: false,
@@ -108,14 +110,14 @@ module('Acceptance | Session Finalization', function (hooks) {
         .dom(
           screen.getByRole('checkbox', {
             name: 'Malgré un incident survenu pendant la session, les candidats ont pu terminer leur test de certification. Un temps supplémentaire a été accordé à un ou plusieurs candidats.',
-          })
+          }),
         )
         .exists();
       assert
         .dom(
           screen.getByRole('checkbox', {
             name: "Un ou plusieurs candidats étaient présents en session de certification mais n'ont pas pu rejoindre la session.",
-          })
+          }),
         )
         .exists();
     });
@@ -128,15 +130,15 @@ module('Acceptance | Session Finalization', function (hooks) {
       assert
         .dom(
           screen.getByText(
-            "Signalements : Reporter, pour chaque candidat, les signalements renseignés sur le PV d'incident"
-          )
+            "Signalements : Reporter, pour chaque candidat, les signalements renseignés sur le PV d'incident",
+          ),
         )
         .exists();
       assert
         .dom(
           screen.getByText(
-            'Pour que le signalement soit pris en compte, il est nécessaire d’utiliser la catégorie de signalement appropriée (exemples : C1, C2, etc).'
-          )
+            'Pour que le signalement soit pris en compte, il est nécessaire d’utiliser la catégorie de signalement appropriée (exemples : C1, C2, etc).',
+          ),
         )
         .exists();
     });
@@ -161,7 +163,7 @@ module('Acceptance | Session Finalization', function (hooks) {
       });
 
       module('when we add a certification issue report', function () {
-        test('it should show "Ajouter / supprimer" button', async function (assert) {
+        test('it should show "Ajouter / Supprimer" button', async function (assert) {
           // given
           const certificationReports = [
             server.create('certification-report', {
@@ -181,7 +183,7 @@ module('Acceptance | Session Finalization', function (hooks) {
           await click(screen.getByRole('button', { name: 'Ajouter le signalement' }));
 
           // then
-          assert.dom(screen.getByRole('button', { name: 'Ajouter / supprimer' })).exists();
+          assert.dom(screen.getByRole('button', { name: 'Ajouter / Supprimer' })).exists();
         });
       });
 
@@ -202,11 +204,14 @@ module('Acceptance | Session Finalization', function (hooks) {
 
           // when
           const screen = await visitScreen(`/sessions/${session.id}/finalisation`);
-          await click(screen.getByRole('button', { name: 'Ajouter / supprimer' }));
+          await click(screen.getByRole('button', { name: 'Ajouter / Supprimer' }));
           await screen.findByRole('dialog');
           const allDeleteIssueReportButtons = screen.getAllByRole('button', { name: 'Supprimer le signalement' });
           await click(allDeleteIssueReportButtons[0]);
-          await click(screen.getByRole('button', { name: 'Fermer' }));
+
+          // TODO: remove this getAllByRole (isMassiveSessionManagementEnabled)
+          const closeButtons = screen.getAllByRole('button', { name: 'Fermer' });
+          await click(closeButtons[1]);
 
           // then
           assert.dom(screen.getByText('1 signalement')).exists();
@@ -257,7 +262,7 @@ module('Acceptance | Session Finalization', function (hooks) {
             // then
             assert.dom(screen.getByText(MODAL_TITLE)).exists();
             assert
-              .dom(screen.getByText('La case "Écran de fin du test vu" n\'est pas cochée pour 1 candidat(s)'))
+              .dom(screen.getByText('La case "Écran de fin du test vu" n\'est pas cochée pour 1 candidat'))
               .exists();
           });
         });
@@ -277,8 +282,8 @@ module('Acceptance | Session Finalization', function (hooks) {
           assert
             .dom(
               screen.queryByText(
-                "Ces candidats n'ont pas fini leur test de certification ou le surveillant a mis fin à leur test"
-              )
+                "Ces candidats n'ont pas fini leur test de certification ou le surveillant a mis fin à leur test",
+              ),
             )
             .doesNotExist();
         });
@@ -327,7 +332,7 @@ module('Acceptance | Session Finalization', function (hooks) {
               // then
               assert.dom(screen.getByText(MODAL_TITLE)).exists();
               assert
-                .dom(screen.getByText('La case "Écran de fin du test vu" n\'est pas cochée pour 1 candidat(s)'))
+                .dom(screen.getByText('La case "Écran de fin du test vu" n\'est pas cochée pour 1 candidat'))
                 .exists();
             });
           });
@@ -358,8 +363,8 @@ module('Acceptance | Session Finalization', function (hooks) {
           assert
             .dom(
               screen.getByText(
-                "Ces candidats n'ont pas fini leur test de certification ou le surveillant a mis fin à leur test"
-              )
+                "Ces candidats n'ont pas fini leur test de certification ou le surveillant a mis fin à leur test",
+              ),
             )
             .exists();
         });
@@ -431,9 +436,11 @@ module('Acceptance | Session Finalization', function (hooks) {
 
             // when
             const screen = await visitScreen(`/sessions/${session.id}/finalisation`);
+
             await click(screen.getByRole('button', { name: 'Ajouter' }));
             await screen.findByRole('dialog');
-            await click(screen.getByLabelText('C6 Suspicion de fraude'));
+            await click(screen.getByLabelText('C1-C2 Modification infos candidat'));
+            await fillIn(screen.getByLabelText('Renseignez les informations correctes'), 'erreur');
             await click(screen.getByRole('button', { name: 'Ajouter le signalement' }));
 
             // then
@@ -483,14 +490,9 @@ module('Acceptance | Session Finalization', function (hooks) {
         this.server.put(
           `/sessions/${session.id}/finalization`,
           () => ({
-            errors: [
-              {
-                detail:
-                  "Cette session n'a pas débuté, vous ne pouvez pas la finaliser. Vous pouvez néanmoins la supprimer.",
-              },
-            ],
+            errors: [{ code: 'SESSION_WITHOUT_STARTED_CERTIFICATION' }],
           }),
-          400
+          400,
         );
         // when
         const screen = await visitScreen(`/sessions/${session.id}/finalisation`);
@@ -502,8 +504,8 @@ module('Acceptance | Session Finalization', function (hooks) {
         assert
           .dom(
             screen.getByText(
-              "Cette session n'a pas débuté, vous ne pouvez pas la finaliser. Vous pouvez néanmoins la supprimer."
-            )
+              "Cette session n'a pas débuté, vous ne pouvez pas la finaliser. Vous pouvez néanmoins la supprimer.",
+            ),
           )
           .exists();
         assert.dom(screen.getByText('Numéro de session')).exists();
@@ -522,12 +524,12 @@ module('Acceptance | Session Finalization', function (hooks) {
             () => ({
               errors: [
                 {
-                  detail: 'Perdu, essaie encore',
+                  code: 'SESSION_WITH_ABORT_REASON_ON_COMPLETED_CERTIFICATION_COURSE',
                   status: '409',
                 },
               ],
             }),
-            409
+            409,
           );
           // when
           const screen = await visitScreen(`/sessions/${session.id}/finalisation`);
@@ -538,10 +540,16 @@ module('Acceptance | Session Finalization', function (hooks) {
           await waitForDialogClose();
 
           // then
-          assert.dom(screen.getByText('Perdu, essaie encore')).exists();
+          assert
+            .dom(
+              screen.getByText(
+                'Le champ “Raison de l’abandon” a été renseigné pour un candidat qui a terminé son test de certification entre temps. La session ne peut donc pas être finalisée. Merci de rafraîchir la page avant de finaliser.',
+              ),
+            )
+            .exists();
           assert.dom(screen.queryByRole('heading', { name: 'Finalisation de la session' })).doesNotExist();
         });
-      }
+      },
     );
   });
 });

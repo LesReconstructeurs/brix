@@ -1,10 +1,10 @@
-const { catchErr, expect, domainBuilder, databaseBuilder, sinon, knex } = require('../../../test-helper');
-const { NotFoundError, MissingAttributesError } = require('../../../../lib/domain/errors');
-const OrganizationForAdmin = require('../../../../lib/domain/models/OrganizationForAdmin');
-const OrganizationInvitation = require('../../../../lib/domain/models/OrganizationInvitation');
-const organizationForAdminRepository = require('../../../../lib/infrastructure/repositories/organization-for-admin-repository');
-const { SamlIdentityProviders } = require('../../../../lib/domain/constants/saml-identity-providers');
-const OidcIdentityProviders = require('../../../../lib/domain/constants/oidc-identity-providers');
+import { catchErr, expect, domainBuilder, databaseBuilder, sinon, knex } from '../../../test-helper.js';
+import { NotFoundError, MissingAttributesError } from '../../../../lib/domain/errors.js';
+import { OrganizationForAdmin } from '../../../../lib/domain/models/organizations-administration/Organization.js';
+import { OrganizationInvitation } from '../../../../lib/domain/models/index.js';
+import * as organizationForAdminRepository from '../../../../lib/infrastructure/repositories/organization-for-admin-repository.js';
+import { NON_OIDC_IDENTITY_PROVIDERS } from '../../../../lib/domain/constants/identity-providers.js';
+import * as OidcIdentityProviders from '../../../../lib/domain/constants/oidc-identity-providers.js';
 
 describe('Integration | Repository | Organization-for-admin', function () {
   let clock;
@@ -83,6 +83,7 @@ describe('Integration | Repository | Organization-for-admin', function () {
         creatorFirstName: 'Cécile',
         creatorLastName: 'Encieux',
         identityProviderForCampaigns: OidcIdentityProviders.CNAV.code,
+        enableMultipleSendingAssessment: false,
       });
       expect(foundOrganizationForAdmin).to.deepEqualInstance(expectedOrganizationForAdmin);
     });
@@ -187,6 +188,7 @@ describe('Integration | Repository | Organization-for-admin', function () {
           creatorFirstName: superAdminUser.firstName,
           creatorLastName: superAdminUser.lastName,
           identityProviderForCampaigns: null,
+          enableMultipleSendingAssessment: false,
         });
         expect(foundOrganizationForAdmin).to.deepEqualInstance(expectedOrganizationForAdmin);
       });
@@ -219,7 +221,7 @@ describe('Integration | Repository | Organization-for-admin', function () {
         credit: 50,
         email: 'email@example.net',
         documentationUrl: 'https://pix.fr/',
-        identityProviderForCampaigns: SamlIdentityProviders.GAR.code,
+        identityProviderForCampaigns: NON_OIDC_IDENTITY_PROVIDERS.GAR.code,
       });
       const organizationSaved = await organizationForAdminRepository.update(organizationToUpdate);
 
@@ -249,7 +251,8 @@ describe('Integration | Repository | Organization-for-admin', function () {
         dataProtectionOfficerEmail: undefined,
         creatorFirstName: undefined,
         creatorLastName: undefined,
-        identityProviderForCampaigns: SamlIdentityProviders.GAR.code,
+        identityProviderForCampaigns: NON_OIDC_IDENTITY_PROVIDERS.GAR.code,
+        enableMultipleSendingAssessment: undefined,
         tags: [{ id: tagId, name: 'orga tag' }],
       });
       expect(organizationSaved.tags[0].id).to.be.equal(tagId);

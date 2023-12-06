@@ -1,15 +1,22 @@
-const { expect, sinon, domainBuilder, catchErr } = require('../../../test-helper');
-const { NotFoundError } = require('../../../../lib/application/http-errors');
-const {
+import { expect, sinon, domainBuilder, catchErr, hFake } from '../../../test-helper.js';
+import { NotFoundError } from '../../../../lib/application/http-errors.js';
+import {
   verifyCertificationSessionAuthorization,
   verifySessionAuthorization,
-} = require('../../../../lib/application/preHandlers/authorization');
-const certificationCourseRepository = require('../../../../lib/infrastructure/repositories/certification-course-repository');
-const sessionRepository = require('../../../../lib/infrastructure/repositories/sessions/session-repository');
+} from '../../../../lib/application/preHandlers/authorization.js';
 
 describe('Unit | Pre-handler | Authorization', function () {
   const userId = 1;
   const sessionId = 2;
+  let certificationCourseRepository;
+  let sessionRepository;
+  let dependencies;
+
+  beforeEach(function () {
+    certificationCourseRepository = { get: sinon.stub() };
+    sessionRepository = { doesUserHaveCertificationCenterMembershipForSession: sinon.stub() };
+    dependencies = { certificationCourseRepository, sessionRepository };
+  });
 
   describe('#verifySessionAuthorization', function () {
     const request = {
@@ -22,13 +29,12 @@ describe('Unit | Pre-handler | Authorization', function () {
     context('when user has access to session', function () {
       it('should reply with true', async function () {
         // given
-        sinon.stub(sessionRepository, 'doesUserHaveCertificationCenterMembershipForSession');
         sessionRepository.doesUserHaveCertificationCenterMembershipForSession
           .withArgs(userId, sessionId)
           .resolves(true);
 
         // when
-        const response = await verifySessionAuthorization(request);
+        const response = await verifySessionAuthorization(request, hFake, dependencies);
 
         // then
         expect(response).to.deep.equal(true);
@@ -38,17 +44,16 @@ describe('Unit | Pre-handler | Authorization', function () {
     context('when user has no access to session', function () {
       it('should throw a NotFoundError', async function () {
         // given
-        sinon.stub(sessionRepository, 'doesUserHaveCertificationCenterMembershipForSession');
         sessionRepository.doesUserHaveCertificationCenterMembershipForSession
           .withArgs(userId, sessionId)
           .resolves(false);
 
         // when
-        const error = await catchErr(verifySessionAuthorization)(request);
+        const error = await catchErr(verifySessionAuthorization)(request, hFake, dependencies);
 
         // then
         expect(error).to.be.instanceOf(NotFoundError);
-        expect(error.message).to.equal("La session n'existe pas ou son accès est restreint");
+        expect(error.message).to.equal("Session does not exist or it's access is restricted.");
       });
     });
   });
@@ -65,15 +70,13 @@ describe('Unit | Pre-handler | Authorization', function () {
             id: certificationCourse.id,
           },
         };
-        sinon.stub(certificationCourseRepository, 'get');
-        sinon.stub(sessionRepository, 'doesUserHaveCertificationCenterMembershipForSession');
         certificationCourseRepository.get.resolves(certificationCourse);
         sessionRepository.doesUserHaveCertificationCenterMembershipForSession
           .withArgs(userId, certificationCourse.getSessionId())
           .resolves(true);
 
         // when
-        const response = await verifyCertificationSessionAuthorization(request);
+        const response = await verifyCertificationSessionAuthorization(request, hFake, dependencies);
 
         // then
         expect(response).to.equal(true);
@@ -91,18 +94,17 @@ describe('Unit | Pre-handler | Authorization', function () {
             id: certificationCourse.id,
           },
         };
-        sinon.stub(certificationCourseRepository, 'get');
-        sinon.stub(sessionRepository, 'doesUserHaveCertificationCenterMembershipForSession');
         certificationCourseRepository.get.resolves(certificationCourse);
         sessionRepository.doesUserHaveCertificationCenterMembershipForSession
           .withArgs(userId, certificationCourse.getSessionId())
           .resolves(false);
+
         // when
-        const error = await catchErr(verifyCertificationSessionAuthorization)(request);
+        const error = await catchErr(verifyCertificationSessionAuthorization)(request, hFake, dependencies);
 
         // then
         expect(error).to.be.instanceOf(NotFoundError);
-        expect(error.message).to.equal("La session n'existe pas ou son accès est restreint");
+        expect(error.message).to.equal("Session does not exist or it's access is restricted.");
       });
     });
   });

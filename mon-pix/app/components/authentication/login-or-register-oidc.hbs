@@ -16,29 +16,18 @@
       </div>
     </div>
     <div class="login-or-register-oidc-form__cgu-container">
-      <PixCheckbox @id="checkbox" @screenReaderOnly="true" {{on "change" this.onChange}}>
-        {{t "common.cgu.label"}}
+      <PixCheckbox {{on "change" this.onChange}}>
+        {{t "common.cgu.message" cguUrl=this.cguUrl dataProtectionPolicyUrl=this.dataProtectionPolicyUrl htmlSafe=true}}
       </PixCheckbox>
-      <p class="login-or-register-oidc-form__cgu-label">
-        {{t "common.cgu.accept"}}
-        <a href={{this.cguUrl}} class="link" target="_blank" rel="noopener noreferrer">
-          {{t "common.cgu.cgu"}}
-        </a>
-        {{t "common.cgu.and"}}
-        <a href={{this.dataProtectionPolicyUrl}} class="link" target="_blank" rel="noopener noreferrer">
-          {{t "common.cgu.data-protection-policy"}}
-        </a>
-        {{t "common.cgu.pix"}}
-      </p>
     </div>
 
-    {{#if this.registerError}}
+    {{#if this.registerErrorMessage}}
       <PixMessage @type="error" class="login-or-register-oidc-form__cgu-error">
         {{this.registerErrorMessage}}
       </PixMessage>
     {{/if}}
 
-    <PixButton @type="submit" @triggerAction={{this.register}}>
+    <PixButton @type="submit" @triggerAction={{this.register}} @isLoading={{this.isRegisterLoading}}>
       {{t "pages.login-or-register-oidc.register-form.button"}}
     </PixButton>
   </div>
@@ -56,9 +45,9 @@
       <PixInput
         @id="email"
         @label={{t "pages.login-or-register-oidc.login-form.email"}}
+        name="email"
         @errorMessage={{this.emailValidationMessage}}
-        @value={{this.email}}
-        type="email"
+        @validationStatus={{this.emailValidationStatus}}
         {{on "change" this.validateEmail}}
         autocomplete="off"
         required
@@ -78,13 +67,13 @@
         </LinkTo>
       </div>
 
-      {{#if this.loginError}}
+      {{#if this.loginErrorMessage}}
         <PixMessage @type="error" class="login-or-register-oidc-form__cgu-error">
           {{this.loginErrorMessage}}
         </PixMessage>
       {{/if}}
 
-      <PixButton @type="submit" class="login-or-register-oidc-form__submit-button">
+      <PixButton @type="submit" @isLoading={{this.isLoginLoading}} class="login-or-register-oidc-form__submit-button">
         {{t "pages.login-or-register-oidc.login-form.button"}}
       </PixButton>
     </form>

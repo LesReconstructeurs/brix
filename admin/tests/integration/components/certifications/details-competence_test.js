@@ -1,7 +1,7 @@
 import { module, test } from 'qunit';
 import { setupRenderingTest } from 'ember-qunit';
 import { render } from '@1024pix/ember-testing-library';
-import hbs from 'htmlbars-inline-precompile';
+import { hbs } from 'ember-cli-htmlbars';
 import { resolve } from 'rsvp';
 
 module('Integration | Component | certifications/details-competence', function (hooks) {
@@ -40,7 +40,7 @@ module('Integration | Component | certifications/details-competence', function (
   rate={{60}}
   @juryRate={{false}}
   @onUpdateRate={{this.externalAction}}
-/>`
+/>`,
     );
 
     // then
@@ -61,7 +61,7 @@ module('Integration | Component | certifications/details-competence', function (
   rate={{60}}
   @juryRate={{false}}
   @onUpdateRate={{this.externalAction}}
-/>`
+/>`,
     );
 
     // then
@@ -80,7 +80,7 @@ module('Integration | Component | certifications/details-competence', function (
   rate={{60}}
   juryRate={{70}}
   @onUpdateRate={{this.externalAction}}
-/>`
+/>`,
     );
 
     // then

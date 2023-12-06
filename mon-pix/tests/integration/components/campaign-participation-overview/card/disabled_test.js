@@ -1,7 +1,6 @@
 import { module, test } from 'qunit';
 import { render } from '@1024pix/ember-testing-library';
-import { contains } from '../../../../helpers/contains';
-import hbs from 'htmlbars-inline-precompile';
+import { hbs } from 'ember-cli-htmlbars';
 import setupIntlRenderingTest from '../../../../helpers/setup-intl-rendering';
 
 module('Integration | Component | CampaignParticipationOverview | Card | Archived', function (hooks) {
@@ -27,17 +26,21 @@ module('Integration | Component | CampaignParticipationOverview | Card | Archive
         this.set('campaignParticipationOverview', campaignParticipationOverview);
 
         // when
-        await render(
-          hbs`<CampaignParticipationOverview::Card::Disabled @model={{this.campaignParticipationOverview}} />`
+        const screen = await render(
+          hbs`<CampaignParticipationOverview::Card::Disabled @model={{this.campaignParticipationOverview}} />`,
         );
 
         // then
-        assert.ok(contains('My organization'));
-        assert.ok(contains('My campaign'));
-        assert.ok(contains('Parcours désactivé par votre organisation.\nVous ne pouvez plus envoyer vos résultats.'));
-        assert.ok(contains(this.intl.t('pages.campaign-participation-overview.card.tag.disabled').toUpperCase()));
+        assert.ok(screen.getByRole('heading', { name: 'My organization' }));
+        assert.ok(screen.getByText('My campaign'));
         assert.ok(
-          contains(this.intl.t('pages.campaign-participation-overview.card.started-at', { date: '01/01/2020' }))
+          screen.getByText('Parcours désactivé par votre organisation.Vous ne pouvez plus envoyer vos résultats.'),
+        );
+        assert.ok(screen.getByText(this.intl.t('pages.campaign-participation-overview.card.tag.disabled')));
+        assert.ok(
+          screen.getByText(
+            this.intl.t('pages.campaign-participation-overview.card.started-at', { date: '01/01/2020' }),
+          ),
         );
       });
 
@@ -54,17 +57,21 @@ module('Integration | Component | CampaignParticipationOverview | Card | Archive
         this.set('campaignParticipationOverview', campaignParticipationOverview);
 
         // when
-        await render(
-          hbs`<CampaignParticipationOverview::Card::Disabled @model={{this.campaignParticipationOverview}} />`
+        const screen = await render(
+          hbs`<CampaignParticipationOverview::Card::Disabled @model={{this.campaignParticipationOverview}} />`,
         );
 
         // then
-        assert.ok(contains('My organization'));
-        assert.ok(contains('My campaign'));
-        assert.ok(contains('Parcours désactivé par votre organisation.\nVous ne pouvez plus envoyer vos résultats.'));
-        assert.ok(contains(this.intl.t('pages.campaign-participation-overview.card.tag.disabled').toUpperCase()));
+        assert.ok(screen.getByRole('heading', { name: 'My organization' }));
+        assert.ok(screen.getByText('My campaign'));
         assert.ok(
-          contains(this.intl.t('pages.campaign-participation-overview.card.started-at', { date: '01/01/2020' }))
+          screen.getByText('Parcours désactivé par votre organisation.Vous ne pouvez plus envoyer vos résultats.'),
+        );
+        assert.ok(screen.getByText(this.intl.t('pages.campaign-participation-overview.card.tag.disabled')));
+        assert.ok(
+          screen.getByText(
+            this.intl.t('pages.campaign-participation-overview.card.started-at', { date: '01/01/2020' }),
+          ),
         );
       });
 
@@ -81,12 +88,12 @@ module('Integration | Component | CampaignParticipationOverview | Card | Archive
         this.set('campaignParticipationOverview', campaignParticipationOverview);
 
         // when
-        await render(
-          hbs`<CampaignParticipationOverview::Card::Disabled @model={{this.campaignParticipationOverview}} />`
+        const screen = await render(
+          hbs`<CampaignParticipationOverview::Card::Disabled @model={{this.campaignParticipationOverview}} />`,
         );
 
         // then
-        assert.notOk(contains('Voir le détail'));
+        assert.notOk(screen.queryByRole('link', { name: 'Voir le détail' }));
       });
     });
 
@@ -105,12 +112,12 @@ module('Integration | Component | CampaignParticipationOverview | Card | Archive
         this.set('campaignParticipationOverview', campaignParticipationOverview);
 
         // when
-        await render(
-          hbs`<CampaignParticipationOverview::Card::Disabled @model={{this.campaignParticipationOverview}} />`
+        const screen = await render(
+          hbs`<CampaignParticipationOverview::Card::Disabled @model={{this.campaignParticipationOverview}} />`,
         );
 
         // then
-        assert.ok(contains('Voir le détail'));
+        assert.ok(screen.getByRole('link', { name: 'Voir le détail' }));
       });
 
       module('when the participation has a mastery percentage', function () {
@@ -128,12 +135,12 @@ module('Integration | Component | CampaignParticipationOverview | Card | Archive
           this.set('campaignParticipationOverview', campaignParticipationOverview);
 
           // when
-          await render(
-            hbs`<CampaignParticipationOverview::Card::Disabled @model={{this.campaignParticipationOverview}} />`
+          const screen = await render(
+            hbs`<CampaignParticipationOverview::Card::Disabled @model={{this.campaignParticipationOverview}} />`,
           );
 
           // then
-          assert.ok(contains('56 % de réussite'));
+          assert.ok(screen.getByText('56 % de réussite'));
         });
       });
 
@@ -148,19 +155,18 @@ module('Integration | Component | CampaignParticipationOverview | Card | Archive
             campaignTitle: 'My campaign',
             organizationName: 'My organization',
             masteryRate: '0.56',
-            totalStagesCount: 3,
-            validatedStagesCount: 1,
+            totalStagesCount: 4,
+            validatedStagesCount: 2,
           });
-
           this.set('campaignParticipationOverview', campaignParticipationOverview);
 
           // when
           const screen = await render(
-            hbs`<CampaignParticipationOverview::Card::Disabled @model={{this.campaignParticipationOverview}} />`
+            hbs`<CampaignParticipationOverview::Card::Disabled @model={{this.campaignParticipationOverview}} />`,
           );
 
           // then
-          assert.ok(screen.getByLabelText('1 étoile sur 3'));
+          assert.ok(screen.getByText('1 étoile sur 3'));
         });
       });
     });

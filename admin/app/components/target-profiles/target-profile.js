@@ -1,7 +1,8 @@
 import Component from '@glimmer/component';
 import { action } from '@ember/object';
 import { tracked } from '@glimmer/tracking';
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
+
 export default class TargetProfile extends Component {
   @service notifications;
 
@@ -25,8 +26,12 @@ export default class TargetProfile extends Component {
     return this.args.model.isSimplifiedAccess ? 'Oui' : 'Non';
   }
 
-  get displayActionsSeparator() {
-    return !this.args.model.isSimplifiedAccess || this.args.model.isNewFormat;
+  get areKnowledgeElementsResettable() {
+    return this.args.model.areKnowledgeElementsResettable ? 'Oui' : 'Non';
+  }
+
+  get hasLinkedCampaign() {
+    return this.args.model.hasLinkedCampaign ? 'Oui' : 'Non';
   }
 
   @action

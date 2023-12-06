@@ -1,13 +1,15 @@
-const _ = require('lodash');
-const CertificationContract = require('../../models/CertificationContract');
-const scoringService = require('./scoring-service');
-const placementProfileService = require('../placement-profile-service');
-const { CertifiedLevel } = require('../../models/CertifiedLevel');
-const { CertifiedScore } = require('../../models/CertifiedScore');
-const { ReproducibilityRate } = require('../../models/ReproducibilityRate');
-const CompetenceMark = require('../../models/CompetenceMark');
-const CertificationAssessmentScore = require('../../models/CertificationAssessmentScore');
-const AnswerCollectionForScoring = require('../../models/AnswerCollectionForScoring');
+import _ from 'lodash';
+import { CertificationContract } from '../../models/CertificationContract.js';
+import * as scoringService from './scoring-service.js';
+import * as placementProfileService from '../placement-profile-service.js';
+import { CertifiedLevel } from '../../models/CertifiedLevel.js';
+import { CertifiedScore } from '../../models/CertifiedScore.js';
+import { ReproducibilityRate } from '../../models/ReproducibilityRate.js';
+import { CompetenceMark } from '../../models/CompetenceMark.js';
+import { CertificationAssessmentScore } from '../../models/CertificationAssessmentScore.js';
+import { AnswerCollectionForScoring } from '../../models/AnswerCollectionForScoring.js';
+import * as areaRepository from '../../../infrastructure/repositories/area-repository.js';
+import { CertificationVersion } from '../../models/CertificationVersion.js';
 
 function _selectAnswersMatchingCertificationChallenges(answers, certificationChallenges) {
   return answers.filter(({ challengeId }) => _.some(certificationChallenges, { challengeId }));
@@ -27,7 +29,8 @@ function _getCompetenceMarksWithCertifiedLevelAndScore(
   reproducibilityRate,
   certificationChallenges,
   continueOnError,
-  answerCollection
+  answerCollection,
+  allAreas,
 ) {
   return listCompetences.map((competence) => {
     const challengesForCompetence = _.filter(certificationChallenges, { competenceId: competence.id });
@@ -47,29 +50,31 @@ function _getCompetenceMarksWithCertifiedLevelAndScore(
       reproducibilityRate,
     });
     const certifiedScore = CertifiedScore.from({ certifiedLevel, estimatedScore: competence.pixScore });
+    const area = allAreas.find((area) => area.id === competence.areaId);
     return new CompetenceMark({
       level: scoringService.getBlockedLevel(certifiedLevel.value),
       score: scoringService.getBlockedPixScore(certifiedScore.value),
-      area_code: competence.area.code,
+      area_code: area.code,
       competence_code: competence.index,
       competenceId: competence.id,
     });
   });
 }
 
-function _getCompetenceMarksWithFailedLevel(listCompetences) {
+function _getCompetenceMarksWithFailedLevel(listCompetences, allAreas) {
   return listCompetences.map((competence) => {
+    const area = allAreas.find((area) => area.id === competence.areaId);
     return new CompetenceMark({
       level: scoringService.getBlockedLevel(CertifiedLevel.invalidate().value),
       score: scoringService.getBlockedPixScore(0),
-      area_code: competence.area.code,
+      area_code: area.code,
       competence_code: competence.index,
       competenceId: competence.id,
     });
   });
 }
 
-function _getResult(answers, certificationChallenges, testedCompetences, continueOnError) {
+function _getResult(answers, certificationChallenges, testedCompetences, allAreas, continueOnError) {
   if (!continueOnError) {
     CertificationContract.assertThatWeHaveEnoughAnswers(answers, certificationChallenges);
   }
@@ -84,12 +89,12 @@ function _getResult(answers, certificationChallenges, testedCompetences, continu
   const hasEnoughNonNeutralizedChallengesToBeTrusted =
     CertificationContract.hasEnoughNonNeutralizedChallengesToBeTrusted(
       answerCollection.numberOfChallenges(),
-      answerCollection.numberOfNonNeutralizedChallenges()
+      answerCollection.numberOfNonNeutralizedChallenges(),
     );
 
   if (!reproducibilityRate.isEnoughToBeCertified()) {
     return new CertificationAssessmentScore({
-      competenceMarks: _getCompetenceMarksWithFailedLevel(testedCompetences),
+      competenceMarks: _getCompetenceMarksWithFailedLevel(testedCompetences, allAreas),
       percentageCorrectAnswers: reproducibilityRate.value,
       hasEnoughNonNeutralizedChallengesToBeTrusted,
     });
@@ -101,7 +106,8 @@ function _getResult(answers, certificationChallenges, testedCompetences, continu
     reproducibilityRate.value,
     certificationChallenges,
     continueOnError,
-    answerCollection
+    answerCollection,
+    allAreas,
   );
   const scoreAfterRating = _getSumScoreFromCertifiedCompetences(competenceMarks);
 
@@ -116,35 +122,45 @@ function _getResult(answers, certificationChallenges, testedCompetences, continu
   });
 }
 
-async function _getTestedCompetences({ userId, limitDate, isV2Certification }) {
-  const placementProfile = await placementProfileService.getPlacementProfile({ userId, limitDate, isV2Certification });
+async function _getTestedCompetences({ userId, limitDate, version, placementProfileService }) {
+  const placementProfile = await placementProfileService.getPlacementProfile({ userId, limitDate, version });
   return _(placementProfile.userCompetences)
     .filter((uc) => uc.isCertifiable())
-    .map((uc) => _.pick(uc, ['id', 'area', 'index', 'name', 'estimatedLevel', 'pixScore']))
+    .map((uc) => _.pick(uc, ['id', 'index', 'areaId', 'name', 'estimatedLevel', 'pixScore']))
     .value();
 }
 
-module.exports = {
-  async calculateCertificationAssessmentScore({ certificationAssessment, continueOnError }) {
-    // userService.getPlacementProfile() + filter level > 0 => avec allCompetence (bug)
-    const testedCompetences = await _getTestedCompetences({
-      userId: certificationAssessment.userId,
-      limitDate: certificationAssessment.createdAt,
-      isV2Certification: certificationAssessment.isV2Certification,
-    });
+const calculateCertificationAssessmentScore = async function ({
+  certificationAssessment,
+  continueOnError,
 
-    // map sur challenges filtre sur competence Id - S'assurer qu'on ne travaille que sur les compétences certifiables
-    const matchingCertificationChallenges = _selectChallengesMatchingCompetences(
-      certificationAssessment.certificationChallenges,
-      testedCompetences
-    );
-
-    // map sur challenges filtre sur challenge Id
-    const matchingAnswers = _selectAnswersMatchingCertificationChallenges(
-      certificationAssessment.certificationAnswersByDate,
-      matchingCertificationChallenges
-    );
-
-    return _getResult(matchingAnswers, matchingCertificationChallenges, testedCompetences, continueOnError);
+  dependencies = {
+    areaRepository,
+    placementProfileService,
   },
+}) {
+  // userService.getPlacementProfile() + filter level > 0 => avec allCompetence (bug)
+  const testedCompetences = await _getTestedCompetences({
+    userId: certificationAssessment.userId,
+    limitDate: certificationAssessment.createdAt,
+    version: CertificationVersion.V2,
+    placementProfileService: dependencies.placementProfileService,
+  });
+
+  // map sur challenges filtre sur competence Id - S'assurer qu'on ne travaille que sur les compétences certifiables
+  const matchingCertificationChallenges = _selectChallengesMatchingCompetences(
+    certificationAssessment.certificationChallenges,
+    testedCompetences,
+  );
+
+  // map sur challenges filtre sur challenge Id
+  const matchingAnswers = _selectAnswersMatchingCertificationChallenges(
+    certificationAssessment.certificationAnswersByDate,
+    matchingCertificationChallenges,
+  );
+
+  const allAreas = await dependencies.areaRepository.list();
+  return _getResult(matchingAnswers, matchingCertificationChallenges, testedCompetences, allAreas, continueOnError);
 };
+
+export { calculateCertificationAssessmentScore };

@@ -1,18 +1,31 @@
-const _ = require('lodash');
-const {
-  expect,
+import _ from 'lodash';
+
+import {
   databaseBuilder,
   domainBuilder,
+  expect,
   generateValidRequestAuthorizationHeader,
   knex,
-} = require('../../../test-helper');
-const createServer = require('../../../../server');
+  sinon,
+} from '../../../test-helper.js';
+import { clearResolveMx, setResolveMx } from '../../../../lib/infrastructure/mail-check.js';
+
+import { createServer } from '../../../../server.js';
 
 describe('Acceptance | Controller | session-controller-post-certification-candidates', function () {
   let server;
+  let resolveMx;
 
   beforeEach(async function () {
     server = await createServer();
+    resolveMx = sinon.stub();
+    resolveMx.resolves();
+    setResolveMx(resolveMx);
+  });
+
+  afterEach(async function () {
+    server = await createServer();
+    clearResolveMx();
   });
 
   describe('#save', function () {
@@ -44,7 +57,7 @@ describe('Acceptance | Controller | session-controller-post-certification-candid
           name: 'PRO_CERTIFICATION_CENTER',
           type: 'PRO',
           externalId: 'EXTERNAL_ID',
-        }
+        },
       );
 
       sessionId = databaseBuilder.factory.buildSession({ certificationCenterId, certificationCenter }).id;
@@ -59,7 +72,7 @@ describe('Acceptance | Controller | session-controller-post-certification-candid
         INSEECode: '75115',
       });
       const complementaryCertification1Id = databaseBuilder.factory.buildComplementaryCertification({
-        name: 'Certif complémentaire 1',
+        label: 'Certif complémentaire 1',
       }).id;
 
       payload = {
@@ -80,7 +93,11 @@ describe('Acceptance | Controller | session-controller-post-certification-candid
             'birth-postal-code': null,
             'billing-mode': 'FREE',
             sex: certificationCandidate.sex,
-            'complementary-certifications': [{ id: complementaryCertification1Id, name: 'Certif complémentaire 1' }],
+            'complementary-certification': {
+              id: complementaryCertification1Id,
+              label: 'Certif complémentaire 1',
+              key: 'CERTIF',
+            },
           },
         },
       };
@@ -123,7 +140,7 @@ describe('Acceptance | Controller | session-controller-post-certification-candid
           'birth-city': certificationCpfCity.name,
           'birth-country': certificationCpfCountry.commonName,
           'birth-province-code': null,
-          'billing-mode': 'Gratuite',
+          'billing-mode': 'FREE',
           'prepayment-code': null,
           'result-recipient-email': certificationCandidate.resultRecipientEmail,
           email: certificationCandidate.email,
@@ -134,7 +151,7 @@ describe('Acceptance | Controller | session-controller-post-certification-candid
           'birth-insee-code': certificationCpfCity.INSEECode,
           'birth-postal-code': null,
           sex: certificationCandidate.sex,
-          'complementary-certifications': [],
+          'complementary-certification': null,
         },
       };
 

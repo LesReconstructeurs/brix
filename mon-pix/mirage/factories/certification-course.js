@@ -1,17 +1,17 @@
 import { Factory } from 'miragejs';
-import faker from 'faker';
+import { faker } from '@faker-js/faker';
 
 export default Factory.extend({
   nbChallenges() {
-    return faker.random.number();
+    return faker.number.int();
   },
 
   sessionId() {
-    return faker.random.number();
+    return faker.number.int();
   },
 
   accessCode() {
-    return faker.random.alphaNumeric(9);
+    return faker.string.alphanumeric(9);
   },
 
   afterCreate(certificationCourse, server) {

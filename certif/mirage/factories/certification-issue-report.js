@@ -1,8 +1,8 @@
-import { Factory } from 'ember-cli-mirage';
+import { Factory } from 'miragejs';
 
 export default Factory.extend({
   category() {
-    return 'Issue report category';
+    return 'CANDIDATE_INFORMATIONS_CHANGES';
   },
 
   subcategory() {

@@ -1,10 +1,10 @@
-const _ = require('lodash');
-const { expect, sinon, domainBuilder, catchErr } = require('../../../test-helper');
-const completeAssessment = require('../../../../lib/domain/usecases/complete-assessment');
-const Assessment = require('../../../../lib/domain/models/Assessment');
-const { AlreadyRatedAssessmentError } = require('../../../../lib/domain/errors');
-const AssessmentCompleted = require('../../../../lib/domain/events/AssessmentCompleted');
-const CampaignParticipationStatuses = require('../../../../lib/domain/models/CampaignParticipationStatuses');
+import _ from 'lodash';
+import { expect, sinon, domainBuilder, catchErr } from '../../../test-helper.js';
+import { completeAssessment } from '../../../../lib/domain/usecases/complete-assessment.js';
+import { Assessment } from '../../../../lib/domain/models/Assessment.js';
+import { AlreadyRatedAssessmentError } from '../../../../lib/domain/errors.js';
+import { AssessmentCompleted } from '../../../../lib/domain/events/AssessmentCompleted.js';
+import { CampaignParticipationStatuses } from '../../../../lib/domain/models/CampaignParticipationStatuses.js';
 
 describe('Unit | UseCase | complete-assessment', function () {
   let assessmentRepository;
@@ -85,9 +85,8 @@ describe('Unit | UseCase | complete-assessment', function () {
           });
 
           // then
-          expect(
-            assessmentRepository.completeByAssessmentId.calledWithExactly(assessment.id, domainTransaction)
-          ).to.be.true;
+          expect(assessmentRepository.completeByAssessmentId.calledWithExactly(assessment.id, domainTransaction)).to.be
+            .true;
         });
 
         it('should return a AssessmentCompleted event', async function () {
@@ -147,8 +146,8 @@ describe('Unit | UseCase | complete-assessment', function () {
         expect(
           campaignParticipationRepository.update.calledWithExactly(
             { id: assessment.campaignParticipationId, status: TO_SHARE },
-            domainTransaction
-          )
+            domainTransaction,
+          ),
         ).to.be.true;
       });
     });

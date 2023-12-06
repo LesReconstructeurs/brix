@@ -1,5 +1,5 @@
-const { expect, databaseBuilder, generateValidRequestAuthorizationHeader } = require('../../../test-helper');
-const createServer = require('../../../../server');
+import { expect, databaseBuilder, generateValidRequestAuthorizationHeader } from '../../../test-helper.js';
+import { createServer } from '../../../../server.js';
 
 describe('Acceptance | Controller | session-controller-get-supervisor-kit-pdf', function () {
   let server;
@@ -38,7 +38,7 @@ describe('Acceptance | Controller | session-controller-get-supervisor-kit-pdf', 
       const token = authHeader.replace('Bearer ', '');
       const options = {
         method: 'GET',
-        url: `/api/sessions/${sessionIdAllowed}/supervisor-kit?accessToken=${token}`,
+        url: `/api/sessions/${sessionIdAllowed}/supervisor-kit?accessToken=${token}&lang=fr`,
         payload: {},
       };
       // when

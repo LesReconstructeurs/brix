@@ -1,7 +1,6 @@
-const { expect, sinon, hFake } = require('../../../test-helper');
-const usecases = require('../../../../lib/domain/usecases');
-const certificationCandidateController = require('../../../../lib/application/certification-candidates/certification-candidates-controller');
-const endTestScreenRemovalService = require('../../../../lib/domain/services/end-test-screen-removal-service');
+import { expect, sinon, hFake } from '../../../test-helper.js';
+import { usecases } from '../../../../lib/domain/usecases/index.js';
+import { certificationCandidatesController } from '../../../../lib/application/certification-candidates/certification-candidates-controller.js';
 
 describe('Unit | Controller | certifications-candidate-controller', function () {
   describe('#authorizeToStart', function () {
@@ -26,7 +25,7 @@ describe('Unit | Controller | certifications-candidate-controller', function () 
         .resolves();
 
       // when
-      const response = await certificationCandidateController.authorizeToStart(request, hFake);
+      const response = await certificationCandidatesController.authorizeToStart(request, hFake);
 
       // then
       expect(response.statusCode).to.equal(204);
@@ -36,8 +35,6 @@ describe('Unit | Controller | certifications-candidate-controller', function () 
   describe('#authorizeToResume', function () {
     it('should return a 204 status code', async function () {
       // given
-      sinon.stub(endTestScreenRemovalService, 'isEndTestScreenRemovalEnabledByCandidateId');
-      endTestScreenRemovalService.isEndTestScreenRemovalEnabledByCandidateId.withArgs(99).resolves(true);
       const request = {
         auth: {
           credentials: { userId: '111' },
@@ -55,30 +52,29 @@ describe('Unit | Controller | certifications-candidate-controller', function () 
         .resolves();
 
       // when
-      const response = await certificationCandidateController.authorizeToResume(request, hFake);
+      const response = await certificationCandidatesController.authorizeToResume(request, hFake);
 
       // then
       expect(response.statusCode).to.equal(204);
     });
   });
-});
+  describe('#endAssessmentBySupervisor', function () {
+    const certificationCandidateId = 2;
 
-describe('#endAssessmentBySupervisor', function () {
-  const certificationCandidateId = 2;
+    it('should call the endAssessmentBySupervisor use case', async function () {
+      // given
+      sinon.stub(usecases, 'endAssessmentBySupervisor');
+      usecases.endAssessmentBySupervisor.resolves();
 
-  it('should call the endAssessmentBySupervisor use case', async function () {
-    // given
-    sinon.stub(usecases, 'endAssessmentBySupervisor');
-    usecases.endAssessmentBySupervisor.resolves();
+      // when
+      await certificationCandidatesController.endAssessmentBySupervisor({
+        params: { id: certificationCandidateId },
+      });
 
-    // when
-    await certificationCandidateController.endAssessmentBySupervisor({
-      params: { id: certificationCandidateId },
-    });
-
-    // then
-    expect(usecases.endAssessmentBySupervisor).to.have.been.calledWithExactly({
-      certificationCandidateId,
+      // then
+      expect(usecases.endAssessmentBySupervisor).to.have.been.calledWithExactly({
+        certificationCandidateId,
+      });
     });
   });
 });

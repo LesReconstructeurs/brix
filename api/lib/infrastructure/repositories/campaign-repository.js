@@ -1,199 +1,182 @@
-const _ = require('lodash');
-const BookshelfCampaign = require('../orm-models/Campaign');
-const { NotFoundError } = require('../../domain/errors');
-const bookshelfToDomainConverter = require('../utils/bookshelf-to-domain-converter');
-const { knex } = require('../../../db/knex-database-connection');
-const Campaign = require('../../domain/models/Campaign');
-const targetProfileRepository = require('./target-profile-repository');
-const skillRepository = require('./skill-repository');
-const Stage = require('../../domain/models/Stage');
+import _ from 'lodash';
+import { NotFoundError } from '../../domain/errors.js';
+import { knex } from '../../../db/knex-database-connection.js';
+import { Campaign } from '../../domain/models/Campaign.js';
+import * as skillRepository from './skill-repository.js';
 
 const CAMPAIGNS_TABLE = 'campaigns';
 
-module.exports = {
-  isCodeAvailable(code) {
-    return BookshelfCampaign.where({ code })
-      .fetch({ require: false })
-      .then((campaign) => {
-        if (campaign) {
-          return false;
-        }
-        return true;
-      });
-  },
+const isCodeAvailable = async function (code) {
+  return !(await knex('campaigns').first('id').where({ code }));
+};
 
-  async getByCode(code) {
-    const bookshelfCampaign = await BookshelfCampaign.where({ code }).fetch({
-      require: false,
-      withRelated: ['organization'],
-    });
-    return bookshelfToDomainConverter.buildDomainObject(BookshelfCampaign, bookshelfCampaign);
-  },
+const getByCode = async function (code) {
+  const campaign = await knex('campaigns').first().where({ code });
+  if (!campaign) return null;
+  return new Campaign({ ...campaign, organization: { id: campaign.organizationId } });
+};
 
-  async get(id) {
-    const bookshelfCampaign = await BookshelfCampaign.where({ id })
-      .fetch({
-        withRelated: ['creator', 'organization', 'targetProfile'],
-      })
-      .catch((err) => {
-        if (err instanceof BookshelfCampaign.NotFoundError) {
-          throw new NotFoundError(`Not found campaign for ID ${id}`);
-        }
-        throw err;
-      });
-    return bookshelfToDomainConverter.buildDomainObject(BookshelfCampaign, bookshelfCampaign);
-  },
+const get = async function (id) {
+  const campaign = await knex('campaigns').where({ id }).first();
+  if (!campaign) {
+    throw new NotFoundError(`Not found campaign for ID ${id}`);
+  }
+  return new Campaign({
+    ...campaign,
+    organization: { id: campaign.organizationId },
+    targetProfile: { id: campaign.targetProfileId },
+    creator: { id: campaign.creatorId },
+  });
+};
 
-  async save(campaign) {
-    const trx = await knex.transaction();
-    const campaignAttributes = _.pick(campaign, [
-      'name',
-      'code',
-      'title',
-      'type',
-      'idPixLabel',
-      'customLandingPageText',
-      'creatorId',
-      'ownerId',
-      'organizationId',
-      'targetProfileId',
-      'multipleSendings',
-    ]);
-    try {
+const save = async function (campaigns, dependencies = { skillRepository }) {
+  const trx = await knex.transaction();
+  const campaignsToCreate = _.isArray(campaigns) ? campaigns : [campaigns];
+
+  try {
+    let latestCreatedCampaign;
+    for (const campaign of campaignsToCreate) {
+      const campaignAttributes = _.pick(campaign, [
+        'name',
+        'code',
+        'title',
+        'type',
+        'idPixLabel',
+        'customLandingPageText',
+        'creatorId',
+        'ownerId',
+        'organizationId',
+        'targetProfileId',
+        'multipleSendings',
+        'createdAt',
+      ]);
       const [createdCampaignDTO] = await trx(CAMPAIGNS_TABLE).insert(campaignAttributes).returning('*');
-      const createdCampaign = new Campaign(createdCampaignDTO);
-      if (createdCampaign.isAssessment()) {
+      latestCreatedCampaign = new Campaign(createdCampaignDTO);
+      if (latestCreatedCampaign.isAssessment()) {
         const cappedTubes = await trx('target-profile_tubes')
           .select('tubeId', 'level')
           .where('targetProfileId', campaignAttributes.targetProfileId);
         const skillData = [];
-        if (cappedTubes.length > 0) {
-          for (const cappedTube of cappedTubes) {
-            const allLevelSkills = await skillRepository.findActiveByTubeId(cappedTube.tubeId);
-            const rightLevelSkills = allLevelSkills.filter((skill) => skill.difficulty <= cappedTube.level);
-            skillData.push(...rightLevelSkills.map((skill) => ({ skillId: skill.id, campaignId: createdCampaign.id })));
-          }
-        } else {
-          const skillIds = await trx('target-profiles_skills')
-            .pluck('skillId')
-            .distinct()
-            .where('targetProfileId', campaignAttributes.targetProfileId);
-          skillData.push(...skillIds.map((skillId) => ({ skillId, campaignId: createdCampaign.id })));
+        for (const cappedTube of cappedTubes) {
+          const allLevelSkills = await dependencies.skillRepository.findActiveByTubeId(cappedTube.tubeId);
+          const rightLevelSkills = allLevelSkills.filter((skill) => skill.difficulty <= cappedTube.level);
+          skillData.push(
+            ...rightLevelSkills.map((skill) => ({ skillId: skill.id, campaignId: latestCreatedCampaign.id })),
+          );
         }
         await trx.batchInsert('campaign_skills', skillData);
       }
-      await trx.commit();
-      return createdCampaign;
-    } catch (err) {
-      await trx.rollback();
-      throw err;
     }
-  },
+    await trx.commit();
+    return latestCreatedCampaign;
+  } catch (err) {
+    await trx.rollback();
+    throw err;
+  }
+};
 
-  async update(campaign) {
-    const editedAttributes = _.pick(campaign, [
-      'name',
-      'title',
-      'customLandingPageText',
-      'archivedAt',
-      'archivedBy',
-      'ownerId',
-    ]);
+const update = async function (campaign) {
+  const editedAttributes = _.pick(campaign, [
+    'name',
+    'title',
+    'customLandingPageText',
+    'archivedAt',
+    'archivedBy',
+    'ownerId',
+  ]);
 
-    const [editedCampaign] = await knex('campaigns').update(editedAttributes).where({ id: campaign.id }).returning('*');
+  const [editedCampaign] = await knex('campaigns').update(editedAttributes).where({ id: campaign.id }).returning('*');
 
-    return new Campaign(editedCampaign);
-  },
+  return new Campaign(editedCampaign);
+};
 
-  async checkIfUserOrganizationHasAccessToCampaign(campaignId, userId) {
-    try {
-      await BookshelfCampaign.query((qb) => {
-        qb.where({ 'campaigns.id': campaignId, 'memberships.userId': userId, 'memberships.disabledAt': null });
-        qb.innerJoin('memberships', 'memberships.organizationId', 'campaigns.organizationId');
-        qb.innerJoin('organizations', 'organizations.id', 'campaigns.organizationId');
-      }).fetch();
-    } catch (e) {
-      return false;
-    }
-    return true;
-  },
+const checkIfUserOrganizationHasAccessToCampaign = async function (campaignId, userId) {
+  const campaign = await knex('campaigns')
+    .innerJoin('memberships', 'memberships.organizationId', 'campaigns.organizationId')
+    .innerJoin('organizations', 'organizations.id', 'campaigns.organizationId')
+    .where({ 'campaigns.id': campaignId, 'memberships.userId': userId, 'memberships.disabledAt': null })
+    .first('campaigns.id');
+  return Boolean(campaign);
+};
 
-  async checkIfCampaignIsArchived(campaignId) {
-    const bookshelfCampaign = await BookshelfCampaign.where({ id: campaignId }).fetch();
+const checkIfCampaignIsArchived = async function (campaignId) {
+  const { archivedAt } = await knex('campaigns').where({ id: campaignId }).first('archivedAt');
+  return Boolean(archivedAt);
+};
 
-    const campaign = bookshelfToDomainConverter.buildDomainObject(BookshelfCampaign, bookshelfCampaign);
-    return campaign.isArchived();
-  },
+const getCampaignTitleByCampaignParticipationId = async function (campaignParticipationId) {
+  const campaign = await knex('campaigns')
+    .select('title')
+    .join('campaign-participations', 'campaign-participations.campaignId', 'campaigns.id')
+    .where({ 'campaign-participations.id': campaignParticipationId })
+    .first();
 
-  async getCampaignTitleByCampaignParticipationId(campaignParticipationId) {
-    const campaign = await knex('campaigns')
-      .select('title')
-      .join('campaign-participations', 'campaign-participations.campaignId', 'campaigns.id')
-      .where({ 'campaign-participations.id': campaignParticipationId })
-      .first();
+  if (!campaign) return null;
+  return campaign.title;
+};
 
-    if (!campaign) return null;
-    return campaign.title;
-  },
+const getCampaignCodeByCampaignParticipationId = async function (campaignParticipationId) {
+  const campaign = await knex('campaigns')
+    .select('code')
+    .join('campaign-participations', 'campaign-participations.campaignId', 'campaigns.id')
+    .where({ 'campaign-participations.id': campaignParticipationId })
+    .first();
 
-  async getCampaignCodeByCampaignParticipationId(campaignParticipationId) {
-    const campaign = await knex('campaigns')
-      .select('code')
-      .join('campaign-participations', 'campaign-participations.campaignId', 'campaigns.id')
-      .where({ 'campaign-participations.id': campaignParticipationId })
-      .first();
+  if (!campaign) return null;
+  return campaign.code;
+};
 
-    if (!campaign) return null;
-    return campaign.code;
-  },
+const getCampaignIdByCampaignParticipationId = async function (campaignParticipationId) {
+  const campaign = await knex('campaigns')
+    .select('campaigns.id')
+    .join('campaign-participations', 'campaign-participations.campaignId', 'campaigns.id')
+    .where({ 'campaign-participations.id': campaignParticipationId })
+    .first();
 
-  async getCampaignIdByCampaignParticipationId(campaignParticipationId) {
-    const campaign = await knex('campaigns')
-      .select('campaigns.id')
-      .join('campaign-participations', 'campaign-participations.campaignId', 'campaigns.id')
-      .where({ 'campaign-participations.id': campaignParticipationId })
-      .first();
+  if (!campaign) return null;
+  return campaign.id;
+};
 
-    if (!campaign) return null;
-    return campaign.id;
-  },
+const findSkillIds = async function ({ campaignId, domainTransaction, filterByStatus = 'operative' }) {
+  if (filterByStatus === 'all') {
+    return _findSkillIds({ campaignId, domainTransaction });
+  }
+  const skills = await this.findSkills({ campaignId, domainTransaction, filterByStatus });
+  return skills.map(({ id }) => id);
+};
 
-  async findSkillIds({ campaignId, domainTransaction, filterByStatus = 'operative' }) {
-    if (filterByStatus === 'all') {
-      return _findSkillIds({ campaignId, domainTransaction });
-    }
-    const skills = await this.findSkills({ campaignId, domainTransaction, filterByStatus });
-    return skills.map(({ id }) => id);
-  },
+const findSkills = function ({ campaignId, domainTransaction, filterByStatus }) {
+  return _findSkills({ campaignId, domainTransaction, filterByStatus });
+};
 
-  findSkills({ campaignId, domainTransaction, filterByStatus }) {
-    return _findSkills({ campaignId, domainTransaction, filterByStatus });
-  },
+const findSkillsByCampaignParticipationId = async function ({ campaignParticipationId, domainTransaction }) {
+  const knexConn = domainTransaction?.knexTransaction ?? knex;
+  const [campaignId] = await knexConn('campaign-participations')
+    .where({ id: campaignParticipationId })
+    .pluck('campaignId');
+  return this.findSkills({ campaignId });
+};
 
-  async findSkillsByCampaignParticipationId({ campaignParticipationId, domainTransaction }) {
-    const knexConn = domainTransaction?.knexTransaction ?? knex;
-    const [campaignId] = await knexConn('campaign-participations')
-      .where({ id: campaignParticipationId })
-      .pluck('campaignId');
-    return this.findSkills({ campaignId });
-  },
+const findSkillIdsByCampaignParticipationId = async function ({ campaignParticipationId, domainTransaction }) {
+  const skills = await this.findSkillsByCampaignParticipationId({ campaignParticipationId, domainTransaction });
+  return skills.map(({ id }) => id);
+};
 
-  async findSkillIdsByCampaignParticipationId({ campaignParticipationId, domainTransaction }) {
-    const skills = await this.findSkillsByCampaignParticipationId({ campaignParticipationId, domainTransaction });
-    return skills.map(({ id }) => id);
-  },
-
-  async findStages({ campaignId }) {
-    const stages = await knex('stages')
-      .select('stages.*')
-      .join('campaigns', 'campaigns.targetProfileId', 'stages.targetProfileId')
-      .where('campaigns.id', campaignId)
-      .orderBy(['stages.threshold', 'stages.level']);
-
-    await _computeStagesThresholdForCampaign(stages, campaignId);
-
-    return stages.map((stage) => new Stage(stage));
-  },
+export {
+  isCodeAvailable,
+  getByCode,
+  get,
+  save,
+  update,
+  checkIfUserOrganizationHasAccessToCampaign,
+  checkIfCampaignIsArchived,
+  getCampaignTitleByCampaignParticipationId,
+  getCampaignCodeByCampaignParticipationId,
+  getCampaignIdByCampaignParticipationId,
+  findSkillIds,
+  findSkills,
+  findSkillsByCampaignParticipationId,
+  findSkillIdsByCampaignParticipationId,
 };
 
 async function _findSkills({ campaignId, domainTransaction, filterByStatus = 'operative' }) {
@@ -210,33 +193,5 @@ async function _findSkills({ campaignId, domainTransaction, filterByStatus = 'op
 
 async function _findSkillIds({ campaignId, domainTransaction }) {
   const knexConn = domainTransaction?.knexTransaction ?? knex;
-  let skillIds = await knexConn('campaign_skills').where({ campaignId }).pluck('skillId');
-  // TODO remove it after target profile skills migration
-  if (skillIds.length === 0) {
-    skillIds = await targetProfileRepository.getTargetProfileSkillIdsByCampaignId(campaignId, domainTransaction);
-  }
-  return skillIds;
-}
-
-async function _computeStagesThresholdForCampaign(stages, campaignId) {
-  const stagesWithLevel = stages.filter((stage) => stage.level);
-
-  if (stagesWithLevel.length === 0) return;
-
-  const skills = await _findSkills({ campaignId });
-
-  stagesWithLevel.forEach((stage) => {
-    stage.threshold = _computeStageThresholdForLevel(stage.level, skills);
-  });
-}
-
-const MAX_STAGE_THRESHOLD = 100;
-
-function _computeStageThresholdForLevel(level, skills) {
-  if (skills.length === 0) {
-    return MAX_STAGE_THRESHOLD;
-  }
-
-  const stageSkillsCount = skills.filter((skill) => skill.difficulty <= level).length;
-  return Math.round((stageSkillsCount / skills.length) * 100);
+  return knexConn('campaign_skills').where({ campaignId }).pluck('skillId');
 }

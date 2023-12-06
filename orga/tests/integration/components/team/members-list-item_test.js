@@ -1,7 +1,7 @@
 import { module, test } from 'qunit';
 import sinon from 'sinon';
 import { click } from '@ember/test-helpers';
-import hbs from 'htmlbars-inline-precompile';
+import { hbs } from 'ember-cli-htmlbars';
 import { clickByText, render, clickByName } from '@1024pix/ember-testing-library';
 import setupIntlRenderingTest from '../../../helpers/setup-intl-rendering';
 import Service from '@ember/service';
@@ -62,7 +62,7 @@ module('Integration | Component | Team::MembersListItem', function (hooks) {
       this.owner.register('service:current-user', CurrentUserMemberStub);
 
       // when
-      await render(hbs`<Team::MembersListItem @membership={{this.membership}}/>`);
+      await render(hbs`<Team::MembersListItem @membership={{this.membership}} />`);
 
       // then
       assert.contains('La Panique');
@@ -76,7 +76,7 @@ module('Integration | Component | Team::MembersListItem', function (hooks) {
       this.owner.register('service:current-user', CurrentUserMemberStub);
 
       // when
-      const screen = await render(hbs`<Team::MembersListItem @membership={{this.membership}}/>`);
+      const screen = await render(hbs`<Team::MembersListItem @membership={{this.membership}} />`);
 
       // then
       assert.dom(screen.queryByLabelText('Gérer')).doesNotExist();
@@ -90,7 +90,7 @@ module('Integration | Component | Team::MembersListItem', function (hooks) {
       this.owner.register('service:current-user', CurrentUserAdminStub);
 
       // when
-      const screen = await render(hbs`<Team::MembersListItem @membership={{this.membership}}/>`);
+      const screen = await render(hbs`<Team::MembersListItem @membership={{this.membership}} />`);
 
       // then
 
@@ -106,7 +106,7 @@ module('Integration | Component | Team::MembersListItem', function (hooks) {
         this.set('membership', adminMembership);
         this.owner.register('service:current-user', CurrentUserAdminStub);
 
-        const screen = await render(hbs`<Team::MembersListItem @membership={{this.membership}}/>`);
+        const screen = await render(hbs`<Team::MembersListItem @membership={{this.membership}} />`);
 
         // when
         await clickByName('Gérer');
@@ -123,7 +123,7 @@ module('Integration | Component | Team::MembersListItem', function (hooks) {
         this.set('membership', adminMembership);
         this.owner.register('service:current-user', CurrentUserAdminStub);
 
-        await render(hbs`<Team::MembersListItem @membership={{this.membership}}/>`);
+        await render(hbs`<Team::MembersListItem @membership={{this.membership}} />`);
 
         await clickByName('Gérer');
         await clickByText('Modifier le rôle');
@@ -142,7 +142,7 @@ module('Integration | Component | Team::MembersListItem', function (hooks) {
         this.owner.register('service:current-user', CurrentUserAdminStub);
         this.set('membership', memberMembership);
 
-        const screen = await render(hbs`<Team::MembersListItem @membership={{this.membership}}/>`);
+        const screen = await render(hbs`<Team::MembersListItem @membership={{this.membership}} />`);
         await clickByName('Gérer');
         await clickByText('Modifier le rôle');
 
@@ -162,7 +162,7 @@ module('Integration | Component | Team::MembersListItem', function (hooks) {
         this.set('membership', adminMembership);
         this.owner.register('service:current-user', CurrentUserAdminStub);
 
-        const screen = await render(hbs`<Team::MembersListItem @membership={{this.membership}}/>`);
+        const screen = await render(hbs`<Team::MembersListItem @membership={{this.membership}} />`);
         await clickByName('Gérer');
         await clickByText('Modifier le rôle');
 
@@ -184,7 +184,7 @@ module('Integration | Component | Team::MembersListItem', function (hooks) {
         this.set('membership', adminMembership);
         this.owner.register('service:current-user', CurrentUserAdminStub);
 
-        const screen = await render(hbs`<Team::MembersListItem @membership={{this.membership}}/>`);
+        const screen = await render(hbs`<Team::MembersListItem @membership={{this.membership}} />`);
         await clickByName('Gérer');
         await clickByText('Modifier le rôle');
 
@@ -196,7 +196,7 @@ module('Integration | Component | Team::MembersListItem', function (hooks) {
         // then
         sinon.assert.calledWith(
           notifications.success,
-          this.intl.t('pages.team-members.notifications.change-member-role.success')
+          this.intl.t('pages.team-members.notifications.change-member-role.success'),
         );
         assert.ok(true);
       });
@@ -209,7 +209,7 @@ module('Integration | Component | Team::MembersListItem', function (hooks) {
         const notifications = this.owner.lookup('service:notifications');
         sinon.stub(notifications, 'error');
 
-        const screen = await render(hbs`<Team::MembersListItem @membership={{this.membership}}/>`);
+        const screen = await render(hbs`<Team::MembersListItem @membership={{this.membership}} />`);
         await clickByName('Gérer');
         await clickByText('Modifier le rôle');
 
@@ -221,7 +221,7 @@ module('Integration | Component | Team::MembersListItem', function (hooks) {
         // then
         sinon.assert.calledWith(
           notifications.error,
-          this.intl.t('pages.team-members.notifications.change-member-role.error')
+          this.intl.t('pages.team-members.notifications.change-member-role.error'),
         );
         assert.ok(true);
       });
@@ -241,7 +241,7 @@ module('Integration | Component | Team::MembersListItem', function (hooks) {
 
         // when
         screen = await render(
-          hbs`<Team::MembersListItem @membership={{this.membership}} @onRemoveMember={{this.removeMembership}} />`
+          hbs`<Team::MembersListItem @membership={{this.membership}} @onRemoveMember={{this.removeMembership}} />`,
         );
 
         await clickByName('Gérer');

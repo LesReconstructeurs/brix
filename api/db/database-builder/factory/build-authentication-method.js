@@ -1,15 +1,17 @@
-const isUndefined = require('lodash/isUndefined');
-const databaseBuffer = require('../database-buffer');
-const buildUser = require('./build-user');
-const AuthenticationMethod = require('../../../lib/domain/models/AuthenticationMethod');
-const OidcIdentityProviders = require('../../../lib/domain/constants/oidc-identity-providers');
-const encrypt = require('../../../lib/domain/services/encryption-service');
+import lodash from 'lodash';
+const { isUndefined } = lodash;
+import { databaseBuffer } from '../database-buffer.js';
+import { buildUser } from './build-user.js';
+import { AuthenticationMethod } from '../../../lib/domain/models/AuthenticationMethod.js';
+import * as OidcIdentityProviders from '../../../lib/domain/constants/oidc-identity-providers.js';
+import * as encrypt from '../../../lib/domain/services/encryption-service.js';
+import { NON_OIDC_IDENTITY_PROVIDERS } from '../../../lib/domain/constants/identity-providers.js';
 
 const buildAuthenticationMethod = {};
 
 buildAuthenticationMethod.withGarAsIdentityProvider = function ({
   id = databaseBuffer.getNextId(),
-  identityProvider = AuthenticationMethod.identityProviders.GAR,
+  identityProvider = NON_OIDC_IDENTITY_PROVIDERS.GAR.code,
   externalIdentifier = 'externalId',
   userId,
   userFirstName = 'Margotte',
@@ -49,7 +51,7 @@ buildAuthenticationMethod.withPixAsIdentityProviderAndHashedPassword = function 
 
   const values = {
     id,
-    identityProvider: AuthenticationMethod.identityProviders.PIX,
+    identityProvider: NON_OIDC_IDENTITY_PROVIDERS.PIX.code,
     authenticationComplement: new AuthenticationMethod.PixAuthenticationComplement({
       password: hashedPassword,
       shouldChangePassword,
@@ -79,7 +81,7 @@ buildAuthenticationMethod.withPixAsIdentityProviderAndPassword = function ({
 
   const values = {
     id,
-    identityProvider: AuthenticationMethod.identityProviders.PIX,
+    identityProvider: NON_OIDC_IDENTITY_PROVIDERS.PIX.code,
     authenticationComplement: new AuthenticationMethod.PixAuthenticationComplement({
       password: hashedPassword,
       shouldChangePassword,
@@ -166,4 +168,4 @@ buildAuthenticationMethod.withIdentityProvider = function ({
   });
 };
 
-module.exports = buildAuthenticationMethod;
+export { buildAuthenticationMethod };

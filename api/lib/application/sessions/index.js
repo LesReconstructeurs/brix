@@ -1,16 +1,18 @@
-const Joi = require('joi');
-const securityPreHandlers = require('../security-pre-handlers');
-const sessionController = require('./session-controller');
-const sessionForSupervisingController = require('./session-for-supervising-controller');
-const sessionWithCleaCertifiedCandidateController = require('./session-with-clea-certified-candidate-controller');
-const finalizedSessionController = require('./finalized-session-controller');
-const authorization = require('../preHandlers/authorization');
-const identifiersType = require('../../domain/types/identifiers-type');
-const { sendJsonApiError, UnprocessableEntityError } = require('../http-errors');
-const endTestScreenRemovalEnabled = require('../preHandlers/end-test-screen-removal-enabled');
-const assessmentSupervisorAuthorization = require('../preHandlers/session-supervisor-authorization');
+import BaseJoi from 'joi';
+import JoiDate from '@joi/date';
+const Joi = BaseJoi.extend(JoiDate);
 
-exports.register = async (server) => {
+import { securityPreHandlers } from '../security-pre-handlers.js';
+import { sessionController } from './session-controller.js';
+import { sessionForSupervisingController } from './session-for-supervising-controller.js';
+import { sessionWithCleaCertifiedCandidateController } from './session-with-clea-certified-candidate-controller.js';
+import { finalizedSessionController } from './finalized-session-controller.js';
+import { authorization } from '../preHandlers/authorization.js';
+import { identifiersType } from '../../domain/types/identifiers-type.js';
+import { sendJsonApiError, UnprocessableEntityError } from '../http-errors.js';
+import { assessmentSupervisorAuthorization } from '../preHandlers/session-supervisor-authorization.js';
+
+const register = async function (server) {
   server.route([
     {
       method: 'GET',
@@ -291,6 +293,37 @@ exports.register = async (server) => {
           params: Joi.object({
             id: identifiersType.sessionId,
           }),
+          payload: Joi.object({
+            data: {
+              type: Joi.string().valid('certification-candidates').required(),
+              attributes: {
+                'complementary-certification': Joi.object()
+                  .keys({
+                    id: Joi.number().required(),
+                    key: Joi.string(),
+                    label: Joi.string(),
+                  })
+                  .optional(),
+                'first-name': Joi.string().empty(['', null]),
+                'last-name': Joi.string().empty(['', null]),
+                'birth-city': Joi.string().empty(['', null]),
+                'birth-province-code': Joi.string().empty(['', null]),
+                'birth-country': Joi.string().empty(['', null]),
+                'birth-postal-code': Joi.string().empty(['', null]),
+                'birth-insee-code': Joi.string().empty(['', null]),
+                'result-recipient-email': Joi.string().empty(['', null]),
+                'external-id': Joi.string().empty(['', null]),
+                'extra-time-percentage': Joi.number().empty([null]),
+                'billing-mode': Joi.string().empty(['', null]),
+                'prepayment-code': Joi.string().empty(['', null]),
+                'is-linked': Joi.boolean().valid(false).optional(),
+                sex: Joi.string().empty(['', null]),
+                email: Joi.string().empty(['', null]),
+                birthdate: Joi.date().format('YYYY-MM-DD').raw().required(),
+                'organization-learner-id': Joi.number().empty(null).forbidden(),
+              },
+            },
+          }),
         },
         pre: [
           {
@@ -367,6 +400,9 @@ exports.register = async (server) => {
           params: Joi.object({
             id: identifiersType.sessionId,
           }),
+          query: Joi.object({
+            lang: Joi.string().optional().valid('fr', 'en'),
+          }),
         },
         pre: [
           {
@@ -385,6 +421,41 @@ exports.register = async (server) => {
           "Cette route est restreinte aux utilisateurs ayant les droits d'accès",
           "Elle permet de générer un lien permettant de télécharger tous les résultats de certification d'une session",
         ],
+      },
+    },
+
+    {
+      method: 'GET',
+      path: '/api/admin/sessions/{id}/attestations',
+      config: {
+        validate: {
+          params: Joi.object({
+            id: identifiersType.sessionId,
+          }),
+        },
+        pre: [
+          {
+            method: (request, h) =>
+              securityPreHandlers.adminMemberHasAtLeastOneAccessOf([
+                securityPreHandlers.checkAdminMemberHasRoleSuperAdmin,
+                securityPreHandlers.checkAdminMemberHasRoleCertif,
+                securityPreHandlers.checkAdminMemberHasRoleSupport,
+              ])(request, h),
+            assign: 'hasAuthorizationToAccessAdminScope',
+          },
+        ],
+        handler: sessionController.getCertificationPDFAttestationsForSession,
+        plugins: {
+          'hapi-swagger': {
+            produces: ['application/pdf'],
+          },
+        },
+        notes: [
+          '- **Route accessible par un user Admin**\n' +
+            "- Récupération des attestations de certification d'une session au format PDF" +
+            ' via un id de session et un user id',
+        ],
+        tags: ['api', 'certifications', 'PDF'],
       },
     },
     {
@@ -410,10 +481,6 @@ exports.register = async (server) => {
           }),
         },
         pre: [
-          {
-            method: endTestScreenRemovalEnabled.verifyBySessionId,
-            assign: 'endTestScreenRemovalEnabledCheck',
-          },
           {
             method: assessmentSupervisorAuthorization.verifyBySessionId,
             assign: 'isSupervisorForSession',
@@ -446,12 +513,6 @@ exports.register = async (server) => {
             return sendJsonApiError(new UnprocessableEntityError('Un des champs saisis n’est pas valide.'), h);
           },
         },
-        pre: [
-          {
-            method: endTestScreenRemovalEnabled.verifyBySessionId,
-            assign: 'endTestScreenRemovalEnabledCheck',
-          },
-        ],
         handler: sessionForSupervisingController.supervise,
         tags: ['api', 'sessions', 'supervising'],
         notes: [
@@ -465,6 +526,11 @@ exports.register = async (server) => {
       path: '/api/sessions/download-all-results/{token}',
       config: {
         auth: false,
+        validate: {
+          query: Joi.object({
+            lang: Joi.string().optional().valid('fr', 'en'),
+          }),
+        },
         handler: sessionController.getSessionResultsToDownload,
         tags: ['api', 'sessions', 'results'],
         notes: [
@@ -731,7 +797,7 @@ exports.register = async (server) => {
             assign: 'authorizationCheck',
           },
         ],
-        handler: sessionController.delete,
+        handler: sessionController.remove,
         notes: [
           "- **Cette route est restreinte aux utilisateurs authentifiés ayant les droits d'accès au centre de certification**\n" +
             "- Supprime la session et les candidats si la session n'a pas démarrée",
@@ -741,7 +807,7 @@ exports.register = async (server) => {
     },
     {
       method: 'PUT',
-      path: '/api/sessions/{id}/enroll-students-to-session',
+      path: '/api/sessions/{id}/enrol-students-to-session',
       config: {
         validate: {
           params: Joi.object({
@@ -754,7 +820,7 @@ exports.register = async (server) => {
             assign: 'authorizationCheck',
           },
         ],
-        handler: sessionController.enrollStudentsToSession,
+        handler: sessionController.enrolStudentsToSession,
         notes: [
           '- **Cette route est restreinte aux utilisateurs authentifiés**\n' +
             '- Dans le cadre du SCO, inscrit un élève à une session de certification',
@@ -785,19 +851,8 @@ exports.register = async (server) => {
         ],
       },
     },
-    {
-      method: 'GET',
-      path: '/api/sessions/import',
-      config: {
-        handler: sessionController.getSessionsImportTemplate,
-        tags: ['api', 'sessions'],
-        notes: [
-          '- **Cette route est restreinte aux utilisateurs authentifiés**\n' +
-            '- Elle permet de récupérer le fichier de création de sessions de certification',
-        ],
-      },
-    },
   ]);
 };
 
-exports.name = 'sessions-api';
+const name = 'sessions-api';
+export { register, name };

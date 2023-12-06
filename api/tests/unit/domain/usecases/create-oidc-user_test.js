@@ -1,9 +1,9 @@
-const { expect, sinon, catchErr } = require('../../../test-helper');
-const {
+import { expect, sinon, catchErr } from '../../../test-helper.js';
+import {
   AuthenticationKeyExpired,
   UserAlreadyExistsWithAuthenticationMethodError,
-} = require('../../../../lib/domain/errors');
-const createOidcUser = require('../../../../lib/domain/usecases/create-oidc-user');
+} from '../../../../lib/domain/errors.js';
+import { createOidcUser } from '../../../../lib/domain/usecases/create-oidc-user.js';
 
 describe('Unit | UseCase | create-oidc-user', function () {
   let authenticationMethodRepository, userToCreateRepository, userRepository;
@@ -88,12 +88,6 @@ describe('Unit | UseCase | create-oidc-user', function () {
   it('should create user account and return an access token, the logout url uuid and update the last logged date with the existing external user id', async function () {
     // given
     const idToken = 'idToken';
-    const expectedUser = {
-      firstName: 'Jean',
-      lastName: 'Heymar',
-      cgu: true,
-      lastTermsOfServiceValidatedAt: now,
-    };
     authenticationSessionService.getByKey.withArgs('AUTHENTICATION_KEY').resolves({
       sessionContent: { idToken, accessToken: 'accessToken' },
       userInfo: { firstName: 'Jean', lastName: 'Heymar', externalIdentityId: 'externalId' },
@@ -101,7 +95,7 @@ describe('Unit | UseCase | create-oidc-user', function () {
     authenticationMethodRepository.findOneByExternalIdentifierAndIdentityProvider
       .withArgs({ externalIdentifier: 'externalId', identityProvider: 'SOME_IDP' })
       .resolves(null);
-    oidcAuthenticationService.createUserAccount.resolves({ userId: 10, idToken });
+    oidcAuthenticationService.createUserAccount.resolves(10);
     oidcAuthenticationService.createAccessToken.withArgs(10).returns('accessTokenForExistingExternalUser');
     oidcAuthenticationService.saveIdToken.withArgs({ idToken, userId: 10 }).resolves('logoutUrlUUID');
 
@@ -109,6 +103,7 @@ describe('Unit | UseCase | create-oidc-user', function () {
     const result = await createOidcUser({
       identityProvider: 'SOME_IDP',
       authenticationKey: 'AUTHENTICATION_KEY',
+      localeFromCookie: 'fr-FR',
       oidcAuthenticationService,
       authenticationSessionService,
       authenticationMethodRepository,
@@ -118,7 +113,13 @@ describe('Unit | UseCase | create-oidc-user', function () {
 
     // then
     expect(oidcAuthenticationService.createUserAccount).to.have.been.calledWithMatch({
-      user: expectedUser,
+      user: {
+        firstName: 'Jean',
+        lastName: 'Heymar',
+        locale: 'fr-FR',
+        cgu: true,
+        lastTermsOfServiceValidatedAt: now,
+      },
       sessionContent: { idToken, accessToken: 'accessToken' },
       externalIdentityId: 'externalId',
       userToCreateRepository,

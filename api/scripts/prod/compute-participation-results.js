@@ -1,21 +1,27 @@
 // Usage: node compute-participation-results.js
-require('dotenv').config({ path: `${__dirname}/../../.env` });
-const knowlegeElementSnapshotRepository = require('../../lib/infrastructure/repositories/knowledge-element-snapshot-repository');
-const campaignRepository = require('../../lib/infrastructure/repositories/campaign-repository');
-const ParticipantResultsShared = require('../../lib/domain/models/ParticipantResultsShared');
-const CampaignParticipationStatuses = require('../../lib/domain/models/CampaignParticipationStatuses');
+import * as url from 'url';
+
+const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
+import * as dotenv from 'dotenv';
+
+dotenv.config({ path: `${__dirname}/../../.env` });
+import * as knowlegeElementSnapshotRepository from '../../lib/infrastructure/repositories/knowledge-element-snapshot-repository.js';
+import * as campaignRepository from '../../lib/infrastructure/repositories/campaign-repository.js';
+import { ParticipantResultsShared } from '../../lib/domain/models/ParticipantResultsShared.js';
+import { CampaignParticipationStatuses } from '../../lib/domain/models/CampaignParticipationStatuses.js';
+
 const { SHARED } = CampaignParticipationStatuses;
-const { knex, disconnect } = require('../../db/knex-database-connection');
-const _ = require('lodash');
-const bluebird = require('bluebird');
-const constants = require('../../lib/infrastructure/constants');
-const placementProfileService = require('../../lib/domain/services/placement-profile-service');
-const competenceRepository = require('../../lib/infrastructure/repositories/competence-repository');
+import { knex, disconnect } from '../../db/knex-database-connection.js';
+import _ from 'lodash';
+import bluebird from 'bluebird';
+import { constants } from '../../lib/infrastructure/constants.js';
+import * as placementProfileService from '../../lib/domain/services/placement-profile-service.js';
+import * as competenceRepository from '../../lib/infrastructure/repositories/competence-repository.js';
 
 const concurrency = parseInt(process.argv[2]);
 let count;
 let total;
-let logEnable;
+let logEnable = false;
 
 function _log(message) {
   if (logEnable) {
@@ -23,8 +29,7 @@ function _log(message) {
   }
 }
 
-async function computeParticipantResultsShared(concurrency = 1, log = true) {
-  logEnable = log;
+async function computeParticipantResultsShared(concurrency = 1) {
   const campaigns = await knex('campaigns')
     .select('campaigns.id')
     .join('campaign-participations', 'campaign-participations.campaignId', 'campaigns.id')
@@ -42,7 +47,7 @@ async function _updateCampaignParticipations(campaign) {
   const participationResults = await _computeCampaignParticipationResults(campaign);
 
   const participationResultsWithIsCertifiable = participationResults.filter(
-    (participationResult) => !_.isNil(participationResult.isCertifiable)
+    (participationResult) => !_.isNil(participationResult.isCertifiable),
   );
 
   if (!_.isEmpty(participationResultsWithIsCertifiable)) {
@@ -50,21 +55,21 @@ async function _updateCampaignParticipations(campaign) {
     await knex.raw(`UPDATE "campaign-participations"
     SET "validatedSkillsCount" = "participationSkillCounts"."validatedSkillsCount", "masteryRate" = "participationSkillCounts"."masteryRate", "pixScore" = "participationSkillCounts"."pixScore", "isCertifiable" = "participationSkillCounts"."isCertifiable"
     FROM (VALUES ${_toSQLValuesWithIsCertifiable(
-      participationResultsWithIsCertifiable
+      participationResultsWithIsCertifiable,
     )}) AS "participationSkillCounts"(id, "validatedSkillsCount", "masteryRate", "pixScore", "isCertifiable")
       WHERE "campaign-participations".id = "participationSkillCounts".id`);
   }
 
   const participationResultsWithIsCertifiableAsNull = _.difference(
     participationResults,
-    participationResultsWithIsCertifiable
+    participationResultsWithIsCertifiable,
   );
   if (!_.isEmpty(participationResultsWithIsCertifiableAsNull)) {
     // eslint-disable-next-line knex/avoid-injections
     await knex.raw(`UPDATE "campaign-participations"
     SET "validatedSkillsCount" = "participationSkillCounts"."validatedSkillsCount", "masteryRate" = "participationSkillCounts"."masteryRate", "pixScore" = "participationSkillCounts"."pixScore"
     FROM (VALUES ${_toSQLValues(
-      participationResultsWithIsCertifiableAsNull
+      participationResultsWithIsCertifiableAsNull,
     )}) AS "participationSkillCounts"(id, "validatedSkillsCount", "masteryRate", "pixScore")
       WHERE "campaign-participations".id = "participationSkillCounts".id`);
   }
@@ -80,7 +85,7 @@ async function _computeCampaignParticipationResults(campaign) {
 
   const participantsResults = await bluebird.mapSeries(
     campaignParticipationInfosChunks,
-    computeResultsWithTargetedSkillIds
+    computeResultsWithTargetedSkillIds,
   );
 
   return participantsResults.flat();
@@ -119,7 +124,7 @@ async function _getKnowledgeElementsByUser(campaignParticipations) {
   const sharingDateByUserId = {};
   campaignParticipations.forEach(({ userId, sharedAt }) => (sharingDateByUserId[userId] = sharedAt));
   const knowledgeElementByUser = await knowlegeElementSnapshotRepository.findByUserIdsAndSnappedAtDates(
-    sharingDateByUserId
+    sharingDateByUserId,
   );
   return knowledgeElementByUser;
 }
@@ -128,7 +133,7 @@ function _toSQLValues(participantsResults) {
   return participantsResults
     .map(
       ({ id, validatedSkillsCount, masteryRate, pixScore }) =>
-        `(${id}, ${validatedSkillsCount}, ${masteryRate}, ${pixScore})`
+        `(${id}, ${validatedSkillsCount}, ${masteryRate}, ${pixScore})`,
     )
     .join(', ');
 }
@@ -137,12 +142,13 @@ function _toSQLValuesWithIsCertifiable(participantsResults) {
   return participantsResults
     .map(
       ({ id, validatedSkillsCount, masteryRate, pixScore, isCertifiable }) =>
-        `(${id}, ${validatedSkillsCount}, ${masteryRate}, ${pixScore}, ${isCertifiable})`
+        `(${id}, ${validatedSkillsCount}, ${masteryRate}, ${pixScore}, ${isCertifiable})`,
     )
     .join(', ');
 }
 
-const isLaunchedFromCommandLine = require.main === module;
+const modulePath = url.fileURLToPath(import.meta.url);
+const isLaunchedFromCommandLine = process.argv[1] === modulePath;
 
 async function main() {
   await computeParticipantResultsShared(concurrency);
@@ -150,6 +156,7 @@ async function main() {
 
 (async () => {
   if (isLaunchedFromCommandLine) {
+    logEnable = true;
     try {
       await main();
     } catch (error) {
@@ -161,4 +168,4 @@ async function main() {
   }
 })();
 
-module.exports = computeParticipantResultsShared;
+export { computeParticipantResultsShared };

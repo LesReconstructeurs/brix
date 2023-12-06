@@ -1,4 +1,4 @@
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 import Route from '@ember/routing/route';
 
 export default class UpdateExpiredPasswordRoute extends Route {
@@ -14,7 +14,7 @@ export default class UpdateExpiredPasswordRoute extends Route {
     const resetExpiredPasswordDemand = resetExpiredPasswordDemands.firstObject;
 
     if (!resetExpiredPasswordDemand) {
-      return this.router.replaceWith('');
+      return this.router.replaceWith('login');
     }
 
     return resetExpiredPasswordDemand;

@@ -1,13 +1,15 @@
-const createServer = require('../../../../server');
-const {
+import { createServer } from '../../../../server.js';
+
+import {
   expect,
   databaseBuilder,
   mockLearningContent,
   learningContentBuilder,
   generateValidRequestAuthorizationHeader,
-} = require('../../../test-helper');
-const _ = require('lodash');
-const BadgeCriterion = require('../../../../lib/domain/models/BadgeCriterion');
+} from '../../../test-helper.js';
+
+import _ from 'lodash';
+import { BadgeCriterion } from '../../../../lib/domain/models/BadgeCriterion.js';
 
 describe('Acceptance | API | Campaign Assessment Result', function () {
   const JAFFA_COLOR = 'jaffa';
@@ -16,7 +18,7 @@ describe('Acceptance | API | Campaign Assessment Result', function () {
 
   let user, campaign, assessment, campaignParticipation, targetProfile, campaignSkills;
 
-  let server, badge, skillSet, stage;
+  let server, badge1, badge2, skillSet, stage;
 
   beforeEach(async function () {
     server = await createServer();
@@ -52,6 +54,7 @@ describe('Acceptance | API | Campaign Assessment Result', function () {
       sharedAt: recentDate,
       masteryRate: 0.38,
     });
+
     assessment = databaseBuilder.factory.buildAssessment({
       campaignParticipationId: campaignParticipation.id,
       userId: user.id,
@@ -59,19 +62,44 @@ describe('Acceptance | API | Campaign Assessment Result', function () {
       state: 'completed',
     });
 
-    badge = databaseBuilder.factory.buildBadge({
+    badge1 = databaseBuilder.factory.buildBadge({
       id: 1,
-      altMessage: 'Banana',
+      altMessage: 'Low threshold badge',
       imageUrl: '/img/banana.svg',
-      message: 'You won a Banana Badge',
-      title: 'Banana',
-      key: 'PIX_BANANA',
+      message: 'You won a badge that had a criterion threshold set at 0',
+      title: 'Badge 1',
+      key: 'PIX_BADGE_1',
       targetProfileId: targetProfile.id,
+      isAlwaysVisible: true,
     });
+
+    badge2 = databaseBuilder.factory.buildBadge({
+      id: 2,
+      altMessage: 'High threshold badge',
+      imageUrl: '/img/banana.svg',
+      message: 'You won a badge that had a criterion threshold set at 90',
+      title: 'Badge 2',
+      key: 'PIX_BADGE_2',
+      targetProfileId: targetProfile.id,
+      isAlwaysVisible: true,
+    });
+
     databaseBuilder.factory.buildBadgeCriterion({
       badgeId: 1,
       scope: BadgeCriterion.SCOPES.CAMPAIGN_PARTICIPATION,
       threshold: 0,
+    });
+
+    databaseBuilder.factory.buildBadgeCriterion({
+      badgeId: 2,
+      scope: BadgeCriterion.SCOPES.CAMPAIGN_PARTICIPATION,
+      threshold: 90,
+    });
+
+    databaseBuilder.factory.buildBadgeAcquisition({
+      userId: user.id,
+      campaignParticipationId: campaignParticipation.id,
+      badgeId: badge1.id,
     });
 
     skillSet = databaseBuilder.factory.buildSkillSet({
@@ -79,6 +107,14 @@ describe('Acceptance | API | Campaign Assessment Result', function () {
       badgeId: 1,
       name: 'Pix Emploi',
       color: 'emerald',
+      skillIds,
+    });
+
+    databaseBuilder.factory.buildSkillSet({
+      id: 2,
+      badgeId: 2,
+      name: 'Pix Emploi',
+      color: 'pink',
       skillIds,
     });
 
@@ -118,11 +154,12 @@ describe('Acceptance | API | Campaign Assessment Result', function () {
     const learningContent = [
       {
         id: 'recArea1',
+        title_i18n: { fr: 'DomaineNom1' },
         color: JAFFA_COLOR,
         competences: [
           {
             id: 1,
-            name: 'Agir collectivement',
+            name_i18n: { fr: 'Agir collectivement' },
             index: '1.2',
             tubes: [{ id: 'recTube1', skills: [{ id: 'recSkill1' }] }],
           },
@@ -130,11 +167,12 @@ describe('Acceptance | API | Campaign Assessment Result', function () {
       },
       {
         id: 'recArea2',
+        title_i18n: { fr: 'DomaineNom2' },
         color: EMERALD_COLOR,
         competences: [
           {
             id: 2,
-            name: 'Nécessité de la pensée radicale',
+            name_i18n: { fr: 'Nécessité de la pensée radicale' },
             index: '2.1',
             tubes: [
               {
@@ -145,7 +183,7 @@ describe('Acceptance | API | Campaign Assessment Result', function () {
           },
           {
             id: 3,
-            name: 'Changer efficacement le monde',
+            name_i18n: { fr: 'Changer efficacement le monde' },
             index: '2.2',
             tubes: [
               {
@@ -158,18 +196,19 @@ describe('Acceptance | API | Campaign Assessment Result', function () {
       },
       {
         id: 'recArea3',
+        title_i18n: { fr: 'DomaineNom3' },
         color: WILD_STRAWBERRY_COLOR,
         competences: [
           {
             id: 4,
-            name: 'Oser la paresse',
+            name_i18n: { fr: 'Oser la paresse' },
             index: '4.3',
             tubes: [{ id: 'recTube0', skills: [{ id: 'notIncludedSkillId' }] }],
           },
         ],
       },
     ];
-    const learningContentObjects = learningContentBuilder.buildLearningContent.fromAreas(learningContent);
+    const learningContentObjects = learningContentBuilder.fromAreas(learningContent);
     mockLearningContent(learningContentObjects);
     await databaseBuilder.commit();
   });
@@ -198,19 +237,20 @@ describe('Acceptance | API | Campaign Assessment Result', function () {
             'validated-skills-count': 3,
             'is-completed': true,
             'is-shared': true,
-            'stage-count': 2,
             'can-retry': false,
             'can-improve': false,
             'is-disabled': false,
             'participant-external-id': 'participantExternalId',
-            'estimated-flash-level': undefined,
-            'flash-pix-score': undefined,
           },
           relationships: {
             'campaign-participation-badges': {
               data: [
                 {
-                  id: `${badge.id}`,
+                  id: `${badge1.id}`,
+                  type: 'campaignParticipationBadges',
+                },
+                {
+                  id: `${badge2.id}`,
                   type: 'campaignParticipationBadges',
                 },
               ],
@@ -266,15 +306,16 @@ describe('Acceptance | API | Campaign Assessment Result', function () {
           },
           {
             attributes: {
-              'alt-message': 'Banana',
+              'acquisition-percentage': 100,
+              'alt-message': 'Low threshold badge',
               'image-url': '/img/banana.svg',
-              'is-acquired': false,
-              'is-always-visible': false,
+              'is-acquired': true,
+              'is-always-visible': true,
               'is-certifiable': false,
               'is-valid': true,
-              key: 'PIX_BANANA',
-              title: 'Banana',
-              message: 'You won a Banana Badge',
+              key: 'PIX_BADGE_1',
+              title: 'Badge 1',
+              message: 'You won a badge that had a criterion threshold set at 0',
             },
             id: '1',
             type: 'campaignParticipationBadges',
@@ -298,6 +339,64 @@ describe('Acceptance | API | Campaign Assessment Result', function () {
             },
           },
           {
+            attributes: {
+              'area-color': undefined,
+              'mastery-percentage': 38,
+              name: 'Pix Emploi',
+              'tested-skills-count': 5,
+              'total-skills-count': 8,
+              'validated-skills-count': 3,
+            },
+            id: '2',
+            type: 'skillSetResults',
+          },
+          {
+            attributes: {
+              'area-color': undefined,
+              'mastery-percentage': 38,
+              name: 'Pix Emploi',
+              'tested-skills-count': 5,
+              'total-skills-count': 8,
+              'validated-skills-count': 3,
+            },
+            id: '2',
+            type: 'partnerCompetenceResults',
+          },
+          {
+            attributes: {
+              'acquisition-percentage': 42,
+              'alt-message': 'High threshold badge',
+              'image-url': '/img/banana.svg',
+              'is-acquired': false,
+              'is-always-visible': true,
+              'is-certifiable': false,
+              'is-valid': false,
+              key: 'PIX_BADGE_2',
+              title: 'Badge 2',
+              message: 'You won a badge that had a criterion threshold set at 90',
+            },
+            id: '2',
+            type: 'campaignParticipationBadges',
+            relationships: {
+              'skill-set-results': {
+                data: [
+                  {
+                    id: '2',
+                    type: 'skillSetResults',
+                  },
+                ],
+              },
+              'partner-competence-results': {
+                data: [
+                  {
+                    id: '2',
+                    type: 'partnerCompetenceResults',
+                  },
+                ],
+              },
+            },
+          },
+          {
             type: 'competenceResults',
             id: '1',
             attributes: {
@@ -308,6 +407,9 @@ describe('Acceptance | API | Campaign Assessment Result', function () {
               'tested-skills-count': 0,
               'validated-skills-count': 0,
               'area-color': JAFFA_COLOR,
+              'area-title': 'DomaineNom1',
+              'reached-stage': 0,
+              'flash-pix-score': undefined,
             },
           },
           {
@@ -321,6 +423,9 @@ describe('Acceptance | API | Campaign Assessment Result', function () {
               'tested-skills-count': 2,
               'validated-skills-count': 2,
               'area-color': EMERALD_COLOR,
+              'area-title': 'DomaineNom2',
+              'reached-stage': 1,
+              'flash-pix-score': undefined,
             },
           },
           {
@@ -334,14 +439,17 @@ describe('Acceptance | API | Campaign Assessment Result', function () {
               'tested-skills-count': 3,
               'validated-skills-count': 1,
               'area-color': EMERALD_COLOR,
+              'area-title': 'DomaineNom2',
+              'reached-stage': 0,
+              'flash-pix-score': undefined,
             },
           },
           {
             attributes: {
               message: 'Tu as le palier 1',
               title: 'palier 1',
-              threshold: 20,
-              'star-count': 1,
+              'reached-stage': 1,
+              'total-stage': 2,
             },
             id: stage.id.toString(),
             type: 'reached-stages',

@@ -30,30 +30,15 @@ module('Unit | Service | oidc-identity-providers', function (hooks) {
       await oidcIdentityProvidersService.load();
 
       // then
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(oidcIdentityProvidersService['oidc-partner'].code, oidcPartner.code);
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(oidcIdentityProvidersService['oidc-partner'].organizationName, oidcPartner.organizationName);
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(oidcIdentityProvidersService['oidc-partner'].hasLogoutUrl, oidcPartner.hasLogoutUrl);
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(oidcIdentityProvidersService['oidc-partner'].source, oidcPartner.source);
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(oidcIdentityProvidersService.list[0].code, oidcPartner.code);
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(oidcIdentityProvidersService.list[0].organizationName, oidcPartner.organizationName);
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(oidcIdentityProvidersService.list[0].hasLogoutUrl, oidcPartner.hasLogoutUrl);
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(oidcIdentityProvidersService.list[0].source, oidcPartner.source);
+
+      assert.strictEqual(oidcIdentityProvidersService['oidc-partner'].code, oidcPartner.code);
+      assert.strictEqual(oidcIdentityProvidersService['oidc-partner'].organizationName, oidcPartner.organizationName);
+      assert.strictEqual(oidcIdentityProvidersService['oidc-partner'].hasLogoutUrl, oidcPartner.hasLogoutUrl);
+      assert.strictEqual(oidcIdentityProvidersService['oidc-partner'].source, oidcPartner.source);
+      assert.strictEqual(oidcIdentityProvidersService.list[0].code, oidcPartner.code);
+      assert.strictEqual(oidcIdentityProvidersService.list[0].organizationName, oidcPartner.organizationName);
+      assert.strictEqual(oidcIdentityProvidersService.list[0].hasLogoutUrl, oidcPartner.hasLogoutUrl);
+      assert.strictEqual(oidcIdentityProvidersService.list[0].source, oidcPartner.source);
     });
   });
 
@@ -79,9 +64,8 @@ module('Unit | Service | oidc-identity-providers', function (hooks) {
       oidcIdentityProvidersService.set(
         'store',
         Service.create({
-          list: sinon.stub().resolves([oidcPartnerObject, otherOidcPartnerObject]),
           peekAll: sinon.stub().returns([oidcPartnerObject, otherOidcPartnerObject]),
-        })
+        }),
       );
 
       // when
@@ -89,6 +73,70 @@ module('Unit | Service | oidc-identity-providers', function (hooks) {
 
       // expect
       assert.deepEqual(names, ['France Connect', 'Impots.gouv']);
+    });
+  });
+
+  module('isFwbActivated', function () {
+    test('returns true when identity provider is activated', function (assert) {
+      // given
+      const fwbPartnerObject = Object.create({
+        id: 'fwb',
+        code: 'FWB',
+        organizationName: 'Fédération Wallonie-Bruxelles',
+        hasLogoutUrl: true,
+        source: 'fwb',
+      });
+      const otherOidcPartnerObject = Object.create({
+        id: 'impots-gouv',
+        code: 'IMPOTS_GOUV',
+        organizationName: 'Impots.gouv',
+        hasLogoutUrl: false,
+        source: 'impots-gouv',
+      });
+      const oidcIdentityProvidersService = this.owner.lookup('service:oidcIdentityProviders');
+      oidcIdentityProvidersService.set(
+        'store',
+        Service.create({
+          peekAll: sinon.stub().returns([fwbPartnerObject, otherOidcPartnerObject]),
+        }),
+      );
+
+      // when
+      const names = oidcIdentityProvidersService.isFwbActivated();
+
+      // expect
+      assert.true(names);
+    });
+
+    test('returns false when identity provider is not activated', function (assert) {
+      // given
+      const oidcPartnerObject = Object.create({
+        id: 'france-connect',
+        code: 'FRANCE_CONNECT',
+        organizationName: 'France Connect',
+        hasLogoutUrl: false,
+        source: 'france-connect',
+      });
+      const otherOidcPartnerObject = Object.create({
+        id: 'impots-gouv',
+        code: 'IMPOTS_GOUV',
+        organizationName: 'Impots.gouv',
+        hasLogoutUrl: false,
+        source: 'impots-gouv',
+      });
+      const oidcIdentityProvidersService = this.owner.lookup('service:oidcIdentityProviders');
+      oidcIdentityProvidersService.set(
+        'store',
+        Service.create({
+          peekAll: sinon.stub().returns([oidcPartnerObject, otherOidcPartnerObject]),
+        }),
+      );
+
+      // when
+      const names = oidcIdentityProvidersService.isFwbActivated();
+
+      // expect
+      assert.false(names);
     });
   });
 });

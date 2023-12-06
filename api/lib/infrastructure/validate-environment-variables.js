@@ -1,4 +1,4 @@
-const Joi = require('joi');
+import Joi from 'joi';
 
 const schema = Joi.object({
   REDIS_URL: Joi.string().uri().optional(),
@@ -29,6 +29,7 @@ const schema = Joi.object({
   SCO_ACCOUNT_RECOVERY_KEY_LIFETIME_MINUTES: Joi.number().integer().min(1).optional(),
   NODE_ENV: Joi.string().optional().valid('development', 'test', 'production'),
   FT_ALWAYS_OK_VALIDATE_NEXT_CHALLENGE: Joi.string().optional().valid('true', 'false'),
+  FT_TARGET_PROFILE_VERSIONING: Joi.string().optional().valid('true', 'false'),
   POLE_EMPLOI_CLIENT_ID: Joi.string().optional(),
   POLE_EMPLOI_CLIENT_SECRET: Joi.string().optional(),
   POLE_EMPLOI_TOKEN_URL: Joi.string().uri().optional(),
@@ -57,11 +58,11 @@ const schema = Joi.object({
 }).options({ allowUnknown: true });
 
 const validateEnvironmentVariables = function () {
-  // eslint-disable-next-line node/no-process-env
+  // eslint-disable-next-line n/no-process-env
   const { error } = schema.validate(process.env);
   if (error) {
     throw new Error('Configuration is invalid: ' + error.message + ', but was: ' + error.details[0].context.value);
   }
 };
 
-module.exports = validateEnvironmentVariables;
+export { validateEnvironmentVariables };

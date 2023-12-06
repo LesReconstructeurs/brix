@@ -1,6 +1,8 @@
-const Joi = require('joi').extend(require('@joi/date'));
-const { validateEntity } = require('../validators/entity-validator');
-const randomString = require('randomstring');
+import BaseJoi from 'joi';
+import JoiDate from '@joi/date';
+const Joi = BaseJoi.extend(JoiDate);
+import { validateEntity } from '../validators/entity-validator.js';
+import randomString from 'randomstring';
 
 const statuses = {
   PENDING: 'pending',
@@ -65,4 +67,4 @@ class CertificationCenterInvitation {
 
 CertificationCenterInvitation.StatusType = statuses;
 
-module.exports = CertificationCenterInvitation;
+export { CertificationCenterInvitation };

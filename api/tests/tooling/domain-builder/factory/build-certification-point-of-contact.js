@@ -1,11 +1,12 @@
-const CertificationPointOfContact = require('../../../../lib/domain/read-models/CertificationPointOfContact');
-const buildAllowedCertificationCenterAccess = require('./build-allowed-certification-center-access');
+import { CertificationPointOfContact } from '../../../../lib/domain/read-models/CertificationPointOfContact.js';
+import { buildAllowedCertificationCenterAccess } from './build-allowed-certification-center-access.js';
 
-module.exports = function buildCertificationPointOfContact({
+const buildCertificationPointOfContact = function ({
   id = 123,
   firstName = 'Chèvre',
   lastName = 'Brebis',
   email = 'chevre.brebis@example.net',
+  lang = 'fr',
   pixCertifTermsOfServiceAccepted = true,
   allowedCertificationCenterAccesses = [buildAllowedCertificationCenterAccess()],
 } = {}) {
@@ -14,7 +15,10 @@ module.exports = function buildCertificationPointOfContact({
     firstName,
     lastName,
     email,
+    lang,
     pixCertifTermsOfServiceAccepted,
     allowedCertificationCenterAccesses,
   });
 };
+
+export { buildCertificationPointOfContact };

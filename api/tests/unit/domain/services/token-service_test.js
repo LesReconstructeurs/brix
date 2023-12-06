@@ -1,17 +1,19 @@
-const omit = require('lodash/omit');
-const jsonwebtoken = require('jsonwebtoken');
+import lodash from 'lodash';
+const { omit } = lodash;
+import jsonwebtoken from 'jsonwebtoken';
 
-const { catchErr, expect, sinon } = require('../../../test-helper');
+import { catchErr, expect, sinon } from '../../../test-helper.js';
 
-const {
+import {
   InvalidTemporaryKeyError,
   InvalidExternalUserTokenError,
   InvalidResultRecipientTokenError,
   InvalidSessionResultError,
   ForbiddenAccess,
-} = require('../../../../lib/domain/errors');
-const settings = require('../../../../lib/config');
-const tokenService = require('../../../../lib/domain/services/token-service');
+} from '../../../../lib/domain/errors.js';
+
+import { tokenService } from '../../../../lib/domain/services/token-service.js';
+import { config as settings } from '../../../../lib/config.js';
 
 describe('Unit | Domain | Service | Token Service', function () {
   describe('#createTokenForCampaignResults', function () {
@@ -108,7 +110,7 @@ describe('Unit | Domain | Service | Token Service', function () {
       const error = await catchErr(tokenService.extractExternalUserFromIdToken)(idToken);
       expect(error).to.be.an.instanceof(InvalidExternalUserTokenError);
       expect(error.message).to.be.equal(
-        'Une erreur est survenue. Veuillez réessayer de vous connecter depuis le médiacentre.'
+        'Une erreur est survenue. Veuillez réessayer de vous connecter depuis le médiacentre.',
       );
     });
   });
@@ -219,7 +221,7 @@ describe('Unit | Domain | Service | Token Service', function () {
           session_id: 12345,
         },
         settings.authentication.secret,
-        { expiresIn: '30d' }
+        { expiresIn: '30d' },
       );
 
       // when
@@ -249,7 +251,7 @@ describe('Unit | Domain | Service | Token Service', function () {
           session_id: 1234,
         },
         settings.authentication.secret,
-        { expiresIn: '1' }
+        { expiresIn: '1' },
       );
 
       // when
@@ -272,7 +274,7 @@ describe('Unit | Domain | Service | Token Service', function () {
           session_id: 12345,
         },
         settings.authentication.secret,
-        { expiresIn: '30d' }
+        { expiresIn: '30d' },
       );
 
       // when
@@ -292,7 +294,7 @@ describe('Unit | Domain | Service | Token Service', function () {
           result_recipient_email: 'recipientEmail@example.net',
         },
         settings.authentication.secret,
-        { expiresIn: '30d' }
+        { expiresIn: '30d' },
       );
 
       // when
@@ -310,7 +312,7 @@ describe('Unit | Domain | Service | Token Service', function () {
           session_id: 1234,
         },
         settings.authentication.secret,
-        { expiresIn: '1' }
+        { expiresIn: '1' },
       );
 
       // when

@@ -1,19 +1,24 @@
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 import SessionService from 'ember-simple-auth/services/session';
-import get from 'lodash/get';
-
-const DEFAULT_FRENCH_LOCALE = 'fr';
+import { FRENCH_INTERNATIONAL_LOCALE, FRENCH_FRANCE_LOCALE } from 'pix-orga/services/locale';
 
 export default class CurrentSessionService extends SessionService {
+  @service currentDomain;
   @service currentUser;
+  @service locale;
   @service intl;
   @service dayjs;
   @service url;
 
+  _localeFromQueryParam;
+
   routeAfterAuthentication = 'authenticated';
 
   async handleAuthentication() {
-    await this.handlePrescriberLanguageAndLocale();
+    const isFranceDomain = this.currentDomain.isFranceDomain;
+    await this.currentUser.load();
+    const userLocale = this.currentUser.prescriber.lang;
+    await this.handleLocale({ isFranceDomain, userLocale });
     super.handleAuthentication(this.routeAfterAuthentication);
   }
 
@@ -22,40 +27,26 @@ export default class CurrentSessionService extends SessionService {
     await super.handleInvalidation(routeAfterInvalidation);
   }
 
-  async handlePrescriberLanguageAndLocale(lang = null) {
-    await this.currentUser.load();
-    await this._updatePrescriberLanguage(lang);
-    this._setLocale(lang);
-  }
+  handleLocale({ isFranceDomain, localeFromQueryParam, userLocale }) {
+    this._localeFromQueryParam = this.locale.handleUnsupportedLanguage(localeFromQueryParam);
 
-  async _updatePrescriberLanguage(lang) {
-    const prescriber = this.currentUser.prescriber;
+    if (isFranceDomain) {
+      this.locale.setLocale(FRENCH_INTERNATIONAL_LOCALE);
 
-    if (!prescriber || !lang || prescriber.lang === lang) return;
-
-    try {
-      prescriber.lang = lang;
-      await prescriber.save({ adapterOptions: { lang } });
-    } catch (error) {
-      const status = get(error, 'errors[0].status');
-      if (status === '400') {
-        prescriber.rollbackAttributes();
-      } else {
-        throw error;
+      if (!this.locale.hasLocaleCookie()) {
+        this.locale.setLocaleCookie(FRENCH_FRANCE_LOCALE);
       }
-    }
-  }
 
-  _setLocale(lang) {
-    let locale = DEFAULT_FRENCH_LOCALE;
-
-    if (!this.url.isFrenchDomainExtension) {
-      locale = this.intl.get('locales').includes(lang) ? lang : DEFAULT_FRENCH_LOCALE;
+      return;
     }
 
-    this.intl.setLocale([locale, DEFAULT_FRENCH_LOCALE]);
-    this.dayjs.setLocale(locale);
-    this.dayjs.self.locale(locale);
+    if (this._localeFromQueryParam) {
+      this.locale.setLocale(this._localeFromQueryParam);
+      return;
+    }
+
+    const locale = userLocale || FRENCH_INTERNATIONAL_LOCALE;
+    this.locale.setLocale(locale);
   }
 
   _getRouteAfterInvalidation() {

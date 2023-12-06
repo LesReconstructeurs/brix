@@ -1,14 +1,18 @@
-'use strict';
-require('dotenv').config({ path: `${__dirname}/../.env` });
+import * as dotenv from 'dotenv';
 
-const fs = require('fs');
-const bluebird = require('bluebird');
-const isEmpty = require('lodash/isEmpty');
-const logger = require('../../lib/infrastructure/logger');
-const certificationResultUtils = require('../../lib/infrastructure/utils/csv/certification-results');
-const usecases = require('../../lib/domain/usecases');
-const temporaryStorage = require('../../lib/infrastructure/temporary-storage/index');
-const { disconnect } = require('../../db/knex-database-connection');
+import * as url from 'url';
+
+const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
+dotenv.config({ path: `${__dirname}/../.env` });
+
+import fs from 'fs';
+import bluebird from 'bluebird';
+import lodash from 'lodash';
+const { isEmpty } = lodash;
+import { logger } from '../../lib/infrastructure/logger.js';
+import { usecases } from '../../lib/domain/usecases/index.js';
+import { temporaryStorage } from '../../lib/infrastructure/temporary-storage/index.js';
+import { disconnect } from '../../db/knex-database-connection.js';
 
 /**
  * Avant de lancer le script, remplacer la variable DATABASE_URL par l'url de la base de réplication
@@ -19,7 +23,7 @@ async function main() {
 
   if (process.argv.length <= 2) {
     logger.info(
-      'Usage: NODE_TLS_REJECT_UNAUTHORIZED="0" PGSSLMODE=require node scripts/generate-certification-csv-results-by-session-ids.js 1234,5678,9012'
+      'Usage: NODE_TLS_REJECT_UNAUTHORIZED="0" PGSSLMODE=require node scripts/generate-certification-csv-results-by-session-ids.js 1234,5678,9012',
     );
     return;
   }
@@ -34,7 +38,7 @@ async function main() {
       return;
     }
 
-    const csvResult = await certificationResultUtils.getSessionCertificationResultsCsv({
+    const csvResult = await usecases.getSessionCertificationResultsCsv({
       session,
       certificationResults,
     });
@@ -47,8 +51,11 @@ async function main() {
   logger.info('Fin du script.');
 }
 
+const modulePath = url.fileURLToPath(import.meta.url);
+const isLaunchedFromCommandLine = process.argv[1] === modulePath;
+
 (async () => {
-  if (require.main === module) {
+  if (isLaunchedFromCommandLine) {
     try {
       await main();
     } catch (error) {

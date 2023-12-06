@@ -1,6 +1,6 @@
-const datasource = require('./datasource');
+import * as datasource from './datasource.js';
 
-module.exports = datasource.extend({
+const thematicDatasource = datasource.extend({
   modelName: 'thematics',
 
   async findByCompetenceIds(competenceIds) {
@@ -13,3 +13,5 @@ module.exports = datasource.extend({
     return thematics.filter(({ id }) => thematicIds.includes(id));
   },
 });
+
+export { thematicDatasource };

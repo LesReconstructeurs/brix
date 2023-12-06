@@ -7,7 +7,7 @@ function _getEnvironmentVariableAsNumber({ environmentVariableName, defaultValue
     return number;
   }
   throw new Error(
-    `Invalid value '${valueToValidate}' for environment variable '${environmentVariableName}'. It should be a number greater than or equal ${minValue}.`
+    `Invalid value '${valueToValidate}' for environment variable '${environmentVariableName}'. It should be a number greater than or equal ${minValue}.`,
   );
 }
 
@@ -21,7 +21,7 @@ module.exports = function (environment) {
     modulePrefix: 'pix-admin',
     environment,
     rootURL: '/',
-    locationType: 'auto',
+    locationType: 'history',
     EmberENV: {
       FEATURES: {
         // Here you can enable experimental features on an ember canary build

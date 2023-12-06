@@ -1,10 +1,10 @@
-const { sinon, expect } = require('../../../test-helper');
-
-const publishSession = require('../../../../lib/domain/usecases/publish-session');
+import { sinon, expect } from '../../../test-helper.js';
+import { publishSession } from '../../../../lib/domain/usecases/publish-session.js';
 
 describe('Unit | UseCase | publish-session', function () {
   it('delegates the action to the session-publication-service and return the session', async function () {
     // given
+    const i18n = Symbol('i18n');
     const sessionId = Symbol('a session id');
     const session = Symbol('a session');
     const certificationRepository = Symbol('the certification repository');
@@ -26,6 +26,7 @@ describe('Unit | UseCase | publish-session', function () {
 
     // when
     const result = await publishSession({
+      i18n,
       sessionId,
       certificationRepository,
       certificationCenterRepository,
@@ -37,6 +38,7 @@ describe('Unit | UseCase | publish-session', function () {
 
     // then
     expect(sessionPublicationService.publishSession).to.have.been.calledWithExactly({
+      i18n,
       sessionId,
       certificationRepository,
       certificationCenterRepository,

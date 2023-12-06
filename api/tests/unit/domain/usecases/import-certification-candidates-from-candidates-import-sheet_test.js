@@ -1,7 +1,9 @@
-const { expect, sinon, catchErr, domainBuilder } = require('../../../test-helper');
-const { CertificationCandidateAlreadyLinkedToUserError } = require('../../../../lib/domain/errors');
-const importCertificationCandidatesFromCandidatesImportSheet = require('../../../../lib/domain/usecases/import-certification-candidates-from-candidates-import-sheet');
-const DomainTransaction = require('../../../../lib/infrastructure/DomainTransaction');
+import { expect, sinon, catchErr, domainBuilder } from '../../../test-helper.js';
+import { CertificationCandidateAlreadyLinkedToUserError } from '../../../../lib/domain/errors.js';
+import { importCertificationCandidatesFromCandidatesImportSheet } from '../../../../lib/domain/usecases/import-certification-candidates-from-candidates-import-sheet.js';
+import { DomainTransaction } from '../../../../lib/infrastructure/DomainTransaction.js';
+import { getI18n } from '../../../tooling/i18n/i18n.js';
+const i18n = getI18n();
 
 describe('Unit | UseCase | import-certification-candidates-from-attendance-sheet', function () {
   let certificationCandidateRepository;
@@ -52,6 +54,7 @@ describe('Unit | UseCase | import-certification-candidates-from-attendance-sheet
 
         // when
         const result = await catchErr(importCertificationCandidatesFromCandidatesImportSheet)({
+          i18n,
           sessionId,
           odsBuffer,
           certificationCandidatesOdsService,
@@ -74,11 +77,10 @@ describe('Unit | UseCase | import-certification-candidates-from-attendance-sheet
           // given
           const sessionId = 'sessionId';
           const odsBuffer = 'buffer';
-          const complementaryCertifications = [
-            domainBuilder.buildComplementaryCertification(),
-            domainBuilder.buildComplementaryCertification(),
-          ];
-          const certificationCandidate = domainBuilder.buildCertificationCandidate({ complementaryCertifications });
+          const complementaryCertification = domainBuilder.buildComplementaryCertification();
+          const certificationCandidate = domainBuilder.buildCertificationCandidate({
+            complementaryCertification,
+          });
           const certificationCandidates = [certificationCandidate];
 
           sessionRepository.isSco.resolves(false);
@@ -89,6 +91,7 @@ describe('Unit | UseCase | import-certification-candidates-from-attendance-sheet
 
           certificationCandidatesOdsService.extractCertificationCandidatesFromCandidatesImportSheet
             .withArgs({
+              i18n,
               sessionId,
               isSco: false,
               odsBuffer,
@@ -104,6 +107,7 @@ describe('Unit | UseCase | import-certification-candidates-from-attendance-sheet
           await importCertificationCandidatesFromCandidatesImportSheet({
             sessionId,
             odsBuffer,
+            i18n,
             certificationCandidatesOdsService,
             certificationCandidateRepository,
             certificationCpfService,
@@ -121,14 +125,13 @@ describe('Unit | UseCase | import-certification-candidates-from-attendance-sheet
           });
           expect(certificationCandidateRepository.saveInSession).to.have.been.calledWith({
             certificationCandidate,
-            complementaryCertifications,
             sessionId,
             domainTransaction,
           });
           expect(
             certificationCandidateRepository.deleteBySessionId.calledBefore(
-              certificationCandidateRepository.saveInSession
-            )
+              certificationCandidateRepository.saveInSession,
+            ),
           ).to.be.true;
         });
       });

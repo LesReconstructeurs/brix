@@ -26,9 +26,7 @@ module('Unit | Component | new-certification-candidate-modal', function (hooks) 
         await modal.selectBirthGeoCodeOption('insee');
 
         // then
-        // TODO: Fix this the next time the file is edited.
-        // eslint-disable-next-line qunit/no-assert-equal
-        assert.equal(modal.selectedBirthGeoCodeOption, 'insee');
+        assert.strictEqual(modal.selectedBirthGeoCodeOption, 'insee');
       });
 
       test('should reset the birth city', async function (assert) {
@@ -57,7 +55,7 @@ module('Unit | Component | new-certification-candidate-modal', function (hooks) 
           modal.args.updateCandidateDataFromValue,
           modal.args.candidateData,
           'birthPostalCode',
-          ''
+          '',
         );
         assert.ok(true);
       });
@@ -76,9 +74,7 @@ module('Unit | Component | new-certification-candidate-modal', function (hooks) 
         await modal.selectBirthGeoCodeOption('postal');
 
         // then
-        // TODO: Fix this the next time the file is edited.
-        // eslint-disable-next-line qunit/no-assert-equal
-        assert.equal(modal.selectedBirthGeoCodeOption, 'postal');
+        assert.strictEqual(modal.selectedBirthGeoCodeOption, 'postal');
       });
 
       test('should reset the birth insee code', async function (assert) {
@@ -94,7 +90,7 @@ module('Unit | Component | new-certification-candidate-modal', function (hooks) 
           modal.args.updateCandidateDataFromValue,
           modal.args.candidateData,
           'birthInseeCode',
-          ''
+          '',
         );
         assert.ok(true);
       });
@@ -132,7 +128,7 @@ module('Unit | Component | new-certification-candidate-modal', function (hooks) 
           modal.args.updateCandidateDataFromValue,
           modal.args.candidateData,
           'birthInseeCode',
-          '99'
+          '99',
         );
         assert.ok(true);
       });
@@ -293,7 +289,7 @@ module('Unit | Component | new-certification-candidate-modal', function (hooks) 
       modal.updateComplementaryCertification(complementaryCertification);
 
       // then
-      assert.deepEqual(modal.args.candidateData.complementaryCertifications, [complementaryCertification]);
+      assert.deepEqual(modal.args.candidateData.complementaryCertification, complementaryCertification);
     });
 
     test('it should not be possible to select multiple complementary certifications', function (assert) {
@@ -301,14 +297,14 @@ module('Unit | Component | new-certification-candidate-modal', function (hooks) 
       const firstComplementaryCertification = { label: 'firstComplementaryCertification' };
       const secondComplementaryCertification = { label: 'secondComplementaryCertification' };
       modal.args.candidateData = {
-        complementaryCertifications: [firstComplementaryCertification],
+        complementaryCertification: firstComplementaryCertification,
       };
 
       // when
       modal.updateComplementaryCertification(secondComplementaryCertification);
 
       // then
-      assert.deepEqual(modal.args.candidateData.complementaryCertifications, [secondComplementaryCertification]);
+      assert.deepEqual(modal.args.candidateData.complementaryCertification, secondComplementaryCertification);
     });
   });
 });

@@ -1,14 +1,14 @@
-const { expect, sinon, domainBuilder, HttpTestServer } = require('../../../test-helper');
+import { expect, sinon, domainBuilder, HttpTestServer } from '../../../test-helper.js';
+import * as moduleUnderTest from '../../../../lib/application/sco-organization-learners/index.js';
+import { usecases } from '../../../../lib/domain/usecases/index.js';
+import { securityPreHandlers } from '../../../../lib/application/security-pre-handlers.js';
 
-const moduleUnderTest = require('../../../../lib/application/sco-organization-learners');
-
-const usecases = require('../../../../lib/domain/usecases');
-const securityPreHandlers = require('../../../../lib/application/security-pre-handlers');
-const {
+import {
   NotFoundError,
   UserNotAuthorizedToUpdatePasswordError,
   UserNotAuthorizedToGenerateUsernamePasswordError,
-} = require('../../../../lib/domain/errors');
+} from '../../../../lib/domain/errors.js';
+import { ORGANIZATION_LEARNER_WITHOUT_USERNAME_CODE } from '../../../../lib/domain/constants/reset-organization-learners-password-errors.js';
 
 describe('Integration | Application | sco-organization-learners | sco-organization-learner-controller', function () {
   let sandbox;
@@ -103,7 +103,7 @@ describe('Integration | Application | sco-organization-learners | sco-organizati
 
     beforeEach(function () {
       securityPreHandlers.checkUserBelongsToScoOrganizationAndManagesStudents.callsFake((request, h) =>
-        h.response(true)
+        h.response(true),
       );
 
       payload.data.attributes = {
@@ -124,7 +124,7 @@ describe('Integration | Application | sco-organization-learners | sco-organizati
           'POST',
           '/api/sco-organization-learners/password-update',
           payload,
-          auth
+          auth,
         );
 
         // then
@@ -144,7 +144,7 @@ describe('Integration | Application | sco-organization-learners | sco-organizati
             'POST',
             '/api/sco-organization-learners/password-update',
             payload,
-            auth
+            auth,
           );
 
           // then
@@ -162,7 +162,7 @@ describe('Integration | Application | sco-organization-learners | sco-organizati
             'POST',
             '/api/sco-organization-learners/password-update',
             payload,
-            auth
+            auth,
           );
 
           // then
@@ -180,7 +180,7 @@ describe('Integration | Application | sco-organization-learners | sco-organizati
 
     beforeEach(function () {
       securityPreHandlers.checkUserBelongsToScoOrganizationAndManagesStudents.callsFake((request, h) =>
-        h.response(true)
+        h.response(true),
       );
       payload.data.attributes = {
         'organization-learner-id': 1,
@@ -199,7 +199,7 @@ describe('Integration | Application | sco-organization-learners | sco-organizati
           'POST',
           '/api/sco-organization-learners/username-password-generation',
           payload,
-          auth
+          auth,
         );
 
         // then
@@ -214,7 +214,7 @@ describe('Integration | Application | sco-organization-learners | sco-organizati
         it('should resolve a 403 HTTP response', async function () {
           // given
           usecases.generateUsernameWithTemporaryPassword.rejects(
-            new UserNotAuthorizedToGenerateUsernamePasswordError()
+            new UserNotAuthorizedToGenerateUsernamePasswordError(),
           );
 
           // when
@@ -222,11 +222,65 @@ describe('Integration | Application | sco-organization-learners | sco-organizati
             'POST',
             '/api/sco-organization-learners/username-password-generation',
             payload,
-            auth
+            auth,
           );
 
           // then
           expect(response.statusCode).to.equal(403);
+        });
+      });
+    });
+  });
+
+  describe('#updateOrganizationLearnersPassword', function () {
+    context('Error cases', function () {
+      context('when an UserNotAuthorizedToUpdatePasswordError error is thrown ', function () {
+        it('resolves a 403 Http Response with code and message in payload', async function () {
+          // given
+          const userId = 100000;
+          const organizationId = 100001;
+          const organizationLearnersId = [100002, 100003];
+          const message = `User ${userId} does not have permissions to update passwords of students in organization ${organizationId}`;
+          const code = ORGANIZATION_LEARNER_WITHOUT_USERNAME_CODE;
+          const expectedErrorResult = {
+            code,
+            detail: message,
+            status: '403',
+            title: 'Forbidden',
+          };
+
+          securityPreHandlers.checkUserBelongsToScoOrganizationAndManagesStudents.callsFake((request, h) =>
+            h.response(true),
+          );
+          const payload = {
+            data: {
+              attributes: {
+                'organization-learners-id': organizationLearnersId,
+                'organization-id': organizationId,
+              },
+            },
+          };
+          const auth = {
+            credentials: {
+              userId: userId,
+            },
+            strategy: {},
+          };
+
+          sinon
+            .stub(usecases, 'resetOrganizationLearnersPassword')
+            .rejects(new UserNotAuthorizedToUpdatePasswordError(message, code));
+
+          // when
+          const response = await httpTestServer.request(
+            'POST',
+            '/api/sco-organization-learners/password-reset',
+            payload,
+            auth,
+          );
+          // then
+          expect(response.statusCode).to.equal(403);
+          expect(response.result.errors[0]).to.deep.equal(expectedErrorResult);
         });
       });
     });

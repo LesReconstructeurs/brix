@@ -1,16 +1,19 @@
-const { FileValidationError, SiecleXmlImportError } = require('../errors');
-const fs = require('fs').promises;
-const bluebird = require('bluebird');
-const { ORGANIZATION_LEARNER_CHUNK_SIZE } = require('../../infrastructure/constants');
-const { isEmpty, chunk } = require('lodash');
-const DomainTransaction = require('../../infrastructure/DomainTransaction');
+import { FileValidationError, SiecleXmlImportError } from '../errors.js';
+import * as fs from 'fs/promises';
+
+const { isEmpty, chunk } = lodash;
+
+import bluebird from 'bluebird';
+import { ORGANIZATION_LEARNER_CHUNK_SIZE } from '../../infrastructure/constants.js';
+import lodash from 'lodash';
+import { DomainTransaction } from '../../infrastructure/DomainTransaction.js';
 
 const ERRORS = {
   EMPTY: 'EMPTY',
   INVALID_FILE_EXTENSION: 'INVALID_FILE_EXTENSION',
 };
 
-module.exports = async function importOrganizationLearnersFromSIECLEFormat({
+const importOrganizationLearnersFromSIECLEFormat = async function ({
   organizationId,
   payload,
   format,
@@ -28,13 +31,13 @@ module.exports = async function importOrganizationLearnersFromSIECLEFormat({
   if (format === 'xml') {
     organizationLearnerData = await organizationLearnersXmlService.extractOrganizationLearnersInformationFromSIECLE(
       path,
-      organization
+      organization,
     );
   } else if (format === 'csv') {
     organizationLearnerData = await organizationLearnersCsvService.extractOrganizationLearnersInformation(
       path,
       organization,
-      i18n
+      i18n,
     );
   } else {
     throw new FileValidationError(ERRORS.INVALID_FILE_EXTENSION, { fileExtension: format });
@@ -58,8 +61,10 @@ module.exports = async function importOrganizationLearnersFromSIECLEFormat({
       return organizationLearnerRepository.addOrUpdateOrganizationOfOrganizationLearners(
         chunk,
         organizationId,
-        domainTransaction
+        domainTransaction,
       );
     });
   });
 };
+
+export { importOrganizationLearnersFromSIECLEFormat };

@@ -1,11 +1,11 @@
 import { module, test } from 'qunit';
-import { click, currentURL, triggerEvent } from '@ember/test-helpers';
+import { click, currentURL } from '@ember/test-helpers';
 import { visit } from '@1024pix/ember-testing-library';
 import { setupApplicationTest } from 'ember-qunit';
 import {
-  createCertificationPointOfContactWithCustomCenters,
-  createAllowedCertificationCenterAccess,
   authenticateSession,
+  createAllowedCertificationCenterAccess,
+  createCertificationPointOfContactWithCustomCenters,
 } from '../helpers/test-init';
 
 import setupMirage from 'ember-cli-mirage/test-support/setup-mirage';
@@ -70,10 +70,35 @@ module('Acceptance | Session List', function (hooks) {
 
     test('it should show title indicating that the certificationPointOfContact can create a session', async function (assert) {
       // when
-      await visit('/sessions/liste');
+      const screen = await visit('/sessions/liste');
 
       // then
-      assert.dom('.page-title').hasText('Créez votre première session de certification');
+      assert.dom(screen.getByRole('heading', { name: 'Créer ma première session de certification' })).exists();
+    });
+
+    test('it should redirect to the new session creation page when clicked on create session button', async function (assert) {
+      // given
+      const screen = await visit('/sessions/liste');
+
+      // when
+      await click(screen.getByRole('link', { name: 'Créer une session' }));
+
+      // then
+      assert.strictEqual(currentURL(), '/sessions/creation');
+    });
+
+    module('isMassiveSessionManagementEnabled feature toggle is true', function () {
+      test('it should redirect to the import session page when clicked on create/edit sessions button', async function (assert) {
+        // given
+        server.create('feature-toggle', { isMassiveSessionManagementEnabled: true });
+        const screen = await visit('/sessions/liste');
+
+        // when
+        await click(screen.getByRole('link', { name: 'Créer plusieurs sessions' }));
+
+        // then
+        assert.strictEqual(currentURL(), '/sessions/import');
+      });
     });
 
     module('when some sessions exist', function () {
@@ -133,12 +158,35 @@ module('Acceptance | Session List', function (hooks) {
         server.create('session-summary', { certificationCenterId: centerManagingStudents.id });
 
         // when
-        await visit('/sessions/liste');
-        await click('.logged-user-summary__link');
-        await click('.logged-user-menu-item');
+        const screen = await visit('/sessions/liste');
+
+        assert
+          .dom(
+            screen.queryByText(
+              'La certification Pix se déroulera du 14 novembre 2022 au 17 mars 2023 pour les lycées et du 6 mars au 16 juin 2023 pour les collèges. Pensez à consulter la',
+            ),
+          )
+          .doesNotExist();
+
+        await click(
+          screen.getByRole('button', {
+            name: 'Harry Cover Centre SCO isNotM (ABC123) Ouvrir le menu utilisateur',
+          }),
+        );
+        await click(
+          screen.getByRole('button', {
+            name: 'Centre SCO isM (ABC123)',
+          }),
+        );
 
         // then
-        assert.dom('.pix-message').doesNotExist();
+        assert
+          .dom(
+            screen.getByText(
+              'La certification Pix se déroulera du 14 novembre 2022 au 17 mars 2023 pour les lycées et du 6 mars au 16 juin 2023 pour les collèges. Pensez à consulter la',
+            ),
+          )
+          .exists();
       });
 
       test('it should delete the session of clicked session-summary', async function (assert) {
@@ -190,7 +238,7 @@ module('Acceptance | Session List', function (hooks) {
               },
             ],
           }),
-          400
+          400,
         );
         const screen = await visit('/sessions/liste');
         await click(screen.getByRole('button', { name: 'Supprimer la session 123' }));
@@ -224,7 +272,7 @@ module('Acceptance | Session List', function (hooks) {
               },
             ],
           }),
-          422
+          422,
         );
         const screen = await visit('/sessions/liste');
         await click(screen.getByRole('button', { name: 'Supprimer la session 123' }));
@@ -258,7 +306,7 @@ module('Acceptance | Session List', function (hooks) {
               },
             ],
           }),
-          422
+          422,
         );
         const screen = await visit('/sessions/liste');
         await click(screen.getByRole('button', { name: 'Supprimer la session 123' }));
@@ -294,64 +342,11 @@ module('Acceptance | Session List', function (hooks) {
         await click(screen.getByRole('link', { name: 'Session 26' }));
 
         // when
-        await click(screen.getByRole('link', { name: 'Retour à la liste des sessions' }));
+        await click(screen.getByRole('link', { name: 'Revenir à la liste des sessions' }));
 
         // then
         assert.contains('Page 2 / 2');
         assert.strictEqual(currentURL(), '/sessions/liste?pageNumber=2');
-      });
-    });
-
-    module('when importing multiple sessions', function (hooks) {
-      let screen;
-
-      hooks.beforeEach(async function () {
-        const certificationCenter = createAllowedCertificationCenterAccess({
-          certificationCenterName: 'Centre SUP',
-          certificationCenterType: 'SUP',
-        });
-        certificationPointOfContact = createCertificationPointOfContactWithCustomCenters({
-          pixCertifTermsOfServiceAccepted: true,
-          allowedCertificationCenterAccesses: [certificationCenter],
-        });
-        await authenticateSession(certificationPointOfContact.id);
-        server.create('session-summary', { certificationCenterId: certificationCenter.id });
-        server.create('feature-toggle', { id: 0, isMassiveSessionManagementEnabled: true });
-        screen = await visit('/sessions/liste');
-      });
-
-      module('when the file is valid', function () {
-        test('it should display success message and reload sessions', async function (assert) {
-          // given
-          const file = new Blob(['foo'], { type: 'valid-file' });
-
-          // when
-          const input = await screen.findByLabelText('Importer en masse');
-          await triggerEvent(input, 'change', { files: [file] });
-
-          // then
-          const sessionSummariesCount = await screen.findAllByLabelText('Session de certification');
-          assert
-            .dom('[data-test-notification-message="success"]')
-            .hasText('La liste des sessions a été importée avec succès.');
-          assert.strictEqual(sessionSummariesCount.length, 3);
-        });
-      });
-
-      module('when the file is not valid', function () {
-        test('it should display an error message and not upload any session', async function (assert) {
-          //given
-          const file = new Blob(['foo'], { type: 'invalid-file' });
-
-          // when
-          const input = await screen.findByLabelText('Importer en masse');
-          await triggerEvent(input, 'change', { files: [file] });
-
-          // then
-          const sessionSummariesCount = await screen.findAllByLabelText('Session de certification');
-          assert.dom('[data-test-notification-message="error"]').hasText("Aucune session n'a été importée");
-          assert.strictEqual(sessionSummariesCount.length, 1);
-        });
       });
     });
   });

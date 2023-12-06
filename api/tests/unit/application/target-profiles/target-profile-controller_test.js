@@ -1,10 +1,7 @@
-const { expect, sinon, hFake, domainBuilder } = require('../../../test-helper');
-const targetProfileController = require('../../../../lib/application/target-profiles/target-profile-controller');
-const usecases = require('../../../../lib/domain/usecases');
-const tokenService = require('../../../../lib/domain/services/token-service');
-const targetProfileAttachOrganizationSerializer = require('../../../../lib/infrastructure/serializers/jsonapi/target-profile-attach-organization-serializer');
-const learningContentPDFPresenter = require('../../../../lib/application/target-profiles/presenter/pdf/learning-content-pdf-presenter');
-const DomainTransaction = require('../../../../lib/infrastructure/DomainTransaction');
+import { domainBuilder, expect, hFake, sinon } from '../../../test-helper.js';
+import { targetProfileController } from '../../../../lib/application/target-profiles/target-profile-controller.js';
+import { usecases } from '../../../../lib/domain/usecases/index.js';
+import { DomainTransaction } from '../../../../lib/infrastructure/DomainTransaction.js';
 
 describe('Unit | Controller | target-profile-controller', function () {
   describe('#createTargetProfile', function () {
@@ -73,8 +70,10 @@ describe('Unit | Controller | target-profile-controller', function () {
           data: {
             attributes: {
               name: 'Pixer123',
+              'are-knowledge-elements-resettable': false,
               description: 'description changée',
               comment: 'commentaire changée',
+              'image-url': 'image changée',
             },
           },
         },
@@ -94,6 +93,8 @@ describe('Unit | Controller | target-profile-controller', function () {
           name: 'Pixer123',
           description: 'description changée',
           comment: 'commentaire changée',
+          imageUrl: 'image changée',
+          areKnowledgeElementsResettable: false,
         });
       });
     });
@@ -101,10 +102,11 @@ describe('Unit | Controller | target-profile-controller', function () {
 
   describe('#attachOrganizations', function () {
     let request;
+    let targetProfileAttachOrganizationSerializer;
 
     beforeEach(function () {
       sinon.stub(usecases, 'attachOrganizationsToTargetProfile');
-      sinon.stub(targetProfileAttachOrganizationSerializer, 'serialize');
+      targetProfileAttachOrganizationSerializer = { serialize: sinon.stub() };
 
       request = {
         params: {
@@ -123,7 +125,9 @@ describe('Unit | Controller | target-profile-controller', function () {
         usecases.attachOrganizationsToTargetProfile.resolves();
         targetProfileAttachOrganizationSerializer.serialize.returns(serializer);
 
-        const response = await targetProfileController.attachOrganizations(request, hFake);
+        const response = await targetProfileController.attachOrganizations(request, hFake, {
+          targetProfileAttachOrganizationSerializer,
+        });
         // then
         expect(targetProfileAttachOrganizationSerializer.serialize).to.have.been.called;
         expect(response.statusCode).to.equal(200);
@@ -132,7 +136,9 @@ describe('Unit | Controller | target-profile-controller', function () {
 
       it('should call usecase', async function () {
         // when
-        await targetProfileController.attachOrganizations(request, hFake);
+        await targetProfileController.attachOrganizations(request, hFake, {
+          targetProfileAttachOrganizationSerializer,
+        });
 
         // then
         expect(usecases.attachOrganizationsToTargetProfile).to.have.been.calledOnce;
@@ -232,10 +238,13 @@ describe('Unit | Controller | target-profile-controller', function () {
           accessToken,
         },
       };
-      sinon.stub(tokenService, 'extractUserId').withArgs(accessToken).returns(66);
+      const tokenService = {
+        extractUserId: sinon.stub(),
+      };
+      tokenService.extractUserId.withArgs(accessToken).returns(66);
 
       // when
-      const response = await targetProfileController.getContentAsJsonFile(request, hFake);
+      const response = await targetProfileController.getContentAsJsonFile(request, hFake, { tokenService });
 
       // then
       expect(response.source).to.equal('json_content');
@@ -255,10 +264,12 @@ describe('Unit | Controller | target-profile-controller', function () {
         .stub(usecases, 'getLearningContentByTargetProfile')
         .withArgs({ targetProfileId: 123, language: 'fr' })
         .resolves(learningContent);
-      sinon
-        .stub(learningContentPDFPresenter, 'present')
-        .withArgs(learningContent, 'titre du doc', 'fr')
-        .resolves(pdfBuffer);
+
+      const learningContentPDFPresenter = {
+        present: sinon.stub(),
+      };
+
+      learningContentPDFPresenter.present.withArgs(learningContent, 'titre du doc', 'fr').resolves(pdfBuffer);
       const request = {
         params: {
           id: 123,
@@ -271,13 +282,93 @@ describe('Unit | Controller | target-profile-controller', function () {
       };
 
       // when
-      const response = await targetProfileController.getLearningContentAsPdf(request, hFake);
+      const response = await targetProfileController.getLearningContentAsPdf(request, hFake, {
+        learningContentPDFPresenter,
+      });
 
       // then
       expect(response.headers['Content-Disposition'].startsWith('attachment; filename=titre du doc_')).to.be.true;
       expect(response.headers['Content-Disposition'].endsWith('.pdf')).to.be.true;
       expect(response.headers['Content-Type']).to.equal('application/pdf');
       expect(response.source).to.equal(pdfBuffer);
+    });
+  });
+
+  describe('#findPaginatedTrainings', function () {
+    it('should return trainings summaries', async function () {
+      // given
+      const targetProfileId = 123;
+      const expectedResult = Symbol('serialized-training-summaries');
+      const trainingSummaries = Symbol('trainingSummaries');
+      const meta = Symbol('meta');
+      const useCaseParameters = {
+        targetProfileId,
+        page: { size: 2, number: 1 },
+      };
+
+      sinon.stub(usecases, 'findPaginatedTargetProfileTrainingSummaries').resolves({
+        trainings: trainingSummaries,
+        meta,
+      });
+
+      const trainingSummarySerializer = {
+        serialize: sinon.stub(),
+      };
+      trainingSummarySerializer.serialize.withArgs(trainingSummaries, meta).returns(expectedResult);
+
+      const queryParamsUtils = {
+        extractParameters: sinon.stub().returns(useCaseParameters),
+      };
+
+      // when
+      const response = await targetProfileController.findPaginatedTrainings(
+        {
+          params: {
+            id: targetProfileId,
+            page: { size: 2, number: 1 },
+          },
+        },
+        hFake,
+        { trainingSummarySerializer, queryParamsUtils },
+      );
+
+      // then
+      expect(usecases.findPaginatedTargetProfileTrainingSummaries).to.have.been.calledWith(useCaseParameters);
+      expect(queryParamsUtils.extractParameters).to.have.been.calledOnce;
+      expect(response).to.deep.equal(expectedResult);
+    });
+  });
+
+  describe('#getTargetProfileForAdmin', function () {
+    it('should return targetProfileForAdmin', async function () {
+      // given
+      const targetProfileId = 123;
+      const expectedResult = Symbol('serialized-target-profile-for-admin');
+      const targetProfileForAdmin = Symbol('targetProfileForAdmin');
+      const useCaseParameters = {
+        targetProfileId,
+      };
+
+      sinon.stub(usecases, 'getTargetProfileForAdmin').withArgs(useCaseParameters).resolves(targetProfileForAdmin);
+
+      const targetProfileForAdminSerializer = {
+        serialize: sinon.stub(),
+      };
+      targetProfileForAdminSerializer.serialize.withArgs(targetProfileForAdmin).returns(expectedResult);
+
+      // when
+      const response = await targetProfileController.getTargetProfileForAdmin(
+        {
+          params: {
+            id: targetProfileId,
+          },
+        },
+        hFake,
+        { targetProfileForAdminSerializer },
+      );
+
+      // then
+      expect(response).to.deep.equal(expectedResult);
     });
   });
 });

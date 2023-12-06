@@ -1,6 +1,6 @@
 import { module, test } from 'qunit';
 import { render } from '@ember/test-helpers';
-import hbs from 'htmlbars-inline-precompile';
+import { hbs } from 'ember-cli-htmlbars';
 import setupIntlRenderingTest from '../../../../helpers/setup-intl-rendering';
 import { setupIntl, t } from 'ember-intl/test-support';
 
@@ -39,7 +39,7 @@ module('Integration | Component | Participant::Assessment::Results', function (h
 
     // when
     await render(
-      hbs`<Participant::Assessment::Results @results={{this.campaignAssessmentParticipationResult}} @displayResults={{true}} />`
+      hbs`<Participant::Assessment::Results @results={{this.campaignAssessmentParticipationResult}} @displayResults={{true}} />`,
     );
 
     // then
@@ -47,6 +47,6 @@ module('Integration | Component | Participant::Assessment::Results', function (h
     assert
       .dom(`[aria-label="${t('pages.assessment-individual-results.table.row-title')}"]`)
       .containsText('Compétence 1');
-    assert.dom(`[aria-label="${t('pages.assessment-individual-results.table.row-title')}"]`).containsText('50 %');
+    assert.dom(`[aria-label="${t('pages.assessment-individual-results.table.row-title')}"]`).containsText('50%');
   });
 });

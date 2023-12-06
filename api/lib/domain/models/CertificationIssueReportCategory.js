@@ -50,20 +50,21 @@ const ImpactfulSubcategories = [
   CertificationIssueReportSubcategories.ACCESSIBILITY_ISSUE,
 ];
 
+const DeprecatedCategories = [
+  CertificationIssueReportCategories.TECHNICAL_PROBLEM,
+  CertificationIssueReportCategories.OTHER,
+  CertificationIssueReportCategories.LATE_OR_LEAVING,
+  CertificationIssueReportCategories.CONNECTION_OR_END_SCREEN,
+];
+
 const DeprecatedSubcategories = [
   CertificationIssueReportSubcategories.LINK_NOT_WORKING,
   CertificationIssueReportSubcategories.OTHER,
   CertificationIssueReportSubcategories.LEFT_EXAM_ROOM,
 ];
 
-const DeprecatedCategories = [
-  CertificationIssueReportCategories.TECHNICAL_PROBLEM,
-  CertificationIssueReportCategories.OTHER,
-  CertificationIssueReportCategories.LATE_OR_LEAVING,
-];
-
-module.exports = {
-  CertificationIssueReportCategories,
+export {
+  CertificationIssueReportCategories as CertificationIssueReportCategory,
   CertificationIssueReportSubcategories,
   ImpactfulCategories,
   ImpactfulSubcategories,

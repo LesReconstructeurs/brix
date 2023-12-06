@@ -1,4 +1,4 @@
-const _ = require('lodash');
+import _ from 'lodash';
 
 class CertifiedBadge {
   constructor({ partnerKey, label, imageUrl, stickerUrl, isTemporaryBadge, message }) {
@@ -13,7 +13,7 @@ class CertifiedBadge {
   static fromComplementaryCertificationCourseResults(complementaryCertificationCourseResults) {
     const complementaryCertificationCourseResultsByComplementaryCertificationCourseId = _.groupBy(
       complementaryCertificationCourseResults,
-      'complementaryCertificationCourseId'
+      'complementaryCertificationCourseId',
     );
 
     return Object.values(complementaryCertificationCourseResultsByComplementaryCertificationCourseId)
@@ -68,7 +68,7 @@ function _getAcquiredCertifiedBadgesDTOWithExternalJury(complementaryCertificati
   }
 
   const { partnerKey, label, imageUrl, stickerUrl, certificateMessage, acquired } = _getLowestByLevel(
-    complementaryCertificationCourseResults
+    complementaryCertificationCourseResults,
   );
 
   if (acquired) {
@@ -83,4 +83,4 @@ function _getAcquiredCertifiedBadgesDTOWithExternalJury(complementaryCertificati
   }
 }
 
-module.exports = CertifiedBadge;
+export { CertifiedBadge };

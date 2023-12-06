@@ -1,14 +1,14 @@
-const CertificationAssessment = require('../../../../lib/domain/models/CertificationAssessment');
-const buildCertificationChallengeWithType = require('./build-certification-challenge-with-type');
+import { CertificationAssessment } from '../../../../lib/domain/models/CertificationAssessment.js';
+import { buildCertificationChallengeWithType } from './build-certification-challenge-with-type.js';
 
-module.exports = function buildCertificationAssessment({
+const buildCertificationAssessment = function ({
   id = 123,
   userId = 123,
   certificationCourseId = 123,
   createdAt = new Date('2020-01-01'),
   completedAt = new Date('2020-01-01'),
   state = CertificationAssessment.states.STARTED,
-  isV2Certification = true,
+  version = 2,
   certificationChallenges = [buildCertificationChallengeWithType()],
   certificationAnswersByDate = [],
 } = {}) {
@@ -19,8 +19,10 @@ module.exports = function buildCertificationAssessment({
     createdAt,
     completedAt,
     state,
-    isV2Certification,
+    version,
     certificationChallenges,
     certificationAnswersByDate,
   });
 };
+
+export { buildCertificationAssessment };

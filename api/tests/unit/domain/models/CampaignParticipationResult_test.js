@@ -1,7 +1,7 @@
-const { expect } = require('../../../test-helper');
-const Area = require('../../../../lib/domain/models/Area');
-const CampaignParticipationResult = require('../../../../lib/domain/models/CampaignParticipationResult');
-const KnowledgeElement = require('../../../../lib/domain/models/KnowledgeElement');
+import { expect } from '../../../test-helper.js';
+import { Area } from '../../../../lib/domain/models/Area.js';
+import { CampaignParticipationResult } from '../../../../lib/domain/models/CampaignParticipationResult.js';
+import { KnowledgeElement } from '../../../../lib/domain/models/KnowledgeElement.js';
 
 describe('Unit | Domain | Models | CampaignParticipationResult', function () {
   describe('#buildFrom', function () {
@@ -16,13 +16,13 @@ describe('Unit | Domain | Models | CampaignParticipationResult', function () {
       new KnowledgeElement({ skillId: 7, status: 'validated' }),
     ];
 
-    const jaffaArea = new Area({ name: 'area 1', color: 'jaffa' });
-    const wildStrawberryArea = new Area({ name: 'area 2', color: 'wild-strawberry' });
-
+    const jaffaArea = new Area({ id: 'jaffaArea', name: 'area 1', color: 'jaffa' });
+    const wildStrawberryArea = new Area({ id: 'wildStrawberryArea', name: 'area 2', color: 'wild-strawberry' });
+    const allAreas = [jaffaArea, wildStrawberryArea];
     const competences = [
-      { id: 1, name: 'Economie symbiotique', index: '5.1', skillIds: [1], area: jaffaArea },
-      { id: 2, name: 'Désobéissance civile', index: '6.9', skillIds: [2, 3, 4], area: wildStrawberryArea },
-      { id: 3, name: 'Démocratie liquide', index: '8.6', skillIds: [5, 6], area: wildStrawberryArea },
+      { id: 1, name: 'Economie symbiotique', index: '5.1', skillIds: [1], areaId: 'jaffaArea' },
+      { id: 2, name: 'Désobéissance civile', index: '6.9', skillIds: [2, 3, 4], areaId: 'wildStrawberryArea' },
+      { id: 3, name: 'Démocratie liquide', index: '8.6', skillIds: [5, 6], areaId: 'wildStrawberryArea' },
     ];
 
     const assessment = {
@@ -40,9 +40,9 @@ describe('Unit | Domain | Models | CampaignParticipationResult', function () {
           campaignParticipationId,
           assessment,
           competences,
-          stages: [],
           skillIds,
           knowledgeElements,
+          allAreas,
         });
 
         // then
@@ -54,10 +54,6 @@ describe('Unit | Domain | Models | CampaignParticipationResult', function () {
           testedSkillsCount: 2,
           validatedSkillsCount: 1,
           knowledgeElementsCount: 2,
-          reachedStage: {
-            starCount: 0,
-          },
-          stageCount: 0,
           competenceResults: [
             {
               id: 1,
@@ -85,23 +81,15 @@ describe('Unit | Domain | Models | CampaignParticipationResult', function () {
     });
 
     context('when stages', function () {
-      const stages = [
-        { title: 'palier 1', message: 'Tu as le palier 1', threshold: 0 },
-        { title: 'palier 2', message: 'Tu as le palier 2', threshold: 20 },
-        { title: 'palier 3', message: 'Tu as le palier 3', threshold: 40 },
-        { title: 'palier 4', message: 'Tu as le palier 4', threshold: 60 },
-        { title: 'palier 5', message: 'Tu as le palier 5', threshold: 80 },
-      ];
-
       it('when user has reached a stage', function () {
         // when
         const result = CampaignParticipationResult.buildFrom({
           campaignParticipationId,
           assessment,
           competences,
-          stages,
           skillIds,
           knowledgeElements,
+          allAreas,
         });
 
         // then
@@ -112,13 +100,6 @@ describe('Unit | Domain | Models | CampaignParticipationResult', function () {
           testedSkillsCount: 2,
           validatedSkillsCount: 1,
           knowledgeElementsCount: 2,
-          reachedStage: {
-            title: 'palier 2',
-            message: 'Tu as le palier 2',
-            threshold: 20,
-            starCount: 2,
-          },
-          stageCount: 5,
           competenceResults: [
             {
               id: 1,
@@ -152,9 +133,9 @@ describe('Unit | Domain | Models | CampaignParticipationResult', function () {
           campaignParticipationId,
           assessment,
           competences,
-          stages: [],
           skillIds,
           knowledgeElements,
+          allAreas,
         });
 
         // then
@@ -166,10 +147,6 @@ describe('Unit | Domain | Models | CampaignParticipationResult', function () {
           testedSkillsCount: 2,
           validatedSkillsCount: 1,
           knowledgeElementsCount: 2,
-          reachedStage: {
-            starCount: 0,
-          },
-          stageCount: 0,
           competenceResults: [
             {
               id: 1,

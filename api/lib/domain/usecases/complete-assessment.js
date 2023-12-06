@@ -1,9 +1,8 @@
-const AssessmentCompleted = require('../events/AssessmentCompleted');
-const CampaignParticipationStatuses = require('../models/CampaignParticipationStatuses');
+import { AssessmentCompleted } from '../events/AssessmentCompleted.js';
+import { CampaignParticipationStatuses } from '../models/CampaignParticipationStatuses.js';
+import { AlreadyRatedAssessmentError } from '../errors.js';
 
-const { AlreadyRatedAssessmentError } = require('../errors');
-
-module.exports = async function completeAssessment({
+const completeAssessment = async function ({
   assessmentId,
   domainTransaction,
   campaignParticipationRepository,
@@ -22,7 +21,7 @@ module.exports = async function completeAssessment({
 
     await campaignParticipationRepository.update(
       { id: assessment.campaignParticipationId, status: TO_SHARE },
-      domainTransaction
+      domainTransaction,
     );
   }
 
@@ -38,3 +37,5 @@ module.exports = async function completeAssessment({
     assessment,
   };
 };
+
+export { completeAssessment };

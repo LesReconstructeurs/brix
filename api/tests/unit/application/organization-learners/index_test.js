@@ -1,8 +1,7 @@
-const { expect, HttpTestServer, sinon } = require('../../../test-helper');
-
-const securityPreHandlers = require('../../../../lib/application/security-pre-handlers');
-const organizationLearnerController = require('../../../../lib/application/organization-learners/organization-learner-controller');
-const moduleUnderTest = require('../../../../lib/application/organization-learners');
+import { expect, HttpTestServer, sinon } from '../../../test-helper.js';
+import { securityPreHandlers } from '../../../../lib/application/security-pre-handlers.js';
+import { organizationLearnerController } from '../../../../lib/application/organization-learners/organization-learner-controller.js';
+import * as moduleUnderTest from '../../../../lib/application/organization-learners/index.js';
 
 describe('Unit | Application | Router | organization-learner-router', function () {
   context('Routes /admin', function () {
@@ -169,7 +168,7 @@ describe('Unit | Application | Router | organization-learner-router', function (
       // then
       expect(response.statusCode).to.equal(200);
       expect(securityPreHandlers.checkUserBelongsToLearnersOrganization).to.have.been.calledBefore(
-        organizationLearnerController.getLearner
+        organizationLearnerController.getLearner,
       );
     });
   });

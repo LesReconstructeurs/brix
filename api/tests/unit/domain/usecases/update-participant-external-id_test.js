@@ -1,5 +1,7 @@
-const { expect, sinon } = require('../../../test-helper');
-const { updateParticipantExternalId } = require('../../../../lib/domain/usecases');
+import { expect, sinon } from '../../../test-helper.js';
+import { usecases } from '../../../../lib/domain/usecases/index.js';
+
+const { updateParticipantExternalId } = usecases;
 
 describe('Unit | UseCase | update-participation-external-id', function () {
   it('should call repository method to update the external id for a participation', async function () {
@@ -17,7 +19,7 @@ describe('Unit | UseCase | update-participation-external-id', function () {
 
     //then
     expect(
-      participationsForCampaignManagementRepository.updateParticipantExternalId
+      participationsForCampaignManagementRepository.updateParticipantExternalId,
     ).to.have.been.calledOnceWithExactly({
       campaignParticipationId: 34,
       participantExternalId: 'new1234567',

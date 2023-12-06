@@ -1,7 +1,9 @@
 import { module, test } from 'qunit';
 import setupIntlRenderingTest from '../../helpers/setup-intl-rendering';
-import { find, render } from '@ember/test-helpers';
-import hbs from 'htmlbars-inline-precompile';
+// eslint-disable-next-line no-restricted-imports
+import { find } from '@ember/test-helpers';
+import { render } from '@1024pix/ember-testing-library';
+import { hbs } from 'ember-cli-htmlbars';
 
 module('Integration | Component | TimeoutGauge', function (hooks) {
   setupIntlRenderingTest(hooks);
@@ -26,9 +28,7 @@ module('Integration | Component | TimeoutGauge', function (hooks) {
       await render(hbs`<TimeoutGauge @allottedTime={{this.allottedTime}} />`);
 
       // then
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(find('[data-test="timeout-gauge-remaining"]').textContent.trim(), '1:00');
+      assert.strictEqual(find('[data-test="timeout-gauge-remaining"]').textContent.trim(), '1:00');
     });
 
     test('renders a red clock if time is over', async function (assert) {

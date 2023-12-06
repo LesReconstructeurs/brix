@@ -1,35 +1,59 @@
-require('dotenv').config({ path: `${__dirname}/../.env` });
-const _ = require('lodash');
-const MockDate = require('mockdate');
-const chai = require('chai');
+// eslint-disable-next-line eslint-comments/disable-enable-pair
+/* eslint-disable n/no-unpublished-import */
+import * as url from 'url';
+
+const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
+import * as domainBuilder from './tooling/domain-builder/factory/index.js';
+import { HttpTestServer } from './tooling/server/http-test-server.js';
+import * as dotenv from 'dotenv';
+
+dotenv.config({ path: `${__dirname}/../.env` });
+import _ from 'lodash';
+import MockDate from 'mockdate';
+import chai from 'chai';
+
 const expect = chai.expect;
-const sinon = require('sinon');
-chai.use(require('chai-as-promised'));
-chai.use(require('chai-sorted'));
-chai.use(require('sinon-chai'));
-const customChaiHelpers = require('./tooling/chai-custom-helpers/index');
+import sinon from 'sinon';
+import chaiAsPromised from 'chai-as-promised';
+import chaiSorted from 'chai-sorted';
+import sinonChai from 'sinon-chai';
+
+chai.use(chaiAsPromised);
+chai.use(chaiSorted);
+chai.use(sinonChai);
+import * as customChaiHelpers from './tooling/chai-custom-helpers/index.js';
+
 _.each(customChaiHelpers, chai.use);
-const cache = require('../lib/infrastructure/caches/learning-content-cache');
-const { graviteeRegisterApplicationsCredentials, jwtConfig } = require('../lib/config');
+import { learningContentCache } from '../lib/infrastructure/caches/learning-content-cache.js';
 
-const { knex, disconnect } = require('../db/knex-database-connection');
+import { config } from '../lib/config.js';
 
-const DatabaseBuilder = require('../db/database-builder/database-builder');
+const { apimRegisterApplicationsCredentials, jwtConfig } = config;
+import { knex, disconnect } from '../db/knex-database-connection.js';
+import { DatabaseBuilder } from '../db/database-builder/database-builder.js';
+
 const databaseBuilder = new DatabaseBuilder({ knex });
 
-const nock = require('nock');
+import nock from 'nock';
+
 nock.disableNetConnect();
 
-const learningContentBuilder = require('./tooling/learning-content-builder');
+import { buildLearningContent as learningContentBuilder } from './tooling/learning-content-builder/index.js';
 
-const tokenService = require('../lib/domain/services/token-service');
-const Membership = require('../lib/domain/models/Membership');
+import * as tokenService from '../lib/domain/services/token-service.js';
+import { Membership } from '../lib/domain/models/Membership.js';
+
 const EMPTY_BLANK_AND_NULL = ['', '\t \n', null];
+
+import { PIX_ADMIN } from '../lib/domain/constants.js';
+
+const { ROLES } = PIX_ADMIN;
+import { createTempFile, removeTempFile } from './tooling/temporary-file.js';
 
 /* eslint-disable mocha/no-top-level-hooks */
 afterEach(function () {
   sinon.restore();
-  cache.flushAll();
+  learningContentCache.flushAll();
   nock.cleanAll();
   return databaseBuilder.clean();
 });
@@ -37,6 +61,7 @@ afterEach(function () {
 after(function () {
   return disconnect();
 });
+
 /* eslint-enable mocha/no-top-level-hooks */
 
 function generateValidRequestAuthorizationHeader(userId = 1234, source = 'pix') {
@@ -45,13 +70,13 @@ function generateValidRequestAuthorizationHeader(userId = 1234, source = 'pix') 
 }
 
 function generateValidRequestAuthorizationHeaderForApplication(clientId = 'client-id-name', source, scope) {
-  const application = _.find(graviteeRegisterApplicationsCredentials, { clientId });
+  const application = _.find(apimRegisterApplicationsCredentials, { clientId });
   if (application) {
     const accessToken = tokenService.createAccessTokenFromApplication(
       application.clientId,
       source,
       scope,
-      jwtConfig[application.source].secret
+      jwtConfig[application.source].secret,
     );
     return `Bearer ${accessToken}`;
   }
@@ -68,6 +93,21 @@ async function insertUserWithRoleSuperAdmin() {
     lastName: 'Papa',
     email: 'super.papa@example.net',
     password: 'Password123',
+  });
+
+  await databaseBuilder.commit();
+
+  return user;
+}
+
+async function insertUserWithRoleCertif() {
+  const user = databaseBuilder.factory.buildUser.withRole({
+    id: 1234,
+    firstName: 'Certif',
+    lastName: 'Power',
+    email: 'certif.power@example.net',
+    password: 'Pix123',
+    role: ROLES.CERTIF,
   });
 
   await databaseBuilder.commit();
@@ -158,6 +198,17 @@ function catchErr(promiseFn, ctx) {
   };
 }
 
+function catchErrSync(fn, ctx) {
+  return (...args) => {
+    try {
+      fn.call(ctx, ...args);
+    } catch (err) {
+      return err;
+    }
+    throw new Error('Expected an error, but none was thrown.');
+  };
+}
+
 chai.use(function (chai) {
   const Assertion = chai.Assertion;
 
@@ -211,26 +262,31 @@ global.chaiErr = function globalErr(fn, val) {
   throw new chai.AssertionError('Expected an error');
 };
 
+const testErr = new Error('Fake Error');
 // eslint-disable-next-line mocha/no-exports
-module.exports = {
+export {
   EMPTY_BLANK_AND_NULL,
   expect,
-  domainBuilder: require('./tooling/domain-builder/factory'),
+  domainBuilder,
   databaseBuilder,
   generateValidRequestAuthorizationHeader,
   generateValidRequestAuthorizationHeaderForApplication,
   generateIdTokenForExternalUser,
   hFake,
-  HttpTestServer: require('./tooling/server/http-test-server'),
+  HttpTestServer,
   insertOrganizationUserWithRoleAdmin,
   insertUserWithRoleSuperAdmin,
+  insertUserWithRoleCertif,
   knex,
   nock,
   sinon,
   MockDate,
   streamToPromise,
   catchErr,
-  testErr: new Error('Fake Error'),
+  catchErrSync,
+  testErr,
   mockLearningContent,
   learningContentBuilder,
+  createTempFile,
+  removeTempFile,
 };

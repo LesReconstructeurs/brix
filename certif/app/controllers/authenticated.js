@@ -1,5 +1,5 @@
 import Controller from '@ember/controller';
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 import { action } from '@ember/object';
 import { tracked } from '@glimmer/tracking';
 
@@ -10,6 +10,9 @@ export default class AuthenticatedController extends Controller {
   @tracked isBannerVisible = true;
   @service router;
   @service currentUser;
+  @service featureToggles;
+  @service currentDomain;
+  @service intl;
 
   get showBanner() {
     const isOnFinalizationPage = this.router.currentRouteName === 'authenticated.sessions.finalize';
@@ -18,6 +21,19 @@ export default class AuthenticatedController extends Controller {
       this.isBannerVisible &&
       !isOnFinalizationPage &&
       !this.currentUser.currentAllowedCertificationCenterAccess.isAccessRestricted
+    );
+  }
+
+  get showMassImportBanner() {
+    const isScoManagingStudents = this.currentUser.currentAllowedCertificationCenterAccess.isScoManagingStudents;
+    const topLevelDomain = this.currentDomain.getExtension();
+    const currentLanguage = this.intl.t('current-lang');
+    const isOrgTldAndEnglishCurrentLanguage = topLevelDomain === 'org' && currentLanguage === 'en';
+
+    return (
+      this.featureToggles.featureToggles.isMassiveSessionManagementEnabled &&
+      !isScoManagingStudents &&
+      !isOrgTldAndEnglishCurrentLanguage
     );
   }
 
@@ -30,10 +46,6 @@ export default class AuthenticatedController extends Controller {
 
   get showLinkToSessions() {
     return !this.currentUser.currentAllowedCertificationCenterAccess.isAccessRestricted;
-  }
-
-  get isEndTestScreenRemovalEnabled() {
-    return this.currentUser.currentAllowedCertificationCenterAccess.isEndTestScreenRemovalEnabled;
   }
 
   @action

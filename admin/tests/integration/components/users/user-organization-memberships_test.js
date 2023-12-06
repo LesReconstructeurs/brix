@@ -1,7 +1,7 @@
 import { module, test } from 'qunit';
 import { setupRenderingTest } from 'ember-qunit';
 import { render } from '@1024pix/ember-testing-library';
-import hbs from 'htmlbars-inline-precompile';
+import { hbs } from 'ember-cli-htmlbars';
 import EmberObject from '@ember/object';
 import Service from '@ember/service';
 
@@ -21,7 +21,7 @@ module('Integration | Component | users | organization-memberships', function (h
 
       // when
       const screen = await render(
-        hbs`<Users::UserOrganizationMemberships @organizationMemberships={{this.organizationMemberships}} />`
+        hbs`<Users::UserOrganizationMemberships @organizationMemberships={{this.organizationMemberships}} />`,
       );
 
       // then
@@ -57,7 +57,7 @@ module('Integration | Component | users | organization-memberships', function (h
 
       // when
       const screen = await render(
-        hbs`<Users::UserOrganizationMemberships @organizationMemberships={{this.organizationMemberships}} />`
+        hbs`<Users::UserOrganizationMemberships @organizationMemberships={{this.organizationMemberships}} />`,
       );
 
       // then

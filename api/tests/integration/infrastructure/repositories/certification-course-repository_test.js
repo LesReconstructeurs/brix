@@ -1,9 +1,9 @@
-const _ = require('lodash');
-const { catchErr, expect, databaseBuilder, domainBuilder, knex } = require('../../../test-helper');
-const certificationCourseRepository = require('../../../../lib/infrastructure/repositories/certification-course-repository');
-const BookshelfCertificationCourse = require('../../../../lib/infrastructure/orm-models/CertificationCourse');
-const { NotFoundError } = require('../../../../lib/domain/errors');
-const CertificationCourse = require('../../../../lib/domain/models/CertificationCourse');
+import _ from 'lodash';
+import { catchErr, expect, databaseBuilder, domainBuilder, knex } from '../../../test-helper.js';
+import * as certificationCourseRepository from '../../../../lib/infrastructure/repositories/certification-course-repository.js';
+import { BookshelfCertificationCourse } from '../../../../lib/infrastructure/orm-models/CertificationCourse.js';
+import { NotFoundError } from '../../../../lib/domain/errors.js';
+import { CertificationCourse } from '../../../../lib/domain/models/CertificationCourse.js';
 
 describe('Integration | Repository | Certification Course', function () {
   describe('#save', function () {
@@ -11,81 +11,117 @@ describe('Integration | Repository | Certification Course', function () {
     let complementaryCertificationId;
     let complementaryCertificationBadgeId;
 
-    beforeEach(function () {
-      const userId = databaseBuilder.factory.buildUser().id;
-      const sessionId = databaseBuilder.factory.buildSession().id;
-      const badgeId = databaseBuilder.factory.buildBadge().id;
-
-      complementaryCertificationId = databaseBuilder.factory.buildComplementaryCertification({}).id;
-      complementaryCertificationBadgeId = databaseBuilder.factory.buildComplementaryCertificationBadge({
-        badgeId,
-        complementaryCertificationId,
-      }).id;
-      certificationCourse = domainBuilder.buildCertificationCourse.unpersisted({
-        userId,
-        sessionId,
-        complementaryCertificationCourses: [{ complementaryCertificationId, complementaryCertificationBadgeId }],
-      });
-
-      return databaseBuilder.commit();
-    });
-
     afterEach(async function () {
       await knex('complementary-certification-courses').delete();
       await knex('certification-challenges').delete();
       return knex('certification-courses').delete();
     });
 
-    it('should persist the certif course in db', async function () {
-      // when
-      const savedCertificationCourse = await certificationCourseRepository.save({ certificationCourse });
+    describe('when the session is V2', function () {
+      beforeEach(function () {
+        const userId = databaseBuilder.factory.buildUser().id;
+        const sessionId = databaseBuilder.factory.buildSession().id;
+        const badgeId = databaseBuilder.factory.buildBadge().id;
 
-      // then
-      const retrievedCertificationCourse = await certificationCourseRepository.get(savedCertificationCourse.getId());
-      const fieldsToOmitInCertificationCourse = [
-        'id',
-        'assessment',
-        'challenges',
-        'completedAt',
-        'createdAt',
-        'certificationIssueReports',
-        'complementaryCertificationCourses',
-        'maxReachableLevelOnCertificationDate',
-      ];
+        complementaryCertificationId = databaseBuilder.factory.buildComplementaryCertification({}).id;
+        complementaryCertificationBadgeId = databaseBuilder.factory.buildComplementaryCertificationBadge({
+          badgeId,
+          complementaryCertificationId,
+        }).id;
+        certificationCourse = domainBuilder.buildCertificationCourse.unpersisted({
+          userId,
+          sessionId,
+          complementaryCertificationCourses: [{ complementaryCertificationId, complementaryCertificationBadgeId }],
+        });
 
-      expect(_.omit(retrievedCertificationCourse.toDTO(), fieldsToOmitInCertificationCourse)).to.deep.equal(
-        _.omit(certificationCourse.toDTO(), fieldsToOmitInCertificationCourse)
-      );
-
-      const fieldsToOmitInCertificationChallenge = ['id', 'courseId'];
-      const certificationChallengeToBeSaved = _.map(certificationCourse.toDTO().challenges, (c) =>
-        _.omit(c, fieldsToOmitInCertificationChallenge)
-      );
-      const savedCertificationChallenge = _.map(savedCertificationCourse.toDTO().challenges, (c) =>
-        _.omit(c, fieldsToOmitInCertificationChallenge)
-      );
-
-      expect(savedCertificationChallenge).to.deep.equal(certificationChallengeToBeSaved);
-
-      const [savedComplementaryCertificationCourse] =
-        retrievedCertificationCourse.toDTO().complementaryCertificationCourses;
-      expect(_.omit(savedComplementaryCertificationCourse, ['createdAt', 'id'])).to.deep.equal({
-        complementaryCertificationId,
-        complementaryCertificationBadgeId,
-        certificationCourseId: savedCertificationCourse.getId(),
+        return databaseBuilder.commit();
       });
 
-      expect(_.every(savedCertificationCourse.challenges, (c) => c.courseId === savedCertificationCourse.getId())).to.be
-        .true;
+      it('should persist the certif course in db', async function () {
+        // when
+        const savedCertificationCourse = await certificationCourseRepository.save({ certificationCourse });
+
+        // then
+        const retrievedCertificationCourse = await certificationCourseRepository.get(savedCertificationCourse.getId());
+        const fieldsToOmitInCertificationCourse = [
+          'id',
+          'assessment',
+          'challenges',
+          'completedAt',
+          'createdAt',
+          'certificationIssueReports',
+          'complementaryCertificationCourses',
+          'maxReachableLevelOnCertificationDate',
+        ];
+
+        expect(_.omit(retrievedCertificationCourse.toDTO(), fieldsToOmitInCertificationCourse)).to.deep.equal(
+          _.omit(certificationCourse.toDTO(), fieldsToOmitInCertificationCourse),
+        );
+
+        const fieldsToOmitInCertificationChallenge = ['id', 'courseId'];
+        const certificationChallengeToBeSaved = _.map(certificationCourse.toDTO().challenges, (c) =>
+          _.omit(c, fieldsToOmitInCertificationChallenge),
+        );
+        const savedCertificationChallenge = _.map(savedCertificationCourse.toDTO().challenges, (c) =>
+          _.omit(c, fieldsToOmitInCertificationChallenge),
+        );
+
+        expect(savedCertificationChallenge).to.deep.equal(certificationChallengeToBeSaved);
+
+        const [savedComplementaryCertificationCourse] =
+          retrievedCertificationCourse.toDTO().complementaryCertificationCourses;
+        expect(_.omit(savedComplementaryCertificationCourse, ['createdAt', 'id'])).to.deep.equal({
+          complementaryCertificationId,
+          complementaryCertificationBadgeId,
+          certificationCourseId: savedCertificationCourse.getId(),
+        });
+
+        expect(_.every(savedCertificationCourse.challenges, (c) => c.courseId === savedCertificationCourse.getId())).to
+          .be.true;
+      });
+
+      it('should return the saved certification course', async function () {
+        // when
+        const savedCertificationCourse = await certificationCourseRepository.save({ certificationCourse });
+
+        // then
+        expect(savedCertificationCourse).to.be.an.instanceOf(CertificationCourse);
+        expect(savedCertificationCourse.getId()).not.to.be.null;
+      });
     });
 
-    it('should return the saved certification course', async function () {
-      // when
-      const savedCertificationCourse = await certificationCourseRepository.save({ certificationCourse });
+    describe('when the session is V3', function () {
+      beforeEach(function () {
+        const userId = databaseBuilder.factory.buildUser().id;
+        const sessionId = databaseBuilder.factory.buildSession({ version: 3 }).id;
 
-      // then
-      expect(savedCertificationCourse).to.be.an.instanceOf(CertificationCourse);
-      expect(savedCertificationCourse.getId()).not.to.be.null;
+        certificationCourse = domainBuilder.buildCertificationCourse.unpersisted({
+          userId,
+          sessionId,
+          complementaryCertificationCourses: [],
+          version: 3,
+        });
+
+        return databaseBuilder.commit();
+      });
+
+      it('should persist the certification course in db', async function () {
+        // when
+        const savedCertificationCourse = await certificationCourseRepository.save({ certificationCourse });
+
+        // then
+        const retrievedCertificationCourse = await certificationCourseRepository.get(savedCertificationCourse.getId());
+        expect(retrievedCertificationCourse.getVersion()).to.equal(3);
+      });
+
+      it('should return the saved certification course', async function () {
+        // when
+        const savedCertificationCourse = await certificationCourseRepository.save({ certificationCourse });
+
+        // then
+        expect(savedCertificationCourse).to.be.an.instanceOf(CertificationCourse);
+        expect(savedCertificationCourse.getId()).not.to.be.null;
+      });
     });
   });
 
@@ -102,7 +138,7 @@ describe('Integration | Repository | Certification Course', function () {
       const completionDate = new Date('2018-01-01T06:07:08Z');
       const updatedCertificationCourse = await certificationCourseRepository.changeCompletionDate(
         courseId,
-        completionDate
+        completionDate,
       );
 
       // then
@@ -169,7 +205,7 @@ describe('Integration | Repository | Certification Course', function () {
         ],
         (certificationChallenge) => {
           databaseBuilder.factory.buildCertificationChallenge(certificationChallenge);
-        }
+        },
       );
       _.each(
         [
@@ -204,7 +240,7 @@ describe('Integration | Repository | Certification Course', function () {
             complementaryCertificationCourseId,
             certificationCourseId,
           });
-        }
+        },
       );
       databaseBuilder.factory.buildCertificationIssueReport({
         certificationCourseId: expectedCertificationCourse.id,
@@ -323,7 +359,6 @@ describe('Integration | Repository | Certification Course', function () {
       const bookshelfCertificationCourse = databaseBuilder.factory.buildCertificationCourse({
         userId,
         isCancelled: false,
-        isV2Certification: true,
       });
       certificationCourse = domainBuilder.buildCertificationCourse(bookshelfCertificationCourse);
       await databaseBuilder.commit();
@@ -367,7 +402,7 @@ describe('Integration | Repository | Certification Course', function () {
 
       // when
       const persistedUpdatedCertificationCourse = await certificationCourseRepository.update(
-        unpersistedUpdatedCertificationCourse
+        unpersistedUpdatedCertificationCourse,
       );
 
       // then
@@ -375,25 +410,25 @@ describe('Integration | Repository | Certification Course', function () {
       const unpersistedUpdatedCertificationCourseDTO = unpersistedUpdatedCertificationCourse.toDTO();
       expect(persistedUpdatedCertificationCourse.getId()).to.equal(unpersistedUpdatedCertificationCourse.getId());
       expect(persistedUpdatedCertificationCourseDTO.firstName).to.equal(
-        unpersistedUpdatedCertificationCourseDTO.firstName
+        unpersistedUpdatedCertificationCourseDTO.firstName,
       );
       expect(persistedUpdatedCertificationCourseDTO.lastName).to.equal(
-        unpersistedUpdatedCertificationCourseDTO.lastName
+        unpersistedUpdatedCertificationCourseDTO.lastName,
       );
       expect(persistedUpdatedCertificationCourseDTO.birthdate).to.equal(
-        unpersistedUpdatedCertificationCourseDTO.birthdate
+        unpersistedUpdatedCertificationCourseDTO.birthdate,
       );
       expect(persistedUpdatedCertificationCourseDTO.birthplace).to.equal(
-        unpersistedUpdatedCertificationCourseDTO.birthplace
+        unpersistedUpdatedCertificationCourseDTO.birthplace,
       );
       expect(persistedUpdatedCertificationCourseDTO.birthPostalCode).to.equal(
-        unpersistedUpdatedCertificationCourseDTO.birthPostalCode
+        unpersistedUpdatedCertificationCourseDTO.birthPostalCode,
       );
       expect(persistedUpdatedCertificationCourseDTO.birthINSEECode).to.equal(
-        unpersistedUpdatedCertificationCourseDTO.birthINSEECode
+        unpersistedUpdatedCertificationCourseDTO.birthINSEECode,
       );
       expect(persistedUpdatedCertificationCourseDTO.birthCountry).to.equal(
-        unpersistedUpdatedCertificationCourseDTO.birthCountry
+        unpersistedUpdatedCertificationCourseDTO.birthCountry,
       );
       expect(persistedUpdatedCertificationCourseDTO.sex).to.equal(unpersistedUpdatedCertificationCourseDTO.sex);
       expect(persistedUpdatedCertificationCourseDTO.isCancelled).to.be.true;
@@ -402,13 +437,13 @@ describe('Integration | Repository | Certification Course', function () {
 
     it('should prevent other values to be updated', async function () {
       // given
-      certificationCourse._isV2Certification = false;
+      certificationCourse.version = 1;
 
       // when
       const certificationCourseUpdated = await certificationCourseRepository.update(certificationCourse);
 
       // then
-      expect(certificationCourseUpdated.toDTO().isV2Certification).to.be.true;
+      expect(certificationCourseUpdated.toDTO().version).to.equal(2);
     });
 
     it('should return a NotFoundError when ID doesnt exist', function () {
@@ -477,10 +512,10 @@ describe('Integration | Repository | Certification Course', function () {
       // then
       expect(certificationCourses).to.have.lengthOf(2);
       expect(_cleanCertificationCourse(certificationCourses[0])).to.deep.equal(
-        _cleanCertificationCourse(new CertificationCourse(firstCertifCourse))
+        _cleanCertificationCourse(new CertificationCourse(firstCertifCourse)),
       );
       expect(_cleanCertificationCourse(certificationCourses[1])).to.deep.equal(
-        _cleanCertificationCourse(new CertificationCourse(secondCertifCourse))
+        _cleanCertificationCourse(new CertificationCourse(secondCertifCourse)),
       );
     });
 
@@ -492,61 +527,6 @@ describe('Integration | Repository | Certification Course', function () {
 
       // then
       expect(result).to.be.empty;
-    });
-  });
-
-  describe('#saveLastAssessmentResult', function () {
-    let sessionId;
-    let certificationCourseId;
-
-    beforeEach(function () {
-      // given
-      sessionId = databaseBuilder.factory.buildSession().id;
-      certificationCourseId = databaseBuilder.factory.buildCertificationCourse({ sessionId }).id;
-      return databaseBuilder.commit();
-    });
-
-    afterEach(function () {
-      // given
-      return knex('certification-courses-last-assessment-results').delete();
-    });
-
-    it('should insert certification course id and its last assessment result id', async function () {
-      // given
-      databaseBuilder.factory.buildAssessment({ id: 5, certificationCourseId });
-      databaseBuilder.factory.buildAssessmentResult({ id: 6, assessmentId: 5 });
-      await databaseBuilder.commit();
-
-      // when
-      await certificationCourseRepository.saveLastAssessmentResultId({
-        certificationCourseId,
-        lastAssessmentResultId: 6,
-      });
-      // then
-      const result = await knex('certification-courses-last-assessment-results').select('*');
-      expect(result).to.deep.equal([{ lastAssessmentResultId: 6, certificationCourseId }]);
-    });
-
-    it('should update certification course id and its last assessment result id', async function () {
-      // given
-      databaseBuilder.factory.buildAssessment({ id: 5, certificationCourseId });
-      databaseBuilder.factory.buildAssessmentResult({ id: 6, assessmentId: 5 });
-      databaseBuilder.factory.buildAssessmentResult({ id: 7, assessmentId: 5 });
-      await databaseBuilder.commit();
-      await knex('certification-courses-last-assessment-results').insert({
-        lastAssessmentResultId: 6,
-        certificationCourseId,
-      });
-
-      // when
-      await certificationCourseRepository.saveLastAssessmentResultId({
-        certificationCourseId,
-        lastAssessmentResultId: 7,
-      });
-
-      // then
-      const result = await knex('certification-courses-last-assessment-results').select('*');
-      expect(result).to.deep.equal([{ lastAssessmentResultId: 7, certificationCourseId }]);
     });
   });
 });

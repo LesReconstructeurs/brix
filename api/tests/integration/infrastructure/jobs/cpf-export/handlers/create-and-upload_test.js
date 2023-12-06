@@ -1,25 +1,36 @@
-const { domainBuilder, expect, sinon } = require('../../../../../test-helper');
-const createAndUpload = require('../../../../../../lib/infrastructure/jobs/cpf-export/handlers/create-and-upload');
-const { createUnzip } = require('node:zlib');
-const fs = require('fs');
-const proxyquire = require('proxyquire');
-const dayjs = require('dayjs');
-const utc = require('dayjs/plugin/utc');
-const timezone = require('dayjs/plugin/timezone');
+import { domainBuilder, expect, sinon } from '../../../../../test-helper.js';
+import { createAndUpload } from '../../../../../../lib/infrastructure/jobs/cpf-export/handlers/create-and-upload.js';
+import * as cpfCertificationXmlExportService from '../../../../../../lib/domain/services/cpf-certification-xml-export-service.js';
+import { createUnzip } from 'node:zlib';
+
+import fs from 'fs';
+import lodash from 'lodash';
+const { noop } = lodash;
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc.js';
+import timezone from 'dayjs/plugin/timezone.js';
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-const { PassThrough } = require('stream');
+import stream from 'stream';
+const { PassThrough } = stream;
+
+import * as url from 'url';
+const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 
 describe('Integration | Infrastructure | jobs | cpf-export | create-and-upload', function () {
   let cpfCertificationResultRepository;
   let cpfExternalStorage;
   let clock;
   const expectedFileName = 'pix-cpf-export-20220102-114327.xml.gz';
+  let logger;
+  let uuidService;
 
   beforeEach(function () {
     const now = dayjs('2022-01-02T10:43:27Z').tz('Europe/Paris').toDate();
     clock = sinon.useFakeTimers(now);
+    logger = { error: noop, info: noop };
+    uuidService = { v4: sinon.stub() };
   });
 
   afterEach(function () {
@@ -28,7 +39,7 @@ describe('Integration | Infrastructure | jobs | cpf-export | create-and-upload',
 
   it('should build an xml export file and upload it to an external storage', async function () {
     // given
-    const jobId = '555-444#01';
+    const batchId = '555-444#01';
 
     const cpfCertificationResults = [
       domainBuilder.buildCpfCertificationResult({ id: 12 }),
@@ -44,16 +55,9 @@ describe('Integration | Infrastructure | jobs | cpf-export | create-and-upload',
       upload: sinon.stub(),
     };
 
-    cpfCertificationResultRepository.findByBatchId.withArgs(jobId).resolves(cpfCertificationResults);
+    cpfCertificationResultRepository.findByBatchId.withArgs(batchId).resolves(cpfCertificationResults);
 
-    const cpfCertificationXmlExportService = proxyquire(
-      '../../../../../../lib/domain/services/cpf-certification-xml-export-service',
-      {
-        uuid: {
-          v4: () => 'xxx-yyy-zzz',
-        },
-      }
-    );
+    uuidService.v4.returns('xxx-yyy-zzz');
 
     cpfExternalStorage.upload
       .withArgs({
@@ -69,10 +73,12 @@ describe('Integration | Infrastructure | jobs | cpf-export | create-and-upload',
 
     // when
     await createAndUpload({
-      data: { jobId },
+      data: { batchId },
       cpfCertificationResultRepository,
       cpfCertificationXmlExportService,
       cpfExternalStorage,
+      logger,
+      uuidService,
     });
 
     // then

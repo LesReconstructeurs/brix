@@ -1,7 +1,7 @@
-const { expect, databaseBuilder, domainBuilder, catchErr, sinon } = require('../../../test-helper');
-const certificationCenterForAdminRepository = require('../../../../lib/infrastructure/repositories/certification-center-for-admin-repository');
-const CertificationCenterForAdmin = require('../../../../lib/domain/models/CertificationCenterForAdmin');
-const { NotFoundError } = require('../../../../lib/domain/errors');
+import { expect, databaseBuilder, domainBuilder, catchErr, sinon } from '../../../test-helper.js';
+import * as certificationCenterForAdminRepository from '../../../../lib/infrastructure/repositories/certification-center-for-admin-repository.js';
+import { CertificationCenterForAdmin } from '../../../../lib/domain/models/CertificationCenterForAdmin.js';
+import { NotFoundError } from '../../../../lib/domain/errors.js';
 
 describe('Integration | Repository | certification-center-for-admin', function () {
   let clock;
@@ -25,7 +25,6 @@ describe('Integration | Repository | certification-center-for-admin', function (
           createdAt: new Date('2018-01-01T05:43:10Z'),
           type: CertificationCenterForAdmin.types.SUP,
           externalId: 'externalId',
-          isSupervisorAccessEnabled: true,
           updatedAt: now,
         });
         databaseBuilder.factory.buildCertificationCenter({ id: 2 });
@@ -42,8 +41,7 @@ describe('Integration | Repository | certification-center-for-admin', function (
           type: CertificationCenterForAdmin.types.SUP,
           externalId: 'externalId',
           createdAt: new Date('2018-01-01T05:43:10Z'),
-          complementaryCertifications: [],
-          isSupervisorAccessEnabled: true,
+          complementaryCertification: null,
           dataProtectionOfficerFirstName: dataProtectionOfficer.firstName,
           dataProtectionOfficerLastName: dataProtectionOfficer.lastName,
           dataProtectionOfficerEmail: dataProtectionOfficer.email,
@@ -140,12 +138,15 @@ describe('Integration | Repository | certification-center-for-admin', function (
   });
 
   describe('#save', function () {
+    afterEach(async function () {
+      await databaseBuilder.knex('certification-centers').delete();
+    });
+
     it('should save the given certification center', async function () {
       // given
       const certificationCenter = new CertificationCenterForAdmin({
         name: 'CertificationCenterName',
         type: 'SCO',
-        isSupervisorAccessEnabled: true,
       });
 
       // when
@@ -156,7 +157,6 @@ describe('Integration | Repository | certification-center-for-admin', function (
       expect(savedCertificationCenter.id).to.exist;
       expect(savedCertificationCenter.name).to.equal('CertificationCenterName');
       expect(savedCertificationCenter.type).to.equal('SCO');
-      expect(savedCertificationCenter.isSupervisorAccessEnabled).to.be.true;
     });
   });
 
@@ -165,7 +165,7 @@ describe('Integration | Repository | certification-center-for-admin', function (
 
     before(async function () {
       // given
-      certificationCenter = databaseBuilder.factory.buildCertificationCenter({ isSupervisorAccessEnabled: true });
+      certificationCenter = databaseBuilder.factory.buildCertificationCenter();
       await databaseBuilder.commit();
     });
 
@@ -174,7 +174,6 @@ describe('Integration | Repository | certification-center-for-admin', function (
       const updatedCertificationCenter = await certificationCenterForAdminRepository.update({
         id: certificationCenter.id,
         name: 'Great Oak Certification Center',
-        isSupervisorAccessEnabled: false,
         updatedAt: now,
       });
 
@@ -184,9 +183,8 @@ describe('Integration | Repository | certification-center-for-admin', function (
         new CertificationCenterForAdmin({
           ...certificationCenter,
           name: 'Great Oak Certification Center',
-          isSupervisorAccessEnabled: false,
           updatedAt: updatedCertificationCenter.updatedAt,
-        })
+        }),
       );
     });
   });

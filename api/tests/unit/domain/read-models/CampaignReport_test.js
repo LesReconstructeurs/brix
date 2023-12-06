@@ -1,5 +1,5 @@
-const { expect, domainBuilder } = require('../../../test-helper');
-const CampaignTypes = require('../../../../lib/domain/models/CampaignTypes');
+import { expect, domainBuilder } from '../../../test-helper.js';
+import { CampaignTypes } from '../../../../lib/domain/models/CampaignTypes.js';
 
 describe('Unit | Domain | Models | CampaignReport', function () {
   it('should define target profile informations', function () {
@@ -11,7 +11,9 @@ describe('Unit | Domain | Models | CampaignReport', function () {
       thematicResult: 3,
     };
 
-    const campaignReport = domainBuilder.buildCampaignReport({ targetProfileForSpecifier });
+    const campaignReport = domainBuilder.buildCampaignReport();
+
+    campaignReport.setTargetProfileInformation(targetProfileForSpecifier);
 
     expect(campaignReport.targetProfileName).to.equal(targetProfileForSpecifier.name);
     expect(campaignReport.targetProfileDescription).to.equal(targetProfileForSpecifier.description);

@@ -1,4 +1,4 @@
-const CertificationResult = require('../../../../lib/domain/models/CertificationResult');
+import { CertificationResult } from '../../../../lib/domain/models/CertificationResult.js';
 
 const buildCertificationResult = function ({
   id = 123,
@@ -166,4 +166,37 @@ buildCertificationResult.error = function ({
   });
 };
 
-module.exports = buildCertificationResult;
+buildCertificationResult.started = function ({
+  id,
+  firstName,
+  lastName,
+  birthplace,
+  birthdate,
+  externalId,
+  createdAt,
+  sessionId,
+  pixScore,
+  emitter,
+  commentForOrganization,
+  competencesWithMark,
+  complementaryCertificationCourseResults,
+}) {
+  return buildCertificationResult({
+    id,
+    firstName,
+    lastName,
+    birthplace,
+    birthdate,
+    externalId,
+    createdAt,
+    sessionId,
+    status: CertificationResult.status.STARTED,
+    pixScore,
+    emitter,
+    commentForOrganization,
+    competencesWithMark,
+    complementaryCertificationCourseResults,
+  });
+};
+
+export { buildCertificationResult };

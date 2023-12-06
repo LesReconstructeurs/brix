@@ -1,8 +1,8 @@
-const { expect, sinon, HttpTestServer } = require('../../../test-helper');
-const securityPreHandlers = require('../../../../lib/application/security-pre-handlers');
-const usecases = require('../../../../lib/domain/usecases');
-const { InvalidJuryLevelError } = require('../../../../lib/domain/errors');
-const moduleUnderTest = require('../../../../lib/application/complementary-certification-course-results');
+import { expect, sinon, HttpTestServer } from '../../../test-helper.js';
+import { securityPreHandlers } from '../../../../lib/application/security-pre-handlers.js';
+import { usecases } from '../../../../lib/domain/usecases/index.js';
+import { InvalidJuryLevelError } from '../../../../lib/domain/errors.js';
+import * as moduleUnderTest from '../../../../lib/application/complementary-certification-course-results/index.js';
 
 describe('Integration | Application | complementary-certification-course-results | complementary-certification-course-results-controller', function () {
   let sandbox;
@@ -41,7 +41,7 @@ describe('Integration | Application | complementary-certification-course-results
         const response = await httpTestServer.request(
           'POST',
           '/api/admin/complementary-certification-course-results',
-          payload
+          payload,
         );
 
         // then
@@ -68,7 +68,7 @@ describe('Integration | Application | complementary-certification-course-results
           const response = await httpTestServer.request(
             'POST',
             '/api/admin/complementary-certification-course-results',
-            payload
+            payload,
           );
 
           // then
@@ -89,20 +89,20 @@ describe('Integration | Application | complementary-certification-course-results
             },
           };
           securityPreHandlers.checkAdminMemberHasRoleSuperAdmin.callsFake((request, h) =>
-            h.response({ errors: new Error('forbidden') }).code(403)
+            h.response({ errors: new Error('forbidden') }).code(403),
           );
           securityPreHandlers.checkAdminMemberHasRoleSupport.callsFake((request, h) =>
-            h.response({ errors: new Error('forbidden') }).code(403)
+            h.response({ errors: new Error('forbidden') }).code(403),
           );
           securityPreHandlers.checkAdminMemberHasRoleCertif.callsFake((request, h) =>
-            h.response({ errors: new Error('forbidden') }).code(403)
+            h.response({ errors: new Error('forbidden') }).code(403),
           );
 
           // when
           const response = await httpTestServer.request(
             'POST',
             '/api/admin/complementary-certification-course-results',
-            payload
+            payload,
           );
 
           // then

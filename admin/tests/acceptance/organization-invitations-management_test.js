@@ -1,7 +1,7 @@
 import { module, test } from 'qunit';
 import { clickByText, fillByLabel, visit } from '@1024pix/ember-testing-library';
 import { setupApplicationTest } from 'ember-qunit';
-import setupMirage from 'ember-cli-mirage/test-support/setup-mirage';
+import { setupMirage } from 'ember-cli-mirage/test-support';
 import dayjs from 'dayjs';
 import sinon from 'sinon';
 import { authenticateAdminMemberWithRole } from 'pix-admin/tests/helpers/test-init';
@@ -58,7 +58,7 @@ module('Acceptance | organization invitations management', function (hooks) {
       this.server.post(
         '/admin/organizations/:id/invitations',
         () => ({ errors: [{ status: '500', title: 'An error occurred' }] }),
-        500
+        500,
       );
 
       // when

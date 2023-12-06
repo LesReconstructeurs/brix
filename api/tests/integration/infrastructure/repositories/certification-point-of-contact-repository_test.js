@@ -1,8 +1,8 @@
-const { databaseBuilder, expect, domainBuilder, catchErr } = require('../../../test-helper');
-const CertificationCenter = require('../../../../lib/domain/models/CertificationCenter');
-const Organization = require('../../../../lib/domain/models/Organization');
-const certificationPointOfContactRepository = require('../../../../lib/infrastructure/repositories/certification-point-of-contact-repository');
-const { NotFoundError } = require('../../../../lib/domain/errors');
+import { databaseBuilder, expect, domainBuilder, catchErr } from '../../../test-helper.js';
+import { CertificationCenter } from '../../../../lib/domain/models/CertificationCenter.js';
+import { Organization } from '../../../../lib/domain/models/Organization.js';
+import * as certificationPointOfContactRepository from '../../../../lib/infrastructure/repositories/certification-point-of-contact-repository.js';
+import { NotFoundError } from '../../../../lib/domain/errors.js';
 
 describe('Integration | Repository | CertificationPointOfContact', function () {
   describe('#get', function () {
@@ -22,6 +22,7 @@ describe('Integration | Repository | CertificationPointOfContact', function () {
         firstName: 'Jean',
         lastName: 'Acajou',
         email: 'jean.acajou@example.net',
+        lang: 'fr',
         pixCertifTermsOfServiceAccepted: true,
       });
       databaseBuilder.factory.buildUser();
@@ -36,6 +37,7 @@ describe('Integration | Repository | CertificationPointOfContact', function () {
         firstName: 'Jean',
         lastName: 'Acajou',
         email: 'jean.acajou@example.net',
+        lang: 'fr',
         pixCertifTermsOfServiceAccepted: true,
         allowedCertificationCenterAccesses: [],
       });
@@ -100,7 +102,7 @@ describe('Integration | Repository | CertificationPointOfContact', function () {
           });
           expect(expectedCertificationPointOfContact).to.deepEqualInstance(certificationPointOfContact);
         });
-      }
+      },
     );
 
     context('when user is linked to many certification centers', function () {
@@ -394,7 +396,7 @@ describe('Integration | Repository | CertificationPointOfContact', function () {
           });
           expect(certificationPointOfContact).to.deepEqualInstance(expectedCertificationPointOfContact);
         });
-      }
+      },
     );
   });
 });

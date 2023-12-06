@@ -1,12 +1,11 @@
-const _ = require('lodash');
+import _ from 'lodash';
 
-const { catchErr, expect, knex, databaseBuilder } = require('../../../test-helper');
+import { catchErr, expect, knex, databaseBuilder } from '../../../test-helper.js';
+import { UserOrgaSettings } from '../../../../lib/domain/models/UserOrgaSettings.js';
+import { BookshelfUserOrgaSettings } from '../../../../lib/infrastructure/orm-models/UserOrgaSettings.js';
+import { UserOrgaSettingsCreationError } from '../../../../lib/domain/errors.js';
 
-const UserOrgaSettings = require('../../../../lib/domain/models/UserOrgaSettings');
-const BookshelfUserOrgaSettings = require('../../../../lib/infrastructure/orm-models/UserOrgaSettings');
-const { UserOrgaSettingsCreationError } = require('../../../../lib/domain/errors');
-
-const userOrgaSettingsRepository = require('../../../../lib/infrastructure/repositories/user-orga-settings-repository');
+import * as userOrgaSettingsRepository from '../../../../lib/infrastructure/repositories/user-orga-settings-repository.js';
 
 describe('Integration | Repository | UserOrgaSettings', function () {
   const USER_PICKED_PROPERTIES = [
@@ -76,10 +75,10 @@ describe('Integration | Repository | UserOrgaSettings', function () {
       // then
       expect(userOrgaSettingsSaved.id).to.not.be.undefined;
       expect(_.pick(userOrgaSettingsSaved.user, USER_PICKED_PROPERTIES)).to.deep.equal(
-        _.pick(user, USER_PICKED_PROPERTIES)
+        _.pick(user, USER_PICKED_PROPERTIES),
       );
       expect(_.omit(userOrgaSettingsSaved.currentOrganization, ORGANIZATION_OMITTED_PROPERTIES)).to.deep.equal(
-        _.omit(organization, ORGANIZATION_OMITTED_PROPERTIES)
+        _.omit(organization, ORGANIZATION_OMITTED_PROPERTIES),
       );
     });
 
@@ -116,10 +115,10 @@ describe('Integration | Repository | UserOrgaSettings', function () {
       // then
       expect(updatedUserOrgaSettings.id).to.deep.equal(userOrgaSettingsId);
       expect(_.pick(updatedUserOrgaSettings.user, USER_PICKED_PROPERTIES)).to.deep.equal(
-        _.pick(user, USER_PICKED_PROPERTIES)
+        _.pick(user, USER_PICKED_PROPERTIES),
       );
       expect(_.omit(updatedUserOrgaSettings.currentOrganization, ORGANIZATION_OMITTED_PROPERTIES)).to.deep.equal(
-        _.omit(expectedOrganization, ORGANIZATION_OMITTED_PROPERTIES)
+        _.omit(expectedOrganization, ORGANIZATION_OMITTED_PROPERTIES),
       );
     });
   });
@@ -150,10 +149,10 @@ describe('Integration | Repository | UserOrgaSettings', function () {
       // then
       expect(foundUserOrgaSettings.id).to.deep.equal(userOrgaSettingsId);
       expect(_.pick(foundUserOrgaSettings.user, USER_PICKED_PROPERTIES)).to.deep.equal(
-        _.pick(user, USER_PICKED_PROPERTIES)
+        _.pick(user, USER_PICKED_PROPERTIES),
       );
       expect(_.omit(foundUserOrgaSettings.currentOrganization, ORGANIZATION_OMITTED_PROPERTIES)).to.deep.equal(
-        _.omit(organization, ORGANIZATION_OMITTED_PROPERTIES)
+        _.omit(organization, ORGANIZATION_OMITTED_PROPERTIES),
       );
     });
 

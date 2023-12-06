@@ -1,10 +1,11 @@
-const { expect, sinon, catchErr, domainBuilder } = require('../../../test-helper');
-const { handleCertificationScoring } = require('../../../../lib/domain/events')._forTestOnly.handlers;
-const AssessmentResult = require('../../../../lib/domain/models/AssessmentResult');
-const { CertificationComputeError } = require('../../../../lib/domain/errors');
-const AssessmentCompleted = require('../../../../lib/domain/events/AssessmentCompleted');
-const CertificationCourse = require('../../../../lib/domain/models/CertificationCourse');
-const CertificationScoringCompleted = require('../../../../lib/domain/events/CertificationScoringCompleted');
+import { expect, sinon, catchErr, domainBuilder } from '../../../test-helper.js';
+import { _forTestOnly } from '../../../../lib/domain/events/index.js';
+const { handleCertificationScoring } = _forTestOnly.handlers;
+import { AssessmentResult } from '../../../../lib/domain/models/AssessmentResult.js';
+import { CertificationComputeError } from '../../../../lib/domain/errors.js';
+import { AssessmentCompleted } from '../../../../lib/domain/events/AssessmentCompleted.js';
+import { CertificationCourse } from '../../../../lib/domain/models/CertificationCourse.js';
+import { CertificationScoringCompleted } from '../../../../lib/domain/events/CertificationScoringCompleted.js';
 
 describe('Unit | Domain | Events | handle-certification-scoring', function () {
   let scoringCertificationService;
@@ -27,7 +28,6 @@ describe('Unit | Domain | Events | handle-certification-scoring', function () {
       get: sinon.stub(),
       update: sinon.stub(),
       getCreationDate: sinon.stub(),
-      saveLastAssessmentResultId: sinon.stub(),
     };
     competenceMarkRepository = { save: sinon.stub() };
   });
@@ -95,7 +95,6 @@ describe('Unit | Domain | Events | handle-certification-scoring', function () {
         // then
         expect(AssessmentResult.buildAlgoErrorResult).to.not.have.been.called;
         expect(assessmentResultRepository.save).to.not.have.been.called;
-        expect(certificationCourseRepository.saveLastAssessmentResultId).to.not.have.been.called;
         expect(certificationCourseRepository.update).to.not.have.been.called;
       });
     });
@@ -156,16 +155,15 @@ describe('Unit | Domain | Events | handle-certification-scoring', function () {
           assessmentId: certificationAssessment.id,
           emitter: 'PIX-ALGO',
         });
-        expect(assessmentResultRepository.save).to.have.been.calledWithExactly(errorAssessmentResult);
-        expect(certificationCourseRepository.saveLastAssessmentResultId).to.have.been.calledOnceWith({
+        expect(assessmentResultRepository.save).to.have.been.calledWithExactly({
           certificationCourseId: 1234,
-          lastAssessmentResultId: 98,
+          assessmentResult: errorAssessmentResult,
         });
         expect(certificationCourseRepository.update).to.have.been.calledWithExactly(
           new CertificationCourse({
             ...certificationCourse.toDTO(),
             completedAt: now,
-          })
+          }),
         );
       });
     });
@@ -224,16 +222,15 @@ describe('Unit | Domain | Events | handle-certification-scoring', function () {
           assessmentId: certificationAssessment.id,
           emitter: 'PIX-ALGO',
         });
-        expect(assessmentResultRepository.save).to.have.been.calledWithExactly(assessmentResult);
-        expect(certificationCourseRepository.saveLastAssessmentResultId).to.have.been.calledOnceWith({
+        expect(assessmentResultRepository.save).to.have.been.calledWithExactly({
           certificationCourseId: 1234,
-          lastAssessmentResultId: 99,
+          assessmentResult,
         });
         expect(certificationCourseRepository.update).to.have.been.calledWithExactly(
           new CertificationCourse({
             ...certificationCourse.toDTO(),
             completedAt: now,
-          })
+          }),
         );
       });
 
@@ -281,7 +278,7 @@ describe('Unit | Domain | Events | handle-certification-scoring', function () {
         Symbol('userId'),
         Symbol('targetProfileId'),
         Symbol('campaignParticipationId'),
-        false
+        false,
       );
 
       // when

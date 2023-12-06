@@ -22,14 +22,17 @@ module('Integration | Component | enrolled-candidates', function (hooks) {
     });
 
     const certificationCandidate = store.createRecord('certification-candidate', candidate);
+    const countries = store.createRecord('country', { name: 'CANADA', code: 99401 });
 
     this.set('certificationCandidates', [certificationCandidate]);
+    this.set('countries', [countries]);
 
     // when
     const screen = await renderScreen(hbs`
         <EnrolledCandidates
           @sessionId="1"
           @certificationCandidates={{this.certificationCandidates}}
+          @countries={{this.countries}}
           >
         </EnrolledCandidates>
       `);
@@ -37,7 +40,9 @@ module('Integration | Component | enrolled-candidates', function (hooks) {
     // then
     assert
       .dom(
-        screen.getByRole('table', { name: this.intl.t('pages.sessions.enrolled-candidates.with-details-description') })
+        screen.getByRole('table', {
+          name: this.intl.t('pages.sessions.detail.candidates.list.with-details-description'),
+        }),
       )
       .exists();
   });
@@ -49,9 +54,11 @@ module('Integration | Component | enrolled-candidates', function (hooks) {
       birthdate: new Date('2019-04-28'),
     });
 
+    const countries = store.createRecord('country', { name: 'CANADA', code: 99401 });
     const certificationCandidate = store.createRecord('certification-candidate', candidate);
 
     this.set('certificationCandidates', [certificationCandidate]);
+    this.set('countries', [countries]);
 
     // when
     const screen = await renderScreen(hbs`
@@ -59,6 +66,7 @@ module('Integration | Component | enrolled-candidates', function (hooks) {
           @sessionId="1"
           @certificationCandidates={{this.certificationCandidates}}
           @displayComplementaryCertification={{this.displayComplementaryCertification}}
+          @countries={{this.countries}}
           >
         </EnrolledCandidates>
       `);
@@ -68,8 +76,8 @@ module('Integration | Component | enrolled-candidates', function (hooks) {
     assert.dom(screen.getByRole('cell', { name: certificationCandidate.lastName })).exists();
     assert.dom(screen.getByRole('cell', { name: certificationCandidate.firstName })).exists();
     assert.dom(screen.getByRole('cell', { name: certificationCandidate.resultRecipientEmail })).exists();
-    assert.dom(screen.getByRole('cell', { name: '3000 %' })).exists();
-    assert.dom(screen.getByRole('cell', { name: 'Pix+Edu, Pix+Droit' })).exists();
+    assert.dom(screen.getByRole('cell', { name: '30 %' })).exists();
+    assert.dom(screen.getByRole('cell', { name: 'Pix+Droit' })).exists();
     assert.dom(screen.queryByRole('cell', { name: certificationCandidate.birthCity })).doesNotExist();
     assert.dom(screen.queryByRole('cell', { name: certificationCandidate.birthProvinceCode })).doesNotExist();
     assert.dom(screen.queryByRole('cell', { name: certificationCandidate.birthCountry })).doesNotExist();
@@ -80,12 +88,14 @@ module('Integration | Component | enrolled-candidates', function (hooks) {
     // given
     this.set('displayComplementaryCertification', true);
     const candidate = _buildCertificationCandidate({
-      complementaryCertifications: null,
+      complementaryCertification: null,
     });
 
+    const countries = store.createRecord('country', { name: 'CANADA', code: 99401 });
     const certificationCandidate = store.createRecord('certification-candidate', candidate);
 
     this.set('certificationCandidates', [certificationCandidate]);
+    this.set('countries', [countries]);
 
     // when
     const screen = await renderScreen(hbs`
@@ -93,6 +103,7 @@ module('Integration | Component | enrolled-candidates', function (hooks) {
           @sessionId="1"
           @certificationCandidates={{this.certificationCandidates}}
           @displayComplementaryCertification={{this.displayComplementaryCertification}}
+          @countries={{this.countries}}
           >
         </EnrolledCandidates>
       `);
@@ -105,14 +116,17 @@ module('Integration | Component | enrolled-candidates', function (hooks) {
     // given
     const candidate = _buildCertificationCandidate({});
     const certificationCandidates = [candidate];
+    const countries = store.createRecord('country', { name: 'CANADA', code: 99401 });
 
     this.set('certificationCandidates', certificationCandidates);
+    this.set('countries', [countries]);
 
     // when
     const screen = await renderScreen(hbs`
         <EnrolledCandidates
           @sessionId="1"
           @certificationCandidates={{this.certificationCandidates}}
+          @countries={{this.countries}}
         >
         </EnrolledCandidates>
     `);
@@ -120,7 +134,7 @@ module('Integration | Component | enrolled-candidates', function (hooks) {
     // then
     assert
       .dom(
-        screen.getByRole('button', { name: `Voir le détail du candidat ${candidate.firstName} ${candidate.lastName}` })
+        screen.getByRole('button', { name: `Voir le détail du candidat ${candidate.firstName} ${candidate.lastName}` }),
       )
       .isVisible();
   });
@@ -132,14 +146,18 @@ module('Integration | Component | enrolled-candidates', function (hooks) {
       _buildCertificationCandidate({ firstName: 'Fifi', lastName: 'Duck', isLinked: true }),
       _buildCertificationCandidate({ firstName: 'Loulou', lastName: 'Duck', isLinked: false }),
     ];
+    const countries = store.createRecord('country', { name: 'CANADA', code: 99401 });
 
+    this.set('countries', [countries]);
     this.set('certificationCandidates', certificationCandidates);
 
     // when
     const screen = await renderScreen(hbs`
       <EnrolledCandidates
         @sessionId="1"
-        @certificationCandidates={{this.certificationCandidates}}>
+        @certificationCandidates={{this.certificationCandidates}}
+        @countries={{this.countries}}
+        >
       </EnrolledCandidates>
     `);
 
@@ -160,12 +178,14 @@ module('Integration | Component | enrolled-candidates', function (hooks) {
       // given
       this.set('shouldDisplayPaymentOptions', true);
       const candidate = _buildCertificationCandidate({
-        billingMode: 'Prepayée',
+        billingMode: 'PREPAID',
         prepaymentCode: 'CODE01',
       });
 
       const certificationCandidate = store.createRecord('certification-candidate', candidate);
+      const countries = store.createRecord('country', { name: 'CANADA', code: 99401 });
 
+      this.set('countries', [countries]);
       this.set('certificationCandidates', [certificationCandidate]);
 
       // when
@@ -174,13 +194,14 @@ module('Integration | Component | enrolled-candidates', function (hooks) {
             @sessionId="1"
             @certificationCandidates={{this.certificationCandidates}}
             @shouldDisplayPaymentOptions={{this.shouldDisplayPaymentOptions}}
+            @countries={{this.countries}}
             >
           </EnrolledCandidates>
         `);
 
       // then
       assert.dom(screen.queryByRole('columnheader', { name: 'Tarification part Pix' })).exists();
-      assert.dom(screen.getByRole('cell', { name: 'Prepayée CODE01' })).exists();
+      assert.dom(screen.getByRole('cell', { name: 'Prépayée CODE01' })).exists();
     });
   });
 
@@ -200,11 +221,13 @@ module('Integration | Component | enrolled-candidates', function (hooks) {
       test(it, async function (assert) {
         // given
         const certificationCandidates = [];
+        const countries = store.createRecord('country', { name: 'CANADA', code: 99401 });
 
+        this.set('countries', [countries]);
         this.set('certificationCandidates', certificationCandidates);
         this.set(
           'shouldDisplayPrescriptionScoStudentRegistrationFeature',
-          shouldDisplayPrescriptionScoStudentRegistrationFeature
+          shouldDisplayPrescriptionScoStudentRegistrationFeature,
         );
 
         // when
@@ -213,6 +236,7 @@ module('Integration | Component | enrolled-candidates', function (hooks) {
             @sessionId="1"
             @certificationCandidates={{this.certificationCandidates}}
             @shouldDisplayPrescriptionScoStudentRegistrationFeature={{this.shouldDisplayPrescriptionScoStudentRegistrationFeature}}
+            @countries={{this.countries}}
           >
           </EnrolledCandidates>
         `);
@@ -225,7 +249,7 @@ module('Integration | Component | enrolled-candidates', function (hooks) {
           assert.dom(screen.queryByRole('link', { name: 'Inscrire des candidats' })).isNotVisible();
           assert.dom(screen.getByRole('button', { name: 'Inscrire un candidat' })).isVisible();
         }
-      })
+      }),
     );
   });
 
@@ -244,11 +268,13 @@ module('Integration | Component | enrolled-candidates', function (hooks) {
     test(it, async function (assert) {
       // given
       const candidate = _buildCertificationCandidate({});
+      const countries = store.createRecord('country', { name: 'CANADA', code: 99401 });
 
+      this.set('countries', [countries]);
       this.set('certificationCandidates', [candidate]);
       this.set(
         'shouldDisplayPrescriptionScoStudentRegistrationFeature',
-        shouldDisplayPrescriptionScoStudentRegistrationFeature
+        shouldDisplayPrescriptionScoStudentRegistrationFeature,
       );
 
       // when
@@ -257,6 +283,7 @@ module('Integration | Component | enrolled-candidates', function (hooks) {
           @sessionId="1"
           @certificationCandidates={{this.certificationCandidates}}
           @shouldDisplayPrescriptionScoStudentRegistrationFeature={{this.shouldDisplayPrescriptionScoStudentRegistrationFeature}}
+          @countries={{this.countries}}
         >
         </EnrolledCandidates>
     `);
@@ -269,7 +296,7 @@ module('Integration | Component | enrolled-candidates', function (hooks) {
         assert.dom(screen.getByRole('cell', { name: candidate.externalId })).exists();
         assert.dom(screen.getByRole('cell', { name: candidate.resultRecipientEmail })).exists();
       }
-    })
+    }),
   );
 });
 
@@ -284,19 +311,13 @@ function _buildCertificationCandidate({
   email = 'bob.leponge@la.mer',
   resultRecipientEmail = 'recipient@college.fr',
   externalId = 'an external id',
-  extraTimePercentage = 30,
+  extraTimePercentage = 0.3,
   isLinked = false,
-  complementaryCertifications = [
-    {
-      id: 1,
-      label: 'Pix+Edu',
-    },
-    {
-      id: 2,
-      label: 'Pix+Droit',
-    },
-  ],
-  billingMode = '',
+  complementaryCertification = {
+    id: 2,
+    label: 'Pix+Droit',
+  },
+  billingMode = null,
   prepaymentCode = null,
 }) {
   return {
@@ -312,7 +333,7 @@ function _buildCertificationCandidate({
     externalId,
     extraTimePercentage,
     isLinked,
-    complementaryCertifications,
+    complementaryCertification,
     billingMode,
     prepaymentCode,
   };

@@ -12,7 +12,6 @@ module('Acceptance | Campaign Activity', function (hooks) {
   setupApplicationTest(hooks);
   setupMirage(hooks);
   setupIntl(hooks);
-
   let campaignId;
 
   hooks.beforeEach(async function () {
@@ -23,7 +22,7 @@ module('Acceptance | Campaign Activity', function (hooks) {
     const campaignAssessmentParticipationResult = server.create(
       'campaign-assessment-participation-result',
       'withCompetenceResults',
-      { id: 1, campaignId }
+      { id: 1, campaignId },
     );
     server.create('campaign-assessment-participation', {
       id: 1,
@@ -31,7 +30,7 @@ module('Acceptance | Campaign Activity', function (hooks) {
       campaignAssessmentParticipationResult,
       lastName: 'Bacri',
     });
-    server.create('campaign-participant-activity', { id: 1, lastName: 'Bacri' });
+    server.create('campaign-participant-activity', { id: 1, lastName: 'Bacri', status: 'SHARED' });
 
     await authenticateSession(user.id);
   });
@@ -41,6 +40,7 @@ module('Acceptance | Campaign Activity', function (hooks) {
       test('it could click on user to go to details', async function (assert) {
         // when
         await visit('/campagnes/1');
+
         await clickByName('Voir les résultats de Bacri');
 
         // then
@@ -65,15 +65,6 @@ module('Acceptance | Campaign Activity', function (hooks) {
         assert.strictEqual(currentURL(), '/campagnes/2/profils/1');
       });
     });
-
-    test('it could return on list of participants', async function (assert) {
-      // when
-      await visit('/campagnes/1/evaluations/1');
-      await clickByName('Retour');
-
-      // then
-      assert.strictEqual(currentURL(), '/campagnes/1');
-    });
   });
 
   module('when prescriber reset filters', function () {
@@ -83,7 +74,7 @@ module('Acceptance | Campaign Activity', function (hooks) {
 
       await click(screen.getByLabelText(this.intl.t('pages.campaign-activity.table.column.status')));
       await click(
-        await screen.findByRole('option', { name: this.intl.t('components.participation-status.STARTED-ASSESSMENT') })
+        await screen.findByRole('option', { name: this.intl.t('components.participation-status.STARTED-ASSESSMENT') }),
       );
       await clickByName('Effacer les filtres');
 
@@ -96,14 +87,15 @@ module('Acceptance | Campaign Activity', function (hooks) {
     test('Success case: should display empty sentence and success notification', async function (assert) {
       // when
       const screen = await visit('/campagnes/1');
+
       await click(screen.getByLabelText('Supprimer la participation'));
 
       await screen.findByRole('dialog');
 
       await clickByName('Oui, je supprime');
       // then
-      assert.contains('Aucun participant');
       assert.contains('La participation a été supprimée avec succès.');
+      assert.contains('Aucun participant');
     });
 
     test('Error case: should display an error notification', async function (assert) {
@@ -113,7 +105,7 @@ module('Acceptance | Campaign Activity', function (hooks) {
         () => ({
           errors: [{ detail: "You're not allowed to delete" }],
         }),
-        422
+        422,
       );
 
       const screen = await visit('/campagnes/1');
@@ -136,7 +128,7 @@ module('Acceptance | Campaign Activity', function (hooks) {
 
       await click(screen.getByLabelText(this.intl.t('pages.campaign-activity.table.column.status')));
       await click(
-        await screen.findByRole('option', { name: this.intl.t('components.participation-status.STARTED-ASSESSMENT') })
+        await screen.findByRole('option', { name: this.intl.t('components.participation-status.STARTED-ASSESSMENT') }),
       );
 
       // then

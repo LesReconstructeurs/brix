@@ -1,6 +1,6 @@
 import Component from '@glimmer/component';
 import { action } from '@ember/object';
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
 import sortBy from 'lodash/sortBy';
 import ENV from 'mon-pix/config/environment';
@@ -12,6 +12,7 @@ export default class ChallengeStatement extends Component {
 
   @tracked selectedAttachmentUrl;
   @tracked displayAlternativeInstruction = false;
+
   constructor() {
     super(...arguments);
     this._initialiseDefaultAttachment();
@@ -27,7 +28,7 @@ export default class ChallengeStatement extends Component {
   }
 
   get linkTitle() {
-    return this.intl.t('pages.challenge.statement.external-link-title');
+    return this.intl.t('navigation.external-link-title');
   }
 
   get challengeEmbedDocument() {

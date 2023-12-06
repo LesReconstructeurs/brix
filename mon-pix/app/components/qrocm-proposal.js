@@ -2,7 +2,7 @@ import { action } from '@ember/object';
 import Component from '@glimmer/component';
 import generateRandomString from 'mon-pix/utils/generate-random-string';
 import proposalsAsBlocks from 'mon-pix/utils/proposals-as-blocks';
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 
 export default class QrocmProposal extends Component {
   @service intl;
@@ -28,7 +28,8 @@ export default class QrocmProposal extends Component {
   }
 
   @action
-  onInputChange() {
+  onInputChange(key, event) {
+    this.args.answersValue[key] = event.target.value;
     this.args.answerChanged();
   }
 

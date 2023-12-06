@@ -1,7 +1,9 @@
 import { module, test } from 'qunit';
 import { setupApplicationTest } from 'ember-qunit';
 import { setupMirage } from 'ember-cli-mirage/test-support';
-import { visit, currentURL, find } from '@ember/test-helpers';
+// eslint-disable-next-line no-restricted-imports
+import { currentURL, find } from '@ember/test-helpers';
+import { visit } from '@1024pix/ember-testing-library';
 import { authenticate } from '../helpers/authentication';
 
 module('Acceptance | mes-formations', function (hooks) {
@@ -34,21 +36,22 @@ module('Acceptance | mes-formations', function (hooks) {
       await visit('/mes-formations');
 
       // then
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(currentURL(), '/mes-formations');
+      assert.strictEqual(currentURL(), '/mes-formations');
       assert.dom('.user-trainings-banner__title').exists();
       assert.ok(find('.user-trainings-banner__title').textContent.includes('Mes formations'));
       assert.dom('.user-trainings-banner__description').exists();
       assert.ok(
         find('.user-trainings-banner__description').textContent.includes(
-          'Continuez à progresser grâce aux formations recommandées à l’issue de vos parcours d’évaluation.'
-        )
+          'Continuez à progresser grâce aux formations recommandées à l’issue de vos parcours d’évaluation.',
+        ),
       );
       assert.dom('.user-trainings-content__container').exists();
       assert.dom('.user-trainings-content-list__item').exists();
       assert.dom('.user-trainings-content-list__item').exists({ count: 2 });
-      assert.dom('.pix-pagination__navigation').exists();
+
+      const pixPaginationTextContent = find('.pix-pagination__navigation').textContent;
+      assert.ok(pixPaginationTextContent.includes('2 éléments'));
+      assert.ok(pixPaginationTextContent.includes('Page 1 / 1'));
     });
   });
 });

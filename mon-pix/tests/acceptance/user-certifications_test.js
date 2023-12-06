@@ -1,4 +1,5 @@
-import { currentURL, findAll, visit } from '@ember/test-helpers';
+import { currentURL, findAll } from '@ember/test-helpers';
+import { visit } from '@1024pix/ember-testing-library';
 import { module, test } from 'qunit';
 import { authenticate } from '../helpers/authentication';
 import { setupApplicationTest } from 'ember-qunit';
@@ -19,9 +20,7 @@ module('Acceptance | User certifications page', function (hooks) {
       await visit('/mes-certifications');
 
       // then
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(currentURL(), '/connexion');
+      assert.strictEqual(currentURL(), '/connexion');
     });
 
     test('should be accessible when user is connected', async function (assert) {
@@ -32,9 +31,7 @@ module('Acceptance | User certifications page', function (hooks) {
       await visit('/mes-certifications');
 
       // then
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(currentURL(), '/mes-certifications');
+      assert.strictEqual(currentURL(), '/mes-certifications');
     });
   });
 
@@ -87,11 +84,9 @@ module('Acceptance | User certifications page', function (hooks) {
         await visit('/mes-certifications');
 
         // then
-        // TODO: Fix this the next time the file is edited.
-        // eslint-disable-next-line qunit/no-assert-equal
-        assert.equal(
+        assert.strictEqual(
           findAll('.certifications-list__table-body .certifications-list-item').length,
-          userWithSomeCertificates.certifications.length
+          userWithSomeCertificates.certifications.length,
         );
       });
     });

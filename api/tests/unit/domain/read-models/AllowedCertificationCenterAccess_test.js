@@ -1,5 +1,5 @@
-const { expect, domainBuilder, sinon } = require('../../../test-helper');
-const settings = require('../../../../lib/config');
+import { expect, domainBuilder, sinon } from '../../../test-helper.js';
+import { config as settings } from '../../../../lib/config.js';
 
 describe('Unit | Domain | Read-Models | AllowedCertificationCenterAccess', function () {
   context('#isInWhitelist', function () {
@@ -699,36 +699,6 @@ describe('Unit | Domain | Read-Models | AllowedCertificationCenterAccess', funct
 
       // then
       expect(isScoManagingStudents).to.be.true;
-    });
-  });
-
-  context('#isEndTestScreenRemovalEnabled', function () {
-    it('should return true when whitelisted', function () {
-      // given
-      const allowedCertificationCenterAccess = domainBuilder.buildAllowedCertificationCenterAccess({
-        id: 1,
-        isSupervisorAccessEnabled: true,
-      });
-
-      // when
-      const result = allowedCertificationCenterAccess.isEndTestScreenRemovalEnabled();
-
-      // then
-      expect(result).to.be.true;
-    });
-
-    it('should return false when not whitelisted', function () {
-      // given
-      const allowedCertificationCenterAccess = domainBuilder.buildAllowedCertificationCenterAccess({
-        id: 1,
-        isSupervisorAccessEnabled: false,
-      });
-
-      // when
-      const result = allowedCertificationCenterAccess.isEndTestScreenRemovalEnabled();
-
-      // then
-      expect(result).to.be.false;
     });
   });
 

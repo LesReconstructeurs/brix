@@ -1,5 +1,5 @@
 import { action } from '@ember/object';
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 import Component from '@glimmer/component';
 import { tracked } from '@glimmer/tracking';
 import isEmpty from 'lodash/isEmpty';
@@ -7,23 +7,55 @@ import isEmailValid from '../../utils/email-validator';
 import isPasswordValid from '../../utils/password-validator';
 import get from 'lodash/get';
 
+const STATUSES = {
+  DEFAULT: 'default',
+  SUCCESS: 'success',
+  ERROR: 'error',
+};
+
+class LastName {
+  @tracked status = STATUSES.DEFAULT;
+  @tracked message = null;
+}
+
+class FirstName {
+  @tracked status = STATUSES.DEFAULT;
+  @tracked message = null;
+}
+
+class Email {
+  @tracked status = STATUSES.DEFAULT;
+  @tracked message = null;
+}
+
+class Password {
+  @tracked status = STATUSES.DEFAULT;
+  @tracked message = null;
+}
+
+class SignupFormValidation {
+  lastName = new LastName();
+  firstName = new FirstName();
+  email = new Email();
+  password = new Password();
+}
+
 export default class RegisterForm extends Component {
   @service intl;
-  @service url;
-  @service store;
   @service session;
+  @service store;
+  @service url;
 
   @tracked isLoading = false;
   @tracked firstName = null;
   @tracked lastName = null;
   @tracked email = null;
   @tracked password = null;
-  @tracked passwordValidationMessage = null;
-  @tracked emailValidationMessage = null;
-  @tracked firstNameValidationMessage = null;
-  @tracked lastNameValidationMessage = null;
+  @tracked isTermsOfServiceValidated = false;
   @tracked cguValidationMessage = null;
   @tracked errorMessage = null;
+  @tracked selectedLanguage = this.intl.primaryLocale;
+  @tracked validation = new SignupFormValidation();
 
   get cguUrl() {
     return this.url.cguUrl;
@@ -48,6 +80,7 @@ export default class RegisterForm extends Component {
       lastName: this.lastName,
       firstName: this.firstName,
       email: this.email,
+      lang: this.selectedLanguage,
       password: this.password,
       cgu: true,
     });
@@ -61,7 +94,7 @@ export default class RegisterForm extends Component {
           id: this.args.certificationCenterInvitationId,
           code: this.args.certificationCenterInvitationCode,
           email: this.email,
-        }
+        },
       );
       await certificationCenterInvitationResponseRecord.save({
         adapterOptions: { certificationCenterInvitationId: this.args.certificationCenterInvitationId },
@@ -72,9 +105,9 @@ export default class RegisterForm extends Component {
       const status = get(response, 'errors[0].status');
 
       if (status === '422') {
-        this.errorMessage = this.intl.t('pages.login-or-register.register-form.errors.email-already-exists');
+        this.errorMessage = this.intl.t('common.form-errors.email.already-exists');
       } else {
-        this.errorMessage = this.intl.t('pages.login-or-register.register-form.errors.default');
+        this.errorMessage = this.intl.t('common.form-errors.default');
       }
 
       await userRecord?.deleteRecord();
@@ -86,54 +119,70 @@ export default class RegisterForm extends Component {
 
   @action
   validatePassword(event) {
-    this.passwordValidationMessage = null;
+    this.validation.password.status = STATUSES.DEFAULT;
+    this.validation.password.message = null;
     this.password = event.target.value;
     const isInvalidInput = !isPasswordValid(this.password);
 
     if (isInvalidInput) {
-      this.passwordValidationMessage = this.intl.t('pages.login-or-register.register-form.fields.password.error');
+      this.validation.password.status = STATUSES.ERROR;
+      this.validation.password.message = this.intl.t('common.form-errors.password.format');
+    } else {
+      this.validation.password.status = STATUSES.SUCCESS;
     }
   }
 
   @action
   validateEmail(event) {
-    this.emailValidationMessage = null;
+    this.validation.email.status = STATUSES.DEFAULT;
+    this.validation.email.message = null;
     this.email = event.target.value?.trim().toLowerCase();
     const isInvalidInput = !isEmailValid(this.email);
 
     if (isInvalidInput) {
-      this.emailValidationMessage = this.intl.t('pages.login-or-register.register-form.fields.email.error');
+      this.validation.email.status = STATUSES.ERROR;
+      this.validation.email.message = this.intl.t('common.form-errors.email.format');
+    } else {
+      this.validation.email.status = STATUSES.SUCCESS;
     }
   }
 
   @action
   validateFirstName(event) {
-    this.firstNameValidationMessage = null;
+    this.validation.firstName.status = STATUSES.DEFAULT;
+    this.validation.firstName.message = null;
     this.firstName = event.target.value?.trim();
     const isInvalidInput = isEmpty(this.firstName);
 
     if (isInvalidInput) {
-      this.firstNameValidationMessage = this.intl.t('pages.login-or-register.register-form.fields.first-name.error');
+      this.validation.firstName.status = STATUSES.ERROR;
+      this.validation.firstName.message = this.intl.t('common.form-errors.firstname.mandatory');
+    } else {
+      this.validation.firstName.status = STATUSES.SUCCESS;
     }
   }
 
   @action
   validateLastName(event) {
-    this.lastNameValidationMessage = null;
+    this.validation.lastName.status = STATUSES.DEFAULT;
+    this.validation.lastName.message = null;
     this.lastName = event.target.value?.trim();
     const isInvalidInput = isEmpty(this.lastName);
 
     if (isInvalidInput) {
-      this.lastNameValidationMessage = this.intl.t('pages.login-or-register.register-form.fields.last-name.error');
+      this.validation.lastName.status = STATUSES.ERROR;
+      this.validation.lastName.message = this.intl.t('common.form-errors.lastname.mandatory');
+    } else {
+      this.validation.lastName.status = STATUSES.SUCCESS;
     }
   }
 
   @action
-  validateCgu() {
+  validateCgu(event) {
+    this.isTermsOfServiceValidated = !!event.target.checked;
     this.cguValidationMessage = null;
-    const isInputChecked = Boolean(this.cgu);
 
-    if (!isInputChecked) {
+    if (!this.isTermsOfServiceValidated) {
       this.cguValidationMessage = this.intl.t('pages.login-or-register.register-form.fields.cgu.error');
     }
   }
@@ -144,7 +193,7 @@ export default class RegisterForm extends Component {
       !isEmpty(this.firstName) &&
       isEmailValid(this.email) &&
       isPasswordValid(this.password) &&
-      Boolean(this.cgu)
+      Boolean(this.isTermsOfServiceValidated)
     );
   }
 

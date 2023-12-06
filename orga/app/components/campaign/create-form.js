@@ -1,4 +1,4 @@
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 import { action } from '@ember/object';
 import Component from '@glimmer/component';
 import { tracked } from '@glimmer/tracking';
@@ -9,21 +9,14 @@ export default class CreateForm extends Component {
   @service intl;
 
   @tracked campaign;
-  @tracked wantIdPix = false;
-  @tracked multipleSendingsEnabled = true;
-  @tracked isCampaignGoalAssessment = null;
-  @tracked isCampaignGoalProfileCollection = null;
-  @tracked targetProfile;
+  @tracked wantIdPix = Boolean(this.campaign.idPixLabel);
   @tracked targetProfilesOptions = [];
-  @tracked ownerId;
 
   constructor() {
     super(...arguments);
-    this.campaign = {
-      organization: this.currentUser.organization,
-    };
+    this.campaign = this.args.campaign;
     this._setTargetProfilesOptions(this.args.targetProfiles);
-    this.ownerId = this.currentUser.prescriber.id;
+    this.isMultipleSendingAssessmentEnabled = this.currentUser.prescriber.enableMultipleSendingAssessment;
   }
 
   _setTargetProfilesOptions(targetProfiles) {
@@ -44,6 +37,42 @@ export default class CreateForm extends Component {
     return this.args.membersSortedByFullName.map((member) => ({ value: member.id, label: member.fullName }));
   }
 
+  get isMultipleSendingEnabled() {
+    return (
+      this.isCampaignGoalProfileCollection || (this.isCampaignGoalAssessment && this.isMultipleSendingAssessmentEnabled)
+    );
+  }
+
+  get multipleSendingWording() {
+    if (this.isCampaignGoalProfileCollection) {
+      return {
+        label: 'pages.campaign-creation.multiple-sendings.profiles.question-label',
+        info: 'pages.campaign-creation.multiple-sendings.profiles.info',
+      };
+    } else {
+      return {
+        label: 'pages.campaign-creation.multiple-sendings.assessments.question-label',
+        info: 'pages.campaign-creation.multiple-sendings.assessments.info',
+      };
+    }
+  }
+
+  get isCampaignGoalAssessment() {
+    return this.campaign.type === 'ASSESSMENT';
+  }
+
+  get isCampaignGoalProfileCollection() {
+    return this.campaign.type === 'PROFILES_COLLECTION';
+  }
+
+  get isExternalIdNotSelectedChecked() {
+    return this.campaign.idPixLabel === null;
+  }
+
+  get isExternalIdSelectedChecked() {
+    return this.wantIdPix === true;
+  }
+
   @action
   askLabelIdPix() {
     this.wantIdPix = true;
@@ -58,62 +87,46 @@ export default class CreateForm extends Component {
 
   @action
   selectTargetProfile(targetProfileId) {
-    this.targetProfile = this.args.targetProfiles.find((targetProfile) => targetProfile.id === targetProfileId);
-    this.campaign.targetProfile = this.targetProfile;
+    this.campaign.targetProfile = this.args.targetProfiles.find(
+      (targetProfile) => targetProfile.id === targetProfileId,
+    );
   }
 
   @action
-  selectMultipleSendingsStatus(event) {
-    const status = Boolean(event.target.value);
-    this.multipleSendingsEnabled = status;
-    this.campaign.multipleSendings = status;
+  selectMultipleSendingsStatus(value) {
+    this.campaign.multipleSendings = value;
   }
 
   @action
   setCampaignGoal(event) {
     if (event.target.value === 'collect-participants-profile') {
-      this.isCampaignGoalAssessment = false;
-      this.isCampaignGoalProfileCollection = true;
-      this.campaign.multipleSendings = true;
-      this.campaign.title = null;
-      this.campaign.targetProfile = null;
-      this.targetProfile = null;
-      this.campaign.type = 'PROFILES_COLLECTION';
+      this.campaign.setType('PROFILES_COLLECTION');
     } else {
-      this.isCampaignGoalAssessment = true;
-      this.isCampaignGoalProfileCollection = false;
-      this.campaign.multipleSendings = false;
-      this.campaign.type = 'ASSESSMENT';
+      this.campaign.setType('ASSESSMENT');
     }
   }
 
   @action
-  onChangeCampaignName(event) {
-    this.campaign.name = event.target.value;
-  }
-
-  @action
-  onChangeExternalIdLabel(event) {
-    this.campaign.idPixLabel = event.target.value;
-  }
-
-  @action
-  onChangeCampaignTitle(event) {
-    this.campaign.title = event.target.value;
+  onChangeCampaignValue(key, event) {
+    this.campaign[key] = event.target.value;
   }
 
   @action
   onChangeCampaignOwner(newOwnerId) {
     const selectedMember = this.args.membersSortedByFullName.find((member) => newOwnerId === member.id);
     if (selectedMember) {
-      this.ownerId = selectedMember.id;
+      this.campaign.ownerId = selectedMember.id;
     }
+  }
+
+  @action
+  onChangeCampaignCustomLandingPageText(event) {
+    this.args.campaign.customLandingPageText = event.target.value;
   }
 
   @action
   onSubmit(event) {
     event.preventDefault();
-    this.campaign.ownerId = this.ownerId;
     this.args.onSubmit(this.campaign);
   }
 }

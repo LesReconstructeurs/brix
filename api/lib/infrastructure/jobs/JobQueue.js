@@ -1,18 +1,19 @@
-const { teamSize, teamConcurrency } = require('../../config').pgBoss;
+import { MonitoredJobHandler } from './monitoring/MonitoredJobHandler.js';
+import { logger } from '../logger.js';
+import { config } from '../../config.js';
+
+const { teamSize, teamConcurrency } = config.pgBoss;
+
 class JobQueue {
-  constructor(pgBoss, dependenciesBuilder) {
+  constructor(pgBoss) {
     this.pgBoss = pgBoss;
-    this.dependenciesBuilder = dependenciesBuilder;
   }
 
   performJob(name, handlerClass) {
     this.pgBoss.work(name, { teamSize, teamConcurrency }, async (job) => {
-      const handler = this.dependenciesBuilder.build(handlerClass);
-      const promise = handler
-        .handle(job.data)
-        .then(() => job.done())
-        .catch((error) => job.done(error));
-      return promise;
+      const jobHandler = new handlerClass();
+      const monitoredJobHandler = new MonitoredJobHandler(jobHandler, logger);
+      return monitoredJobHandler.handle(job.data);
     });
   }
 
@@ -21,4 +22,4 @@ class JobQueue {
   }
 }
 
-module.exports = JobQueue;
+export { JobQueue };

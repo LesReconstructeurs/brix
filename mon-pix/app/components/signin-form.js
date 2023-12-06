@@ -1,5 +1,5 @@
 import { action } from '@ember/object';
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 import Component from '@glimmer/component';
 import { tracked } from '@glimmer/tracking';
 
@@ -8,44 +8,69 @@ import get from 'lodash/get';
 
 export default class SigninForm extends Component {
   @service url;
+  @service currentDomain;
   @service intl;
   @service featureToggles;
   @service session;
   @service store;
   @service router;
+  @service oidcIdentityProviders;
 
-  @tracked hasFailed = false;
   @tracked errorMessage;
-
-  login = '';
-  password = '';
+  @tracked password = null;
+  @tracked login = null;
+  @tracked isLoading = false;
 
   get showcase() {
     return this.url.showcase;
   }
 
   get displayPoleEmploiButton() {
-    //cacher bouton pole emploi
-    return false;
-    //return this.url.isFrenchDomainExtension;
+    return this.currentDomain.isFranceDomain;
+  }
+
+  get displayFwbButton() {
+    return this.oidcIdentityProviders.isFwbActivated();
   }
 
   @action
   async signin(event) {
     event && event.preventDefault();
-    this.hasFailed = false;
+    this.isLoading = true;
+
     try {
       await this.session.authenticateUser(this.login, this.password);
     } catch (responseError) {
-      this.hasFailed = true;
       this._handleApiError(responseError);
+    } finally {
+      this.isLoading = false;
     }
+  }
+
+  @action
+  updateLogin(event) {
+    this.login = event.target.value?.trim();
+  }
+
+  @action
+  updatePassword(event) {
+    this.password = event.target.value?.trim();
   }
 
   async _handleApiError(responseError) {
     const errors = get(responseError, 'responseJSON.errors');
     const error = Array.isArray(errors) && errors.length > 0 && errors[0];
     switch (error?.code) {
+      case 'INVALID_LOCALE_FORMAT':
+        this.errorMessage = this.intl.t('pages.sign-up.errors.invalid-locale-format', {
+          invalidLocale: error.meta.locale,
+        });
+        break;
+      case 'LOCALE_NOT_SUPPORTED':
+        this.errorMessage = this.intl.t('pages.sign-up.errors.locale-not-supported', {
+          localeNotSupported: error.meta.locale,
+        });
+        break;
       case 'SHOULD_CHANGE_PASSWORD': {
         const passwordResetToken = error.meta;
         await this._updateExpiredPassword(passwordResetToken);

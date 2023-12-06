@@ -6,7 +6,6 @@ module('Unit | Route | authenticated/campaigns/campaign', function (hooks) {
   setupTest(hooks);
 
   test('should redirect to not-found page', async function (assert) {
-    assert.expect(1);
     // given
     const route = this.owner.lookup('route:authenticated/campaigns/campaign');
     const store = this.owner.lookup('service:store');
@@ -21,7 +20,7 @@ module('Unit | Route | authenticated/campaigns/campaign', function (hooks) {
       assert.strictEqual(
         redirection,
         expectedRedirection,
-        `expect transition to ${expectedRedirection}, got ${redirection}`
+        `expect transition to ${expectedRedirection}, got ${redirection}`,
       );
     };
 

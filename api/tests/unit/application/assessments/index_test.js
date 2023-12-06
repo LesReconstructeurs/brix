@@ -1,9 +1,10 @@
-const { expect, HttpTestServer, sinon } = require('../../../test-helper');
-const settings = require('../../../../lib/config');
-const assessmentAuthorization = require('../../../../lib/application/preHandlers/assessment-authorization');
-const moduleUnderTest = require('../../../../lib/application/assessments');
-const assessmentController = require('../../../../lib/application/assessments/assessment-controller');
-const securityPreHandlers = require('../../../../lib/application/security-pre-handlers');
+import { expect, HttpTestServer, sinon } from '../../../test-helper.js';
+import { config as settings } from '../../../../lib/config.js';
+import { assessmentAuthorization } from '../../../../lib/application/preHandlers/assessment-authorization.js';
+import { assessmentController } from '../../../../lib/application/assessments/assessment-controller.js';
+import { securityPreHandlers } from '../../../../lib/application/security-pre-handlers.js';
+import * as moduleUnderTest from '../../../../lib/application/assessments/index.js';
+import { AssessmentEndedError } from '../../../../lib/domain/errors.js';
 
 describe('Unit | Application | Router | assessment-router', function () {
   describe('POST /api/assessments', function () {
@@ -15,6 +16,38 @@ describe('Unit | Application | Router | assessment-router', function () {
 
       // when
       const response = await httpTestServer.request('POST', '/api/assessments');
+
+      // then
+      expect(response.statusCode).to.equal(200);
+    });
+  });
+
+  describe('POST /api/pix1d/assessments', function () {
+    it('should return 200', async function () {
+      // given
+      sinon.stub(assessmentController, 'createForPix1d').callsFake((request, h) => h.response('ok').code(200));
+      const httpTestServer = new HttpTestServer();
+      await httpTestServer.register(moduleUnderTest);
+
+      // when
+      const response = await httpTestServer.request('POST', '/api/pix1d/assessments', { missionId: 'unMissionID' });
+
+      // then
+      expect(response.statusCode).to.equal(200);
+    });
+  });
+
+  describe('POST /api/pix1d/assessments/preview', function () {
+    it('should return 200', async function () {
+      // given
+      sinon
+        .stub(assessmentController, 'createAssessmentPreviewForPix1d')
+        .callsFake((request, h) => h.response('ok').code(200));
+      const httpTestServer = new HttpTestServer();
+      await httpTestServer.register(moduleUnderTest);
+
+      // when
+      const response = await httpTestServer.request('POST', '/api/pix1d/assessments/preview');
 
       // then
       expect(response.statusCode).to.equal(200);
@@ -33,6 +66,34 @@ describe('Unit | Application | Router | assessment-router', function () {
 
       // then
       expect(response.statusCode).to.equal(200);
+    });
+  });
+
+  describe('GET /api/pix1d/assessments/{id}/next', function () {
+    it('should return 200', async function () {
+      // given
+      sinon.stub(assessmentController, 'getNextChallengeForPix1d').returns('ok');
+      const httpTestServer = new HttpTestServer();
+      await httpTestServer.register(moduleUnderTest);
+
+      // when
+      const response = await httpTestServer.request('GET', '/api/pix1d/assessments/1/next');
+
+      // then
+      expect(response.statusCode).to.equal(200);
+    });
+
+    it('should return 400', async function () {
+      // given
+      sinon.stub(assessmentController, 'getNextChallengeForPix1d').rejects(new AssessmentEndedError());
+      const httpTestServer = new HttpTestServer();
+      await httpTestServer.register(moduleUnderTest);
+
+      // when
+      const response = await httpTestServer.request('GET', '/api/pix1d/assessments/1/next');
+
+      // then
+      expect(response.statusCode).to.equal(400);
     });
   });
 
@@ -66,6 +127,23 @@ describe('Unit | Application | Router | assessment-router', function () {
 
       // then
       sinon.assert.called(assessmentAuthorization.verify);
+    });
+  });
+
+  describe('GET /api/pix1d/assessments/{id}', function () {
+    const method = 'GET';
+    const url = '/api/pix1d/assessments/1';
+
+    it('should return 200', async function () {
+      sinon.stub(assessmentController, 'get').callsFake((request, h) => h.response('ok').code(200));
+      const httpTestServer = new HttpTestServer();
+      await httpTestServer.register(moduleUnderTest);
+
+      // when
+      const response = await httpTestServer.request(method, url);
+
+      // then
+      expect(response.statusCode).to.equal(200);
     });
   });
 
@@ -114,7 +192,7 @@ describe('Unit | Application | Router | assessment-router', function () {
         h
           .response({ errors: new Error('Unauthorized') })
           .code(403)
-          .takeover()
+          .takeover(),
       );
 
       const httpTestServer = new HttpTestServer();
@@ -123,12 +201,25 @@ describe('Unit | Application | Router | assessment-router', function () {
       // when
       const { statusCode } = await httpTestServer.request(
         'POST',
-        `/api/admin/assessments/123/always-ok-validate-next-challenge`
+        `/api/admin/assessments/123/always-ok-validate-next-challenge`,
       );
 
       // then
       expect(securityPreHandlers.adminMemberHasAtLeastOneAccessOf).to.have.be.called;
       expect(statusCode).to.equal(403);
+    });
+  });
+
+  describe('GET /api/pix1d/assessments/{id}/current-activity', function () {
+    it('should return 200', async function () {
+      sinon.stub(assessmentController, 'getCurrentActivity').returns('ok');
+      const httpTestServer = new HttpTestServer();
+      await httpTestServer.register(moduleUnderTest);
+      const assessmentId = '12345678';
+
+      const response = await httpTestServer.request('GET', `/api/pix1d/assessments/${assessmentId}/current-activity`);
+
+      expect(response.statusCode).to.equal(200);
     });
   });
 });

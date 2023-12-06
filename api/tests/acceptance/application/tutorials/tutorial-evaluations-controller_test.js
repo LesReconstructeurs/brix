@@ -1,12 +1,13 @@
-const {
+import {
   mockLearningContent,
   databaseBuilder,
   expect,
   knex,
   generateValidRequestAuthorizationHeader,
-} = require('../../../test-helper');
-const createServer = require('../../../../server');
-const TutorialEvaluation = require('../../../../lib/domain/models/TutorialEvaluation');
+} from '../../../test-helper.js';
+
+import { createServer } from '../../../../server.js';
+import { TutorialEvaluation } from '../../../../lib/domain/models/TutorialEvaluation.js';
 
 describe('Acceptance | Controller | tutorial-evaluations-controller', function () {
   let server;
@@ -88,7 +89,7 @@ describe('Acceptance | Controller | tutorial-evaluations-controller', function (
         expect(response.result.data.id).to.exist;
         expect(response.result.data.attributes['user-id']).to.deep.equal(expectedResponse.data.attributes['user-id']);
         expect(response.result.data.attributes['tutorial-id']).to.deep.equal(
-          expectedResponse.data.attributes['tutorial-id']
+          expectedResponse.data.attributes['tutorial-id'],
         );
         expect(response.result.data.attributes.status).to.deep.equal(expectedResponse.data.attributes.status);
       });
@@ -133,7 +134,7 @@ describe('Acceptance | Controller | tutorial-evaluations-controller', function (
         expect(response.result.data.id).to.exist;
         expect(response.result.data.attributes['user-id']).to.equal(expectedResponse.data.attributes['user-id']);
         expect(response.result.data.attributes['tutorial-id']).to.equal(
-          expectedResponse.data.attributes['tutorial-id']
+          expectedResponse.data.attributes['tutorial-id'],
         );
         expect(response.result.data.attributes.status).to.equal(expectedResponse.data.attributes.status);
       });

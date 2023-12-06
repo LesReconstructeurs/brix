@@ -1,11 +1,19 @@
-const Joi = require('joi');
-const { first } = require('lodash');
-const { EntityValidationError } = require('../../errors');
-const TargetProfile = require('../../models/TargetProfile');
+import Joi from 'joi';
+import lodash from 'lodash';
+
+const { first } = lodash;
+
+import { EntityValidationError } from '../../errors.js';
+import { TargetProfile } from '../../models/TargetProfile.js';
 
 const categories = TargetProfile.categories;
 
 const schema = Joi.object({
+  name: Joi.string().required().messages({
+    'any.required': 'NAME_IS_REQUIRED',
+    'string.base': 'NAME_IS_REQUIRED',
+    'string.empty': 'NAME_IS_REQUIRED',
+  }),
   category: Joi.string()
     .valid(
       categories.COMPETENCES,
@@ -13,7 +21,7 @@ const schema = Joi.object({
       categories.DISCIPLINE,
       categories.OTHER,
       categories.PREDEFINED,
-      categories.SUBJECT
+      categories.SUBJECT,
     )
     .required()
     .error((errors) => first(errors))
@@ -22,11 +30,11 @@ const schema = Joi.object({
       'string.base': 'CATEGORY_IS_REQUIRED',
       'any.only': 'CATEGORY_IS_REQUIRED',
     }),
-
-  name: Joi.string().required().messages({
-    'any.required': 'NAME_IS_REQUIRED',
-    'string.base': 'NAME_IS_REQUIRED',
-    'string.empty': 'NAME_IS_REQUIRED',
+  imageUrl: Joi.string().uri().required().messages({
+    'any.required': 'IMAGE_URL_IS_REQUIRED',
+    'string.base': 'IMAGE_URL_IS_REQUIRED',
+    'string.empty': 'IMAGE_URL_IS_REQUIRED',
+    'string.uri': 'IMAGE_URL_IS_REQUIRED',
   }),
 });
 
@@ -38,7 +46,4 @@ function validate(targetProfile) {
   return true;
 }
 
-module.exports = {
-  validate,
-  schema,
-};
+export { validate, schema };

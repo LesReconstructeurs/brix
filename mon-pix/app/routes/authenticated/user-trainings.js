@@ -1,5 +1,5 @@
 import Route from '@ember/routing/route';
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 
 export default class UserTrainingsRoute extends Route {
   @service currentUser;
@@ -20,7 +20,7 @@ export default class UserTrainingsRoute extends Route {
         },
         userId: user.id,
       },
-      { reload: true }
+      { reload: true },
     );
 
     return { trainings };

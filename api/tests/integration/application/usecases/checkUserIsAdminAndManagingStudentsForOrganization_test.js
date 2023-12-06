@@ -1,6 +1,6 @@
-const { expect, databaseBuilder } = require('../../../test-helper');
-const checkUserIsAdminAndManagingStudentsForOrganization = require('../../../../lib/application/usecases/checkUserIsAdminAndManagingStudentsForOrganization');
-const Membership = require('../../../../lib/domain/models/Membership');
+import { expect, databaseBuilder } from '../../../test-helper.js';
+import * as checkUserIsAdminAndManagingStudentsForOrganization from '../../../../lib/application/usecases/checkUserIsAdminAndManagingStudentsForOrganization.js';
+import { Membership } from '../../../../lib/domain/models/Membership.js';
 
 describe('Integration | API | checkUserIsAdminAndManagingStudentsForOrganization', function () {
   describe('when the user does not belongs to the organization', function () {
@@ -13,7 +13,7 @@ describe('Integration | API | checkUserIsAdminAndManagingStudentsForOrganization
       const belongsToSupOrganization = await checkUserIsAdminAndManagingStudentsForOrganization.execute(
         user.id,
         organization.id,
-        'SUP'
+        'SUP',
       );
 
       expect(belongsToSupOrganization).to.be.false;
@@ -34,7 +34,7 @@ describe('Integration | API | checkUserIsAdminAndManagingStudentsForOrganization
       const belongsToSupOrganization = await checkUserIsAdminAndManagingStudentsForOrganization.execute(
         user.id,
         organization.id,
-        'SUP'
+        'SUP',
       );
 
       expect(belongsToSupOrganization).to.be.true;
@@ -55,7 +55,7 @@ describe('Integration | API | checkUserIsAdminAndManagingStudentsForOrganization
       const belongsToSupOrganization = await checkUserIsAdminAndManagingStudentsForOrganization.execute(
         user.id,
         organization.id,
-        'SUP'
+        'SUP',
       );
 
       expect(belongsToSupOrganization).to.be.false;
@@ -76,7 +76,7 @@ describe('Integration | API | checkUserIsAdminAndManagingStudentsForOrganization
       const belongsToSupOrganization = await checkUserIsAdminAndManagingStudentsForOrganization.execute(
         user.id,
         organization.id,
-        'SUP'
+        'SUP',
       );
 
       expect(belongsToSupOrganization).to.be.false;
@@ -97,7 +97,7 @@ describe('Integration | API | checkUserIsAdminAndManagingStudentsForOrganization
       const belongsToSupOrganization = await checkUserIsAdminAndManagingStudentsForOrganization.execute(
         user.id,
         organization.id,
-        'SUP'
+        'SUP',
       );
 
       expect(belongsToSupOrganization).to.be.false;

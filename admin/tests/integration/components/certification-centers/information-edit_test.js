@@ -14,10 +14,10 @@ module('Integration | Component | certification-centers/information-edit', funct
       name: 'Centre SCO',
       type: 'SCO',
       externalId: 'AX129',
-      isSupervisorAccessEnabled: false,
       dataProtectionOfficerFirstName: 'Justin',
       dataProtectionOfficerLastName: 'Ptipeu',
       dataProtectionOfficerEmail: 'justin.ptipeu@example.net',
+      habilitations: [],
     });
 
     this.set('certificationCenter', certificationCenter);
@@ -29,7 +29,7 @@ module('Integration | Component | certification-centers/information-edit', funct
     test("it should show an error message if certification center's name is empty", async function (assert) {
       // given
       const screen = await render(
-        hbs`<CertificationCenters::InformationEdit @certificationCenter={{this.certificationCenter}} />`
+        hbs`<CertificationCenters::InformationEdit @certificationCenter={{this.certificationCenter}} />`,
       );
 
       // when
@@ -42,7 +42,7 @@ module('Integration | Component | certification-centers/information-edit', funct
     test("it should show an error message if certification center's name is longer than 255 characters", async function (assert) {
       // given
       const screen = await render(
-        hbs`<CertificationCenters::InformationEdit @certificationCenter={{this.certificationCenter}} />`
+        hbs`<CertificationCenters::InformationEdit @certificationCenter={{this.certificationCenter}} />`,
       );
 
       // when
@@ -55,7 +55,7 @@ module('Integration | Component | certification-centers/information-edit', funct
     test("it should show an error message if certification center's type is empty", async function (assert) {
       // given
       const screen = await render(
-        hbs`<CertificationCenters::InformationEdit @certificationCenter={{this.certificationCenter}} />`
+        hbs`<CertificationCenters::InformationEdit @certificationCenter={{this.certificationCenter}} />`,
       );
 
       // when
@@ -70,7 +70,7 @@ module('Integration | Component | certification-centers/information-edit', funct
     test("it should show an error message if certification center's externalId is longer than 255 characters", async function (assert) {
       // given
       const screen = await render(
-        hbs`<CertificationCenters::InformationEdit @certificationCenter={{this.certificationCenter}} />`
+        hbs`<CertificationCenters::InformationEdit @certificationCenter={{this.certificationCenter}} />`,
       );
 
       // when
@@ -83,7 +83,7 @@ module('Integration | Component | certification-centers/information-edit', funct
     test("it should show an error message if certification center's data protection officer first name is longer than 255 characters", async function (assert) {
       // given
       const screen = await render(
-        hbs`<CertificationCenters::InformationEdit @certificationCenter={{this.certificationCenter}} />`
+        hbs`<CertificationCenters::InformationEdit @certificationCenter={{this.certificationCenter}} />`,
       );
 
       // when
@@ -96,7 +96,7 @@ module('Integration | Component | certification-centers/information-edit', funct
     test("it should show an error message if certification center's data protection officer last name is longer than 255 characters", async function (assert) {
       // given
       const screen = await render(
-        hbs`<CertificationCenters::InformationEdit @certificationCenter={{this.certificationCenter}} />`
+        hbs`<CertificationCenters::InformationEdit @certificationCenter={{this.certificationCenter}} />`,
       );
 
       // when
@@ -109,7 +109,7 @@ module('Integration | Component | certification-centers/information-edit', funct
     test("it should show an error message if certification center's data protection officer email is longer than 255 characters", async function (assert) {
       // given
       const screen = await render(
-        hbs`<CertificationCenters::InformationEdit @certificationCenter={{this.certificationCenter}} />`
+        hbs`<CertificationCenters::InformationEdit @certificationCenter={{this.certificationCenter}} />`,
       );
 
       // when
@@ -124,7 +124,7 @@ module('Integration | Component | certification-centers/information-edit', funct
     test("it should show an error message if certification center's dataProtectionOfficerEmail is not valid", async function (assert) {
       // given
       const screen = await render(
-        hbs`<CertificationCenters::InformationEdit @certificationCenter={{this.certificationCenter}} />`
+        hbs`<CertificationCenters::InformationEdit @certificationCenter={{this.certificationCenter}} />`,
       );
 
       // when
@@ -143,7 +143,7 @@ module('Integration | Component | certification-centers/information-edit', funct
           hbs`<CertificationCenters::InformationEdit
   @certificationCenter={{this.certificationCenter}}
   @toggleEditMode={{this.toggleEditModeStub}}
-/>`
+/>`,
         );
 
         // when
@@ -163,7 +163,7 @@ module('Integration | Component | certification-centers/information-edit', funct
   @certificationCenter={{this.certificationCenter}}
   @toggleEditMode={{this.toggleEditModeStub}}
   @onSubmit={{this.onSubmit}}
-/>`
+/>`,
         );
 
         // when

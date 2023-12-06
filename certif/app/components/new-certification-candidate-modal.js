@@ -1,7 +1,7 @@
 import Component from '@glimmer/component';
 import { tracked } from '@glimmer/tracking';
 import { action } from '@ember/object';
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 
 const FRANCE_INSEE_CODE = '99100';
 const INSEE_CODE_OPTION = 'insee';
@@ -9,6 +9,7 @@ const POSTAL_CODE_OPTION = 'postal';
 
 export default class NewCertificationCandidateModal extends Component {
   @service currentUser;
+  @service intl;
 
   @tracked selectedBirthGeoCodeOption = INSEE_CODE_OPTION;
   @tracked selectedCountryInseeCode = FRANCE_INSEE_CODE;
@@ -16,12 +17,18 @@ export default class NewCertificationCandidateModal extends Component {
 
   @tracked isLoading = false;
 
-  focus(element) {
-    element.focus();
+  get complementaryCertificationsHabilitations() {
+    return this.currentUser.currentAllowedCertificationCenterAccess?.habilitations;
   }
 
-  get complementaryCertifications() {
-    return this.currentUser.currentAllowedCertificationCenterAccess?.habilitations;
+  get billingMenuPlaceholder() {
+    const labelTranslation = this.intl.t('common.actions.choose');
+    return `-- ${labelTranslation} --`;
+  }
+
+  @action closeModal() {
+    this.args.closeModal();
+    document.getElementById('new-certification-candidate-form').reset();
   }
 
   @action
@@ -59,12 +66,8 @@ export default class NewCertificationCandidateModal extends Component {
 
   @action
   updateComplementaryCertification(complementaryCertification) {
-    this.args.candidateData.complementaryCertifications = [];
-
-    const complementaryCertifications = this.args.candidateData.complementaryCertifications;
-
     if (complementaryCertification?.target?.value !== 'none') {
-      complementaryCertifications.addObject(complementaryCertification);
+      this.args.candidateData.complementaryCertification = complementaryCertification;
     }
   }
 
@@ -72,8 +75,13 @@ export default class NewCertificationCandidateModal extends Component {
   async onFormSubmit(event) {
     event.preventDefault();
     this.isLoading = true;
+
     try {
-      await this.args.saveCandidate(this.args.candidateData);
+      const result = await this.args.saveCandidate(this.args.candidateData);
+
+      if (result) {
+        this._resetForm();
+      }
     } finally {
       this.isLoading = false;
     }
@@ -134,10 +142,14 @@ export default class NewCertificationCandidateModal extends Component {
   }
 
   get billingModeOptions() {
+    const freeLabel = this.intl.t('common.labels.billing-mode.free');
+    const paidLabel = this.intl.t('common.labels.billing-mode.paid');
+    const prepaidLabel = this.intl.t('common.labels.billing-mode.prepaid');
+
     return [
-      { label: 'Gratuite', value: 'FREE' },
-      { label: 'Payante', value: 'PAID' },
-      { label: 'Prépayée', value: 'PREPAID' },
+      { label: freeLabel, value: 'FREE' },
+      { label: paidLabel, value: 'PAID' },
+      { label: prepaidLabel, value: 'PREPAID' },
     ];
   }
 
@@ -160,5 +172,11 @@ export default class NewCertificationCandidateModal extends Component {
   _getCountryName() {
     const country = this.args.countries.find((country) => country.code === this.selectedCountryInseeCode);
     return country.name;
+  }
+
+  _resetForm() {
+    document.getElementById('new-certification-candidate-form').reset();
+    this.selectedCountryInseeCode = FRANCE_INSEE_CODE;
+    this.selectedBirthGeoCodeOption = INSEE_CODE_OPTION;
   }
 }

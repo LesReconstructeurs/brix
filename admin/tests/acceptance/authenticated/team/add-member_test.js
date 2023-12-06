@@ -1,10 +1,9 @@
 import { module, test } from 'qunit';
 import { click, fillIn } from '@ember/test-helpers';
 import { setupApplicationTest } from 'ember-qunit';
-import setupMirage from 'ember-cli-mirage/test-support/setup-mirage';
+import { setupMirage } from 'ember-cli-mirage/test-support';
 import { visit } from '@1024pix/ember-testing-library';
 import { authenticateAdminMemberWithRole } from 'pix-admin/tests/helpers/test-init';
-import { Response } from 'ember-cli-mirage';
 
 module('Acceptance | Team | Add member', function (hooks) {
   setupApplicationTest(hooks);
@@ -24,7 +23,7 @@ module('Acceptance | Team | Add member', function (hooks) {
       const screen = await visit('/equipe');
       await fillIn(
         screen.getByRole('textbox', { name: "Adresse e-mail professionnelle de l'agent Pix à rattacher" }),
-        'chris@to.phe'
+        'chris@to.phe',
       );
       await click(screen.getByRole('button', { name: 'Donner accès à un agent Pix' }));
 
@@ -57,7 +56,7 @@ module('Acceptance | Team | Add member', function (hooks) {
       const screen = await visit('/equipe');
       await fillIn(
         screen.getByRole('textbox', { name: "Adresse e-mail professionnelle de l'agent Pix à rattacher" }),
-        'marie.tim@example.net'
+        'marie.tim@example.net',
       );
       await click(screen.getByRole('button', { name: 'Donner accès à un agent Pix' }));
 
@@ -71,27 +70,23 @@ module('Acceptance | Team | Add member', function (hooks) {
 
       this.server.post(
         '/admin/admin-members',
-        () =>
-          new Response(
-            404,
-            {},
+        () => ({
+          errors: [
             {
-              errors: [
-                {
-                  status: '404',
-                  code: 'USER_ACCOUNT_NOT_FOUND',
-                  title: 'User not found',
-                },
-              ],
-            }
-          )
+              status: '404',
+              code: 'USER_ACCOUNT_NOT_FOUND',
+              title: 'User not found',
+            },
+          ],
+        }),
+        404,
       );
 
       // when
       const screen = await visit('/equipe');
       await fillIn(
         screen.getByRole('textbox', { name: "Adresse e-mail professionnelle de l'agent Pix à rattacher" }),
-        'marie.tim@example.net'
+        'marie.tim@example.net',
       );
       await click(screen.getByRole('button', { name: 'Donner accès à un agent Pix' }));
 

@@ -1,20 +1,25 @@
-const { expect, sinon, domainBuilder, catchErr } = require('../../../test-helper');
-const Membership = require('../../../../lib/domain/models/Membership');
-const OrganizationInvitation = require('../../../../lib/domain/models/OrganizationInvitation');
-const mailService = require('../../../../lib/domain/services/mail-service');
-const {
+import { expect, sinon, domainBuilder, catchErr } from '../../../test-helper.js';
+import { Membership } from '../../../../lib/domain/models/Membership.js';
+import { OrganizationInvitation } from '../../../../lib/domain/models/OrganizationInvitation.js';
+
+import {
   createOrUpdateOrganizationInvitation,
   createScoOrganizationInvitation,
   createProOrganizationInvitation,
-} = require('../../../../lib/domain/services/organization-invitation-service');
-const { SendingEmailToInvalidDomainError } = require('../../../../lib/domain/errors');
-const EmailingAttempt = require('../../../../lib/domain/models/EmailingAttempt');
+} from '../../../../lib/domain/services/organization-invitation-service.js';
+
+import {
+  SendingEmailToInvalidDomainError,
+  SendingEmailToInvalidEmailAddressError,
+} from '../../../../lib/domain/errors.js';
+import { EmailingAttempt } from '../../../../lib/domain/models/EmailingAttempt.js';
 
 describe('Unit | Service | Organization-Invitation Service', function () {
   const userEmailAddress = 'user@example.net';
   const code = 'ABCDEFGH01';
   let organizationInvitationRepository;
   let organizationRepository;
+  let mailService;
 
   beforeEach(function () {
     organizationInvitationRepository = {
@@ -25,8 +30,10 @@ describe('Unit | Service | Organization-Invitation Service', function () {
     organizationRepository = {
       get: sinon.stub(),
     };
-    sinon.stub(mailService, 'sendOrganizationInvitationEmail').resolves();
-    sinon.stub(mailService, 'sendScoOrganizationInvitationEmail').resolves();
+    mailService = {
+      sendOrganizationInvitationEmail: sinon.stub().resolves(),
+      sendScoOrganizationInvitationEmail: sinon.stub().resolves(),
+    };
   });
 
   describe('#createOrUpdateOrganizationInvitation', function () {
@@ -57,6 +64,7 @@ describe('Unit | Service | Organization-Invitation Service', function () {
           email: userEmailAddress,
           locale,
           role,
+          dependencies: { mailService },
         });
 
         // then
@@ -94,7 +102,7 @@ describe('Unit | Service | Organization-Invitation Service', function () {
           organizationInvitationRepository.create.resolves(organizationInvitation);
           organizationRepository.get.resolves(organization);
           mailService.sendOrganizationInvitationEmail.resolves(
-            EmailingAttempt.failure(userEmailAddress, EmailingAttempt.errorCode.INVALID_DOMAIN)
+            EmailingAttempt.failure(userEmailAddress, EmailingAttempt.errorCode.INVALID_DOMAIN),
           );
 
           // when
@@ -105,12 +113,13 @@ describe('Unit | Service | Organization-Invitation Service', function () {
             email: userEmailAddress,
             locale,
             role,
+            dependencies: { mailService },
           });
 
           // then
           expect(error).to.be.an.instanceOf(SendingEmailToInvalidDomainError);
           expect(error.message).to.equal(
-            'Failed to send email to user@example.net because domain seems to be invalid.'
+            'Failed to send email to user@example.net because domain seems to be invalid.',
           );
         });
       });
@@ -138,6 +147,7 @@ describe('Unit | Service | Organization-Invitation Service', function () {
           organizationId: organization.id,
           email: userEmailAddress,
           locale,
+          dependencies: { mailService },
         });
 
         // then
@@ -173,12 +183,61 @@ describe('Unit | Service | Organization-Invitation Service', function () {
           organizationId: organization.id,
           email: userEmailAddress,
           locale,
+          dependencies: { mailService },
         });
 
         // then
         expect(organizationInvitationRepository.updateModificationDate).to.have.been.calledWith(
-          organizationInvitation.id
+          organizationInvitation.id,
         );
+      });
+    });
+
+    context('when mailing provider returns an invalid email error', function () {
+      it('throws an error', async function () {
+        // Given
+        const role = null;
+        const locale = 'fr-fr';
+        const organization = domainBuilder.buildOrganization();
+        const organizationInvitation = new OrganizationInvitation({
+          role: Membership.roles.MEMBER,
+          status: 'pending',
+          code,
+        });
+
+        organizationInvitationRepository.findOnePendingByOrganizationIdAndEmail
+          .withArgs({ organizationId: organization.id, email: userEmailAddress })
+          .resolves(null);
+        organizationInvitationRepository.create.resolves(organizationInvitation);
+        organizationRepository.get.resolves(organization);
+        mailService.sendOrganizationInvitationEmail.resolves(
+          EmailingAttempt.failure(
+            userEmailAddress,
+            EmailingAttempt.errorCode.INVALID_EMAIL,
+            'Recipient email is invalid',
+          ),
+        );
+
+        // when
+        const error = await catchErr(createOrUpdateOrganizationInvitation)({
+          organizationRepository,
+          organizationInvitationRepository,
+          organizationId: organization.id,
+          email: userEmailAddress,
+          locale,
+          role,
+          dependencies: { mailService },
+        });
+
+        // then
+        expect(error).to.be.an.instanceOf(SendingEmailToInvalidEmailAddressError);
+        expect(error.message).to.equal(
+          'Failed to send email to user@example.net because email address seems to be invalid.',
+        );
+        expect(error.meta).to.deepEqualInstance({
+          emailAddress: userEmailAddress,
+          errorMessage: 'Recipient email is invalid',
+        });
       });
     });
   });
@@ -216,6 +275,7 @@ describe('Unit | Service | Organization-Invitation Service', function () {
           lastName,
           email: userEmailAddress,
           locale,
+          dependencies: { mailService },
         });
 
         // then
@@ -264,6 +324,7 @@ describe('Unit | Service | Organization-Invitation Service', function () {
           email: userEmailAddress,
           locale,
           tags,
+          dependencies: { mailService },
         });
 
         // then
@@ -307,6 +368,7 @@ describe('Unit | Service | Organization-Invitation Service', function () {
           lastName,
           email: userEmailAddress,
           locale,
+          dependencies: { mailService },
         });
 
         // then
@@ -348,11 +410,12 @@ describe('Unit | Service | Organization-Invitation Service', function () {
           lastName,
           email: userEmailAddress,
           locale,
+          dependencies: { mailService },
         });
 
         // then
         expect(organizationInvitationRepository.updateModificationDate).to.have.been.calledWith(
-          organizationInvitation.id
+          organizationInvitation.id,
         );
       });
     });
@@ -401,6 +464,7 @@ describe('Unit | Service | Organization-Invitation Service', function () {
           role,
           locale,
           tags,
+          dependencies: { mailService },
         });
 
         // then
@@ -433,6 +497,7 @@ describe('Unit | Service | Organization-Invitation Service', function () {
           role,
           locale,
           tags,
+          dependencies: { mailService },
         });
 
         // then
@@ -470,11 +535,12 @@ describe('Unit | Service | Organization-Invitation Service', function () {
           email: userEmailAddress,
           locale,
           tags,
+          dependencies: { mailService },
         });
 
         // then
         expect(organizationInvitationRepository.updateModificationDate).to.have.been.calledWith(
-          organizationInvitation.id
+          organizationInvitation.id,
         );
       });
     });

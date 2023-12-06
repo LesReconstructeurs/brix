@@ -9,37 +9,136 @@ module('Unit | Component | qrocm-dep-solution-panel', function (hooks) {
   setupIntl(hooks);
 
   module('#blocks', function () {
-    test('should return an array with data to display', function (assert) {
+    test('should return expected array when the challenge is successful', function (assert) {
       //Given
-      const challenge = EmberObject.create({ proposals: 'content : ${smiley1}\n\ntriste : ${smiley2}' });
-      const answer = { value: "smiley1: ':)' smiley2: ''", result: 'ko' };
+      const challenge = EmberObject.create({
+        proposals: 'content : ${challengeInput1}\n\ntriste : ${challengeInput2}',
+      });
+      const answer = {
+        value: "challengeInput1: 'good answer value 1' challengeInput2: 'good answer value 2'",
+        result: 'ko',
+      };
+      const answersEvaluation = [true, true];
+      const component = createGlimmerComponent('qrocm-dep-solution-panel', { challenge, answer, answersEvaluation });
+      const expectedBlocksData = [
+        {
+          input: 'challengeInput1',
+          text: 'content : ',
+          ariaLabel: 'La réponse donnée est valide',
+          autoAriaLabel: false,
+          inputClass: 'correction-qroc-box-answer--correct',
+          answer: 'good answer value 1',
+          placeholder: null,
+          type: 'input',
+          defaultValue: null,
+        },
+        {
+          input: 'challengeInput2',
+          text: '<br/><br/>triste : ',
+          answer: 'good answer value 2',
+          ariaLabel: 'La réponse donnée est valide',
+          autoAriaLabel: false,
+          inputClass: 'correction-qroc-box-answer--correct',
+          placeholder: null,
+          type: 'input',
+          defaultValue: null,
+        },
+      ];
 
-      const component = createGlimmerComponent('component:qrocm-dep-solution-panel', { challenge, answer });
+      //When
+      const blocks = component.blocks;
+
+      //Then
+      assert.deepEqual(blocks, expectedBlocksData);
+    });
+
+    test('should return expected array when the challenge is skipped', function (assert) {
+      //Given
+      const challenge = EmberObject.create({
+        proposals: 'content : ${skippedChallengeInput1}\n\ntriste : ${skippedChallengeInput2}',
+      });
+      const answer = {
+        value: '#ABAND#',
+        result: 'ko',
+      };
+      const answersEvaluation = [];
+      const solutionsWithoutGoodAnswers = [];
+      const component = createGlimmerComponent('qrocm-dep-solution-panel', {
+        challenge,
+        answer,
+        answersEvaluation,
+        solutionsWithoutGoodAnswers,
+      });
 
       const expectedBlocksData = [
         {
-          input: 'smiley1',
-          text: 'content : ',
-          ariaLabel: null,
+          answer: 'Pas de réponse',
+          ariaLabel: 'Question passée',
           autoAriaLabel: false,
-          inputClass: '',
-          answer: ':)',
+          defaultValue: null,
+          input: 'skippedChallengeInput1',
+          inputClass: 'correction-qroc-box-answer--aband',
           placeholder: null,
+          text: 'content : ',
           type: 'input',
         },
         {
-          input: 'smiley2',
-          text: '<br/><br/>triste : ',
-          ariaLabel: null,
-          autoAriaLabel: false,
-          inputClass: 'correction-qroc-box-answer--aband',
           answer: 'Pas de réponse',
+          ariaLabel: 'Question passée',
+          autoAriaLabel: false,
+          defaultValue: null,
+          input: 'skippedChallengeInput2',
+          inputClass: 'correction-qroc-box-answer--aband',
           placeholder: null,
+          text: '<br/><br/>triste : ',
           type: 'input',
         },
       ];
 
-      //when
+      //When
+      const blocks = component.blocks;
+
+      //Then
+      assert.deepEqual(blocks, expectedBlocksData);
+    });
+
+    test('should return expected array when the challenge is failed', function (assert) {
+      //Given
+      const challenge = EmberObject.create({
+        proposals: 'content : ${challengeInput1}\n\ntriste : ${challengeInput2}',
+      });
+      const answer = {
+        value: "challengeInput1: 'good answer' challengeInput2: 'wrong answer'",
+        result: 'ko',
+      };
+      const answersEvaluation = [true, false];
+      const component = createGlimmerComponent('qrocm-dep-solution-panel', { challenge, answer, answersEvaluation });
+      const expectedBlocksData = [
+        {
+          input: 'challengeInput1',
+          text: 'content : ',
+          ariaLabel: 'La réponse donnée est valide',
+          autoAriaLabel: false,
+          inputClass: 'correction-qroc-box-answer--correct',
+          answer: 'good answer',
+          placeholder: null,
+          type: 'input',
+          defaultValue: null,
+        },
+        {
+          input: 'challengeInput2',
+          text: '<br/><br/>triste : ',
+          answer: 'wrong answer',
+          ariaLabel: 'La réponse donnée est fausse',
+          autoAriaLabel: false,
+          inputClass: 'correction-qroc-box-answer--wrong',
+          placeholder: null,
+          type: 'input',
+          defaultValue: null,
+        },
+      ];
+
+      //When
       const blocks = component.blocks;
 
       //Then
@@ -47,65 +146,141 @@ module('Unit | Component | qrocm-dep-solution-panel', function (hooks) {
     });
   });
 
-  module('#answerIsCorrect', function () {
-    test('should return true', function (assert) {
+  module('#getInputClass', function () {
+    test('should return "aband" css class when isAnswerEmpty param is true', function (assert) {
       //Given
-      const component = createGlimmerComponent('component:qrocm-dep-solution-panel', { answer: { result: 'ok' } });
+      const component = createGlimmerComponent('qrocm-dep-solution-panel');
 
-      //when
-      const answerIsCorrect = component.answerIsCorrect;
+      //When
+      const inputClass = component.getInputClass(true);
 
       //Then
-      assert.true(answerIsCorrect);
+      assert.deepEqual(inputClass, 'correction-qroc-box-answer--aband');
+    });
+
+    test('should return "correct" css class when isAnswerEmpty param is false and isCorrectAnswer is true', function (assert) {
+      //Given
+      const component = createGlimmerComponent('qrocm-dep-solution-panel');
+
+      //When
+      const inputClass = component.getInputClass(false, true);
+
+      //Then
+      assert.deepEqual(inputClass, 'correction-qroc-box-answer--correct');
+    });
+
+    test('should return "wrong" css class when isAnswerEmpty param is false and isCorrectAnswer is false', function (assert) {
+      //Given
+      const component = createGlimmerComponent('qrocm-dep-solution-panel');
+
+      //When
+      const inputClass = component.getInputClass(false, false);
+
+      //Then
+      assert.deepEqual(inputClass, 'correction-qroc-box-answer--wrong');
+    });
+  });
+
+  module('#getAriaLabel', function () {
+    test('should return specific aria-label when question is skipped', function (assert) {
+      //Given
+      const component = createGlimmerComponent('qrocm-dep-solution-panel');
+
+      //When
+      const ariaLabel = component.getAriaLabel(true);
+
+      //Then
+      assert.deepEqual(ariaLabel, 'Question passée');
+    });
+
+    test('should return specific aria-label when question answer is ok', function (assert) {
+      //Given
+      const component = createGlimmerComponent('qrocm-dep-solution-panel');
+
+      //When
+      const inputClass = component.getAriaLabel(false, true);
+
+      //Then
+      assert.deepEqual(inputClass, 'La réponse donnée est valide');
+    });
+
+    test('should return specific aria-label when question answer is ko', function (assert) {
+      //Given
+      const component = createGlimmerComponent('qrocm-dep-solution-panel');
+
+      //When
+      const inputClass = component.getAriaLabel(false, false);
+
+      //Then
+      assert.deepEqual(inputClass, 'La réponse donnée est fausse');
+    });
+  });
+
+  module('#isCorrectAnswer', function () {
+    test('should return true', function (assert) {
+      //Given
+      const component = createGlimmerComponent('qrocm-dep-solution-panel', { answer: { result: 'ok' } });
+
+      //When
+      const isCorrectAnswer = component.isCorrectAnswer;
+
+      //Then
+      assert.true(isCorrectAnswer);
     });
 
     test('should return false', function (assert) {
       //Given
-      const component = createGlimmerComponent('component:qrocm-dep-solution-panel', { answer: { result: 'ko' } });
+      const component = createGlimmerComponent('qrocm-dep-solution-panel', { answer: { result: 'ko' } });
 
-      //when
-      const answerIsCorrect = component.answerIsCorrect;
+      //When
+      const isCorrectAnswer = component.isCorrectAnswer;
 
       //Then
-      assert.false(answerIsCorrect);
+      assert.false(isCorrectAnswer);
     });
   });
 
-  module('#understandableSolution', function () {
-    test('should return the expected answers', function (assert) {
-      //Given
-      const challenge = EmberObject.create({ proposals: 'content : ${smiley1}\n\ntriste : ${smiley2}' });
-      const component = createGlimmerComponent('component:qrocm-dep-solution-panel', {
-        challenge,
-        answer: { result: 'ko' },
-        solution: 'groupe 1:\n- horizontalité\n- organisation plate\ngroupe 2:\n- cadre',
+  module('#formattedSolution', function () {
+    module('when there are more solutions than inputs', function () {
+      test('should return examples of good answers', function (assert) {
+        //Given
+        const challenge = EmberObject.create({
+          proposals: 'content : ${smiley1}\n\ntriste : ${smiley2}',
+        });
+        const component = createGlimmerComponent('qrocm-dep-solution-panel', {
+          challenge,
+          answer: { result: 'ko', value: "key1: 'rightAnswer1' key2: 'rightAnswer2'" },
+          solutionsWithoutGoodAnswers: ['tag', 'marche', 'masque'],
+          solution: 'p1:\n- solution1\np2:\n- solution2\np3:\n- solution3',
+        });
+
+        //When
+        const formattedSolution = component.formattedSolution;
+
+        //Then
+        assert.strictEqual(formattedSolution, 'tag ou marche ou...');
       });
-
-      //when
-      const understandableSolution = component.understandableSolution;
-
-      //Then
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(understandableSolution, 'horizontalité et cadre');
     });
 
-    test('should return examples of good answers', function (assert) {
-      //Given
-      const challenge = EmberObject.create({ proposals: 'content : ${smiley1}\n\ntriste : ${smiley2}' });
-      const component = createGlimmerComponent('component:qrocm-dep-solution-panel', {
-        challenge,
-        answer: { result: 'ko' },
-        solution: 'groupe 1:\n- tag\n- slogan\ngroupe 2:\n- marche\n- sitting\ngroupe 3:\n- masque',
+    module('when there are as many text fields as there are solutions', function () {
+      test('should return null', function (assert) {
+        //Given
+        const challenge = EmberObject.create({
+          proposals: 'content : ${smiley1}\n\ntriste : ${smiley2}',
+        });
+        const component = createGlimmerComponent('qrocm-dep-solution-panel', {
+          challenge,
+          answer: { result: 'ko', value: "key1: 'wrongAnswer1' key2: 'wrongAnswer2'" },
+          solutionsWithoutGoodAnswers: ['tag', 'marche'],
+          solution: 'p1:\n- solution1\np2:\n- solution2',
+        });
+
+        //When
+        const formattedSolution = component.formattedSolution;
+
+        //Then
+        assert.strictEqual(formattedSolution, null);
       });
-
-      //when
-      const understandableSolution = component.understandableSolution;
-
-      //Then
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(understandableSolution, 'tag ou marche ou ...');
     });
   });
 });

@@ -3,13 +3,14 @@ import { module, test } from 'qunit';
 import { setupTest } from 'ember-qunit';
 import sinon from 'sinon';
 import * as fetch from 'fetch';
+import { ApplicationError } from 'mon-pix/errors/application-error';
 
 module('Unit | Route | login-oidc', function (hooks) {
   setupTest(hooks);
 
   module('#beforeModel', function () {
     module('when receives error from identity provider', function () {
-      test('should throw an error', function (assert) {
+      test('throws an error', function (assert) {
         // given
         const route = this.owner.lookup('route:authentication/login-oidc');
 
@@ -25,8 +26,8 @@ module('Unit | Route | login-oidc', function (hooks) {
               },
             });
           },
-          Error,
-          'access_denied: Access was denied.'
+          ApplicationError,
+          'access_denied: Access was denied.',
         );
       });
     });
@@ -91,9 +92,7 @@ module('Unit | Route | login-oidc', function (hooks) {
           await route.beforeModel({ to: { queryParams: {}, params: { identity_provider_slug: 'oidc-partner' } } });
 
           // then
-          // TODO: Fix this the next time the file is edited.
-          // eslint-disable-next-line qunit/no-assert-equal
-          assert.equal(sessionStub.data.nextURL, '/campagnes/PIXOIDC01/acces');
+          assert.strictEqual(sessionStub.data.nextURL, '/campagnes/PIXOIDC01/acces');
         });
 
         test('should build the url from the intent name and contexts in session data nextUrl', async function (assert) {
@@ -229,7 +228,7 @@ module('Unit | Route | login-oidc', function (hooks) {
       // when
       const response = await route.model(
         { identity_provider_slug: 'oidc-partner' },
-        { to: { queryParams: { code: 'test' } } }
+        { to: { queryParams: { code: 'test' } } },
       );
 
       // then
@@ -244,11 +243,9 @@ module('Unit | Route | login-oidc', function (hooks) {
       assert.ok(true);
     });
 
-    // TODO: Fix this the next time the file is edited.
-    // eslint-disable-next-line qunit/require-expect
     test('should throw error if CGUs are already validated and authenticate fails', async function (assert) {
       // given
-      const authenticateStub = sinon.stub().rejects({ errors: 'there was an error' });
+      const authenticateStub = sinon.stub().rejects({ errors: [{ detail: 'there was an error' }] });
       const sessionStub = Service.create({
         authenticate: authenticateStub,
         data: {},
@@ -263,11 +260,47 @@ module('Unit | Route | login-oidc', function (hooks) {
       } catch (error) {
         // then
         sinon.assert.calledOnce(authenticateStub);
-        // TODO: Fix this the next time the file is edited.
-        // eslint-disable-next-line qunit/no-assert-equal
-        assert.equal(error.message, '"there was an error"');
+        assert.strictEqual(error.message, 'there was an error');
         assert.ok(true);
       }
+    });
+
+    module('when the identity provider does not provide all the user required information', function () {
+      test('throws an error', async function (assert) {
+        // given
+        const authenticateStub = sinon.stub().rejects({
+          errors: [
+            {
+              status: '422',
+              code: 'USER_INFO_MANDATORY_MISSING_FIELDS',
+              title: 'Unprocessable entity',
+              detail:
+                "Un ou des champs obligatoires (Champs manquants : given_name}) n'ont pas été renvoyés par votre fournisseur d'identité OIDC partner.",
+              meta: {
+                shortCode: 'OIDC01',
+              },
+            },
+          ],
+        });
+        const sessionStub = Service.create({
+          authenticate: authenticateStub,
+          data: {},
+        });
+        const route = this.owner.lookup('route:authentication/login-oidc');
+        route.set('session', sessionStub);
+        route.router = { replaceWith: sinon.stub() };
+
+        try {
+          // when
+          await route.model({ identity_provider_slug: 'oidc-partner' }, { to: { queryParams: { code: 'test' } } });
+        } catch (error) {
+          // then
+          assert.strictEqual(
+            error.message,
+            "Un ou des champs obligatoires (Champs manquants : given_name}) n'ont pas été renvoyés par votre fournisseur d'identité OIDC partner.",
+          );
+        }
+      });
     });
   });
 });

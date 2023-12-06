@@ -1,13 +1,18 @@
-const SendinblueProvider = require('./SendinblueProvider');
-const { mailing } = require('../../config');
-const logger = require('../logger');
-const mailCheck = require('../mail-check');
-const EmailingAttempt = require('../../domain/models/EmailingAttempt');
+import Debug from 'debug';
+import { SendinblueProvider } from './SendinblueProvider.js';
+import { config } from '../../config.js';
+import { logger } from '../logger.js';
+import * as mailCheck from '../mail-check.js';
+import { EmailingAttempt } from '../../domain/models/EmailingAttempt.js';
+import { MailingProviderInvalidEmailError } from './MailingProviderInvalidEmailError.js';
+
+const { mailing } = config;
+const debugEmail = Debug('pix:mailer:email');
 
 class Mailer {
-  constructor() {
+  constructor({ dependencies = { mailCheck } } = {}) {
     this._providerName = mailing.provider;
-
+    this.dependencies = dependencies;
     switch (this._providerName) {
       case 'sendinblue':
         this._provider = new SendinblueProvider();
@@ -18,21 +23,28 @@ class Mailer {
   }
 
   async sendEmail(options) {
-    try {
-      await mailCheck.checkDomainIsValid(options.to);
-    } catch (err) {
-      logger.warn({ err }, `Email is not valid '${options.to}'`);
-      return EmailingAttempt.failure(options.to, EmailingAttempt.errorCode.INVALID_DOMAIN);
-    }
+    debugEmail(options);
 
     if (!mailing.enabled) {
       return EmailingAttempt.success(options.to);
     }
 
     try {
+      await this.dependencies.mailCheck.checkDomainIsValid(options.to);
+    } catch (err) {
+      logger.warn({ err }, `Email is not valid '${options.to}'`);
+      return EmailingAttempt.failure(options.to, EmailingAttempt.errorCode.INVALID_DOMAIN);
+    }
+
+    try {
       await this._provider.sendEmail(options);
     } catch (err) {
       logger.warn({ err }, `Could not send email to '${options.to}'`);
+
+      if (err instanceof MailingProviderInvalidEmailError) {
+        return EmailingAttempt.failure(options.to, EmailingAttempt.errorCode.INVALID_EMAIL, err.message);
+      }
+
       return EmailingAttempt.failure(options.to);
     }
 
@@ -84,4 +96,6 @@ class Mailer {
   }
 }
 
-module.exports = new Mailer();
+const mailer = new Mailer();
+
+export { mailer, Mailer };

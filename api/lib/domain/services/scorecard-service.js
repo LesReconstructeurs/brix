@@ -1,13 +1,14 @@
-const Assessment = require('../models/Assessment');
-const CompetenceEvaluation = require('../models/CompetenceEvaluation');
-const KnowledgeElement = require('../models/KnowledgeElement');
-const Scorecard = require('../models/Scorecard');
-const _ = require('lodash');
+import { Assessment } from '../models/Assessment.js';
+import { CompetenceEvaluation } from '../models/CompetenceEvaluation.js';
+import { KnowledgeElement } from '../models/KnowledgeElement.js';
+import { Scorecard } from '../models/Scorecard.js';
+import _ from 'lodash';
 
 async function computeScorecard({
   userId,
   competenceId,
   competenceRepository,
+  areaRepository,
   competenceEvaluationRepository,
   knowledgeElementRepository,
   allowExcessPix = false,
@@ -19,14 +20,14 @@ async function computeScorecard({
     competenceRepository.get({ id: competenceId, locale }),
     competenceEvaluationRepository.findByUserId(userId),
   ]);
-
   const competenceEvaluation = _.find(competenceEvaluations, { competenceId: competence.id });
-
+  const area = await areaRepository.get({ id: competence.areaId, locale });
   return Scorecard.buildFrom({
     userId,
     knowledgeElements,
     competenceEvaluation,
     competence,
+    area,
     allowExcessPix,
     allowExcessLevel,
   });
@@ -79,7 +80,7 @@ async function _resetKnowledgeElements({ userId, competenceId, knowledgeElementR
     competenceId,
   });
   const resetKnowledgeElementsPromises = _.map(knowledgeElements, (knowledgeElement) =>
-    _resetKnowledgeElement({ knowledgeElement, knowledgeElementRepository })
+    _resetKnowledgeElement({ knowledgeElement, knowledgeElementRepository }),
   );
   return Promise.all(resetKnowledgeElementsPromises);
 }
@@ -121,7 +122,7 @@ async function _resetCampaignAssessments({
       assessmentRepository,
       campaignParticipationRepository,
       campaignRepository,
-    })
+    }),
   );
   return Promise.all(resetCampaignAssessmentsPromises);
 }
@@ -159,8 +160,4 @@ function _computeResetSkillsNotIncludedInCampaign({ skillIds, resetSkillIds }) {
   return _(skillIds).intersection(resetSkillIds).isEmpty();
 }
 
-module.exports = {
-  resetScorecard,
-  computeScorecard,
-  _computeResetSkillsNotIncludedInCampaign,
-};
+export { resetScorecard, computeScorecard, _computeResetSkillsNotIncludedInCampaign };

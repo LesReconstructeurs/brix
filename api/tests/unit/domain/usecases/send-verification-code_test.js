@@ -1,14 +1,14 @@
-const { expect, sinon, catchErr, domainBuilder } = require('../../../test-helper');
-const {
+import { expect, sinon, catchErr, domainBuilder } from '../../../test-helper.js';
+
+import {
   AlreadyRegisteredEmailError,
   InvalidPasswordForUpdateEmailError,
   UserNotAuthorizedToUpdateEmailError,
-} = require('../../../../lib/domain/errors');
-const AuthenticationMethod = require('../../../../lib/domain/models/AuthenticationMethod');
-const codeUtils = require('../../../../lib/infrastructure/utils/code-utils');
-const { getI18n } = require('../../../tooling/i18n/i18n');
+} from '../../../../lib/domain/errors.js';
 
-const usecases = require('../../../../lib/domain/usecases');
+import { NON_OIDC_IDENTITY_PROVIDERS } from '../../../../lib/domain/constants/identity-providers.js';
+import { getI18n } from '../../../tooling/i18n/i18n.js';
+import { usecases } from '../../../../lib/domain/usecases/index.js';
 
 describe('Unit | UseCase | send-verification-code', function () {
   let authenticationMethodRepository;
@@ -16,6 +16,7 @@ describe('Unit | UseCase | send-verification-code', function () {
   let userRepository;
   let encryptionService;
   let mailService;
+  let codeUtilsStub;
 
   beforeEach(function () {
     userEmailRepository = {
@@ -35,7 +36,9 @@ describe('Unit | UseCase | send-verification-code', function () {
       findOneByUserIdAndIdentityProvider: sinon.stub(),
     };
 
-    sinon.stub(codeUtils, 'generateNumericalString');
+    codeUtilsStub = {
+      generateNumericalString: sinon.stub(),
+    };
   });
 
   it('should store the generated code in temporary storage', async function () {
@@ -53,15 +56,15 @@ describe('Unit | UseCase | send-verification-code', function () {
     authenticationMethodRepository.findOneByUserIdAndIdentityProvider
       .withArgs({
         userId,
-        identityProvider: AuthenticationMethod.identityProviders.PIX,
+        identityProvider: NON_OIDC_IDENTITY_PROVIDERS.PIX.code,
       })
       .resolves(
         domainBuilder.buildAuthenticationMethod.withPixAsIdentityProviderAndHashedPassword({
           hashedPassword: passwordHash,
-        })
+        }),
       );
     encryptionService.checkPassword.withArgs({ password, passwordHash }).resolves();
-    codeUtils.generateNumericalString.withArgs(6).returns(code);
+    codeUtilsStub.generateNumericalString.withArgs(6).returns(code);
 
     // when
     await usecases.sendVerificationCode({
@@ -75,6 +78,7 @@ describe('Unit | UseCase | send-verification-code', function () {
       userRepository,
       encryptionService,
       mailService,
+      codeUtils: codeUtilsStub,
     });
 
     // then
@@ -97,15 +101,15 @@ describe('Unit | UseCase | send-verification-code', function () {
     authenticationMethodRepository.findOneByUserIdAndIdentityProvider
       .withArgs({
         userId,
-        identityProvider: AuthenticationMethod.identityProviders.PIX,
+        identityProvider: NON_OIDC_IDENTITY_PROVIDERS.PIX.code,
       })
       .resolves(
         domainBuilder.buildAuthenticationMethod.withPixAsIdentityProviderAndHashedPassword({
           hashedPassword: passwordHash,
-        })
+        }),
       );
     encryptionService.checkPassword.withArgs({ password, passwordHash }).resolves();
-    codeUtils.generateNumericalString.withArgs(6).returns(code);
+    codeUtilsStub.generateNumericalString.withArgs(6).returns(code);
 
     // when
     await usecases.sendVerificationCode({
@@ -119,6 +123,7 @@ describe('Unit | UseCase | send-verification-code', function () {
       userRepository,
       encryptionService,
       mailService,
+      codeUtils: codeUtilsStub,
     });
 
     // then
@@ -151,6 +156,7 @@ describe('Unit | UseCase | send-verification-code', function () {
       userRepository,
       encryptionService,
       mailService,
+      codeUtils: codeUtilsStub,
     });
 
     // then
@@ -170,12 +176,12 @@ describe('Unit | UseCase | send-verification-code', function () {
     authenticationMethodRepository.findOneByUserIdAndIdentityProvider
       .withArgs({
         userId,
-        identityProvider: AuthenticationMethod.identityProviders.PIX,
+        identityProvider: NON_OIDC_IDENTITY_PROVIDERS.PIX.code,
       })
       .resolves(
         domainBuilder.buildAuthenticationMethod.withPixAsIdentityProviderAndHashedPassword({
           hashedPassword: passwordHash,
-        })
+        }),
       );
     encryptionService.checkPassword.withArgs({ password, passwordHash }).rejects();
 
@@ -190,6 +196,7 @@ describe('Unit | UseCase | send-verification-code', function () {
       userRepository,
       encryptionService,
       mailService,
+      codeUtils: codeUtilsStub,
     });
 
     // then
@@ -215,6 +222,7 @@ describe('Unit | UseCase | send-verification-code', function () {
       userRepository,
       encryptionService,
       mailService,
+      codeUtils: codeUtilsStub,
     });
 
     // then

@@ -1,19 +1,25 @@
-const _ = require('lodash');
+import _ from 'lodash';
 
-module.exports = { extractParameters };
+export { extractParameters };
 
-// query example : 'filter[organizationId]=4&page[size]=30$page[number]=3&sort=-createdAt,name&include=user'
+// query example: 'filter[organizationId]=4&page[size]=30$page[number]=3&sort=createdAt[desc]&include=user'
+// Warning: there is not any order between sort parameters
 function extractParameters(query) {
   return {
     filter: _extractFilter(query),
     page: _extractPage(query),
-    sort: _extractArrayParameter(query, 'sort'),
+    sort: _extractSort(query, 'sort'),
     include: _extractArrayParameter(query, 'include'),
   };
 }
 
 function _extractFilter(query) {
   const regex = /filter\[([a-zA-Z]*)\]/;
+  return _extractObjectParameter(query, regex);
+}
+
+function _extractSort(query) {
+  const regex = /sort\[([a-zA-Z]*)\]/;
   return _extractObjectParameter(query, regex);
 }
 
@@ -34,7 +40,7 @@ function _extractObjectParameter(query, regex) {
       }
       return result;
     },
-    {}
+    {},
   );
 }
 

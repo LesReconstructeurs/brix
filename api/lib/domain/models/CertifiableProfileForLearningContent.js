@@ -1,5 +1,5 @@
-const _ = require('lodash');
-const KnowledgeElement = require('./KnowledgeElement');
+import _ from 'lodash';
+import { KnowledgeElement } from './KnowledgeElement.js';
 
 class CertifiableProfileForLearningContent {
   constructor({ learningContent, knowledgeElements, answerAndChallengeIdsByAnswerId }) {
@@ -19,7 +19,7 @@ class CertifiableProfileForLearningContent {
             answerId: knowledgeElement.answerId,
             assessmentId: knowledgeElement.assessmentId,
             challengeId: answerAndChallengeIdsByAnswerId[knowledgeElement.answerId].challengeId,
-          })
+          }),
         );
       }
     }
@@ -44,7 +44,7 @@ class CertifiableProfileForLearningContent {
           areaId: competence.areaId,
           origin: competence.origin,
           skillResults,
-        })
+        }),
       );
     }
 
@@ -56,7 +56,7 @@ class CertifiableProfileForLearningContent {
         new ResultByArea({
           areaId: area.id,
           resultsByCompetence,
-        })
+        }),
       );
     }
   }
@@ -144,4 +144,4 @@ class ResultByArea {
   }
 }
 
-module.exports = CertifiableProfileForLearningContent;
+export { CertifiableProfileForLearningContent };

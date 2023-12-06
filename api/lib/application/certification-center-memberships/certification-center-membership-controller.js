@@ -1,11 +1,13 @@
-const usecases = require('../../domain/usecases');
+import { usecases } from '../../domain/usecases/index.js';
 
-module.exports = {
-  async disable(request, h) {
-    const certificationCenterMembershipId = request.params.id;
-    await usecases.disableCertificationCenterMembership({
-      certificationCenterMembershipId,
-    });
-    return h.response().code(204);
-  },
+const disable = async function (request, h) {
+  const certificationCenterMembershipId = request.params.id;
+  await usecases.disableCertificationCenterMembership({
+    certificationCenterMembershipId,
+  });
+  return h.response().code(204);
 };
+
+const certificationCenterMembershipController = { disable };
+
+export { certificationCenterMembershipController };

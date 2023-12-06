@@ -1,11 +1,6 @@
-const { expect, sinon, domainBuilder } = require('../../../test-helper');
-const getAssessment = require('../../../../lib/domain/usecases/get-assessment');
-const assessmentRepository = require('../../../../lib/infrastructure/repositories/assessment-repository');
-const campaignRepository = require('../../../../lib/infrastructure/repositories/campaign-repository');
-const competenceRepository = require('../../../../lib/infrastructure/repositories/competence-repository');
-const courseRepository = require('../../../../lib/infrastructure/repositories/course-repository');
-
-const Assessment = require('../../../../lib/domain/models/Assessment');
+import { expect, sinon, domainBuilder } from '../../../test-helper.js';
+import { getAssessment } from '../../../../lib/domain/usecases/get-assessment.js';
+import { Assessment } from '../../../../lib/domain/models/Assessment.js';
 
 describe('Unit | UseCase | get-assessment', function () {
   let assessment;
@@ -13,6 +8,11 @@ describe('Unit | UseCase | get-assessment', function () {
   let campaignParticipation;
   let competence;
   let course;
+  let assessmentRepository;
+  let campaignRepository;
+  let competenceRepository;
+  let courseRepository;
+
   const certificationCourseId = 1;
 
   const expectedCampaignTitle = 'Campagne Il';
@@ -36,11 +36,13 @@ describe('Unit | UseCase | get-assessment', function () {
       certificationCourseId,
     });
 
-    sinon.stub(assessmentRepository, 'getWithAnswers');
-    sinon.stub(campaignRepository, 'getCampaignTitleByCampaignParticipationId');
-    sinon.stub(campaignRepository, 'getCampaignCodeByCampaignParticipationId');
-    sinon.stub(competenceRepository, 'getCompetenceName');
-    sinon.stub(courseRepository, 'getCourseName');
+    assessmentRepository = { getWithAnswers: sinon.stub() };
+    campaignRepository = {
+      getCampaignTitleByCampaignParticipationId: sinon.stub(),
+      getCampaignCodeByCampaignParticipationId: sinon.stub(),
+    };
+    competenceRepository = { getCompetenceName: sinon.stub() };
+    courseRepository = { getCourseName: sinon.stub() };
   });
 
   it('should resolve the Assessment domain object matching the given assessment ID', async function () {
@@ -48,7 +50,13 @@ describe('Unit | UseCase | get-assessment', function () {
     assessmentRepository.getWithAnswers.resolves(assessment);
 
     // when
-    const result = await getAssessment({ assessmentRepository, assessmentId: assessment.id });
+    const result = await getAssessment({
+      assessmentId: assessment.id,
+      assessmentRepository,
+      campaignRepository,
+      competenceRepository,
+      courseRepository,
+    });
 
     // then
     expect(result).to.be.an.instanceOf(Assessment);
@@ -67,7 +75,9 @@ describe('Unit | UseCase | get-assessment', function () {
       assessmentId: assessment.id,
       locale,
       assessmentRepository,
+      campaignRepository,
       competenceRepository,
+      courseRepository,
     });
 
     // then
@@ -85,6 +95,8 @@ describe('Unit | UseCase | get-assessment', function () {
     const result = await getAssessment({
       assessmentId: assessment.id,
       assessmentRepository,
+      campaignRepository,
+      competenceRepository,
       courseRepository,
     });
 
@@ -104,6 +116,8 @@ describe('Unit | UseCase | get-assessment', function () {
     const result = await getAssessment({
       assessmentId: assessment.id,
       assessmentRepository,
+      campaignRepository,
+      competenceRepository,
       courseRepository,
     });
 
@@ -129,6 +143,8 @@ describe('Unit | UseCase | get-assessment', function () {
       assessmentId: assessment.id,
       assessmentRepository,
       campaignRepository,
+      competenceRepository,
+      courseRepository,
     });
 
     // then
@@ -148,7 +164,9 @@ describe('Unit | UseCase | get-assessment', function () {
     const result = await getAssessment({
       assessmentId: assessment.id,
       assessmentRepository,
+      campaignRepository,
       competenceRepository,
+      courseRepository,
     });
 
     // then
@@ -169,6 +187,8 @@ describe('Unit | UseCase | get-assessment', function () {
       assessmentId: assessment.id,
       assessmentRepository,
       campaignRepository,
+      competenceRepository,
+      courseRepository,
     });
 
     // then

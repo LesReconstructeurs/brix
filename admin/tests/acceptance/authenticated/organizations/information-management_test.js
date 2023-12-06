@@ -2,8 +2,7 @@ import { module, test } from 'qunit';
 import { currentURL, click } from '@ember/test-helpers';
 import { setupApplicationTest } from 'ember-qunit';
 import { clickByName, visit, fillByLabel } from '@1024pix/ember-testing-library';
-import setupMirage from 'ember-cli-mirage/test-support/setup-mirage';
-import { Response } from 'ember-cli-mirage';
+import { setupMirage } from 'ember-cli-mirage/test-support';
 import { authenticateAdminMemberWithRole } from 'pix-admin/tests/helpers/test-init';
 
 module('Acceptance | Organizations | Information management', function (hooks) {
@@ -29,7 +28,7 @@ module('Acceptance | Organizations | Information management', function (hooks) {
       await clickByName('Enregistrer', { exact: true });
 
       // then
-      assert.dom(screen.getByRole('heading', { name: 'newOrganizationName' })).exists();
+      assert.dom(screen.getByRole('heading', { name: 'newOrganizationName', level: 2 })).exists();
       assert.dom(screen.getByText('Nom du DPO : Bru No')).exists();
       assert.dom(screen.getByText('Adresse e-mail du DPO : bru.no@example.net')).exists();
     });
@@ -159,18 +158,17 @@ module('Acceptance | Organizations | Information management', function (hooks) {
       const organization = this.server.create('organization', {
         name: 'Aude Javel Company',
       });
-      const errorResponse = new Response(
-        422,
-        {},
-        {
+      this.server.post(
+        '/admin/organizations/:id/archive',
+        () => ({
           errors: [
             {
               status: '422',
             },
           ],
-        }
+        }),
+        422,
       );
-      this.server.post('/admin/organizations/:id/archive', () => errorResponse);
       const screen = await visit(`/organizations/${organization.id}`);
       await clickByName("Archiver l'organisation");
 
@@ -188,18 +186,17 @@ module('Acceptance | Organizations | Information management', function (hooks) {
       const organization = this.server.create('organization', {
         name: 'Aude Javel Company',
       });
-      const errorResponse = new Response(
-        500,
-        {},
-        {
+      this.server.post(
+        '/admin/organizations/:id/archive',
+        () => ({
           errors: [
             {
               status: '500',
             },
           ],
-        }
+        }),
+        500,
       );
-      this.server.post('/admin/organizations/:id/archive', () => errorResponse);
       const screen = await visit(`/organizations/${organization.id}`);
       await clickByName("Archiver l'organisation");
 

@@ -1,6 +1,8 @@
-const { expect, catchErr, sinon } = require('../../../../test-helper');
-const SiecleFileStreamer = require('../../../../../lib/infrastructure/utils/xml/siecle-file-streamer');
-const { FileValidationError, SiecleXmlImportError } = require('../../../../../lib/domain/errors');
+import { expect, catchErr, sinon } from '../../../../test-helper.js';
+import { SiecleFileStreamer } from '../../../../../lib/infrastructure/utils/xml/siecle-file-streamer.js';
+import { FileValidationError, SiecleXmlImportError } from '../../../../../lib/domain/errors.js';
+import * as url from 'url';
+const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 
 describe('SiecleFileStreamer', function () {
   describe('perform', function () {
@@ -23,7 +25,7 @@ describe('SiecleFileStreamer', function () {
 
           const error = await catchErr(
             streamer.perform,
-            streamer
+            streamer,
           )((saxStream, resolve) => {
             saxStream.on('data', () => {
               return;
@@ -43,7 +45,7 @@ describe('SiecleFileStreamer', function () {
 
           await catchErr(
             streamer.perform,
-            streamer
+            streamer,
           )((saxStream, resolve) => {
             saxStream.on('data', () => {
               return;
@@ -74,7 +76,7 @@ describe('SiecleFileStreamer', function () {
 
           const error = await catchErr(
             streamer.perform,
-            streamer
+            streamer,
           )((saxStream, resolve) => {
             saxStream.on('data', () => {
               return;
@@ -159,7 +161,7 @@ describe('SiecleFileStreamer', function () {
 
           const error = await catchErr(
             streamer.perform,
-            streamer
+            streamer,
           )((saxStream, resolve) => {
             saxStream.on('data', () => {
               return;

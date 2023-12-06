@@ -1,7 +1,7 @@
 import { module, test } from 'qunit';
 import setupIntlRenderingTest from '../../helpers/setup-intl-rendering';
-import { find, render } from '@ember/test-helpers';
-import hbs from 'htmlbars-inline-precompile';
+import { render } from '@1024pix/ember-testing-library';
+import { hbs } from 'ember-cli-htmlbars';
 
 module('Integration | Component | Challenge item QROC', function (hooks) {
   setupIntlRenderingTest(hooks);
@@ -19,7 +19,7 @@ module('Integration | Component | Challenge item QROC', function (hooks) {
     this.set('answer', null);
 
     await render(
-      hbs`<ChallengeItemQroc @challenge={{this.challenge}} @answer={{this.answer}} @assessment={{this.assessment}}/>`
+      hbs`<ChallengeItemQroc @challenge={{this.challenge}} @answer={{this.answer}} @assessment={{this.assessment}}/>`,
     );
 
     assert.dom('.qroc-proposal').exists();
@@ -31,19 +31,17 @@ module('Integration | Component | Challenge item QROC', function (hooks) {
       this.set('challenge', {
         timer: false,
         format: 'paragraphe',
-        proposals: '${myInput}',
+        proposals: 'mon label: ${myInput}',
       });
       this.set('answer', {});
 
       // when
-      await render(
-        hbs`<ChallengeItemQroc @challenge={{this.challenge}} @answer={{this.answer}} @assessment={{this.assessment}} />`
+      const screen = await render(
+        hbs`<ChallengeItemQroc @challenge={{this.challenge}} @answer={{this.answer}} @assessment={{this.assessment}} />`,
       );
 
       // then
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(find('.challenge-response__proposal--paragraph').tagName, 'TEXTAREA');
+      assert.dom(screen.getByRole('textbox', { name: 'mon label:' })).exists();
     });
   });
 
@@ -53,19 +51,18 @@ module('Integration | Component | Challenge item QROC', function (hooks) {
       this.set('challenge', {
         timer: false,
         format: 'phrase',
-        proposals: '${myInput}',
+        proposals: 'mon label: ${myInput}',
       });
       this.set('answer', {});
 
       // when
-      await render(
-        hbs`<ChallengeItemQroc @challenge={{this.challenge}} @answer={{this.answer}} @assessment={{this.assessment}} />`
+      const screen = await render(
+        hbs`<ChallengeItemQroc @challenge={{this.challenge}} @answer={{this.answer}} @assessment={{this.assessment}} />`,
       );
 
       // then
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(find('.challenge-response__proposal--sentence').tagName, 'INPUT');
+      assert.dom(screen.getByRole('textbox', { name: 'mon label:' })).exists();
+      assert.dom(screen.getByRole('textbox', { name: 'mon label:' })).hasAttribute('type', 'text');
     });
   });
 
@@ -75,19 +72,18 @@ module('Integration | Component | Challenge item QROC', function (hooks) {
       this.set('challenge', {
         timer: false,
         format: 'nombre',
-        proposals: '${myInput}',
+        proposals: 'mon label: ${myInput}',
       });
       this.set('answer', {});
 
       // when
-      await render(
-        hbs`<ChallengeItemQroc  @challenge={{this.challenge}} @answer={{this.answer}} @assessment={{this.assessment}} />`
+      const screen = await render(
+        hbs`<ChallengeItemQroc  @challenge={{this.challenge}} @answer={{this.answer}} @assessment={{this.assessment}} />`,
       );
 
       // then
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(find('[id="qroc_input"]').getAttribute('type'), 'number');
+      assert.dom(screen.getByRole('spinbutton', { name: 'mon label:' })).exists();
+      assert.dom(screen.getByRole('spinbutton', { name: 'mon label:' })).hasAttribute('type', 'number');
     });
   });
 
@@ -102,24 +98,18 @@ module('Integration | Component | Challenge item QROC', function (hooks) {
         this.set('challenge', {
           timer: false,
           format: data.format,
-          proposals: '${myInput}',
+          proposals: 'mon label: ${myInput}',
         });
         this.set('answer', {});
 
         // when
-        await render(
-          hbs`<ChallengeItemQroc @challenge={{this.challenge}} @answer={{this.answer}} @assessment={{this.assessment}} />`
+        const screen = await render(
+          hbs`<ChallengeItemQroc @challenge={{this.challenge}} @answer={{this.answer}} @assessment={{this.assessment}} />`,
         );
 
         // then
-        assert.dom('.challenge-response__proposal--paragraph').doesNotExist();
-        assert.dom('.challenge-response__proposal--sentence').doesNotExist();
-        // TODO: Fix this the next time the file is edited.
-        // eslint-disable-next-line qunit/no-assert-equal
-        assert.equal(find('.challenge-response__proposal').tagName, 'INPUT');
-        // TODO: Fix this the next time the file is edited.
-        // eslint-disable-next-line qunit/no-assert-equal
-        assert.equal(find('.challenge-response__proposal').getAttribute('size'), data.expectedSize);
+        assert.dom(screen.getByRole('textbox', { name: 'mon label:' })).exists();
+        assert.dom(screen.getByRole('textbox', { name: 'mon label:' })).hasAttribute('size', data.expectedSize);
       });
     });
   });
@@ -137,19 +127,17 @@ module('Integration | Component | Challenge item QROC', function (hooks) {
           this.set('challenge', {
             timer: false,
             format: data.format,
-            proposals: '${myInput}',
+            proposals: 'mon label: ${myInput}',
           });
           this.set('answer', { value: '' });
 
           // when
-          await render(
-            hbs`<ChallengeItemQroc  @challenge={{this.challenge}} @answer={{this.answer}} @assessment={{this.assessment}}/>`
+          const screen = await render(
+            hbs`<ChallengeItemQroc  @challenge={{this.challenge}} @answer={{this.answer}} @assessment={{this.assessment}}/>`,
           );
 
           // then
-          // TODO: Fix this the next time the file is edited.
-          // eslint-disable-next-line qunit/no-assert-equal
-          assert.equal(find(data.cssClass).getAttribute('autocomplete'), 'nope');
+          assert.dom(screen.getByRole('textbox', { name: 'mon label:' })).hasAttribute('autocomplete', 'nope');
         });
       });
 
@@ -159,19 +147,17 @@ module('Integration | Component | Challenge item QROC', function (hooks) {
           this.set('challenge', {
             timer: false,
             format: data.format,
-            proposals: '${myInput}',
+            proposals: 'mon label: ${myInput}',
           });
           this.set('answer', { value: 'myValue' });
 
           // when
-          await render(
-            hbs`<ChallengeItemQroc @challenge={{this.challenge}} @answer={{this.answer}} @assessment={{this.assessment}}/>`
+          const screen = await render(
+            hbs`<ChallengeItemQroc @challenge={{this.challenge}} @answer={{this.answer}} @assessment={{this.assessment}}/>`,
           );
 
           // then
-          // TODO: Fix this the next time the file is edited.
-          // eslint-disable-next-line qunit/no-assert-equal
-          assert.equal(find(data.cssClass).value, 'myValue');
+          assert.strictEqual(screen.getByRole('textbox', { name: 'mon label:' }).value, 'myValue');
         });
       });
 
@@ -191,22 +177,58 @@ module('Integration | Component | Challenge item QROC', function (hooks) {
             this.set('challenge', {
               timer: false,
               format: data.format,
-              proposals: '${myInput}',
+              proposals: 'mon label: ${myInput}',
             });
             this.set('answer', { value: input });
 
             // when
-            await render(
-              hbs`<ChallengeItemQroc @challenge={{this.challenge}} @answer={{this.answer}} @assessment={{this.assessment}} />`
+            const screen = await render(
+              hbs`<ChallengeItemQroc @challenge={{this.challenge}} @answer={{this.answer}} @assessment={{this.assessment}} />`,
             );
 
             // then
-            // TODO: Fix this the next time the file is edited.
-            // eslint-disable-next-line qunit/no-assert-equal
-            assert.equal(find(data.cssClass).value, output);
+            assert.strictEqual(screen.getByRole('textbox', { name: 'mon label:' }).value, output);
           });
         });
       });
+    });
+  });
+
+  module('when default value is defined in proposals', function () {
+    test('should prefill input with default value', async function (assert) {
+      // given
+      this.set('challenge', {
+        timer: false,
+        format: 'mots',
+        proposals: 'mon label: ${myInput value="c\'est prérempli !!!"}',
+      });
+      this.set('answer', {});
+
+      // when
+      const screen = await render(
+        hbs`<ChallengeItemQroc @challenge={{this.challenge}} @answer={{this.answer}} @assessment={{this.assessment}} />`,
+      );
+
+      // then
+      assert.strictEqual(screen.getByRole('textbox', { name: 'mon label:' }).value, "c'est prérempli !!!");
+    });
+
+    test('should prefill number input with default value', async function (assert) {
+      // given
+      this.set('challenge', {
+        timer: false,
+        format: 'nombre',
+        proposals: 'mon label: ${myInput value=42}',
+      });
+      this.set('answer', {});
+
+      // when
+      const screen = await render(
+        hbs`<ChallengeItemQroc @challenge={{this.challenge}} @answer={{this.answer}} @assessment={{this.assessment}} />`,
+      );
+
+      // then
+      assert.strictEqual(screen.getByRole('spinbutton', { name: 'mon label:' }).value, '42');
     });
   });
 });

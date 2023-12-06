@@ -1,4 +1,4 @@
-const {
+import {
   expect,
   domainBuilder,
   databaseBuilder,
@@ -6,14 +6,13 @@ const {
   mockLearningContent,
   sinon,
   catchErr,
-} = require('../../../test-helper');
-const campaignRepository = require('../../../../lib/infrastructure/repositories/campaign-repository');
-const skillRepository = require('../../../../lib/infrastructure/repositories/skill-repository');
-const Campaign = require('../../../../lib/domain/models/Campaign');
-const CampaignTypes = require('../../../../lib/domain/models/CampaignTypes');
-const { NotFoundError } = require('../../../../lib/domain/errors');
-const _ = require('lodash');
-const Stage = require('../../../../lib/domain/models/Stage');
+} from '../../../test-helper.js';
+
+import * as campaignRepository from '../../../../lib/infrastructure/repositories/campaign-repository.js';
+import { Campaign } from '../../../../lib/domain/models/Campaign.js';
+import { CampaignTypes } from '../../../../lib/domain/models/CampaignTypes.js';
+import { NotFoundError } from '../../../../lib/domain/errors.js';
+import _ from 'lodash';
 
 describe('Integration | Repository | Campaign', function () {
   describe('#isCodeAvailable', function () {
@@ -130,7 +129,7 @@ describe('Integration | Repository | Campaign', function () {
             'targetProfile',
             'multipleSendings',
             'ownerId',
-          ])
+          ]),
         );
       });
 
@@ -276,51 +275,11 @@ describe('Integration | Repository | Campaign', function () {
         });
       });
 
-      context('when target profile doesnt have tubes (yet ;) )', function () {
-        it('should save skills as campaign skills', async function () {
-          // given
-          const user = databaseBuilder.factory.buildUser();
-          const creatorId = user.id;
-          const ownerId = databaseBuilder.factory.buildUser().id;
-          const organizationId = databaseBuilder.factory.buildOrganization().id;
-          databaseBuilder.factory.buildMembership({ userId: creatorId, organizationId });
-          const targetProfileId = databaseBuilder.factory.buildTargetProfile().id;
-          databaseBuilder.factory.buildTargetProfileSkill({ targetProfileId, skillId: 'skillA' });
-          databaseBuilder.factory.buildTargetProfileSkill({ targetProfileId, skillId: 'skillA' });
-          databaseBuilder.factory.buildTargetProfileSkill({ targetProfileId, skillId: 'skillB' });
-          // random skill
-          databaseBuilder.factory.buildTargetProfileSkill({ skillId: 'skillD' });
-          await databaseBuilder.commit();
-
-          const campaignToSave = {
-            name: 'Evaluation niveau 1 recherche internet',
-            code: 'BCTERD153',
-            customLandingPageText: 'Parcours évaluatif concernant la recherche internet',
-            creatorId,
-            ownerId,
-            organizationId,
-            multipleSendings: true,
-            type: CampaignTypes.ASSESSMENT,
-            targetProfileId,
-            title: 'Parcours recherche internet',
-          };
-
-          // when
-          const savedCampaign = await campaignRepository.save(campaignToSave);
-
-          // then
-          const skillIds = await knex('campaign_skills')
-            .pluck('skillId')
-            .where('campaignId', savedCampaign.id)
-            .orderBy('skillId', 'ASC');
-          expect(skillIds).to.deepEqualArray(['skillA', 'skillB']);
-        });
-      });
-
       it('should not save anything if something goes wrong between campaign creation and skills computation', async function () {
         // given
-        const findActiveStub = sinon.stub(skillRepository, 'findActiveByTubeId');
-        findActiveStub.rejects(new Error('Forcing rollback'));
+        const skillRepository = {
+          findActiveByTubeId: sinon.stub().rejects(new Error('Forcing rollback')),
+        };
         const learningContent = {
           areas: [{ id: 'recArea1', competenceIds: ['recCompetence1'] }],
           competences: [
@@ -369,7 +328,7 @@ describe('Integration | Repository | Campaign', function () {
         };
 
         // when
-        await catchErr(campaignRepository.save)(campaignToSave);
+        await catchErr(campaignRepository.save)(campaignToSave, { skillRepository });
 
         // then
         const skillIds = await knex('campaign_skills').pluck('skillId');
@@ -449,10 +408,99 @@ describe('Integration | Repository | Campaign', function () {
           'organization',
           'multipleSendings',
           'ownerId',
-        ])
+        ]),
       );
       const skillIds = await knex('campaign_skills').pluck('skillId').where('campaignId', savedCampaign.id);
       expect(skillIds).to.be.empty;
+    });
+
+    context('when there are several campaigns', function () {
+      it('should save the given campaigns', async function () {
+        // given
+        const user = databaseBuilder.factory.buildUser();
+        const creatorId = user.id;
+        const ownerId = databaseBuilder.factory.buildUser().id;
+        const organizationId = databaseBuilder.factory.buildOrganization().id;
+        databaseBuilder.factory.buildMembership({ userId: creatorId, organizationId });
+        const targetProfileId = databaseBuilder.factory.buildTargetProfile().id;
+        await databaseBuilder.commit();
+
+        const campaignsToSave = [
+          {
+            name: 'Evaluation niveau 1 recherche internet',
+            code: 'ACTERD153',
+            customLandingPageText: 'Parcours évaluatif concernant la recherche internet',
+            creatorId,
+            ownerId,
+            organizationId,
+            multipleSendings: true,
+            type: CampaignTypes.ASSESSMENT,
+            targetProfileId,
+            title: 'Parcours recherche internet',
+          },
+          {
+            name: 'Evaluation niveau 1 recherche internet #2',
+            code: 'BCTERD153',
+            customLandingPageText: 'Parcours évaluatif concernant la recherche internet #2',
+            creatorId,
+            ownerId,
+            organizationId,
+            multipleSendings: true,
+            type: CampaignTypes.ASSESSMENT,
+            targetProfileId,
+            title: 'Parcours recherche internet #2',
+          },
+        ];
+
+        // when
+        await campaignRepository.save(campaignsToSave);
+
+        // then
+        const savedCampaigns = await knex('campaigns')
+          .select(
+            'name',
+            'code',
+            'title',
+            'type',
+            'customLandingPageText',
+            'creatorId',
+            'organizationId',
+            'targetProfileId',
+            'multipleSendings',
+            'ownerId',
+          )
+          .orderBy('code');
+
+        expect(savedCampaigns[0]).to.deep.include(
+          _.pick(campaignsToSave[0], [
+            'name',
+            'code',
+            'title',
+            'type',
+            'customLandingPageText',
+            'creator',
+            'organization',
+            'targetProfile',
+            'multipleSendings',
+            'ownerId',
+          ]),
+        );
+
+        expect(savedCampaigns[1]).to.deep.include(
+          _.pick(campaignsToSave[1], [
+            'name',
+            'code',
+            'title',
+            'type',
+            'customLandingPageText',
+            'creator',
+            'organization',
+            'targetProfile',
+            'multipleSendings',
+            'ownerId',
+          ]),
+        );
+      });
     });
   });
 
@@ -606,7 +654,7 @@ describe('Integration | Repository | Campaign', function () {
       //when
       const access = await campaignRepository.checkIfUserOrganizationHasAccessToCampaign(
         campaignId,
-        userWithDisabledMembershipId
+        userWithDisabledMembershipId,
       );
 
       //then
@@ -778,157 +826,6 @@ describe('Integration | Repository | Campaign', function () {
 
       // then
       expect(campaignId).to.equal(campaign.id);
-    });
-  });
-
-  describe('#findStages', function () {
-    describe('Stages with level', function () {
-      beforeEach(async function () {
-        mockLearningContent({
-          skills: [
-            {
-              id: 'rec1',
-              name: '@web1',
-              level: '1',
-              status: 'actif',
-            },
-            {
-              id: 'rec2',
-              name: '@web2',
-              level: '2',
-              status: 'archivé',
-            },
-            {
-              id: 'rec3',
-              name: '@web3',
-              level: '3',
-              status: 'périmé',
-            },
-            {
-              id: 'rec4',
-              name: '@garage4',
-              level: '4',
-              status: 'archivé',
-            },
-            {
-              id: 'rec5',
-              name: '@garage6',
-              level: '6',
-              status: 'actif',
-            },
-          ],
-        });
-      });
-
-      it('should compute thresholds according to operative skills', async function () {
-        // given
-        const wrongCampaign = databaseBuilder.factory.buildCampaign();
-        const campaign = databaseBuilder.factory.buildCampaign();
-        ['rec1', 'rec2', 'rec3', 'rec4'].forEach((skillId) => {
-          databaseBuilder.factory.buildCampaignSkill({ campaignId: campaign.id, skillId });
-          databaseBuilder.factory.buildCampaignSkill({ campaignId: wrongCampaign.id, skillId });
-        });
-        databaseBuilder.factory.buildStage.withLevel({
-          targetProfileId: campaign.targetProfileId,
-          level: 2,
-        });
-        databaseBuilder.factory.buildStage.withLevel({
-          targetProfileId: wrongCampaign.targetProfileId,
-          level: 0,
-        });
-        await databaseBuilder.commit();
-
-        // when
-        const [stage] = await campaignRepository.findStages({ campaignId: campaign.id });
-
-        // then
-        expect(stage).to.have.property('threshold', 67);
-      });
-
-      it('should return a threshold of 100 when campaign has no skills', async function () {
-        // given
-        const campaign = databaseBuilder.factory.buildCampaign();
-        ['rec3'].forEach((skillId) => {
-          databaseBuilder.factory.buildCampaignSkill({ campaignId: campaign.id, skillId });
-        });
-        databaseBuilder.factory.buildStage.withLevel({
-          targetProfileId: campaign.targetProfileId,
-          level: 2,
-        });
-        await databaseBuilder.commit();
-
-        // when
-        const [stage] = await campaignRepository.findStages({ campaignId: campaign.id });
-
-        // then
-        expect(stage).to.have.property('threshold', 100);
-      });
-
-      it('should sort stages by level', async function () {
-        // given
-        const campaign = databaseBuilder.factory.buildCampaign();
-        ['rec1', 'rec2', 'rec3', 'rec4'].forEach((skillId) => {
-          databaseBuilder.factory.buildCampaignSkill({ campaignId: campaign.id, skillId });
-        });
-        const stageId1 = databaseBuilder.factory.buildStage.withLevel({
-          targetProfileId: campaign.targetProfileId,
-          level: 4,
-        }).id;
-        const stageId2 = databaseBuilder.factory.buildStage.withLevel({
-          targetProfileId: campaign.targetProfileId,
-          level: 2,
-        }).id;
-        await databaseBuilder.commit();
-
-        // when
-        const stages = await campaignRepository.findStages({ campaignId: campaign.id });
-
-        // then
-        expect(stages[0]).to.have.property('id', stageId2);
-        expect(stages[1]).to.have.property('id', stageId1);
-      });
-      describe('when campaign has no stage', function () {
-        it('should return an empty array ', async function () {
-          // given
-          const campaign = databaseBuilder.factory.buildCampaign();
-          ['rec1', 'rec2', 'rec3', 'rec4'].forEach((skillId) => {
-            databaseBuilder.factory.buildCampaignSkill({ campaignId: campaign.id, skillId });
-          });
-          await databaseBuilder.commit();
-
-          // when
-          const stage = await campaignRepository.findStages({ campaignId: campaign.id });
-
-          // then
-          expect(stage).to.deep.equal([]);
-        });
-      });
-    });
-
-    describe('Stages with threshold', function () {
-      it('should retrieve stage given campaignId', async function () {
-        // given
-        const targetProfile = databaseBuilder.factory.buildTargetProfile();
-        const campaign = databaseBuilder.factory.buildCampaign();
-
-        databaseBuilder.factory.buildStage({ targetProfileId: campaign.targetProfileId, threshold: 55 });
-        databaseBuilder.factory.buildStage({ targetProfileId: campaign.targetProfileId, threshold: 24 });
-
-        databaseBuilder.factory.buildStage({ targetProfileId: targetProfile.id });
-
-        await databaseBuilder.commit();
-
-        // when
-        const stages = await campaignRepository.findStages({ campaignId: campaign.id });
-
-        // then
-        expect(stages.length).to.equal(2);
-
-        expect(stages[0].threshold).to.equal(24);
-        expect(stages[1].threshold).to.equal(55);
-        expect(stages[0]).to.be.instanceof(Stage);
-        expect(stages[1]).to.be.instanceof(Stage);
-      });
     });
   });
 });

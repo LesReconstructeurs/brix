@@ -1,131 +1,343 @@
 import { module, test } from 'qunit';
 import { setupTest } from 'ember-qunit';
 import sinon from 'sinon';
+import {
+  DEFAULT_LOCALE,
+  FRENCH_INTERNATIONAL_LOCALE,
+  FRENCH_FRANCE_LOCALE,
+  ENGLISH_INTERNATIONAL_LOCALE,
+} from 'pix-orga/services/locale';
 
 module('Unit | Service | session', function (hooks) {
   setupTest(hooks);
 
-  module('#handlePrescriberLanguageAndLocale', function () {
-    module('when there is not prescriber', function () {
-      test('should call current user and set fr locale by default', async function (assert) {
-        // given
-        const service = this.owner.lookup('service:session');
+  let routerService;
+  let service;
+  let localeService;
 
-        service.currentUser = {
-          load: sinon.stub(),
-        };
-        service.url = {
-          isFrenchDomainExtension: true,
-        };
-        service.intl = {
-          setLocale: sinon.stub(),
-        };
-        service.dayjs = {
-          setLocale: sinon.stub(),
-          self: {
-            locale: sinon.stub(),
-          },
-        };
+  hooks.beforeEach(function () {
+    routerService = this.owner.lookup('service:router');
+    routerService.transitionTo = sinon.stub();
 
-        // when
-        await service.handlePrescriberLanguageAndLocale();
+    service = this.owner.lookup('service:session');
 
-        // then
-        assert.ok(service.currentUser.load.called);
-        assert.ok(service.intl.setLocale.calledWith(['fr', 'fr']));
-        assert.ok(service.dayjs.setLocale.calledWith('fr'));
-      });
-
-      module('when domain extension is not .fr', function () {
-        test('should set locale to en when language parameter is en', async function (assert) {
-          // given
-          const service = this.owner.lookup('service:session');
-
-          service.currentUser = {
-            load: sinon.stub(),
-          };
-          service.url = {
-            isFrenchDomainExtension: false,
-          };
-          service.intl = {
-            setLocale: sinon.stub(),
-            get: sinon.stub(),
-          };
-          service.intl.get.withArgs('locales').returns(['fr', 'en']);
-          service.dayjs = {
-            setLocale: sinon.stub(),
-            self: {
-              locale: sinon.stub(),
-            },
-          };
-
-          // when
-          await service.handlePrescriberLanguageAndLocale('en');
-
-          // then
-          assert.ok(service.intl.setLocale.calledWith(['en', 'fr']));
-          assert.ok(service.dayjs.setLocale.calledWith('en'));
-        });
-      });
-    });
-
-    module('when there is a prescriber', function () {
-      test('should update prescriber lang when it is different of language parameter', async function (assert) {
-        // given
-        const service = this.owner.lookup('service:session');
-
-        service.currentUser = {
-          load: sinon.stub(),
-          prescriber: {
-            lang: 'fr',
-            save: sinon.stub(),
-          },
-        };
-        service.url = {
-          isFrenchDomainExtension: true,
-        };
-        service.intl = {
-          setLocale: sinon.stub(),
-        };
-        service.dayjs = {
-          setLocale: sinon.stub(),
-          self: {
-            locale: sinon.stub(),
-          },
-        };
-
-        // when
-        await service.handlePrescriberLanguageAndLocale('en');
-
-        // then
-        assert.ok(
-          service.currentUser.prescriber.save.calledWith({
-            adapterOptions: {
-              lang: 'en',
-            },
-          })
-        );
-      });
+    localeService = this.owner.lookup('service:locale');
+    Object.assign(localeService, {
+      setLocaleCookie: sinon.stub(),
+      hasLocaleCookie: sinon.stub(),
+      setLocale: sinon.stub(),
+      handleUnsupportedLanguage: sinon.stub(),
     });
   });
 
   module('#handleAuthentication', function () {
-    test('should override handleAuthentication method', function (assert) {
+    test('calls handleLocale', async function (assert) {
+      // given
+      service.currentUser = {
+        load: sinon.stub(),
+        prescriber: {
+          lang: FRENCH_INTERNATIONAL_LOCALE,
+          save: sinon.stub(),
+        },
+      };
+      service.handleLocale = sinon.stub();
+
       // when
-      const service = this.owner.lookup('service:session');
+      await service.handleAuthentication();
 
       // then
-      assert.ok(service.handleAuthentication instanceof Function);
+      sinon.assert.called(service.handleLocale);
+      assert.ok(true);
     });
   });
 
   module('#handleInvalidation', function () {
     test('should override handleInvalidation method', function (assert) {
-      // when
-      const service = this.owner.lookup('service:session');
-
-      // then
+      // when & then
       assert.ok(service.handleInvalidation instanceof Function);
+    });
+  });
+
+  module('#handleLocale', function () {
+    module('when domain is .fr', function () {
+      module('when there is no cookie locale', function () {
+        test('adds a cookie locale with "fr-FR" as value', function (assert) {
+          // given
+          localeService.hasLocaleCookie.returns(false);
+          const isFranceDomain = true;
+          const localeFromQueryParam = undefined;
+          const userLocale = undefined;
+
+          // when
+          service.handleLocale({ isFranceDomain, localeFromQueryParam, userLocale });
+
+          // then
+          sinon.assert.calledWith(localeService.setLocaleCookie, FRENCH_FRANCE_LOCALE);
+          assert.ok(true);
+        });
+      });
+
+      module('when there is a cookie locale', function () {
+        test('does not update cookie locale', function (assert) {
+          // given
+          localeService.hasLocaleCookie.returns(true);
+          const isFranceDomain = true;
+          const localeFromQueryParam = undefined;
+          const userLocale = undefined;
+
+          // when
+          service.handleLocale({ isFranceDomain, localeFromQueryParam, userLocale });
+
+          // then
+          sinon.assert.notCalled(localeService.setLocaleCookie);
+          assert.ok(true);
+        });
+      });
+
+      module('when no lang query param', function () {
+        module('when user is not loaded', function () {
+          test('sets the locale to be French international in every case', function (assert) {
+            // given
+            service.currentUser = {
+              load: sinon.stub(),
+              prescriber: null,
+            };
+            const isFranceDomain = true;
+            const localeFromQueryParam = undefined;
+            const userLocale = undefined;
+
+            // when
+            service.handleLocale({ isFranceDomain, localeFromQueryParam, userLocale });
+
+            // then
+            sinon.assert.calledWith(localeService.setLocale, FRENCH_INTERNATIONAL_LOCALE);
+            assert.ok(true);
+          });
+        });
+
+        module('when user is loaded', function () {
+          test('sets the locale to be French international in every case', function (assert) {
+            // given
+            service.currentUser = {
+              load: sinon.stub(),
+              prescriber: {
+                lang: ENGLISH_INTERNATIONAL_LOCALE,
+                save: sinon.stub(),
+              },
+            };
+            const isFranceDomain = true;
+            const localeFromQueryParam = undefined;
+            const userLocale = ENGLISH_INTERNATIONAL_LOCALE;
+
+            // when
+            service.handleLocale({ isFranceDomain, localeFromQueryParam, userLocale });
+
+            // then
+            sinon.assert.calledWith(localeService.setLocale, FRENCH_INTERNATIONAL_LOCALE);
+            sinon.assert.notCalled(service.currentUser.prescriber.save);
+            assert.ok(true);
+          });
+        });
+      });
+
+      module('when a lang query param is present', function () {
+        module('when user is not loaded', function () {
+          test('sets the locale to be French international in every case', function (assert) {
+            // given
+            service.currentUser = {
+              load: sinon.stub(),
+              prescriber: null,
+            };
+            const isFranceDomain = true;
+            const localeFromQueryParam = ENGLISH_INTERNATIONAL_LOCALE;
+            const userLocale = undefined;
+
+            // when
+            service.handleLocale({ isFranceDomain, localeFromQueryParam, userLocale });
+
+            // then
+            sinon.assert.calledWith(localeService.setLocale, FRENCH_INTERNATIONAL_LOCALE);
+            assert.ok(true);
+          });
+        });
+
+        module('when user is loaded', function () {
+          test('sets the locale to be French international in every case', function (assert) {
+            // given
+            service.currentUser = {
+              load: sinon.stub(),
+              prescriber: {
+                lang: ENGLISH_INTERNATIONAL_LOCALE,
+                save: sinon.stub(),
+              },
+            };
+            const isFranceDomain = true;
+            const localeFromQueryParam = ENGLISH_INTERNATIONAL_LOCALE;
+            const userLocale = ENGLISH_INTERNATIONAL_LOCALE;
+
+            // when
+            service.handleLocale({ isFranceDomain, localeFromQueryParam, userLocale });
+
+            // then
+            sinon.assert.calledWith(localeService.setLocale, FRENCH_INTERNATIONAL_LOCALE);
+            sinon.assert.notCalled(service.currentUser.prescriber.save);
+            assert.ok(true);
+          });
+        });
+      });
+    });
+
+    module('when domain is .org', function () {
+      test('does not set the cookie locale', function (assert) {
+        // given
+        localeService.hasLocaleCookie.returns(false);
+        const isFranceDomain = false;
+        const localeFromQueryParam = undefined;
+        const userLocale = undefined;
+
+        // when
+        service.handleLocale({ isFranceDomain, localeFromQueryParam, userLocale });
+
+        // then
+        sinon.assert.notCalled(localeService.setLocaleCookie);
+        assert.ok(true);
+      });
+
+      module('when no lang query param', function () {
+        module('when user is not loaded', function () {
+          test('sets the default locale', function (assert) {
+            // given
+            service.currentUser = {
+              load: sinon.stub(),
+              prescriber: null,
+            };
+            const isFranceDomain = false;
+            const localeFromQueryParam = undefined;
+            const userLocale = undefined;
+
+            // when
+            service.handleLocale({ isFranceDomain, localeFromQueryParam, userLocale });
+
+            // then
+            sinon.assert.calledWith(localeService.setLocale, DEFAULT_LOCALE);
+            assert.ok(true);
+          });
+        });
+
+        module('when user is loaded', function () {
+          test('sets the locale to the user’s lang', function (assert) {
+            // given
+            service.currentUser = {
+              load: sinon.stub(),
+              prescriber: {
+                lang: ENGLISH_INTERNATIONAL_LOCALE,
+                save: sinon.stub(),
+              },
+            };
+            const isFranceDomain = false;
+            const localeFromQueryParam = undefined;
+            const userLocale = ENGLISH_INTERNATIONAL_LOCALE;
+
+            // when
+            service.handleLocale({ isFranceDomain, localeFromQueryParam, userLocale });
+
+            // then
+            sinon.assert.calledWith(localeService.setLocale, ENGLISH_INTERNATIONAL_LOCALE);
+            sinon.assert.notCalled(service.currentUser.prescriber.save);
+            assert.ok(true);
+          });
+        });
+      });
+
+      module('when a lang query param is present', function () {
+        module('when the lang query param is invalid', function () {
+          module('when user is not loaded', function () {
+            test('sets the default locale', function (assert) {
+              // given
+              service.currentUser = {
+                load: sinon.stub(),
+                prescriber: null,
+              };
+              const isFranceDomain = false;
+              const localeFromQueryParam = 'an invalid locale';
+              const userLocale = undefined;
+
+              // when
+              service.handleLocale({ isFranceDomain, localeFromQueryParam, userLocale });
+
+              // then
+              sinon.assert.calledWith(localeService.setLocale, DEFAULT_LOCALE);
+              assert.ok(true);
+            });
+          });
+
+          module('when user is loaded', function () {
+            test('sets the locale to the user’s lang', function (assert) {
+              // given
+              service.currentUser = {
+                load: sinon.stub(),
+                prescriber: {
+                  lang: ENGLISH_INTERNATIONAL_LOCALE,
+                  save: sinon.stub(),
+                },
+              };
+              const isFranceDomain = false;
+              const localeFromQueryParam = 'an invalid locale';
+              const userLocale = ENGLISH_INTERNATIONAL_LOCALE;
+
+              // when
+              service.handleLocale({ isFranceDomain, localeFromQueryParam, userLocale });
+
+              // then
+              sinon.assert.calledWith(localeService.setLocale, ENGLISH_INTERNATIONAL_LOCALE);
+              sinon.assert.notCalled(service.currentUser.prescriber.save);
+              assert.ok(true);
+            });
+          });
+        });
+
+        module('when the lang query param is valid', function () {
+          module('when user is not loaded', function () {
+            test('sets the locale to the lang query param', function (assert) {
+              // given
+              service.currentUser = {
+                load: sinon.stub(),
+                prescriber: null,
+              };
+              localeService.handleUnsupportedLanguage.returns(ENGLISH_INTERNATIONAL_LOCALE);
+
+              // when
+              const isFranceDomain = false;
+              const localeFromQueryParam = ENGLISH_INTERNATIONAL_LOCALE;
+              const userLocale = undefined;
+
+              // when
+              service.handleLocale({ isFranceDomain, localeFromQueryParam, userLocale });
+
+              // then
+              sinon.assert.calledWith(localeService.setLocale, ENGLISH_INTERNATIONAL_LOCALE);
+              assert.ok(true);
+            });
+          });
+
+          module('when user is loaded', function () {
+            test('sets the locale to the lang query param which wins over', function (assert) {
+              // given
+              const isFranceDomain = false;
+              const localeFromQueryParam = ENGLISH_INTERNATIONAL_LOCALE;
+              const userLocale = FRENCH_INTERNATIONAL_LOCALE;
+              localeService.handleUnsupportedLanguage.returns(ENGLISH_INTERNATIONAL_LOCALE);
+
+              // when
+              service.handleLocale({ isFranceDomain, localeFromQueryParam, userLocale });
+
+              // then
+              sinon.assert.calledWith(localeService.setLocale, ENGLISH_INTERNATIONAL_LOCALE);
+              assert.ok(true);
+            });
+          });
+        });
+      });
     });
   });
 });

@@ -1,7 +1,9 @@
-const { expect, databaseBuilder, mockLearningContent, learningContentBuilder } = require('../../../test-helper');
-const placementProfileService = require('../../../../lib/domain/services/placement-profile-service');
-const KnowledgeElement = require('../../../../lib/domain/models/KnowledgeElement');
-const { ENGLISH_SPOKEN } = require('../../../../lib/domain/constants').LOCALE;
+import { expect, databaseBuilder, mockLearningContent, learningContentBuilder } from '../../../test-helper.js';
+import * as placementProfileService from '../../../../lib/domain/services/placement-profile-service.js';
+import { KnowledgeElement } from '../../../../lib/domain/models/KnowledgeElement.js';
+import { LOCALE } from '../../../../lib/domain/constants.js';
+
+const { ENGLISH_SPOKEN } = LOCALE;
 
 describe('Integration | Service | Placement Profile Service', function () {
   let userId, assessmentId;
@@ -12,15 +14,11 @@ describe('Integration | Service | Placement Profile Service', function () {
         id: 'areaOne',
         code: '1',
         color: 'jaffa',
-        name: 'Domaine 1',
-        titleFr: '1. Domaine 1',
-        titleEn: '1. Area 1',
         frameworkId: 'recFmk123',
         competences: [
           {
             id: 'competenceRecordIdOne',
-            nameFr: 'Construire un flipper',
-            nameEn: 'Build a pinball',
+            name_i18n: { fr: 'Construire un flipper', en: 'Build a pinball' },
             index: '1.1',
             tubes: [
               {
@@ -40,8 +38,7 @@ describe('Integration | Service | Placement Profile Service', function () {
           },
           {
             id: 'competenceRecordIdTwo',
-            nameFr: 'Adopter un dauphin',
-            nameEn: 'Adopt a dolphin',
+            name_i18n: { fr: 'Adopter un dauphin', en: 'Adopt a dolphin' },
             index: '1.2',
             tubes: [
               {
@@ -69,8 +66,7 @@ describe('Integration | Service | Placement Profile Service', function () {
           },
           {
             id: 'competenceRecordIdThree',
-            nameFr: 'Se faire manger par un requin',
-            nameEn: 'Getting eaten by a shark',
+            name_i18n: { fr: 'Se faire manger par un requin', en: 'Getting eaten by a shark' },
             index: '1.3',
             tubes: [
               {
@@ -92,7 +88,7 @@ describe('Integration | Service | Placement Profile Service', function () {
       },
     ];
 
-    const learningContentObjects = learningContentBuilder.buildLearningContent.fromAreas(learningContent);
+    const learningContentObjects = learningContentBuilder.fromAreas(learningContent);
     mockLearningContent(learningContentObjects);
 
     userId = databaseBuilder.factory.buildUser().id;
@@ -136,7 +132,7 @@ describe('Integration | Service | Placement Profile Service', function () {
         const actualPlacementProfile = await placementProfileService.getPlacementProfile({
           userId,
           limitDate,
-          isV2Certification: false,
+          version: 1,
         });
 
         // then
@@ -144,15 +140,7 @@ describe('Integration | Service | Placement Profile Service', function () {
           {
             id: 'competenceRecordIdOne',
             index: '1.1',
-            area: {
-              id: 'areaOne',
-              code: '1',
-              color: 'jaffa',
-              title: '1. Domaine 1',
-              name: 'Domaine 1',
-              frameworkId: 'recFmk123',
-              competences: [],
-            },
+            areaId: 'areaOne',
             name: 'Construire un flipper',
             skills: [],
             pixScore: 0,
@@ -161,15 +149,7 @@ describe('Integration | Service | Placement Profile Service', function () {
           {
             id: 'competenceRecordIdTwo',
             index: '1.2',
-            area: {
-              id: 'areaOne',
-              code: '1',
-              color: 'jaffa',
-              title: '1. Domaine 1',
-              name: 'Domaine 1',
-              frameworkId: 'recFmk123',
-              competences: [],
-            },
+            areaId: 'areaOne',
             name: 'Adopter un dauphin',
             skills: [],
             pixScore: 0,
@@ -178,15 +158,7 @@ describe('Integration | Service | Placement Profile Service', function () {
           {
             id: 'competenceRecordIdThree',
             index: '1.3',
-            area: {
-              id: 'areaOne',
-              code: '1',
-              color: 'jaffa',
-              title: '1. Domaine 1',
-              name: 'Domaine 1',
-              frameworkId: 'recFmk123',
-              competences: [],
-            },
+            areaId: 'areaOne',
             name: 'Se faire manger par un requin',
             skills: [],
             pixScore: 0,
@@ -198,14 +170,13 @@ describe('Integration | Service | Placement Profile Service', function () {
   });
 
   context('V2 Profile', function () {
-    const isV2Certification = true;
     describe('#getPlacementProfile', function () {
       it('should assign 0 pixScore and level of 0 to user competence when not assessed', async function () {
         // when
         const actualPlacementProfile = await placementProfileService.getPlacementProfile({
           userId,
           limitDate: '2020-10-27 08:44:25',
-          isV2Certification,
+          version: 2,
         });
 
         // then
@@ -213,15 +184,7 @@ describe('Integration | Service | Placement Profile Service', function () {
           {
             id: 'competenceRecordIdOne',
             index: '1.1',
-            area: {
-              id: 'areaOne',
-              code: '1',
-              color: 'jaffa',
-              title: '1. Domaine 1',
-              name: 'Domaine 1',
-              frameworkId: 'recFmk123',
-              competences: [],
-            },
+            areaId: 'areaOne',
             name: 'Construire un flipper',
             skills: [],
             pixScore: 0,
@@ -230,15 +193,7 @@ describe('Integration | Service | Placement Profile Service', function () {
           {
             id: 'competenceRecordIdTwo',
             index: '1.2',
-            area: {
-              id: 'areaOne',
-              code: '1',
-              color: 'jaffa',
-              title: '1. Domaine 1',
-              name: 'Domaine 1',
-              frameworkId: 'recFmk123',
-              competences: [],
-            },
+            areaId: 'areaOne',
             name: 'Adopter un dauphin',
             skills: [],
             pixScore: 0,
@@ -247,15 +202,7 @@ describe('Integration | Service | Placement Profile Service', function () {
           {
             id: 'competenceRecordIdThree',
             index: '1.3',
-            area: {
-              id: 'areaOne',
-              code: '1',
-              color: 'jaffa',
-              title: '1. Domaine 1',
-              name: 'Domaine 1',
-              frameworkId: 'recFmk123',
-              competences: [],
-            },
+            areaId: 'areaOne',
             name: 'Se faire manger par un requin',
             skills: [],
             pixScore: 0,
@@ -264,39 +211,35 @@ describe('Integration | Service | Placement Profile Service', function () {
         ]);
       });
 
-      it('should return area and competence name according to given locale', async function () {
+      it('should return competence name according to given locale', async function () {
         // when
         const actualPlacementProfile = await placementProfileService.getPlacementProfile({
           userId,
           limitDate: new Date(),
-          isV2Certification,
+          version: 2,
           locale: ENGLISH_SPOKEN,
         });
 
         // then
         const competenceName = actualPlacementProfile.userCompetences.map((competence) => competence.name);
-        const areaTitle = actualPlacementProfile.userCompetences.map((competence) => competence.area.title);
         expect(competenceName).to.have.members(['Build a pinball', 'Adopt a dolphin', 'Getting eaten by a shark']);
-        expect(areaTitle).to.have.members(['1. Area 1', '1. Area 1', '1. Area 1']);
       });
 
-      it('should return area and competence name according to default locale', async function () {
+      it('should return competence name according to default locale', async function () {
         // when
         const actualPlacementProfile = await placementProfileService.getPlacementProfile({
           userId,
           limitDate: new Date(),
-          isV2Certification,
+          version: 2,
         });
 
         // then
         const competenceName = actualPlacementProfile.userCompetences.map((competence) => competence.name);
-        const areaTitle = actualPlacementProfile.userCompetences.map((competence) => competence.area.title);
         expect(competenceName).to.have.members([
           'Construire un flipper',
           'Adopter un dauphin',
           'Se faire manger par un requin',
         ]);
-        expect(areaTitle).to.have.members(['1. Domaine 1', '1. Domaine 1', '1. Domaine 1']);
       });
 
       describe('PixScore by competences', function () {
@@ -315,7 +258,7 @@ describe('Integration | Service | Placement Profile Service', function () {
           const actualPlacementProfile = await placementProfileService.getPlacementProfile({
             userId,
             limitDate: new Date(),
-            isV2Certification,
+            version: 2,
           });
 
           // then
@@ -376,7 +319,7 @@ describe('Integration | Service | Placement Profile Service', function () {
           const actualPlacementProfile = await placementProfileService.getPlacementProfile({
             userId,
             limitDate: new Date(),
-            isV2Certification,
+            version: 2,
           });
 
           // then
@@ -397,7 +340,7 @@ describe('Integration | Service | Placement Profile Service', function () {
             const actualPlacementProfile = await placementProfileService.getPlacementProfile({
               userId,
               limitDate: new Date(),
-              isV2Certification,
+              version: 2,
               allowExcessPixAndLevels: true,
             });
 
@@ -424,7 +367,7 @@ describe('Integration | Service | Placement Profile Service', function () {
             const actualPlacementProfile = await placementProfileService.getPlacementProfile({
               userId,
               limitDate: new Date(),
-              isV2Certification,
+              version: 2,
               allowExcessPixAndLevels: false,
             });
 
@@ -462,7 +405,7 @@ describe('Integration | Service | Placement Profile Service', function () {
           const actualPlacementProfile = await placementProfileService.getPlacementProfile({
             userId,
             limitDate: new Date(),
-            isV2Certification,
+            version: 2,
           });
 
           // then
@@ -506,6 +449,7 @@ describe('Integration | Service | Placement Profile Service', function () {
       {
         id: 'competenceRecordIdOne',
         area: { id: 'areaOne', code: '1' },
+        areaId: 'areaOne',
         name: 'Construire un flipper',
         index: '1.1',
         skillIds: ['recCitation4', 'recMoteur3', 'recRecherche4'],
@@ -513,6 +457,7 @@ describe('Integration | Service | Placement Profile Service', function () {
       {
         id: 'competenceRecordIdTwo',
         area: { id: 'areaOne', code: '1' },
+        areaId: 'areaOne',
         name: 'Adopter un dauphin',
         index: '1.2',
         skillIds: ['recRemplir2', 'recRemplir4', 'recUrl3', 'recWeb1'],
@@ -520,6 +465,7 @@ describe('Integration | Service | Placement Profile Service', function () {
       {
         id: 'competenceRecordIdThree',
         area: { id: 'areaOne', code: '1' },
+        areaId: 'areaOne',
         name: 'Se faire manger par un requin',
         index: '1.3',
         skillIds: ['recRequin5', 'recRequin8'],
@@ -538,7 +484,7 @@ describe('Integration | Service | Placement Profile Service', function () {
         {
           id: 'competenceRecordIdOne',
           index: '1.1',
-          area: { id: 'areaOne', code: '1' },
+          areaId: 'areaOne',
           name: 'Construire un flipper',
           skills: [],
           pixScore: 0,
@@ -547,7 +493,7 @@ describe('Integration | Service | Placement Profile Service', function () {
         {
           id: 'competenceRecordIdTwo',
           index: '1.2',
-          area: { id: 'areaOne', code: '1' },
+          areaId: 'areaOne',
           name: 'Adopter un dauphin',
           skills: [],
           pixScore: 0,
@@ -556,7 +502,7 @@ describe('Integration | Service | Placement Profile Service', function () {
         {
           id: 'competenceRecordIdThree',
           index: '1.3',
-          area: { id: 'areaOne', code: '1' },
+          areaId: 'areaOne',
           name: 'Se faire manger par un requin',
           skills: [],
           pixScore: 0,
@@ -686,6 +632,7 @@ describe('Integration | Service | Placement Profile Service', function () {
       {
         id: 'competenceRecordIdOne',
         area: { id: 'areaOne', code: '1' },
+        areaId: 'areaOne',
         name: 'Construire un flipper',
         index: '1.1',
         skillIds: ['recCitation4', 'recMoteur3', 'recRecherche4'],
@@ -693,6 +640,7 @@ describe('Integration | Service | Placement Profile Service', function () {
       {
         id: 'competenceRecordIdTwo',
         area: { id: 'areaOne', code: '1' },
+        areaId: 'areaOne',
         name: 'Adopter un dauphin',
         index: '1.2',
         skillIds: ['recRemplir2', 'recRemplir4', 'recUrl3', 'recWeb1'],
@@ -700,6 +648,7 @@ describe('Integration | Service | Placement Profile Service', function () {
       {
         id: 'competenceRecordIdThree',
         area: { id: 'areaOne', code: '1' },
+        areaId: 'areaOne',
         name: 'Se faire manger par un requin',
         index: '1.3',
         skillIds: ['recRequin5', 'recRequin8'],
@@ -719,7 +668,7 @@ describe('Integration | Service | Placement Profile Service', function () {
         {
           id: 'competenceRecordIdOne',
           index: '1.1',
-          area: { id: 'areaOne', code: '1' },
+          areaId: 'areaOne',
           name: 'Construire un flipper',
           skills: [],
           pixScore: 0,
@@ -728,7 +677,7 @@ describe('Integration | Service | Placement Profile Service', function () {
         {
           id: 'competenceRecordIdTwo',
           index: '1.2',
-          area: { id: 'areaOne', code: '1' },
+          areaId: 'areaOne',
           name: 'Adopter un dauphin',
           skills: [],
           pixScore: 0,
@@ -737,7 +686,7 @@ describe('Integration | Service | Placement Profile Service', function () {
         {
           id: 'competenceRecordIdThree',
           index: '1.3',
-          area: { id: 'areaOne', code: '1' },
+          areaId: 'areaOne',
           name: 'Se faire manger par un requin',
           skills: [],
           pixScore: 0,

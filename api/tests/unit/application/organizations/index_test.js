@@ -1,11 +1,10 @@
-const { expect, HttpTestServer, sinon } = require('../../../test-helper');
-
-const securityPreHandlers = require('../../../../lib/application/security-pre-handlers');
-const organizationController = require('../../../../lib/application/organizations/organization-controller');
-const usecases = require('../../../../lib/domain/usecases');
-const identifiersType = require('../../../../lib/domain/types/identifiers-type');
-const moduleUnderTest = require('../../../../lib/application/organizations');
-const organizationPlacesCategories = require('../../../../lib/domain/constants/organization-places-categories');
+import { expect, HttpTestServer, sinon } from '../../../test-helper.js';
+import { securityPreHandlers } from '../../../../lib/application/security-pre-handlers.js';
+import { organizationController } from '../../../../lib/application/organizations/organization-controller.js';
+import { usecases } from '../../../../lib/domain/usecases/index.js';
+import { identifiersType } from '../../../../lib/domain/types/identifiers-type.js';
+import * as moduleUnderTest from '../../../../lib/application/organizations/index.js';
+import * as organizationPlacesCategories from '../../../../lib/domain/constants/organization-places-categories.js';
 
 describe('Unit | Router | organization-router', function () {
   describe('GET /api/admin/organizations', function () {
@@ -100,40 +99,6 @@ describe('Unit | Router | organization-router', function () {
       // when
       const response = await httpTestServer.request('POST', '/api/admin/organizations', {
         data: {
-          type: 'organizations',
-          attributes: {
-            name: 'Super Tag',
-            type: 'SCO',
-          },
-        },
-      });
-
-      // then
-      expect(response.statusCode).to.equal(403);
-    });
-  });
-
-  describe('PATCH /api/admin/organizations/{id}', function () {
-    it('returns forbidden access if admin member has CERTIF role', async function () {
-      // given
-      sinon.stub(securityPreHandlers, 'checkAdminMemberHasRoleCertif').callsFake((request, h) => h.response(true));
-      sinon
-        .stub(securityPreHandlers, 'checkAdminMemberHasRoleSuperAdmin')
-        .callsFake((request, h) => h.response({ errors: new Error('forbidden') }).code(403));
-      sinon
-        .stub(securityPreHandlers, 'checkAdminMemberHasRoleSupport')
-        .callsFake((request, h) => h.response({ errors: new Error('forbidden') }).code(403));
-      sinon
-        .stub(securityPreHandlers, 'checkAdminMemberHasRoleMetier')
-        .callsFake((request, h) => h.response({ errors: new Error('forbidden') }).code(403));
-
-      const httpTestServer = new HttpTestServer();
-      await httpTestServer.register(moduleUnderTest);
-
-      // when
-      const response = await httpTestServer.request('PATCH', '/api/admin/organizations/1', {
-        data: {
-          id: '1',
           type: 'organizations',
           attributes: {
             name: 'Super Tag',
@@ -271,7 +236,7 @@ describe('Unit | Router | organization-router', function () {
       const response = await httpTestServer.request(
         'POST',
         '/api/admin/organizations/1/attach-target-profiles',
-        payload
+        payload,
       );
 
       // then
@@ -300,7 +265,7 @@ describe('Unit | Router | organization-router', function () {
       const response = await httpTestServer.request(
         'POST',
         '/api/admin/organizations/1/attach-target-profiles',
-        payload
+        payload,
       );
 
       // then
@@ -329,7 +294,7 @@ describe('Unit | Router | organization-router', function () {
       const response = await httpTestServer.request(
         'POST',
         '/api/admin/organizations/coucou/attach-target-profiles',
-        payload
+        payload,
       );
 
       // then
@@ -852,9 +817,6 @@ describe('Unit | Router | organization-router', function () {
   });
 
   describe('POST /api/organizations/{id}/sup-organization-learners/replace-csv', function () {
-    afterEach(function () {
-      sinon.restore();
-    });
     context(
       'when the user is an admin for the organization and the organization is SUP and manages student',
       function () {
@@ -873,7 +835,7 @@ describe('Unit | Router | organization-router', function () {
 
           expect(response.statusCode).to.equal(200);
         });
-      }
+      },
     );
 
     context('when the user is not admin for the organization', function () {
@@ -882,7 +844,7 @@ describe('Unit | Router | organization-router', function () {
         sinon.stub(securityPreHandlers, 'checkUserIsAdminInSUPOrganizationManagingStudents');
         organizationController.replaceSupOrganizationLearners.resolves('ok');
         securityPreHandlers.checkUserIsAdminInSUPOrganizationManagingStudents.callsFake((request, h) =>
-          h.response().code(403).takeover()
+          h.response().code(403).takeover(),
         );
         const httpTestServer = new HttpTestServer();
         await httpTestServer.register(moduleUnderTest);

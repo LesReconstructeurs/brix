@@ -1,16 +1,15 @@
 import { module, test } from 'qunit';
 import { setupRenderingTest } from 'ember-qunit';
 import { render } from '@1024pix/ember-testing-library';
-import hbs from 'htmlbars-inline-precompile';
+import { hbs } from 'ember-cli-htmlbars';
 
 module('Integration | Component | routes/authenticated/target-profiles/target-profile | Insights', function (hooks) {
   setupRenderingTest(hooks);
 
   module('section rendering', function (hooks) {
-    let model;
+    let targetProfile;
     hooks.beforeEach(() => {
-      model = {
-        targetProfile: {},
+      targetProfile = {
         badges: [],
         stages: [],
       };
@@ -18,10 +17,13 @@ module('Integration | Component | routes/authenticated/target-profiles/target-pr
 
     test('it should display the badges title and an empty list', async function (assert) {
       // given
-      this.set('model', model);
+      this.set('targetProfile', targetProfile);
+      this.set('stageCollection', { stages: [] });
 
       // when
-      const screen = await render(hbs`<TargetProfiles::Insights @model={{this.model}} />`);
+      const screen = await render(
+        hbs`<TargetProfiles::Insights @targetProfile={{this.targetProfile}} @stageCollection={{this.stageCollection}}/>`,
+      );
 
       // then
       assert.dom(screen.getByText('Résultats thématiques')).exists();
@@ -30,10 +32,13 @@ module('Integration | Component | routes/authenticated/target-profiles/target-pr
 
     test('it should display the stages title and an empty list', async function (assert) {
       // given
-      this.set('model', model);
+      this.set('targetProfile', targetProfile);
+      this.set('stageCollection', { stages: [] });
 
       // when
-      const screen = await render(hbs`<TargetProfiles::Insights @model={{this.model}} />`);
+      const screen = await render(
+        hbs`<TargetProfiles::Insights @targetProfile={{this.targetProfile}} @stageCollection={{this.stageCollection}} />`,
+      );
 
       // then
       assert.dom(screen.getByText('Paliers')).exists();

@@ -1,10 +1,35 @@
 import Component from '@glimmer/component';
 import { action } from '@ember/object';
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 
 export default class ParticipationFilters extends Component {
   @service intl;
   @service currentUser;
+
+  get certificabilityOptions() {
+    return [
+      {
+        value: 'eligible',
+        label: this.intl.t('pages.sco-organization-participants.table.column.is-certifiable.eligible'),
+      },
+      {
+        value: 'non-eligible',
+        label: this.intl.t('pages.sco-organization-participants.table.column.is-certifiable.non-eligible'),
+      },
+    ];
+  }
+
+  get isClearFiltersButtonDisabled() {
+    return (
+      !this.args.selectedStatus &&
+      (!this.displaySearchFilter || !this.args.searchFilter) &&
+      (!this.displayDivisionFilter || this.args.selectedDivisions.length === 0) &&
+      (!this.displayGroupsFilter || this.args.selectedGroups.length === 0) &&
+      (!this.displayStagesFilter || this.args.selectedStages.length === 0) &&
+      (!this.displayBadgesFilter || this.args.selectedBadges.length === 0) &&
+      (!this.displayCertificabilityFilter || !this.args.selectedCertificability)
+    );
+  }
 
   get displayFilters() {
     return (
@@ -13,8 +38,14 @@ export default class ParticipationFilters extends Component {
       this.displayDivisionFilter ||
       this.displayStatusFilter ||
       this.displayGroupsFilter ||
+      this.displayCertificabilityFilter ||
       this.displaySearchFilter
     );
+  }
+
+  get displayCertificabilityFilter() {
+    const { isTypeAssessment } = this.args.campaign;
+    return !isTypeAssessment && !this.args.isHiddenCertificability;
   }
 
   get displayStagesFilter() {
@@ -44,7 +75,12 @@ export default class ParticipationFilters extends Component {
   }
 
   get stageOptions() {
-    return this.args.campaign?.stages?.map(({ id, threshold }) => ({ value: id, threshold }));
+    const totalStage = this.args.campaign.stages.length - 1;
+    return this.args.campaign.stages.map((stage, index) => ({
+      value: stage.id,
+      reachedStage: index,
+      totalStage,
+    }));
   }
 
   get badgeOptions() {
@@ -85,5 +121,10 @@ export default class ParticipationFilters extends Component {
   @action
   onSelectDivision(divisions) {
     this.args.onFilter('divisions', divisions);
+  }
+
+  @action
+  onSelectCertificability(certificability) {
+    this.args.onFilter('certificability', certificability);
   }
 }

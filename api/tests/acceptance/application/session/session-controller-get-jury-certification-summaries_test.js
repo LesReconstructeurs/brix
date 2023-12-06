@@ -1,6 +1,6 @@
-const { expect, databaseBuilder, generateValidRequestAuthorizationHeader } = require('../../../test-helper');
-const createServer = require('../../../../server');
-const { CLEA } = require('../../../../lib/domain/models/ComplementaryCertification');
+import { expect, databaseBuilder, generateValidRequestAuthorizationHeader } from '../../../test-helper.js';
+import { createServer } from '../../../../server.js';
+import { CLEA } from '../../../../lib/domain/models/ComplementaryCertification.js';
 
 describe('Acceptance | Controller | session-controller-get-jury-certification-summaries', function () {
   let server;
@@ -91,11 +91,12 @@ describe('Acceptance | Controller | session-controller-get-jury-certification-su
           status: asr1.status,
           'pix-score': asr1.pixScore,
           'is-published': certif1.isPublished,
+          'is-cancelled': certif1.isCancelled,
           'created-at': certif1.createdAt,
           'completed-at': certif1.completedAt,
           'number-of-certification-issue-reports': 0,
           'number-of-certification-issue-reports-with-required-action': 0,
-          'complementary-certification-taken-labels': ['CléA Numérique'],
+          'complementary-certification-taken-label': 'CléA Numérique',
           'examiner-comment': undefined,
           'has-seen-end-test-screen': certif1.hasSeenEndTestScreen,
           'is-flagged-aborted': false,
@@ -105,11 +106,12 @@ describe('Acceptance | Controller | session-controller-get-jury-certification-su
           'last-name': certif2.lastName,
           status: 'started',
           'pix-score': null,
+          'is-cancelled': certif2.isCancelled,
           'is-published': certif2.isPublished,
           'created-at': certif2.createdAt,
           'number-of-certification-issue-reports': 0,
           'number-of-certification-issue-reports-with-required-action': 0,
-          'complementary-certification-taken-labels': [],
+          'complementary-certification-taken-label': null,
           'completed-at': certif2.completedAt,
           'examiner-comment': undefined,
           'has-seen-end-test-screen': certif2.hasSeenEndTestScreen,

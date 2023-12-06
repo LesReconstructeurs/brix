@@ -1,19 +1,21 @@
-const Pack = require('../../../package');
-const config = require('../../config');
+import hapiSentry from 'hapi-sentry';
+import packageJSON from '../../../package.json' assert { type: 'json' };
 
-module.exports = {
-  plugin: require('hapi-sentry'),
-  options: {
-    client: {
-      dsn: config.sentry.dsn,
-      environment: config.sentry.environment,
-      release: `v${Pack.version}`,
-      maxBreadcrumbs: config.sentry.maxBreadcrumbs,
-      debug: config.sentry.debug,
-      maxValueLength: config.sentry.maxValueLength,
-    },
-    scope: {
-      tags: [{ name: 'source', value: 'api' }],
-    },
+import { config } from '../../config.js';
+
+const plugin = hapiSentry;
+const options = {
+  client: {
+    dsn: config.sentry.dsn,
+    environment: config.sentry.environment,
+    release: `v${packageJSON.version}`,
+    maxBreadcrumbs: config.sentry.maxBreadcrumbs,
+    debug: config.sentry.debug,
+    maxValueLength: config.sentry.maxValueLength,
+  },
+  scope: {
+    tags: [{ name: 'source', value: 'api' }],
   },
 };
+
+export { plugin, options };

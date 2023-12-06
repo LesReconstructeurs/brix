@@ -1,14 +1,14 @@
-const bluebird = require('bluebird');
+import bluebird from 'bluebird';
 
-const organizationInvitationService = require('../../domain/services/organization-invitation-service');
-const { OrganizationArchivedError } = require('../errors');
+import { OrganizationArchivedError } from '../errors.js';
 
-module.exports = async function createOrganizationInvitations({
+const createOrganizationInvitations = async function ({
   organizationId,
   emails,
   locale,
   organizationRepository,
   organizationInvitationRepository,
+  organizationInvitationService,
 }) {
   const organization = await organizationRepository.get(organizationId);
 
@@ -29,3 +29,5 @@ module.exports = async function createOrganizationInvitations({
     });
   });
 };
+
+export { createOrganizationInvitations };

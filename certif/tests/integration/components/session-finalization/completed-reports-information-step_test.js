@@ -1,10 +1,9 @@
 import { module, test } from 'qunit';
 import sinon from 'sinon';
 import setupIntlRenderingTest from '../../../helpers/setup-intl-rendering';
-import { render } from '@ember/test-helpers';
-import hbs from 'htmlbars-inline-precompile';
+import { hbs } from 'ember-cli-htmlbars';
 import { certificationIssueReportCategories } from 'pix-certif/models/certification-issue-report';
-import { render as renderScreen } from '@1024pix/ember-testing-library';
+import { render } from '@1024pix/ember-testing-library';
 
 module('Integration | Component | SessionFinalization::CompletedReportsInformationStep', function (hooks) {
   setupIntlRenderingTest(hooks);
@@ -95,7 +94,7 @@ module('Integration | Component | SessionFinalization::CompletedReportsInformati
     this.set('session', session);
 
     // when
-    const screen = await renderScreen(hbs`
+    const screen = await render(hbs`
         <SessionFinalization::CompletedReportsInformationStep
           @session={{this.session}}
           @certificationReports={{this.certificationReports}}
@@ -109,8 +108,8 @@ module('Integration | Component | SessionFinalization::CompletedReportsInformati
     assert
       .dom(
         screen.getByRole('table', {
-          name: `Certification(s) terminée(s) ${this.intl.t('pages.sessions.finalize.finished-test-list-description')}`,
-        })
+          name: 'Certification(s) terminée(s) Liste des candidats qui ont fini leur test de certification, triée par nom de naissance, avec un lien pour ajouter un ou plusieurs signalements le cas échéant.',
+        }),
       )
       .exists();
   });
@@ -140,12 +139,14 @@ module('Integration | Component | SessionFinalization::CompletedReportsInformati
     assert.dom('.session-finalization-reports-information-step__title-completed').doesNotExist();
   });
 
-  module('when the end test screen removal feature is disabled', function () {
+  module('when the end test screen removal feature was disabled during the certification', function () {
     test('it shows the "Écran de fin de test vu" column', async function (assert) {
       // given
       this.certificationReports = [
         store.createRecord('certification-report', {
           hasSeenEndTestScreen: null,
+          firstName: 'Alice',
+          lastName: 'Alister',
           certificationCourseId: 1,
         }),
       ];
@@ -155,7 +156,7 @@ module('Integration | Component | SessionFinalization::CompletedReportsInformati
       this.shouldDisplayHasSeenEndTestScreenCheckbox = true;
 
       // when
-      await render(hbs`
+      const screen = await render(hbs`
         <SessionFinalization::CompletedReportsInformationStep
           @certificationReports={{this.certificationReports}}
           @issueReportDescriptionMaxLength={{this.issueReportDescriptionMaxLength}}
@@ -166,12 +167,18 @@ module('Integration | Component | SessionFinalization::CompletedReportsInformati
       `);
 
       // then
-      assert.dom('[data-test-id="finalization-report-all-candidates-have-seen-end-test-screen"]').exists();
-      assert.dom('[data-test-id="finalization-report-has-seen-end-test-screen_1"]').exists();
+      assert.dom(screen.getByRole('checkbox', { name: 'Écran de fin du test vu' })).exists();
+      assert
+        .dom(
+          screen.getByRole('checkbox', {
+            name: "Sélectionner l'écran de fin du test vu pour le candidat Alice Alister",
+          }),
+        )
+        .exists();
     });
   });
 
-  module('when the end test screen removal feature is enabled', function () {
+  module('when the end test screen removal feature was enabled during the certification', function () {
     test('it hides the "Écran de fin de test vu" column', async function (assert) {
       // given
       this.certificationReports = [

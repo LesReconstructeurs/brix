@@ -1,10 +1,10 @@
-const certificationController = require('./certification-controller');
-const Joi = require('joi');
+import { certificationController } from './certification-controller.js';
+import Joi from 'joi';
 
-const responseErrorObjectDoc = require('../../infrastructure/open-api-doc/livret-scolaire/response-object-error-doc');
-const certificationsResultsResponseDoc = require('../../infrastructure/open-api-doc/livret-scolaire/certifications-results-doc');
+import { responseObjectErrorDoc } from '../../infrastructure/open-api-doc/livret-scolaire/response-object-error-doc.js';
+import { certificationsResultsDoc } from '../../infrastructure/open-api-doc/livret-scolaire/certifications-results-doc.js';
 
-exports.register = async function (server) {
+const register = async function (server) {
   server.route([
     {
       method: 'GET',
@@ -19,9 +19,9 @@ exports.register = async function (server) {
         response: {
           failAction: 'log',
           status: {
-            200: certificationsResultsResponseDoc,
-            204: certificationsResultsResponseDoc,
-            403: responseErrorObjectDoc,
+            200: certificationsResultsDoc,
+            204: certificationsResultsDoc,
+            403: responseObjectErrorDoc,
           },
         },
         validate: {
@@ -29,7 +29,7 @@ exports.register = async function (server) {
             uai: Joi.string()
               .required()
               .description(
-                'UAI/RNE (Unité Administrative Immatriculée anciennement Répertoire National des Établissements) '
+                'UAI/RNE (Unité Administrative Immatriculée anciennement Répertoire National des Établissements) ',
               ),
           }),
           headers: Joi.object({
@@ -42,4 +42,5 @@ exports.register = async function (server) {
   ]);
 };
 
-exports.name = 'certifications-lsu-lsl-api';
+const name = 'certifications-lsu-lsl-api';
+export { register, name };

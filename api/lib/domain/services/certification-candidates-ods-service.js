@@ -1,23 +1,22 @@
-const readOdsUtils = require('../../infrastructure/utils/ods/read-ods-utils');
-const {
-  getTransformationStructsForPixCertifCandidatesImport,
-} = require('../../infrastructure/files/candidates-import/candidates-import-transformation-structures');
-const CertificationCandidate = require('../models/CertificationCandidate');
-const {
+import * as readOdsUtils from '../../infrastructure/utils/ods/read-ods-utils.js';
+import { getTransformationStructsForPixCertifCandidatesImport } from '../../infrastructure/files/candidates-import/candidates-import-transformation-structures.js';
+import { CertificationCandidate } from '../models/CertificationCandidate.js';
+import {
   CLEA,
   PIX_PLUS_DROIT,
   PIX_PLUS_EDU_1ER_DEGRE,
   PIX_PLUS_EDU_2ND_DEGRE,
-} = require('../models/ComplementaryCertification');
-const { CertificationCandidatesImportError } = require('../errors');
-const _ = require('lodash');
-const bluebird = require('bluebird');
+} from '../models/ComplementaryCertification.js';
+import { CertificationCandidatesError } from '../errors.js';
+import _ from 'lodash';
+import bluebird from 'bluebird';
+import { CERTIFICATION_CANDIDATES_ERRORS } from '../constants/certification-candidates-errors.js';
+import * as mailCheckImplementation from '../../infrastructure/mail-check.js';
 
-module.exports = {
-  extractCertificationCandidatesFromCandidatesImportSheet,
-};
+export { extractCertificationCandidatesFromCandidatesImportSheet };
 
 async function extractCertificationCandidatesFromCandidatesImportSheet({
+  i18n,
   sessionId,
   isSco,
   odsBuffer,
@@ -26,9 +25,12 @@ async function extractCertificationCandidatesFromCandidatesImportSheet({
   certificationCpfCityRepository,
   complementaryCertificationRepository,
   certificationCenterRepository,
+  mailCheck = mailCheckImplementation,
 }) {
+  const translate = i18n.__;
   const certificationCenter = await certificationCenterRepository.getBySessionId(sessionId);
   const candidateImportStructs = getTransformationStructsForPixCertifCandidatesImport({
+    i18n,
     complementaryCertifications: certificationCenter.habilitations,
     isSco,
   });
@@ -57,15 +59,9 @@ async function extractCertificationCandidatesFromCandidatesImportSheet({
     Object.entries(certificationCandidatesDataByLine),
     async ([line, certificationCandidateData]) => {
       let { sex, birthCountry, birthINSEECode, birthPostalCode, birthCity, billingMode } = certificationCandidateData;
+      const { email, resultRecipientEmail } = certificationCandidateData;
       const { hasCleaNumerique, hasPixPlusDroit, hasPixPlusEdu1erDegre, hasPixPlusEdu2ndDegre } =
         certificationCandidateData;
-
-      let complementaryCertificationSubscriptionsCount = 0;
-
-      [hasCleaNumerique, hasPixPlusDroit, hasPixPlusEdu1erDegre, hasPixPlusEdu2ndDegre].forEach(
-        (complementaryCertificationSubscription) =>
-          complementaryCertificationSubscription ? complementaryCertificationSubscriptionsCount++ : false
-      );
 
       if (birthINSEECode && birthINSEECode !== '99' && birthINSEECode.length < 5)
         certificationCandidateData.birthINSEECode = `0${birthINSEECode}`;
@@ -81,10 +77,20 @@ async function extractCertificationCandidatesFromCandidatesImportSheet({
         certificationCpfCountryRepository,
       });
 
-      if (complementaryCertificationSubscriptionsCount > 1) {
+      if (
+        _hasMoreThanOneComplementarySubscription({
+          hasCleaNumerique,
+          hasPixPlusDroit,
+          hasPixPlusEdu1erDegre,
+          hasPixPlusEdu2ndDegre,
+        })
+      ) {
         line = parseInt(line) + 1;
-        throw new CertificationCandidatesImportError({
-          message: `Ligne ${line} : Vous ne pouvez pas inscrire un candidat à plus d'une certification complémentaire.`,
+
+        throw new CertificationCandidatesError({
+          code: CERTIFICATION_CANDIDATES_ERRORS.CANDIDATE_MAX_ONE_COMPLEMENTARY_CERTIFICATION.code,
+          message: 'A candidate cannot have more than one complementary certification',
+          meta: { line },
         });
       }
 
@@ -97,7 +103,7 @@ async function extractCertificationCandidatesFromCandidatesImportSheet({
       birthPostalCode = cpfBirthInformation.birthPostalCode;
       birthCity = cpfBirthInformation.birthCity;
 
-      const complementaryCertifications = await _buildComplementaryCertificationsForLine({
+      const complementaryCertification = await _buildComplementaryCertificationsForLine({
         hasCleaNumerique,
         hasPixPlusDroit,
         hasPixPlusEdu1erDegre,
@@ -106,7 +112,29 @@ async function extractCertificationCandidatesFromCandidatesImportSheet({
       });
 
       if (billingMode) {
-        billingMode = CertificationCandidate.translateBillingMode(billingMode);
+        billingMode = CertificationCandidate.parseBillingMode({ billingMode, translate });
+      }
+
+      if (resultRecipientEmail) {
+        try {
+          await mailCheck.checkDomainIsValid(resultRecipientEmail);
+        } catch {
+          throw new CertificationCandidatesError({
+            code: CERTIFICATION_CANDIDATES_ERRORS.CANDIDATE_RESULT_RECIPIENT_EMAIL_NOT_VALID.code,
+            meta: { line, email: resultRecipientEmail },
+          });
+        }
+      }
+
+      if (email) {
+        try {
+          await mailCheck.checkDomainIsValid(email);
+        } catch {
+          throw new CertificationCandidatesError({
+            code: CERTIFICATION_CANDIDATES_ERRORS.CANDIDATE_EMAIL_NOT_VALID.code,
+            meta: { line, email },
+          });
+        }
       }
 
       const certificationCandidate = new CertificationCandidate({
@@ -117,19 +145,34 @@ async function extractCertificationCandidatesFromCandidatesImportSheet({
         birthCity,
         sex,
         sessionId,
-        complementaryCertifications,
+        complementaryCertification,
         billingMode,
       });
 
       try {
         certificationCandidate.validate(isSco);
       } catch (err) {
-        _handleFieldValidationError(err, tableHeaderTargetPropertyMap, line);
+        throw new CertificationCandidatesError({
+          code: err.code,
+          meta: { line: parseInt(line) + 1 },
+        });
       }
 
       return certificationCandidate;
-    }
+    },
   );
+}
+
+function _hasMoreThanOneComplementarySubscription({
+  hasCleaNumerique,
+  hasPixPlusDroit,
+  hasPixPlusEdu1erDegre,
+  hasPixPlusEdu2ndDegre,
+}) {
+  const isTrueCount = [hasCleaNumerique, hasPixPlusDroit, hasPixPlusEdu1erDegre, hasPixPlusEdu2ndDegre].filter(
+    (complementaryCertificationSubscription) => complementaryCertificationSubscription,
+  ).length;
+  return isTrueCount > 1;
 }
 
 function _filterOutEmptyCandidateData(certificationCandidatesData) {
@@ -148,29 +191,24 @@ function _nullifyObjectWithOnlyNilValues(data) {
   return null;
 }
 
-function _handleFieldValidationError(err, tableHeaderTargetPropertyMap, line) {
-  const keyLabelMap = tableHeaderTargetPropertyMap.reduce((acc, obj) => {
-    acc[obj.property] = obj.header;
-    return acc;
-  }, {});
-  line = parseInt(line) + 1;
-  throw CertificationCandidatesImportError.fromInvalidCertificationCandidateError(err, keyLabelMap, line);
-}
-
 function _handleBirthInformationValidationError(cpfBirthInformation, line) {
   line = parseInt(line) + 1;
-  throw new CertificationCandidatesImportError({ message: `Ligne ${line} : ${cpfBirthInformation.message}` });
+  const { birthCountry, birthINSEECode, birthPostalCode, birthCity, firstErrorCode } = cpfBirthInformation;
+  throw new CertificationCandidatesError({
+    code: firstErrorCode,
+    meta: { line, birthCountry, birthINSEECode, birthPostalCode, birthCity },
+  });
 }
 
 function _handleVersionError() {
-  throw new CertificationCandidatesImportError({
+  throw new CertificationCandidatesError({
     code: 'INVALID_DOCUMENT',
-    message: 'La version du document est inconnue.',
+    message: 'This version of the document is unknown.',
   });
 }
 
 function _handleParsingError() {
-  throw new CertificationCandidatesImportError({ code: 'INVALID_DOCUMENT', message: 'Le document est invalide.' });
+  throw new CertificationCandidatesError({ code: 'INVALID_DOCUMENT', message: 'Le document est invalide.' });
 }
 
 async function _buildComplementaryCertificationsForLine({
@@ -180,33 +218,25 @@ async function _buildComplementaryCertificationsForLine({
   hasPixPlusEdu2ndDegre,
   complementaryCertificationRepository,
 }) {
-  const complementaryCertifications = [];
   const complementaryCertificationsInDB = await complementaryCertificationRepository.findAll();
   if (hasCleaNumerique) {
-    complementaryCertifications.push(
-      complementaryCertificationsInDB.find((complementaryCertification) => complementaryCertification.key === CLEA)
+    return complementaryCertificationsInDB.find(
+      (complementaryCertification) => complementaryCertification.key === CLEA,
     );
   }
   if (hasPixPlusDroit) {
-    complementaryCertifications.push(
-      complementaryCertificationsInDB.find(
-        (complementaryCertification) => complementaryCertification.key === PIX_PLUS_DROIT
-      )
+    return complementaryCertificationsInDB.find(
+      (complementaryCertification) => complementaryCertification.key === PIX_PLUS_DROIT,
     );
   }
   if (hasPixPlusEdu1erDegre) {
-    complementaryCertifications.push(
-      complementaryCertificationsInDB.find(
-        (complementaryCertification) => complementaryCertification.key === PIX_PLUS_EDU_1ER_DEGRE
-      )
+    return complementaryCertificationsInDB.find(
+      (complementaryCertification) => complementaryCertification.key === PIX_PLUS_EDU_1ER_DEGRE,
     );
   }
   if (hasPixPlusEdu2ndDegre) {
-    complementaryCertifications.push(
-      complementaryCertificationsInDB.find(
-        (complementaryCertification) => complementaryCertification.key === PIX_PLUS_EDU_2ND_DEGRE
-      )
+    return complementaryCertificationsInDB.find(
+      (complementaryCertification) => complementaryCertification.key === PIX_PLUS_EDU_2ND_DEGRE,
     );
   }
-  return complementaryCertifications;
 }

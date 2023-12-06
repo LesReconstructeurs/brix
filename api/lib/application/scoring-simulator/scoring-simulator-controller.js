@@ -1,38 +1,39 @@
-const ScoringSimulation = require('../../domain/models/ScoringSimulation');
-const Answer = require('../../domain/models/Answer');
-const usecases = require('../../domain/usecases');
+import { usecases } from '../../domain/usecases/index.js';
+import { extractLocaleFromRequest } from '../../infrastructure/utils/request-response-utils.js';
+import * as scoringSimulationContextSerializer from '../../infrastructure/serializers/json/scoring-simulator/scoring-simulation-context-serializer.js';
+import * as scoringSimulationDatasetSerializer from '../../infrastructure/serializers/json/scoring-simulator/scoring-simulation-dataset-serializer.js';
 
-module.exports = {
-  async calculateOldScores(request, h) {
-    const simulations = request.payload.simulations.map(
-      (simulation) =>
-        new ScoringSimulation({
-          id: simulation.id,
-          answers: simulation.answers.map((answer) => new Answer(answer)),
-        })
-    );
+const calculateOldScores = async function (request, h) {
+  const dataset = scoringSimulationDatasetSerializer.deserialize(request);
 
-    const results = await usecases.simulateOldScoring({ simulations });
+  const results = await usecases.simulateOldScoring({ simulations: dataset.simulations });
 
-    return h.response({ results });
-  },
-
-  async calculateFlashScores(request, h) {
-    const simulations = request.payload.simulations.map(
-      (simulation) =>
-        new ScoringSimulation({
-          id: simulation.id,
-          estimatedLevel: simulation.estimatedLevel,
-          answers: simulation.answers?.map((answer) => new Answer(answer)),
-        })
-    );
-
-    const results = await usecases.simulateFlashScoring({
-      successProbabilityThreshold: request.payload.successProbabilityThreshold,
-      calculateEstimatedLevel: request.payload.calculateEstimatedLevel,
-      simulations,
-    });
-
-    return h.response({ results });
-  },
+  return h.response({
+    datasetId: dataset.id,
+    results,
+    date: new Date().toISOString(),
+  });
 };
+
+const calculateFlashScores = async function (request, h) {
+  const context = scoringSimulationContextSerializer.deserialize(request);
+  const dataset = scoringSimulationDatasetSerializer.deserialize(request);
+  const locale = extractLocaleFromRequest(request);
+
+  const results = await usecases.simulateFlashScoring({
+    context,
+    simulations: dataset.simulations,
+    locale,
+  });
+
+  return h.response({
+    contextId: context.id,
+    datasetId: dataset.id,
+    results,
+    date: new Date().toISOString(),
+  });
+};
+
+const scoringSimulatorController = { calculateOldScores, calculateFlashScores };
+
+export { scoringSimulatorController };

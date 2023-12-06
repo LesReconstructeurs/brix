@@ -13,7 +13,7 @@
     <li class="menu-bar__entry">
       <PixTooltip @position="right">
         <:triggerElement>
-          <LinkTo @route="authenticated.users.list" class="menu-bar__link">
+          <LinkTo @route="authenticated.users" class="menu-bar__link">
             <FaIcon @icon="user" @title="Utilisateurs" />
           </LinkTo>
         </:triggerElement>
@@ -23,7 +23,7 @@
     <li class="menu-bar__entry">
       <PixTooltip @position="right" @inline={{true}}>
         <:triggerElement>
-          <LinkTo @route="authenticated.certification-centers.list" class="menu-bar__link">
+          <LinkTo @route="authenticated.certification-centers" class="menu-bar__link">
             <FaIcon @icon="map-pin" @title="Centres de certification" />
           </LinkTo>
         </:triggerElement>
@@ -33,7 +33,7 @@
     <li class="menu-bar__entry">
       <PixTooltip @position="right" @inline={{true}}>
         <:triggerElement>
-          <LinkTo @route="authenticated.sessions.list.with-required-action" class="menu-bar__link">
+          <LinkTo @route="authenticated.sessions" class="menu-bar__link">
             <FaIcon @icon="chalkboard-user" @title="Sessions de certifications" />
           </LinkTo>
         </:triggerElement>
@@ -52,11 +52,23 @@
         </PixTooltip>
       </li>
     {{/if}}
+    {{#if this.accessControl.hasAccessToComplementaryCertificationsScope}}
+      <li class="menu-bar__entry">
+        <PixTooltip @position="right" @inline={{true}}>
+          <:triggerElement>
+            <LinkTo @route="authenticated.complementary-certifications" class="menu-bar__link">
+              <FaIcon @icon="stamp" @title="Certifications complémentaires" />
+            </LinkTo>
+          </:triggerElement>
+          <:tooltip>Certifications complémentaires</:tooltip>
+        </PixTooltip>
+      </li>
+    {{/if}}
     {{#if this.accessControl.hasAccessToTargetProfilesActionsScope}}
       <li class="menu-bar__entry">
         <PixTooltip @position="right" @inline={{true}}>
           <:triggerElement>
-            <LinkTo @route="authenticated.target-profiles.list" class="menu-bar__link">
+            <LinkTo @route="authenticated.target-profiles" class="menu-bar__link">
               <FaIcon @icon="clipboard-list" @title="Profils cibles" />
             </LinkTo>
           </:triggerElement>
@@ -76,7 +88,19 @@
         </PixTooltip>
       </li>
     {{/if}}
-    {{#if this.currentUser.adminMember.isSuperAdmin}}
+    {{#if this.accessControl.hasAccessToTrainings}}
+      <li class="menu-bar__entry">
+        <PixTooltip @position="right">
+          <:triggerElement>
+            <LinkTo @route="authenticated.trainings" class="menu-bar__link">
+              <FaIcon @icon="book-open" @title="Contenus formatifs" />
+            </LinkTo>
+          </:triggerElement>
+          <:tooltip>Contenus formatifs</:tooltip>
+        </PixTooltip>
+      </li>
+    {{/if}}
+    {{#if (or this.currentUser.adminMember.isSuperAdmin this.currentUser.adminMember.isMetier)}}
       <li class="menu-bar__entry">
         <PixTooltip @position="right">
           <:triggerElement>
@@ -88,15 +112,15 @@
         </PixTooltip>
       </li>
     {{/if}}
-    {{#if this.accessControl.hasAccessToTrainingsActionsScope}}
+    {{#if this.currentUser.adminMember.isSuperAdmin}}
       <li class="menu-bar__entry">
         <PixTooltip @position="right">
           <:triggerElement>
-            <LinkTo @route="authenticated.trainings.list" class="menu-bar__link">
-              <FaIcon @icon="book-open" @title="Contenus formatifs" />
+            <LinkTo @route="authenticated.administration" class="menu-bar__link">
+              <FaIcon @icon="crown" @title="Administration" />
             </LinkTo>
           </:triggerElement>
-          <:tooltip>Contenus formatifs</:tooltip>
+          <:tooltip>Administration</:tooltip>
         </PixTooltip>
       </li>
     {{/if}}

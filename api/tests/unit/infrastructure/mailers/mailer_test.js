@@ -1,12 +1,18 @@
-const { expect, sinon } = require('../../../test-helper');
-const { mailing } = require('../../../../lib/config');
-const mailCheck = require('../../../../lib/infrastructure/mail-check');
-const logger = require('../../../../lib/infrastructure/logger');
-const mailer = require('../../../../lib/infrastructure/mailers/mailer');
-const EmailingAttempt = require('../../../../lib/domain/models/EmailingAttempt');
+import { expect, sinon } from '../../../test-helper.js';
+import { config } from '../../../../lib/config.js';
+import { logger } from '../../../../lib/infrastructure/logger.js';
+import { Mailer } from '../../../../lib/infrastructure/mailers/mailer.js';
+import { EmailingAttempt } from '../../../../lib/domain/models/EmailingAttempt.js';
+import { MailingProviderInvalidEmailError } from '../../../../lib/infrastructure/mailers/MailingProviderInvalidEmailError.js';
+const { mailing } = config;
 
 describe('Unit | Infrastructure | Mailers | mailer', function () {
+  let mailCheck;
+
   beforeEach(function () {
+    mailCheck = {
+      checkDomainIsValid: sinon.stub(),
+    };
     sinon.stub(mailing, 'provider').value('sendinblue');
   });
 
@@ -15,7 +21,6 @@ describe('Unit | Infrastructure | Mailers | mailer', function () {
       it('should resolve immediately and return a skip status', async function () {
         //given
         _disableMailing();
-        const mailingProvider = _mockMailingProvider();
 
         const options = {
           from: 'bob.dylan@example.net',
@@ -25,31 +30,15 @@ describe('Unit | Infrastructure | Mailers | mailer', function () {
           template: '129291',
         };
 
+        const mailer = new Mailer({ dependencies: { mailCheck } });
+        const mailingProvider = _mockMailingProvider(mailer);
+
         // when
         const result = await mailer.sendEmail(options);
 
         // then
         expect(result).to.deep.equal(EmailingAttempt.success('test@example.net'));
         expect(mailingProvider.sendEmail).to.have.not.been.called;
-      });
-
-      context('when email is invalid', function () {
-        it('should return an error status', async function () {
-          // given
-          _disableMailing();
-          const recipient = 'test@example.net';
-
-          const expectedError = new Error('fail');
-          _mailAddressIsInvalid(recipient, expectedError);
-
-          // when
-          const result = await mailer.sendEmail({ to: recipient });
-
-          // then
-          expect(result).to.deep.equal(
-            EmailingAttempt.failure('test@example.net', EmailingAttempt.errorCode.INVALID_DOMAIN)
-          );
-        });
       });
     });
 
@@ -60,9 +49,7 @@ describe('Unit | Infrastructure | Mailers | mailer', function () {
         it('should send email and return a success status', async function () {
           // given
           _enableMailing();
-          _mailAddressIsValid(recipient);
-
-          const mailingProvider = _mockMailingProvider();
+          mailCheck.checkDomainIsValid.withArgs(recipient).resolves();
 
           const from = 'no-reply@example.net';
           const options = {
@@ -72,6 +59,8 @@ describe('Unit | Infrastructure | Mailers | mailer', function () {
             subject: 'Creation de compte',
             template: '129291',
           };
+          const mailer = new Mailer({ dependencies: { mailCheck } });
+          const mailingProvider = _mockMailingProvider(mailer);
 
           // when
           const result = await mailer.sendEmail(options);
@@ -86,12 +75,13 @@ describe('Unit | Infrastructure | Mailers | mailer', function () {
         it('should log a warning, and return an error status', async function () {
           // given
           _enableMailing();
-          _mockMailingProvider();
 
           const expectedError = new Error('fail');
-          _mailAddressIsInvalid(recipient, expectedError);
+          mailCheck.checkDomainIsValid.withArgs(recipient).rejects(expectedError);
 
           sinon.stub(logger, 'warn');
+          const mailer = new Mailer({ dependencies: { mailCheck } });
+          _mockMailingProvider(mailer);
 
           // when
           const result = await mailer.sendEmail({ to: recipient });
@@ -99,7 +89,7 @@ describe('Unit | Infrastructure | Mailers | mailer', function () {
           // then
           expect(logger.warn).to.have.been.calledWith({ err: expectedError }, "Email is not valid 'test@example.net'");
           expect(result).to.deep.equal(
-            EmailingAttempt.failure('test@example.net', EmailingAttempt.errorCode.INVALID_DOMAIN)
+            EmailingAttempt.failure('test@example.net', EmailingAttempt.errorCode.INVALID_DOMAIN),
           );
         });
       });
@@ -108,12 +98,13 @@ describe('Unit | Infrastructure | Mailers | mailer', function () {
         it('should log a warning and return an error status', async function () {
           // given
           _enableMailing();
-          _mailAddressIsValid(recipient);
-          const mailingProvider = _mockMailingProvider();
-          const error = new Error('fail');
-          mailingProvider.sendEmail.rejects(error);
+          mailCheck.checkDomainIsValid.withArgs(recipient).resolves();
 
           sinon.stub(logger, 'warn');
+          const mailer = new Mailer({ dependencies: { mailCheck } });
+          const mailingProvider = _mockMailingProvider(mailer);
+          const error = new Error('fail');
+          mailingProvider.sendEmail.rejects(error);
 
           // when
           const result = await mailer.sendEmail({ to: recipient });
@@ -121,6 +112,39 @@ describe('Unit | Infrastructure | Mailers | mailer', function () {
           // then
           expect(logger.warn).to.have.been.calledOnceWith({ err: error }, "Could not send email to 'test@example.net'");
           expect(result).to.deep.equal(EmailingAttempt.failure('test@example.net'));
+        });
+      });
+
+      context('when the mailing provider fails to send an email', function () {
+        context('when an invalid_parameter code is returned', function () {
+          it('logs a warning and return a MailingProviderInvalidEmailError error', async function () {
+            // Given
+            _enableMailing();
+            const invalidEmailRecipient = 'invalid@email.net';
+            mailCheck.checkDomainIsValid.withArgs(invalidEmailRecipient).resolves();
+
+            const mailer = new Mailer({ dependencies: { mailCheck } });
+            const mailingProvider = _mockMailingProvider(mailer);
+            const error = new MailingProviderInvalidEmailError('Mailing provider invalid email error message');
+            mailingProvider.sendEmail.rejects(error);
+            sinon.stub(logger, 'warn');
+
+            // When
+            const result = await mailer.sendEmail({ to: invalidEmailRecipient });
+
+            // Then
+            expect(logger.warn).to.have.been.calledOnceWith(
+              { err: error },
+              `Could not send email to '${invalidEmailRecipient}'`,
+            );
+            expect(result).to.deep.equal(
+              EmailingAttempt.failure(
+                invalidEmailRecipient,
+                EmailingAttempt.errorCode.INVALID_EMAIL,
+                'Mailing provider invalid email error message',
+              ),
+            );
+          });
         });
       });
     });
@@ -135,15 +159,7 @@ function _enableMailing() {
   sinon.stub(mailing, 'enabled').value(true);
 }
 
-function _mailAddressIsValid(recipient) {
-  sinon.stub(mailCheck, 'checkDomainIsValid').withArgs(recipient).resolves();
-}
-
-function _mailAddressIsInvalid(recipient, expectedError) {
-  sinon.stub(mailCheck, 'checkDomainIsValid').withArgs(recipient).rejects(expectedError);
-}
-
-function _mockMailingProvider() {
+function _mockMailingProvider(mailer) {
   const mailingProvider = { sendEmail: sinon.stub() };
   mailingProvider.sendEmail.resolves();
   mailer._provider = mailingProvider;

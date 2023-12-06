@@ -1,11 +1,9 @@
-const { expect } = require('../../../../test-helper');
-const serializer = require('../../../../../lib/infrastructure/serializers/jsonapi/certification-course-serializer');
-const Assessment = require('../../../../../lib/domain/models/Assessment');
-const CertificationCourse = require('../../../../../lib/domain/models/CertificationCourse');
-const CertificationIssueReport = require('../../../../../lib/domain/models/CertificationIssueReport');
-const {
-  CertificationIssueReportCategories,
-} = require('../../../../../lib/domain/models/CertificationIssueReportCategory');
+import { expect } from '../../../../test-helper.js';
+import * as serializer from '../../../../../lib/infrastructure/serializers/jsonapi/certification-course-serializer.js';
+import { Assessment } from '../../../../../lib/domain/models/Assessment.js';
+import { CertificationCourse } from '../../../../../lib/domain/models/CertificationCourse.js';
+import { CertificationIssueReport } from '../../../../../lib/domain/models/CertificationIssueReport.js';
+import { CertificationIssueReportCategory } from '../../../../../lib/domain/models/CertificationIssueReportCategory.js';
 
 describe('Unit | Serializer | JSONAPI | certification-course-serializer', function () {
   describe('#serialize', function () {
@@ -20,12 +18,13 @@ describe('Unit | Serializer | JSONAPI | certification-course-serializer', functi
         challenges: ['challenge1', 'challenge2'],
         certificationIssueReports: [],
         hasSeenEndTestScreen: true,
+        version: 2,
       });
 
       const issueReport = new CertificationIssueReport({
         id: 1234,
         description: "Signalement de l'examinateur",
-        category: CertificationIssueReportCategories.OTHER,
+        category: CertificationIssueReportCategory.OTHER,
         certificationCourseId: certificationCourse.getId(),
       });
 
@@ -38,7 +37,6 @@ describe('Unit | Serializer | JSONAPI | certification-course-serializer', functi
           attributes: {
             'nb-challenges': 2,
             'examiner-comment': "Signalement de l'examinateur",
-            'is-end-test-screen-removal-enabled': true,
             'has-seen-end-test-screen': true,
             'first-name': certificationCourse.toDTO().firstName,
             'last-name': certificationCourse.toDTO().lastName,
@@ -71,6 +69,7 @@ describe('Unit | Serializer | JSONAPI | certification-course-serializer', functi
         challenges: ['challenge1', 'challenge2'],
         certificationIssueReports: undefined,
         hasSeenEndTestScreen: true,
+        version: 2,
       });
 
       const jsonCertificationCourseWithAssessment = {
@@ -81,7 +80,6 @@ describe('Unit | Serializer | JSONAPI | certification-course-serializer', functi
             'nb-challenges': 2,
             'examiner-comment': undefined,
             'has-seen-end-test-screen': true,
-            'is-end-test-screen-removal-enabled': undefined,
             'first-name': certificationCourse.toDTO().firstName,
             'last-name': certificationCourse.toDTO().lastName,
           },
@@ -113,6 +111,7 @@ describe('Unit | Serializer | JSONAPI | certification-course-serializer', functi
         challenges: undefined,
         certificationIssueReports: undefined,
         hasSeenEndTestScreen: true,
+        version: 2,
       });
 
       const jsonCertificationCourseWithAssessment = {
@@ -123,7 +122,6 @@ describe('Unit | Serializer | JSONAPI | certification-course-serializer', functi
             'nb-challenges': 0,
             'examiner-comment': undefined,
             'has-seen-end-test-screen': true,
-            'is-end-test-screen-removal-enabled': undefined,
             'first-name': certificationCourse.toDTO().firstName,
             'last-name': certificationCourse.toDTO().lastName,
           },

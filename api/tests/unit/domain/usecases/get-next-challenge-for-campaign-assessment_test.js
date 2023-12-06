@@ -1,9 +1,9 @@
-const { expect, sinon, domainBuilder } = require('../../../test-helper');
-
-const getNextChallengeForCampaignAssessment = require('../../../../lib/domain/usecases/get-next-challenge-for-campaign-assessment');
-const smartRandom = require('../../../../lib/domain/services/algorithm-methods/smart-random');
-const flash = require('../../../../lib/domain/services/algorithm-methods/flash');
-const dataFetcher = require('../../../../lib/domain/services/algorithm-methods/data-fetcher');
+import * as flash from '../../../../lib/domain/services/algorithm-methods/flash.js';
+import { AnswerStatus } from '../../../../lib/domain/models/AnswerStatus.js';
+import { expect, sinon, domainBuilder } from '../../../test-helper.js';
+import { getNextChallengeForCampaignAssessment } from '../../../../lib/domain/usecases/get-next-challenge-for-campaign-assessment.js';
+import { AssessmentEndedError } from '../../../../lib/domain/errors.js';
+import { config } from '../../../../lib/config.js';
 
 describe('Unit | Domain | Use Cases | get-next-challenge-for-campaign-assessment', function () {
   describe('#get-next-challenge-for-campaign-assessment', function () {
@@ -26,54 +26,275 @@ describe('Unit | Domain | Use Cases | get-next-challenge-for-campaign-assessment
       challengeRepository.get.withArgs('first_challenge').resolves(firstChallenge);
       challengeRepository.get.withArgs('second_challenge').resolves(secondChallenge);
       flashAssessmentResultRepository = Symbol('flashAssessmentResultRepository');
-      pickChallengeService = { pickChallenge: sinon.stub() };
+      pickChallengeService = { pickChallenge: sinon.stub(), chooseNextChallenge: sinon.stub() };
     });
 
-    it('should use smart-random algorithm', async function () {
-      // given
-      sinon
-        .stub(smartRandom, 'getPossibleSkillsForNextChallenge')
-        .resolves({ possibleSkillsForNextChallenge: [], hasAssessmentEnded: true });
-      sinon.stub(dataFetcher, 'fetchForCampaigns').resolves({});
-
-      // when
-      await getNextChallengeForCampaignAssessment({
-        challengeRepository,
-        answerRepository,
-        flashAssessmentResultRepository,
-        pickChallengeService,
-        assessment,
-      });
-
-      // then
-      expect(smartRandom.getPossibleSkillsForNextChallenge).to.have.been.called;
-    });
-
-    describe('when assessment method is flash', function () {
-      it('should use flash algorithm', async function () {
+    describe('when no assessment method is defined', function () {
+      it('should use smart-random algorithm', async function () {
         // given
-        assessment.method = 'FLASH';
-        sinon.stub(flash, 'getPossibleNextChallenges').returns({ possibleChallenges: [], hasAssessmentEnded: false });
-        sinon.stub(dataFetcher, 'fetchForFlashCampaigns').resolves({});
         const locale = 'fr-fr';
+        const skill = domainBuilder.buildSkill();
+        const possibleSkillsForNextChallenge = [skill];
+        const smartRandomStub = {
+          getPossibleSkillsForNextChallenge: sinon
+            .stub()
+            .returns({ possibleSkillsForNextChallenge, hasAssessmentEnded: false }),
+        };
+        const algorithmDataFetcherServiceStub = {
+          fetchForCampaigns: sinon.stub().resolves({}),
+        };
+
+        const pickChallengeService = {
+          pickChallenge: sinon.stub(),
+        };
+
+        pickChallengeService.pickChallenge
+          .withArgs({ skills: possibleSkillsForNextChallenge, locale, randomSeed: assessment.id })
+          .returns(firstChallenge);
+
         // when
-        await getNextChallengeForCampaignAssessment({
+        const challenge = await getNextChallengeForCampaignAssessment({
           challengeRepository,
           answerRepository,
           flashAssessmentResultRepository,
           pickChallengeService,
           assessment,
+          smartRandom: smartRandomStub,
+          algorithmDataFetcherService: algorithmDataFetcherServiceStub,
+          flash,
           locale,
         });
 
         // then
-        expect(flash.getPossibleNextChallenges).to.have.been.called;
-        expect(dataFetcher.fetchForFlashCampaigns).to.have.been.calledWith({
-          assessmentId: assessment.id,
-          answerRepository,
-          challengeRepository,
-          flashAssessmentResultRepository,
-          locale,
+        expect(challenge).to.deep.equal(firstChallenge);
+      });
+    });
+
+    describe('when assessment method is flash', function () {
+      let firstSkill;
+      let secondSkill;
+      let thirdChallenge;
+      let firstChallenge;
+      let secondChallenge;
+      let answerForFirstChallenge;
+      let locale;
+
+      beforeEach(function () {
+        firstSkill = domainBuilder.buildSkill({ id: 'First' });
+        secondSkill = domainBuilder.buildSkill({ id: 'Second' });
+        firstChallenge = domainBuilder.buildChallenge({
+          id: '1234',
+          difficulty: -5,
+          discriminant: -5,
+          skill: firstSkill,
+        });
+        secondChallenge = domainBuilder.buildChallenge({
+          id: '5678',
+          difficulty: -5,
+          discriminant: -5,
+          skill: secondSkill,
+        });
+
+        thirdChallenge = domainBuilder.buildChallenge({
+          id: '56789',
+          difficulty: 1,
+          discriminant: 1,
+          skill: secondSkill,
+        });
+
+        answerForFirstChallenge = domainBuilder.buildAnswer({ result: AnswerStatus.OK, challengeId: '1234' });
+        locale = 'fr-fr';
+        assessment.method = 'FLASH';
+      });
+
+      describe('when there is one remaining challenge', function () {
+        it('should return the best next challenges', async function () {
+          // given
+          const challenges = [firstChallenge, secondChallenge];
+
+          const algorithmDataFetcherServiceStub = {
+            fetchForFlashCampaigns: sinon.stub(),
+          };
+
+          const chooseNextChallenge = sinon.stub();
+
+          chooseNextChallenge
+            .withArgs({
+              possibleChallenges: [secondChallenge],
+            })
+            .returns(secondChallenge);
+
+          pickChallengeService.chooseNextChallenge.withArgs(assessment.id).returns(chooseNextChallenge);
+
+          algorithmDataFetcherServiceStub.fetchForFlashCampaigns
+            .withArgs({
+              assessmentId: assessment.id,
+              answerRepository,
+              challengeRepository,
+              flashAssessmentResultRepository,
+              locale,
+            })
+            .resolves({
+              allAnswers: [answerForFirstChallenge],
+              challenges,
+            });
+
+          // when
+          const bestChallenge = await getNextChallengeForCampaignAssessment({
+            challengeRepository,
+            answerRepository,
+            flashAssessmentResultRepository,
+            pickChallengeService,
+            assessment,
+            locale,
+            algorithmDataFetcherService: algorithmDataFetcherServiceStub,
+          });
+
+          // then
+          expect(bestChallenge).to.deep.equal(secondChallenge);
+        });
+      });
+
+      describe('when there are multiple remaining challenges', function () {
+        it('should return the best next challenges', async function () {
+          // given
+          const algorithmDataFetcherServiceStub = {
+            fetchForFlashCampaigns: sinon.stub(),
+          };
+
+          algorithmDataFetcherServiceStub.fetchForFlashCampaigns
+            .withArgs({
+              assessmentId: assessment.id,
+              answerRepository,
+              challengeRepository,
+              flashAssessmentResultRepository,
+              locale,
+            })
+            .resolves({
+              allAnswers: [answerForFirstChallenge],
+              challenges: [firstChallenge, secondChallenge, thirdChallenge],
+            });
+
+          const chooseNextChallenge = sinon.stub();
+
+          chooseNextChallenge
+            .withArgs({
+              possibleChallenges: [thirdChallenge, secondChallenge],
+            })
+            .returns(secondChallenge);
+
+          pickChallengeService.chooseNextChallenge.withArgs(assessment.id).returns(chooseNextChallenge);
+
+          // when
+          const bestChallenge = await getNextChallengeForCampaignAssessment({
+            challengeRepository,
+            answerRepository,
+            flashAssessmentResultRepository,
+            pickChallengeService,
+            assessment,
+            locale,
+            algorithmDataFetcherService: algorithmDataFetcherServiceStub,
+          });
+
+          // then
+          expect(bestChallenge).to.deep.equal(secondChallenge);
+        });
+      });
+
+      describe('when there is no challenge left', function () {
+        it('should throw an AssessmentEndedError()', async function () {
+          // given
+          const algorithmDataFetcherServiceStub = {
+            fetchForFlashCampaigns: sinon.stub(),
+          };
+
+          algorithmDataFetcherServiceStub.fetchForFlashCampaigns
+            .withArgs({
+              assessmentId: assessment.id,
+              answerRepository,
+              challengeRepository,
+              flashAssessmentResultRepository,
+              locale,
+            })
+            .resolves({
+              allAnswers: [answerForFirstChallenge],
+              challenges: [firstChallenge],
+            });
+
+          // when
+          const getNextChallengePromise = getNextChallengeForCampaignAssessment({
+            challengeRepository,
+            answerRepository,
+            flashAssessmentResultRepository,
+            pickChallengeService,
+            assessment,
+            locale,
+            algorithmDataFetcherService: algorithmDataFetcherServiceStub,
+            pseudoRandom: {
+              create: () => ({
+                binaryTreeRandom: () => {
+                  return 0;
+                },
+              }),
+            },
+          });
+
+          // then
+          return expect(getNextChallengePromise).to.be.rejectedWith(AssessmentEndedError);
+        });
+      });
+
+      describe('when the challenges to be asked number has been reached', function () {
+        let numberOfChallengesForFlashMethod;
+
+        beforeEach(function () {
+          numberOfChallengesForFlashMethod = config.features.numberOfChallengesForFlashMethod;
+          config.features.numberOfChallengesForFlashMethod = 1;
+        });
+
+        afterEach(function () {
+          config.features.numberOfChallengesForFlashMethod = numberOfChallengesForFlashMethod;
+        });
+
+        it('should throw an AssessmentEndedError()', async function () {
+          // given
+          const algorithmDataFetcherServiceStub = {
+            fetchForFlashCampaigns: sinon.stub(),
+          };
+
+          algorithmDataFetcherServiceStub.fetchForFlashCampaigns
+            .withArgs({
+              assessmentId: assessment.id,
+              answerRepository,
+              challengeRepository,
+              flashAssessmentResultRepository,
+              locale,
+            })
+            .resolves({
+              allAnswers: [answerForFirstChallenge],
+              challenges: [firstChallenge, secondChallenge],
+            });
+
+          // when
+          const getNextChallengePromise = getNextChallengeForCampaignAssessment({
+            challengeRepository,
+            answerRepository,
+            flashAssessmentResultRepository,
+            pickChallengeService,
+            assessment,
+            locale,
+            algorithmDataFetcherService: algorithmDataFetcherServiceStub,
+            pseudoRandom: {
+              create: () => ({
+                binaryTreeRandom: () => {
+                  return 0;
+                },
+              }),
+            },
+          });
+
+          // then
+          return expect(getNextChallengePromise).to.be.rejectedWith(AssessmentEndedError);
         });
       });
     });

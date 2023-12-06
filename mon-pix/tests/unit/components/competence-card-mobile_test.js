@@ -15,15 +15,13 @@ module('Unit | Component | competence-card-mobile', function (hooks) {
       test(`should return ${data.expectedLevel} when level is ${data.level} and isNotStarted is ${data.isNotStarted}`, function (assert) {
         // given
         const scorecard = { isNotStarted: data.isNotStarted, level: data.level };
-        const component = createGlimmerComponent('component:competence-card-mobile', { scorecard });
+        const component = createGlimmerComponent('competence-card-mobile', { scorecard });
 
         // when
         const displayedLevel = component.displayedLevel;
 
         // then
-        // TODO: Fix this the next time the file is edited.
-        // eslint-disable-next-line qunit/no-assert-equal
-        assert.equal(displayedLevel, data.expectedLevel);
+        assert.strictEqual(displayedLevel, data.expectedLevel);
       });
     });
   });

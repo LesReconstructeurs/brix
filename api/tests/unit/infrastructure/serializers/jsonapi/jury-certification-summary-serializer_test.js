@@ -1,6 +1,6 @@
-const { expect, domainBuilder } = require('../../../../test-helper');
-const serializer = require('../../../../../lib/infrastructure/serializers/jsonapi/jury-certification-summary-serializer');
-const JuryCertificationSummary = require('../../../../../lib/domain/read-models/JuryCertificationSummary');
+import { expect, domainBuilder } from '../../../../test-helper.js';
+import * as serializer from '../../../../../lib/infrastructure/serializers/jsonapi/jury-certification-summary-serializer.js';
+import { JuryCertificationSummary } from '../../../../../lib/domain/read-models/JuryCertificationSummary.js';
 
 describe('Unit | Serializer | JSONAPI | jury-certification-summary-serializer', function () {
   describe('#serialize()', function () {
@@ -22,10 +22,11 @@ describe('Unit | Serializer | JSONAPI | jury-certification-summary-serializer', 
         createdAt: new Date('2020-04-20T04:05:06Z'),
         completedAt: new Date('2020-04-25T04:05:06Z'),
         isPublished: true,
+        isCancelled: true,
         certificationIssueReports: [issueReport],
         hasSeenEndTestScreen: false,
         isFlaggedAborted: false,
-        complementaryCertificationTakenLabels: ['CléA Numérique', 'Pix+ Droit Maître', 'Pix+ Édu 2nd degré Avancé'],
+        complementaryCertificationTakenLabel: 'CléA Numérique',
       });
 
       expectedJsonApi = {
@@ -40,16 +41,13 @@ describe('Unit | Serializer | JSONAPI | jury-certification-summary-serializer', 
             'created-at': modelJuryCertifSummary.createdAt,
             'completed-at': modelJuryCertifSummary.completedAt,
             'is-published': modelJuryCertifSummary.isPublished,
+            'is-cancelled': true,
             'examiner-comment': 'someComment',
             'number-of-certification-issue-reports': 1,
             'number-of-certification-issue-reports-with-required-action': 1,
             'has-seen-end-test-screen': modelJuryCertifSummary.hasSeenEndTestScreen,
             'is-flagged-aborted': false,
-            'complementary-certification-taken-labels': [
-              'CléA Numérique',
-              'Pix+ Droit Maître',
-              'Pix+ Édu 2nd degré Avancé',
-            ],
+            'complementary-certification-taken-label': 'CléA Numérique',
           },
         },
       };

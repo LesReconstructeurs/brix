@@ -1,33 +1,36 @@
-const CampaignProfile = require('../../../lib/domain/read-models/CampaignProfile');
-const placementProfileService = require('../../domain/services/placement-profile-service');
-const { NotFoundError } = require('../../../lib/domain/errors');
-const { knex } = require('../../../db/knex-database-connection');
-const competenceRepository = require('./competence-repository');
+import { CampaignProfile } from '../../../lib/domain/read-models/CampaignProfile.js';
+import * as placementProfileService from '../../domain/services/placement-profile-service.js';
+import { NotFoundError } from '../../../lib/domain/errors.js';
+import { knex } from '../../../db/knex-database-connection.js';
+import * as competenceRepository from './competence-repository.js';
+import * as areaRepository from './area-repository.js';
 
-module.exports = {
-  async findProfile({ campaignId, campaignParticipationId, locale }) {
-    const profile = await _fetchCampaignProfileAttributesFromCampaignParticipation(campaignId, campaignParticipationId);
-    const competences = await competenceRepository.listPixCompetencesOnly({ locale });
+const findProfile = async function ({ campaignId, campaignParticipationId, locale }) {
+  const profile = await _fetchCampaignProfileAttributesFromCampaignParticipation(campaignId, campaignParticipationId);
+  const competences = await competenceRepository.listPixCompetencesOnly({ locale });
+  const allAreas = await areaRepository.list({ locale });
 
-    const { sharedAt, userId } = profile;
-    const placementProfile = await placementProfileService.getPlacementProfileWithSnapshotting({
-      userId,
-      limitDate: sharedAt,
-      allowExcessPixAndLevels: false,
-      competences,
-    });
+  const { sharedAt, userId } = profile;
+  const placementProfile = await placementProfileService.getPlacementProfileWithSnapshotting({
+    userId,
+    limitDate: sharedAt,
+    allowExcessPixAndLevels: false,
+    competences,
+  });
 
-    return new CampaignProfile({ ...profile, placementProfile });
-  },
+  return new CampaignProfile({ ...profile, placementProfile, allAreas });
 };
+
+export { findProfile };
 
 async function _fetchCampaignProfileAttributesFromCampaignParticipation(campaignId, campaignParticipationId) {
   const [profile] = await knex
     .with('campaignProfile', (qb) => {
       qb.select([
         'campaign-participations.userId',
-        'organization-learners.firstName',
-        'organization-learners.lastName',
+        'view-active-organization-learners.firstName',
+        'view-active-organization-learners.id AS organizationLearnerId',
+        'view-active-organization-learners.lastName',
         'campaign-participations.id AS campaignParticipationId',
         'campaign-participations.campaignId',
         'campaign-participations.createdAt',
@@ -37,7 +40,11 @@ async function _fetchCampaignProfileAttributesFromCampaignParticipation(campaign
         'campaign-participations.pixScore',
       ])
         .from('campaign-participations')
-        .join('organization-learners', 'organization-learners.id', 'campaign-participations.organizationLearnerId')
+        .join(
+          'view-active-organization-learners',
+          'view-active-organization-learners.id',
+          'campaign-participations.organizationLearnerId',
+        )
         .where({
           campaignId,
           'campaign-participations.id': campaignParticipationId,

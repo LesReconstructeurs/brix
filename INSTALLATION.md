@@ -5,7 +5,7 @@
 Vous devez au préalable avoir correctement installé les logiciels suivants :
 
 - [Git](https://git-scm.com/) (2.6.4)
-- [Node.js](https://nodejs.org/) (v16) et NPM (v8)
+- [Node.js](https://nodejs.org/) (version utilisée disponible dans les fichiers [.nvmrc](https://github.com/1024pix/pix/blob/dev/.nvmrc)) il est recommandé d'utiliser un gestionnaire de versions tel que [nvm](https://github.com/nvm-sh/nvm)
 - [Docker](https://docs.docker.com/get-started/) (20.10) avec [Docker Compose](https://docs.docker.com/compose/install/)
 
 > ⚠️ Les versions indiquées sont celles utilisées et préconisées par l'équipe de développement. Il est possible que
@@ -80,6 +80,17 @@ Vérifiez que le script s'est bien terminé : le message "🎉 Congratulations! 
 affiché. Si ce n'est pas le cas, contactez les équipes de développement en
 ouvrant [une issue](https://github.com/1024pix/pix/issues).
 
+### IDE
+
+#### VSCode
+
+Pour les utilisateur de vscode, des fichiers de config sont disponibles dans le dossier `.vscode`.
+Pour les utiliser:
+`cp .vscode/sample.launch.json .vscode/launch.json`
+`cp .vscode/sample.settings.json .vscode/settings.json`
+
+Les extensions recommandées peuvent se retrouver dans l'onglet extension en renseignant le filtre `@recommanded`
+
 ### Démarrer les applications
 
 Pour démarrer l'ensemble des applications, exécuter `npm start `
@@ -93,6 +104,7 @@ Si cela pose problème, démarrer sélectivement les applications :
 - App : `npm run start:mon-pix`
 - Certif : `npm run start:certif`
 - Orga : `npm run start:orga`
+- Pix1d : `npm run start:pix1d`
 
 ### Accéder aux applications
 
@@ -188,37 +200,25 @@ Ce repository est configuré pour indiquer aux IDE Webstorm et Vscode la configu
 Malgré cela, il peut arriver que des erreurs de lint soient introduites.
 
 Pour tenter de les corriger automatiquement lors du commit, installer un hook de pre-commit.
-Pour cela, exécuter `npm run local:trigger-lint-on-commit`
 
-Désactiver
+```
+npm run local:trigger-lint-on-commit
+```
+
+Si vous souhaitez désactiver
 
 ```
 npm run local:prevent-trigger-lint-on-commit
 ```
 
-#### Obtenir la couverture de test
+#### Tracer de manière détaillée l'envoi d'email
 
-> Test coverage is a percentage measure of the degree to which the source code of a program is executed when a
-> particular test suite is run.
-[Source](https://en.wikipedia.org/wiki/Code_coverage)
+On peut tracer de manière détaillée (debug) l'appel de l'API d'email avec la
+configuration d'une variable d'environnement :
 
-Il n'y a pas d'objectif de couverture de test dans la suite de test.
-
-Les [pratiques actuelles de test automatisé](./docs/test.md) sont considérées comme suffisantes.
-
-La couverture de tests est utilisée à des fins de développement pour :
-
-- détecter du code non utilisé suite à un refactoring, afin de le supprimer;
-- détecter du code non testé, afin de le tester, dans le cadre d'amélioration continue.
-
-La couverture de tests n'est disponible que
-
-- dans l'API, pour le dossier `lib`;
-- en local.
-
-Elle est obtenue avec la commande suivante.
-
-``` shell
-cd api
-npm run local:test:coverage
+```shell
+export DEBUG="pix:mailer:email"
 ```
+
+Cette variable d'environnement peut également être alimentée dans le fichier [.env](api/.env).
+

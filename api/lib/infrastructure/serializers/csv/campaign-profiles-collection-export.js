@@ -1,8 +1,8 @@
-const _ = require('lodash');
-const bluebird = require('bluebird');
-const csvSerializer = require('./csv-serializer');
-const constants = require('../../constants');
-const CampaignProfilesCollectionResultLine = require('../../exports/campaigns/campaign-profiles-collection-result-line');
+import _ from 'lodash';
+import bluebird from 'bluebird';
+import * as csvSerializer from './csv-serializer.js';
+import { CONCURRENCY_HEAVY_OPERATIONS, CHUNK_SIZE_CAMPAIGN_RESULT_PROCESSING } from '../../constants.js';
+import { CampaignProfilesCollectionResultLine } from '../../exports/campaigns/campaign-profiles-collection-result-line.js';
 class CampaignProfilesCollectionExport {
   constructor(outputStream, organization, campaign, competences, translate) {
     this.stream = outputStream;
@@ -21,7 +21,7 @@ class CampaignProfilesCollectionExport {
 
     const campaignParticipationResultDataChunks = _.chunk(
       campaignParticipationResultDatas,
-      constants.CHUNK_SIZE_CAMPAIGN_RESULT_PROCESSING
+      CHUNK_SIZE_CAMPAIGN_RESULT_PROCESSING,
     );
 
     return bluebird.map(
@@ -29,13 +29,13 @@ class CampaignProfilesCollectionExport {
       async (campaignParticipationResultDataChunk) => {
         const placementProfiles = await this._getUsersPlacementProfiles(
           campaignParticipationResultDataChunk,
-          placementProfileService
+          placementProfileService,
         );
         const csvLines = this._buildLines(placementProfiles, campaignParticipationResultDatas);
 
         this.stream.write(csvLines);
       },
-      { concurrency: constants.CONCURRENCY_HEAVY_OPERATIONS }
+      { concurrency: CONCURRENCY_HEAVY_OPERATIONS },
     );
   }
 
@@ -47,6 +47,7 @@ class CampaignProfilesCollectionExport {
     const header = [
       this.translate('campaign-export.common.organization-name'),
       this.translate('campaign-export.common.campaign-id'),
+      this.translate('campaign-export.common.campaign-code'),
       this.translate('campaign-export.common.campaign-name'),
       this.translate('campaign-export.common.participant-lastname'),
       this.translate('campaign-export.common.participant-firstname'),
@@ -82,7 +83,7 @@ class CampaignProfilesCollectionExport {
     let csvLines = '';
     for (const placementProfile of placementProfiles) {
       const campaignParticipationResultData = campaignParticipationResultDatas.find(
-        ({ userId }) => userId === placementProfile.userId
+        ({ userId }) => userId === placementProfile.userId,
       );
 
       const line = new CampaignProfilesCollectionResultLine(
@@ -91,7 +92,7 @@ class CampaignProfilesCollectionExport {
         campaignParticipationResultData,
         this.competences,
         placementProfile,
-        this.translate
+        this.translate,
       );
       csvLines = csvLines.concat(line.toCsvLine());
     }
@@ -106,4 +107,4 @@ class CampaignProfilesCollectionExport {
   }
 }
 
-module.exports = CampaignProfilesCollectionExport;
+export { CampaignProfilesCollectionExport };

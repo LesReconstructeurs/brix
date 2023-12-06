@@ -1,15 +1,15 @@
-const buildOrganization = require('./build-organization');
-const buildTargetProfile = require('./build-target-profile');
-const buildUser = require('./build-user');
-const CampaignTypes = require('../../../lib/domain/models/CampaignTypes');
-const Assessment = require('../../../lib/domain/models/Assessment');
-const databaseBuffer = require('../database-buffer');
-const _ = require('lodash');
+import { buildOrganization } from './build-organization.js';
+import { buildTargetProfile } from './build-target-profile.js';
+import { buildUser } from './build-user.js';
+import { CampaignTypes } from '../../../lib/domain/models/CampaignTypes.js';
+import { Assessment } from '../../../lib/domain/models/Assessment.js';
+import { databaseBuffer } from '../database-buffer.js';
+import _ from 'lodash';
 
-module.exports = function buildCampaign({
+const buildCampaign = function ({
   id = databaseBuffer.getNextId(),
   name = 'Name',
-  code = 'ABC456TTY',
+  code,
   title = 'Title',
   idPixLabel = 'IdPixLabel',
   externalIdHelpImageUrl = null,
@@ -38,8 +38,10 @@ module.exports = function buildCampaign({
   }
 
   organizationId = _.isNil(organizationId) ? buildOrganization().id : organizationId;
-  creatorId = _.isUndefined(creatorId) ? buildUser().id : creatorId;
-  ownerId = _.isUndefined(ownerId) ? buildUser().id : ownerId;
+  creatorId = _.isUndefined(creatorId) ? buildUser({ firstName: 'campaignCreator' }).id : creatorId;
+  ownerId = _.isUndefined(ownerId) ? buildUser({ firstName: 'campaignOwner' }).id : ownerId;
+  // Because of unicity constraint if no code is given we set the unique id as campaign code.
+  code = _.isUndefined(code) ? id.toString() : code;
 
   const values = {
     id,
@@ -70,3 +72,5 @@ module.exports = function buildCampaign({
     values,
   });
 };
+
+export { buildCampaign };

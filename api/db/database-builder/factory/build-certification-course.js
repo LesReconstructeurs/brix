@@ -1,9 +1,9 @@
-const buildSession = require('./build-session');
-const buildUser = require('./build-user');
-const databaseBuffer = require('../database-buffer');
-const _ = require('lodash');
+import { buildSession } from './build-session.js';
+import { buildUser } from './build-user.js';
+import { databaseBuffer } from '../database-buffer.js';
+import _ from 'lodash';
 
-module.exports = function buildCertificationCourse({
+const buildCertificationCourse = function ({
   id = databaseBuffer.getNextId(),
   lastName = 'last-name',
   firstName = 'first-name',
@@ -20,7 +20,7 @@ module.exports = function buildCertificationCourse({
   completedAt = new Date('2020-03-01'),
   isPublished = true,
   verificationCode = `P-AB789TTY${id}`,
-  isV2Certification = true,
+  version = 2,
   userId,
   sessionId,
   maxReachableLevelOnCertificationDate = 5,
@@ -49,7 +49,7 @@ module.exports = function buildCertificationCourse({
     completedAt,
     isPublished,
     verificationCode,
-    isV2Certification,
+    version,
     userId,
     sessionId,
     maxReachableLevelOnCertificationDate,
@@ -64,3 +64,5 @@ module.exports = function buildCertificationCourse({
     values,
   });
 };
+
+export { buildCertificationCourse };

@@ -1,4 +1,4 @@
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 import Component from '@glimmer/component';
 
 export default class ScoHeaderActions extends Component {
@@ -15,7 +15,7 @@ export default class ScoHeaderActions extends Component {
 
   get importButtonLabel() {
     const types = this.acceptedFileType.join(
-      this.intl.t('pages.sco-organization-participants.actions.import-file.file-type-separator')
+      this.intl.t('pages.sco-organization-participants.actions.import-file.file-type-separator'),
     );
     return this.intl.t('pages.sco-organization-participants.actions.import-file.label', { types });
   }

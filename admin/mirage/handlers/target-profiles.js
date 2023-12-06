@@ -1,4 +1,4 @@
-import { Response } from 'ember-cli-mirage';
+import { Response } from 'miragejs';
 import { getPaginationFromQueryParams, applyPagination } from './pagination-utils';
 
 function attachTargetProfiles(schema, request) {
@@ -14,7 +14,7 @@ function attachTargetProfileToOrganizations(schema, request) {
   const params = JSON.parse(request.requestBody);
   const organizationsToAttach = params['organization-ids'];
   organizationsToAttach.forEach((organizationId) =>
-    schema.organizations.create({ id: organizationId, name: `Organization ${organizationId}` })
+    schema.organizations.create({ id: organizationId, name: `Organization ${organizationId}` }),
   );
 
   return { data: { attributes: { 'duplicated-ids': [], 'attached-ids': organizationsToAttach } } };
@@ -35,10 +35,10 @@ function createTargetProfile(schema, request) {
     return schema.tubes.find(id);
   });
   tubes.forEach((tube) =>
-    schema.create('new-tube', {
+    schema.create('tube', {
       ...tube.attrs,
       level: tubesByLevel.find((tubeByLevel) => tubeByLevel.id === tube.id).level,
-    })
+    }),
   );
 
   const tubeIds = tubes.map((tube) => tube.id);
@@ -52,7 +52,7 @@ function createTargetProfile(schema, request) {
       },
     }))
     .filter((thematic) => thematic.attrs.tubeIds.length);
-  thematics.forEach((thematic) => schema.create('new-thematic', thematic.attrs));
+  thematics.forEach((thematic) => schema.create('thematic', thematic.attrs));
 
   const thematicIds = thematics.map((thematic) => thematic.attrs.id);
   const competences = schema.competences
@@ -65,7 +65,7 @@ function createTargetProfile(schema, request) {
       },
     }))
     .filter((competence) => competence.attrs.thematicIds.length);
-  competences.forEach((competence) => schema.create('new-competence', competence.attrs));
+  competences.forEach((competence) => schema.create('competence', competence.attrs));
 
   const competenceIds = competences.map((competence) => competence.attrs.id);
   const areas = schema.areas
@@ -78,13 +78,12 @@ function createTargetProfile(schema, request) {
       },
     }))
     .filter((area) => area.attrs.competenceIds.length);
-  areas.forEach((area) => schema.create('new-area', area.attrs));
+  areas.forEach((area) => schema.create('area', area.attrs));
 
   const areaIds = areas.map((area) => area.attrs.id);
   return schema.create('target-profile', {
     ...params.data.attributes,
-    isNewFormat: true,
-    newAreaIds: areaIds,
+    areaIds,
   });
 }
 
@@ -126,17 +125,12 @@ function findTargetProfileBadges(schema) {
   return schema.badges.all();
 }
 
-function findTargetProfileStages(schema) {
-  return schema.stages.all();
-}
-
 function updateTargetProfile(schema, request) {
   const payload = JSON.parse(request.requestBody);
-  const newName = payload.data.attributes.name;
   const id = request.params.id;
 
   const targetProfile = schema.targetProfiles.find(id);
-  targetProfile.update({ name: newName });
+  targetProfile.update(payload.data.attributes);
   return new Response(204);
 }
 
@@ -157,7 +151,7 @@ function createBadge(schema, request) {
       schema.create('badge-criterion', {
         scope: 'CampaignParticipation',
         threshold: parseInt(params.data.attributes['campaign-threshold']),
-      })
+      }),
     );
   for (const cappedTubeCriterion of params.data.attributes['capped-tubes-criteria']) {
     const criterion = schema.create('badge-criterion', {
@@ -183,6 +177,22 @@ function markTargetProfileAsSimplifiedAccess(schema, request) {
   return targetProfile.update({ isSimplifiedAccess: true });
 }
 
+function updateTargetProfileStageCollection(schema, request) {
+  const id = request.params.id;
+  const params = JSON.parse(request.requestBody);
+  const stagesDTO = params.data.attributes['stages'];
+  const newStages = stagesDTO.filter((stage) => !stage.id).map((newStage) => schema.create('stage', newStage));
+  const oldStages = stagesDTO
+    .filter((stage) => stage.id)
+    .map((oldStageDTO) => {
+      const oldVersionStage = schema.stages.find(oldStageDTO.id);
+      oldVersionStage.update({ ...oldStageDTO });
+      return oldVersionStage;
+    });
+  schema.stageCollections.find(id).update({ stages: [...newStages, ...oldStages] });
+  return new Response(204);
+}
+
 export {
   attachOrganizationsFromExistingTargetProfile,
   attachTargetProfiles,
@@ -193,7 +203,7 @@ export {
   findPaginatedTargetProfileOrganizations,
   findPaginatedFilteredTargetProfileSummaries,
   findTargetProfileBadges,
-  findTargetProfileStages,
+  updateTargetProfileStageCollection,
   updateTargetProfile,
   outdate,
   markTargetProfileAsSimplifiedAccess,

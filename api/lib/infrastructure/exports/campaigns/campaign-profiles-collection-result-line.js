@@ -1,5 +1,5 @@
-const csvSerializer = require('../../serializers/csv/csv-serializer');
-const moment = require('moment');
+import * as csvSerializer from '../../serializers/csv/csv-serializer.js';
+import moment from 'moment';
 
 const EMPTY_ARRAY = [];
 
@@ -19,6 +19,7 @@ class CampaignProfilesCollectionResultLine {
     const line = [
       this.organization.name,
       this.campaign.id,
+      this.campaign.code,
       this.campaign.name,
       this.campaignParticipationResult.participantLastName,
       this.campaignParticipationResult.participantFirstName,
@@ -112,4 +113,4 @@ class CampaignProfilesCollectionResultLine {
   }
 }
 
-module.exports = CampaignProfilesCollectionResultLine;
+export { CampaignProfilesCollectionResultLine };

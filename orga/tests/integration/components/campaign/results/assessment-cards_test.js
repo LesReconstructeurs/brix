@@ -1,7 +1,7 @@
 import { module, test } from 'qunit';
 import setupIntlRenderingTest from '../../../../helpers/setup-intl-rendering';
 import { render } from '@ember/test-helpers';
-import hbs from 'htmlbars-inline-precompile';
+import { hbs } from 'ember-cli-htmlbars';
 import { setupIntl, t } from 'ember-intl/test-support';
 
 module('Integration | Component | Campaign::Results::AssessmentCards', function (hooks) {
@@ -30,7 +30,11 @@ module('Integration | Component | Campaign::Results::AssessmentCards', function 
 
       //when
       await render(
-        hbs`<Campaign::Results::AssessmentCards @averageResult={{this.averageResult}} @hasStages={this.hasStages}} @stages={{this.stages}} />`
+        hbs`<Campaign::Results::AssessmentCards
+  @averageResult={{this.averageResult}}
+  @hasStages={{this.hasStages}}
+  @stages={{this.stages}}
+/>`,
       );
 
       //then
@@ -44,7 +48,7 @@ module('Integration | Component | Campaign::Results::AssessmentCards', function 
 
     // when
     await render(
-      hbs`<Campaign::Results::AssessmentCards @sharedParticipationsCount={{this.sharedParticipationsCount}} />`
+      hbs`<Campaign::Results::AssessmentCards @sharedParticipationsCount={{this.sharedParticipationsCount}} />`,
     );
 
     //then

@@ -1,8 +1,7 @@
-const { expect } = require('../../../../test-helper');
-
-const UserWithActivity = require('../../../../../lib/domain/read-models/UserWithActivity');
-const User = require('../../../../../lib/domain/models/User');
-const serializer = require('../../../../../lib/infrastructure/serializers/jsonapi/user-with-activity-serializer');
+import { expect } from '../../../../test-helper.js';
+import { UserWithActivity } from '../../../../../lib/domain/read-models/UserWithActivity.js';
+import { User } from '../../../../../lib/domain/models/User.js';
+import * as serializer from '../../../../../lib/infrastructure/serializers/jsonapi/user-with-activity-serializer.js';
 
 describe('Unit | Serializer | JSONAPI | user-with-activity-serializer', function () {
   describe('#serialize', function () {
@@ -25,6 +24,8 @@ describe('Unit | Serializer | JSONAPI | user-with-activity-serializer', function
           hasSeenAssessmentInstructions: false,
           hasSeenFocusedChallengeTooltip: false,
           hasSeenOtherChallengesTooltip: false,
+          hasSeenNewDashboardInfo: false,
+          hasSeenLevelSevenInfo: false,
           lastDataProtectionPolicySeenAt: '2022-05-04T13:00:00.000Z',
         }),
         hasAssessmentParticipations: false,
@@ -54,6 +55,7 @@ describe('Unit | Serializer | JSONAPI | user-with-activity-serializer', function
               'pix-certif-terms-of-service-accepted': userModelObject.pixCertifTermsOfServiceAccepted,
               'has-seen-assessment-instructions': userModelObject.hasSeenAssessmentInstructions,
               'has-seen-new-dashboard-info': userModelObject.hasSeenNewDashboardInfo,
+              'has-seen-level-seven-info': userModelObject.hasSeenLevelSevenInfo,
               'has-seen-focused-challenge-tooltip': userModelObject.hasSeenFocusedChallengeTooltip,
               'has-seen-other-challenges-tooltip': userModelObject.hasSeenOtherChallengesTooltip,
               'last-data-protection-policy-seen-at': userModelObject.lastDataProtectionPolicySeenAt,
@@ -64,24 +66,9 @@ describe('Unit | Serializer | JSONAPI | user-with-activity-serializer', function
                 userModelObject.shouldSeeDataProtectionPolicyInformationBanner,
             },
             relationships: {
-              'certification-center-memberships': {
-                links: {
-                  related: `/api/users/${userModelObject.id}/certification-center-memberships`,
-                },
-              },
-              'pix-score': {
-                links: {
-                  related: `/api/users/${userModelObject.id}/pixscore`,
-                },
-              },
               profile: {
                 links: {
                   related: `/api/users/${userModelObject.id}/profile`,
-                },
-              },
-              scorecards: {
-                links: {
-                  related: `/api/users/${userModelObject.id}/scorecards`,
                 },
               },
               'is-certifiable': {

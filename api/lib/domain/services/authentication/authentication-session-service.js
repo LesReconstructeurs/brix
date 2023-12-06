@@ -1,21 +1,22 @@
-const settings = require('../../../config');
-const temporaryStorage = require('../../../infrastructure/temporary-storage').withPrefix('authentication-session:');
+import { config } from '../../../config.js';
+import { temporaryStorage } from '../../../infrastructure/temporary-storage/index.js';
+const authenticationSessionTemporaryStorage = temporaryStorage.withPrefix('authentication-session:');
 
-const EXPIRATION_DELAY_SECONDS = settings.authenticationSession.temporaryStorage.expirationDelaySeconds;
+const EXPIRATION_DELAY_SECONDS = config.authenticationSession.temporaryStorage.expirationDelaySeconds;
 
-module.exports = {
-  getByKey(key) {
-    return temporaryStorage.get(key);
-  },
-
-  save(authenticationContent) {
-    return temporaryStorage.save({
-      value: authenticationContent,
-      expirationDelaySeconds: EXPIRATION_DELAY_SECONDS,
-    });
-  },
-
-  update(key, value) {
-    temporaryStorage.update(key, value);
-  },
+const getByKey = function (key) {
+  return authenticationSessionTemporaryStorage.get(key);
 };
+
+const save = function (authenticationContent) {
+  return authenticationSessionTemporaryStorage.save({
+    value: authenticationContent,
+    expirationDelaySeconds: EXPIRATION_DELAY_SECONDS,
+  });
+};
+
+const update = function (key, value) {
+  authenticationSessionTemporaryStorage.update(key, value);
+};
+
+export { getByKey, save, update };

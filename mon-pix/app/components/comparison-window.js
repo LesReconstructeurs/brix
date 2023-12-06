@@ -1,4 +1,5 @@
 import Component from '@glimmer/component';
+import resultDetailsAsObject from 'mon-pix/utils/result-details-as-object';
 
 const TRANSLATION_PREFIX = 'pages.comparison-window.results.';
 const TEXT_FOR_RESULT = {
@@ -67,6 +68,18 @@ export default class ComparisonWindow extends Component {
 
   get solution() {
     return this._isAutoReply ? null : this.args.answer.correction.get('solution');
+  }
+
+  get resultDetailsAsObject() {
+    return resultDetailsAsObject(this.args.answer.resultDetails);
+  }
+
+  get answersEvaluation() {
+    return this.resultDetailsAsObject.answersEvaluation;
+  }
+
+  get solutionsWithoutGoodAnswers() {
+    return this.resultDetailsAsObject.solutionsWithoutGoodAnswers;
   }
 
   get solutionToDisplay() {

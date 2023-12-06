@@ -1,10 +1,8 @@
-const CampaignAssessmentCsvLine = require('../../infrastructure/utils/CampaignAssessmentCsvLine');
-const csvSerializer = require('../../infrastructure/serializers/csv/csv-serializer');
-const campaignParticipationService = require('../services/campaign-participation-service');
+import { CampaignAssessmentCsvLine } from '../../infrastructure/utils/CampaignAssessmentCsvLine.js';
+import * as csvSerializer from '../../infrastructure/serializers/csv/csv-serializer.js';
+import * as campaignParticipationService from '../services/campaign-participation-service.js';
 
-module.exports = {
-  createOneCsvLine,
-};
+export { createOneCsvLine };
 
 function createOneCsvLine({
   organization,
@@ -12,7 +10,7 @@ function createOneCsvLine({
   campaignParticipationInfo,
   targetProfile,
   learningContent,
-  campaignStages,
+  stageCollection,
   participantKnowledgeElementsByCompetenceId,
   acquiredBadges,
   translate,
@@ -23,7 +21,7 @@ function createOneCsvLine({
     campaignParticipationInfo,
     targetProfile,
     learningContent,
-    campaignStages,
+    stageCollection,
     participantKnowledgeElementsByCompetenceId,
     acquiredBadges,
     campaignParticipationService,

@@ -1,22 +1,35 @@
-const scorecardSerializer = require('../../infrastructure/serializers/jsonapi/scorecard-serializer');
-const tutorialSerializer = require('../../infrastructure/serializers/jsonapi/tutorial-serializer');
-const { extractLocaleFromRequest } = require('../../infrastructure/utils/request-response-utils');
-const usecases = require('../../domain/usecases');
+import * as scorecardSerializer from '../../infrastructure/serializers/jsonapi/scorecard-serializer.js';
+import * as tutorialSerializer from '../../infrastructure/serializers/jsonapi/tutorial-serializer.js';
+import * as requestResponseUtils from '../../infrastructure/utils/request-response-utils.js';
+import { usecases } from '../../domain/usecases/index.js';
 
-module.exports = {
-  getScorecard(request) {
-    const locale = extractLocaleFromRequest(request);
-    const authenticatedUserId = request.auth.credentials.userId;
-    const scorecardId = request.params.id;
+const getScorecard = function (request, h, dependencies = { requestResponseUtils, scorecardSerializer }) {
+  const locale = dependencies.requestResponseUtils.extractLocaleFromRequest(request);
+  const authenticatedUserId = request.auth.credentials.userId;
+  const scorecardId = request.params.id;
 
-    return usecases.getScorecard({ authenticatedUserId, scorecardId, locale }).then(scorecardSerializer.serialize);
-  },
-
-  findTutorials(request) {
-    const locale = extractLocaleFromRequest(request);
-    const authenticatedUserId = request.auth.credentials.userId;
-    const scorecardId = request.params.id;
-
-    return usecases.findTutorials({ authenticatedUserId, scorecardId, locale }).then(tutorialSerializer.serialize);
-  },
+  return usecases
+    .getScorecard({
+      authenticatedUserId,
+      scorecardId,
+      locale,
+    })
+    .then(dependencies.scorecardSerializer.serialize);
 };
+
+const findTutorials = function (request, h, dependencies = { requestResponseUtils, tutorialSerializer }) {
+  const locale = dependencies.requestResponseUtils.extractLocaleFromRequest(request);
+  const authenticatedUserId = request.auth.credentials.userId;
+  const scorecardId = request.params.id;
+
+  return usecases
+    .findTutorials({
+      authenticatedUserId,
+      scorecardId,
+      locale,
+    })
+    .then(dependencies.tutorialSerializer.serialize);
+};
+
+const scorecardController = { getScorecard, findTutorials };
+export { scorecardController };

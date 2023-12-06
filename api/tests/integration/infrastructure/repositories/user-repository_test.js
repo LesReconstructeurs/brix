@@ -1,30 +1,26 @@
-const each = require('lodash/each');
-const map = require('lodash/map');
-const times = require('lodash/times');
-const pick = require('lodash/pick');
+import lodash from 'lodash';
+const { each, map, times, pick } = lodash;
+import { expect, knex, databaseBuilder, catchErr, sinon } from '../../../test-helper.js';
 
-const { expect, knex, databaseBuilder, catchErr, sinon } = require('../../../test-helper');
-
-const {
+import {
   AlreadyExistingEntityError,
   AlreadyRegisteredEmailError,
   AlreadyRegisteredUsernameError,
   NotFoundError,
   UserNotFoundError,
-} = require('../../../../lib/domain/errors');
+} from '../../../../lib/domain/errors.js';
 
-const User = require('../../../../lib/domain/models/User');
-const AuthenticationMethod = require('../../../../lib/domain/models/AuthenticationMethod');
-const UserDetailsForAdmin = require('../../../../lib/domain/models/UserDetailsForAdmin');
-const Membership = require('../../../../lib/domain/models/Membership');
-const CertificationCenter = require('../../../../lib/domain/models/CertificationCenter');
-const CertificationCenterMembership = require('../../../../lib/domain/models/CertificationCenterMembership');
-const Organization = require('../../../../lib/domain/models/Organization');
-const OrganizationLearnerForAdmin = require('../../../../lib/domain/read-models/OrganizationLearnerForAdmin');
-const OidcIdentityProviders = require('../../../../lib/domain/constants/oidc-identity-providers');
-
-const DomainTransaction = require('../../../../lib/infrastructure/DomainTransaction');
-const userRepository = require('../../../../lib/infrastructure/repositories/user-repository');
+import { User } from '../../../../lib/domain/models/User.js';
+import { NON_OIDC_IDENTITY_PROVIDERS } from '../../../../lib/domain/constants/identity-providers.js';
+import { UserDetailsForAdmin } from '../../../../lib/domain/models/UserDetailsForAdmin.js';
+import { Membership } from '../../../../lib/domain/models/Membership.js';
+import { CertificationCenter } from '../../../../lib/domain/models/CertificationCenter.js';
+import { CertificationCenterMembership } from '../../../../lib/domain/models/CertificationCenterMembership.js';
+import { Organization } from '../../../../lib/domain/models/Organization.js';
+import { OrganizationLearnerForAdmin } from '../../../../lib/domain/read-models/OrganizationLearnerForAdmin.js';
+import * as OidcIdentityProviders from '../../../../lib/domain/constants/oidc-identity-providers.js';
+import { DomainTransaction } from '../../../../lib/infrastructure/DomainTransaction.js';
+import * as userRepository from '../../../../lib/infrastructure/repositories/user-repository.js';
 
 const expectedUserDetailsForAdminAttributes = [
   'id',
@@ -47,6 +43,7 @@ describe('Integration | Infrastructure | Repository | UserRepository', function 
     lastName: 'LaFripouille',
     email: 'jojo@example.net',
     cgu: true,
+    locale: 'fr-FR',
   };
 
   let userInDB;
@@ -137,7 +134,7 @@ describe('Integration | Infrastructure | Repository | UserRepository', function 
         // when
         const foundUser = await userRepository.findByExternalIdentifier({
           externalIdentityId,
-          identityProvider: AuthenticationMethod.identityProviders.PIX,
+          identityProvider: NON_OIDC_IDENTITY_PROVIDERS.PIX.code,
         });
 
         // then
@@ -162,6 +159,50 @@ describe('Integration | Infrastructure | Repository | UserRepository', function 
           expect(matchingUsers).to.exist;
           expect(matchingUsers).to.have.lengthOf(3);
           expect(matchingUsers[0]).to.be.an.instanceOf(User);
+          expect(pagination).to.deep.equal(expectedPagination);
+        });
+
+        it('returns an array of users sorted by first name, last name and id', async function () {
+          // Given
+          const filter = {};
+          const page = { number: 1, size: 10 };
+
+          const alexTerieur = databaseBuilder.factory.buildUser({ firstName: 'Alex', lastName: 'Térieur' });
+          const alainTerieur2 = databaseBuilder.factory.buildUser({
+            id: 300302,
+            firstName: 'Alain',
+            lastName: 'Térieur',
+          });
+          const alainTerieur1 = databaseBuilder.factory.buildUser({
+            id: 300301,
+            firstName: 'Alain',
+            lastName: 'Térieur',
+          });
+          const justinPtipeu = databaseBuilder.factory.buildUser({ firstName: 'Justin', lastName: 'Ptipeu' });
+          await databaseBuilder.commit();
+
+          // when
+          const { models: matchingUsers, pagination } = await userRepository.findPaginatedFiltered({ filter, page });
+
+          // then
+          const expectedPagination = { page: page.number, pageSize: page.size, pageCount: 1, rowCount: 4 };
+
+          expect(matchingUsers).to.exist;
+          expect(matchingUsers).to.have.lengthOf(4);
+          expect(matchingUsers[0].id).to.equal(alainTerieur1.id);
+          expect(`${matchingUsers[0].firstName} ${matchingUsers[0].lastName}`).to.equal(
+            `${alainTerieur1.firstName} ${alainTerieur1.lastName}`,
+          );
+          expect(matchingUsers[1].id).to.equal(alainTerieur2.id);
+          expect(`${matchingUsers[1].firstName} ${matchingUsers[1].lastName}`).to.equal(
+            `${alainTerieur2.firstName} ${alainTerieur2.lastName}`,
+          );
+          expect(`${matchingUsers[2].firstName} ${matchingUsers[2].lastName}`).to.equal(
+            `${alexTerieur.firstName} ${alexTerieur.lastName}`,
+          );
+          expect(`${matchingUsers[3].firstName} ${matchingUsers[3].lastName}`).to.equal(
+            `${justinPtipeu.firstName} ${justinPtipeu.lastName}`,
+          );
           expect(pagination).to.deep.equal(expectedPagination);
         });
       });
@@ -221,7 +262,7 @@ describe('Integration | Infrastructure | Repository | UserRepository', function 
             ],
             (user) => {
               databaseBuilder.factory.buildUser(user);
-            }
+            },
           );
 
           await databaseBuilder.commit();
@@ -256,7 +297,7 @@ describe('Integration | Infrastructure | Repository | UserRepository', function 
             ],
             (user) => {
               databaseBuilder.factory.buildUser(user);
-            }
+            },
           );
 
           await databaseBuilder.commit();
@@ -309,7 +350,7 @@ describe('Integration | Infrastructure | Repository | UserRepository', function 
             ],
             (user) => {
               databaseBuilder.factory.buildUser(user);
-            }
+            },
           );
           await databaseBuilder.commit();
           const filter = { username: '1011' };
@@ -375,7 +416,7 @@ describe('Integration | Infrastructure | Repository | UserRepository', function 
               ],
               (user) => {
                 databaseBuilder.factory.buildUser(user);
-              }
+              },
             );
 
             await databaseBuilder.commit();
@@ -405,7 +446,7 @@ describe('Integration | Infrastructure | Repository | UserRepository', function 
             ]);
             expect(pagination).to.deep.equal(expectedPagination);
           });
-        }
+        },
       );
 
       context('when there are filter that should be ignored', function () {
@@ -644,6 +685,29 @@ describe('Integration | Infrastructure | Repository | UserRepository', function 
       });
     });
 
+    describe('#getByIds', function () {
+      it('returns users from provided ids', async function () {
+        // given
+        const paul = databaseBuilder.factory.buildUser({
+          firstname: 'paul',
+        });
+        const jacques = databaseBuilder.factory.buildUser({
+          firstname: 'jacques',
+        });
+
+        await databaseBuilder.commit();
+
+        const ids = [paul.id, jacques.id];
+
+        // when
+        const results = await userRepository.getByIds(ids);
+        const resultsWithIdOnly = results.map((result) => result.id);
+
+        // then
+        expect(resultsWithIdOnly).to.have.members(ids);
+      });
+    });
+
     describe('#getByUsernameOrEmailWithRolesAndPassword', function () {
       beforeEach(async function () {
         await _insertUserWithOrganizationsAndCertificationCenterAccesses();
@@ -664,6 +728,7 @@ describe('Integration | Infrastructure | Repository | UserRepository', function 
         expect(foundUser.username).to.equal(expectedUser.username);
         expect(foundUser.email).to.equal(expectedUser.email);
         expect(foundUser.cgu).to.equal(expectedUser.cgu);
+        expect(foundUser.locale).to.equal(expectedUser.locale);
       });
 
       it('should return user informations for the given email (case insensitive)', async function () {
@@ -716,7 +781,7 @@ describe('Integration | Infrastructure | Repository | UserRepository', function 
         expect(firstAuthenticationMethod.userId).to.equal(passwordAuthenticationMethodInDB.userId);
         expect(firstAuthenticationMethod.externalIdentifier).to.be.null;
         expect(firstAuthenticationMethod.authenticationComplement).to.deep.equal(
-          passwordAuthenticationMethodInDB.authenticationComplement
+          passwordAuthenticationMethodInDB.authenticationComplement,
         );
       });
 
@@ -1012,6 +1077,7 @@ describe('Integration | Infrastructure | Repository | UserRepository', function 
           email: 'henri-cochet@example.net',
           cgu: true,
           lang: 'en',
+          locale: 'en',
           createdAt: now,
           updatedAt: now,
           lastTermsOfServiceValidatedAt,
@@ -1035,9 +1101,10 @@ describe('Integration | Infrastructure | Repository | UserRepository', function 
         expect(userDetailsForAdmin.createdAt).to.deep.equal(now);
         expect(userDetailsForAdmin.updatedAt).to.deep.equal(now);
         expect(userDetailsForAdmin.lang).to.equal('en');
+        expect(userDetailsForAdmin.locale).to.equal('en');
         expect(userDetailsForAdmin.lastTermsOfServiceValidatedAt).to.deep.equal(lastTermsOfServiceValidatedAt);
         expect(userDetailsForAdmin.lastPixOrgaTermsOfServiceValidatedAt).to.deep.equal(
-          lastPixOrgaTermsOfServiceValidatedAt
+          lastPixOrgaTermsOfServiceValidatedAt,
         );
         expect(userDetailsForAdmin.lastPixCertifTermsOfServiceValidatedAt).to.deep.equal(lastLoggedAt);
         expect(userDetailsForAdmin.lastLoggedAt).to.deep.equal(lastLoggedAt);
@@ -1118,13 +1185,14 @@ describe('Integration | Infrastructure | Repository | UserRepository', function 
         });
       });
 
-      context('when user has authentication methods', function () {
-        it('should return the user with his authentication methods', async function () {
+      context('when user has authentication methods (PIX + GAR)', function () {
+        it('returns the user with his authentication methods', async function () {
           // given
           const userInDB = databaseBuilder.factory.buildUser(userToInsert);
-          databaseBuilder.factory.buildAuthenticationMethod.withPixAsIdentityProviderAndHashedPassword({
-            userId: userInDB.id,
-          });
+          const expectedPixAuthenticationMethod =
+            databaseBuilder.factory.buildAuthenticationMethod.withPixAsIdentityProviderAndHashedPassword({
+              userId: userInDB.id,
+            });
           databaseBuilder.factory.buildAuthenticationMethod.withGarAsIdentityProvider({ userId: userInDB.id });
           await databaseBuilder.commit();
 
@@ -1132,7 +1200,17 @@ describe('Integration | Infrastructure | Repository | UserRepository', function 
           const userDetailsForAdmin = await userRepository.getUserDetailsForAdmin(userInDB.id);
 
           // then
+          const pixAuthenticationMethod = userDetailsForAdmin.authenticationMethods.find(
+            ({ identityProvider }) => identityProvider === NON_OIDC_IDENTITY_PROVIDERS.PIX.code,
+          );
           expect(userDetailsForAdmin.authenticationMethods.length).to.equal(2);
+          expect(pixAuthenticationMethod).to.deep.equal({
+            authenticationComplement: {
+              shouldChangePassword: false,
+            },
+            id: expectedPixAuthenticationMethod.id,
+            identityProvider: NON_OIDC_IDENTITY_PROVIDERS.PIX.code,
+          });
         });
       });
 
@@ -1223,6 +1301,34 @@ describe('Integration | Infrastructure | Repository | UserRepository', function 
   });
 
   describe('update user', function () {
+    describe('#update', function () {
+      let clock;
+      const now = new Date('2021-01-02');
+
+      beforeEach(function () {
+        clock = sinon.useFakeTimers(now);
+      });
+
+      afterEach(function () {
+        clock.restore();
+      });
+
+      it('updates the given properties', async function () {
+        // given
+        const user = databaseBuilder.factory.buildUser();
+        await databaseBuilder.commit();
+
+        // when
+        await userRepository.update({ id: user.id, email: 'chronos@example.net', locale: 'fr-BE' });
+        const fetchedUser = await knex.from('users').where({ id: user.id }).first();
+
+        // then
+        expect(fetchedUser.updatedAt).to.deep.equal(new Date('2021-01-02'));
+        expect(fetchedUser.email).to.equal('chronos@example.net');
+        expect(fetchedUser.locale).to.equal('fr-BE');
+      });
+    });
+
     describe('#updateEmail', function () {
       it('should update the user email', async function () {
         // given
@@ -1291,38 +1397,8 @@ describe('Integration | Infrastructure | Repository | UserRepository', function 
       });
     });
 
-    describe('#updateUserAttributes', function () {
-      it('should update lang of the user', async function () {
-        // given
-        const userInDb = databaseBuilder.factory.buildUser(userToInsert);
-        await databaseBuilder.commit();
-
-        const userAttributes = {
-          lang: 'en',
-        };
-
-        // when
-        const updatedUser = await userRepository.updateUserAttributes(userInDb.id, userAttributes);
-
-        // then
-        expect(updatedUser).to.be.an.instanceOf(User);
-        expect(updatedUser.lang).to.equal(userAttributes.lang);
-      });
-
-      it('should throw UserNotFoundError when user id not found', async function () {
-        // given
-        const wrongUserId = 0;
-
-        // when
-        const error = await catchErr(userRepository.updateUserAttributes)(wrongUserId, { lang: 'en' });
-
-        // then
-        expect(error).to.be.instanceOf(UserNotFoundError);
-      });
-    });
-
     describe('#updateUserDetailsForAdministration', function () {
-      it('should update firstName, lastName, email and username of the user', async function () {
+      it('updates firstName, lastName, email, username and locale of the user', async function () {
         // given
         const userInDb = databaseBuilder.factory.buildUser(userToInsert);
         databaseBuilder.factory.buildAuthenticationMethod.withGarAsIdentityProvider({
@@ -1337,6 +1413,7 @@ describe('Integration | Infrastructure | Repository | UserRepository', function 
           lastName: 'nom_123',
           email: 'email_123@example.net',
           username: 'username_123',
+          locale: 'fr-FR',
         };
         await userRepository.updateUserDetailsForAdministration({
           id: userInDb.id,
@@ -1349,6 +1426,7 @@ describe('Integration | Infrastructure | Repository | UserRepository', function 
         expect(updatedUser.lastName).to.equal('nom_123');
         expect(updatedUser.email).to.equal('email_123@example.net');
         expect(updatedUser.username).to.equal('username_123');
+        expect(updatedUser.locale).to.equal('fr-FR');
       });
 
       it('should throw AlreadyExistingEntityError when username is already used', async function () {

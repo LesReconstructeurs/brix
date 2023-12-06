@@ -1,16 +1,17 @@
-const { expect, sinon, domainBuilder, catchErr } = require('../../../test-helper');
+import { expect, sinon, domainBuilder, catchErr } from '../../../test-helper.js';
+import { authenticateExternalUser } from '../../../../lib/domain/usecases/authenticate-external-user.js';
 
-const authenticateExternalUser = require('../../../../lib/domain/usecases/authenticate-external-user');
-
-const {
+import {
   MissingOrInvalidCredentialsError,
   UserNotFoundError,
   PasswordNotMatching,
   UnexpectedUserAccountError,
   UserShouldChangePasswordError,
   UserAlreadyExistsWithAuthenticationMethodError,
-} = require('../../../../lib/domain/errors');
-const AuthenticationMethod = require('../../../../lib/domain/models/AuthenticationMethod');
+} from '../../../../lib/domain/errors.js';
+
+import { AuthenticationMethod } from '../../../../lib/domain/models/AuthenticationMethod.js';
+import { NON_OIDC_IDENTITY_PROVIDERS } from '../../../../lib/domain/constants/identity-providers.js';
 
 describe('Unit | Application | UseCase | authenticate-external-user', function () {
   let tokenService;
@@ -227,7 +228,7 @@ describe('Unit | Application | UseCase | authenticate-external-user', function (
 
         // then
         const expectedAuthenticationMethod = new AuthenticationMethod({
-          identityProvider: AuthenticationMethod.identityProviders.GAR,
+          identityProvider: NON_OIDC_IDENTITY_PROVIDERS.GAR.code,
           externalIdentifier: samlId,
           userId: user.id,
           authenticationComplement: new AuthenticationMethod.GARAuthenticationComplement({
@@ -278,7 +279,7 @@ describe('Unit | Application | UseCase | authenticate-external-user', function (
 
         // then
         const expectedAuthenticationMethod = new AuthenticationMethod({
-          identityProvider: AuthenticationMethod.identityProviders.GAR,
+          identityProvider: NON_OIDC_IDENTITY_PROVIDERS.GAR.code,
           externalIdentifier,
           userId: user.id,
           authenticationComplement: new AuthenticationMethod.GARAuthenticationComplement({

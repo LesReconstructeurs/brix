@@ -1,5 +1,5 @@
-const { expect, databaseBuilder, domainBuilder } = require('../../../test-helper');
-const complementaryCertificationRepository = require('../../../../lib/infrastructure/repositories/complementary-certification-repository');
+import { databaseBuilder, domainBuilder, expect } from '../../../test-helper.js';
+import * as complementaryCertificationRepository from '../../../../lib/infrastructure/repositories/complementary-certification-repository.js';
 
 describe('Integration | Repository | complementary-certification-repository', function () {
   describe('#findAll', function () {
@@ -60,7 +60,7 @@ describe('Integration | Repository | complementary-certification-repository', fu
       });
     });
 
-    describe('when there are no complementary certifications', function () {
+    describe('when there are no complementary certification', function () {
       it('should return an empty array', async function () {
         // given when
         const complementaryCertifications = await complementaryCertificationRepository.findAll();
@@ -68,6 +68,37 @@ describe('Integration | Repository | complementary-certification-repository', fu
         // then
         expect(complementaryCertifications).to.be.empty;
       });
+    });
+  });
+
+  describe('#getByLabel', function () {
+    it('should return the complementary certification by its label', async function () {
+      // given
+      const label = 'Pix+ Édu 1er degré';
+      databaseBuilder.factory.buildComplementaryCertification({
+        id: 1,
+        key: 'EDU_1ER_DEGRE',
+        label,
+      });
+
+      databaseBuilder.factory.buildComplementaryCertification({
+        id: 3,
+        key: 'EDU_2ND_DEGRE',
+        label: 'Pix+ Édu 2nd degré',
+      });
+
+      await databaseBuilder.commit();
+
+      // when
+      const complementaryCertification = await complementaryCertificationRepository.getByLabel({ label });
+
+      // then
+      const expectedComplementaryCertification = domainBuilder.buildComplementaryCertification({
+        id: 1,
+        key: 'EDU_1ER_DEGRE',
+        label: 'Pix+ Édu 1er degré',
+      });
+      expect(complementaryCertification).to.deep.equal(expectedComplementaryCertification);
     });
   });
 });

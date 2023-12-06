@@ -3,8 +3,8 @@
 
 import { module, test } from 'qunit';
 import setupIntlRenderingTest from '../../helpers/setup-intl-rendering';
-import { render } from '@ember/test-helpers';
-import hbs from 'htmlbars-inline-precompile';
+import { render } from '@1024pix/ember-testing-library';
+import { hbs } from 'ember-cli-htmlbars';
 import Service from '@ember/service';
 import { setBreakpoint } from 'ember-responsive/test-support';
 
@@ -23,12 +23,13 @@ module('Integration | Component | Profile-content', function (hooks) {
               access_token: 'VALID-TOKEN',
             },
           },
-        })
+        }),
       );
 
       model = {
         profile: {
           pixScore: '34',
+          get: () => 7,
           areas: [{ code: 0 }, { code: 1 }],
           scorecards: [
             {
@@ -64,7 +65,7 @@ module('Integration | Component | Profile-content', function (hooks) {
         setBreakpoint('tablet');
         this.set('model', model);
         this.owner.register('service:session', Service.extend({ isAuthenticated: true }));
-        await render(hbs`{{profile-content model=this.model media=this.media}}`);
+        await render(hbs`<ProfileContent @model={{this.model}} @media={{this.media}} />`);
 
         // then
         assert.dom('.competence-card').exists();
@@ -79,7 +80,7 @@ module('Integration | Component | Profile-content', function (hooks) {
         setBreakpoint('mobile');
         this.set('model', model);
         this.owner.register('service:session', Service.extend({ isAuthenticated: true }));
-        await render(hbs`{{profile-content model=this.model media=this.media}}`);
+        await render(hbs`<ProfileContent @model={{this.model}} @media={{this.media}} />`);
 
         // then
         assert.dom('.competence-card').exists();

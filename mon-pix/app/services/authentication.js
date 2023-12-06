@@ -1,5 +1,4 @@
-import Service from '@ember/service';
-import { inject as service } from '@ember/service';
+import Service, { inject as service } from '@ember/service';
 import get from 'lodash/get';
 
 const ALLOWED_ROUTES_FOR_ANONYMOUS_ACCESS = [
@@ -24,7 +23,7 @@ export default class Authentication extends Service {
     }
 
     const isRouteAccessNotAllowedForAnonymousUser = !ALLOWED_ROUTES_FOR_ANONYMOUS_ACCESS.includes(
-      get(transition, 'to.name')
+      get(transition, 'to.name'),
     );
 
     if (isRouteAccessNotAllowedForAnonymousUser) {

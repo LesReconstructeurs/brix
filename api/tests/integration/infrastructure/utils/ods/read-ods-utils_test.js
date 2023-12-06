@@ -1,19 +1,26 @@
-const { readFile } = require('fs').promises;
-const _ = require('lodash');
+import fs from 'fs';
 
-const { expect, catchErr } = require('../../../../test-helper');
-const { UnprocessableEntityError } = require('../../../../../lib/application/http-errors');
+const { promises } = fs;
 
-const {
-  getTransformationStructsForPixCertifCandidatesImport,
-} = require('../../../../../lib/infrastructure/files/candidates-import/candidates-import-transformation-structures');
+const { readFile } = promises;
 
-const {
+import _ from 'lodash';
+import { getI18n } from '../../../../tooling/i18n/i18n.js';
+const i18n = getI18n();
+
+import { expect, catchErr } from '../../../../test-helper.js';
+import { UnprocessableEntityError } from '../../../../../lib/application/http-errors.js';
+import { getTransformationStructsForPixCertifCandidatesImport } from '../../../../../lib/infrastructure/files/candidates-import/candidates-import-transformation-structures.js';
+
+import {
   getContentXml,
   extractTableDataFromOdsFile,
   validateOdsHeaders,
   getSheetDataRowsFromOdsBuffer,
-} = require('../../../../../lib/infrastructure/utils/ods/read-ods-utils');
+} from '../../../../../lib/infrastructure/utils/ods/read-ods-utils.js';
+
+import * as url from 'url';
+const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 
 describe('Integration | Infrastructure | Utils | Ods | read-ods-utils', function () {
   const GET_CONTENT_ODS_FILE_PATH = `${__dirname}/files/get-content-xml_test.ods`;
@@ -245,6 +252,7 @@ describe('Integration | Infrastructure | Utils | Ods | read-ods-utils', function
     it('should read range rows and get the appropriate headers', async function () {
       // given
       const expectedHeaders = getTransformationStructsForPixCertifCandidatesImport({
+        i18n,
         complementaryCertifications: [],
         isSco: true,
       }).headers;
@@ -261,7 +269,7 @@ describe('Integration | Infrastructure | Utils | Ods | read-ods-utils', function
       // given
       const jsonOptions = { ...candidatesRange, dateNF: 'dd/mm/yyyy;@', raw: false };
       const expectedData = {
-        '* Date de naissance (format : jj/mm/aaaa)': '05/10/88',
+        '* Date de naissance (format : jj/mm/aaaa)': '05/10/1988',
         '* Nom de naissance': 'Delarue',
         '* Prénom': 'Sophie',
         '* Sexe (M ou F)': 'F',

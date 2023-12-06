@@ -9,7 +9,12 @@
   <div class="embed rounded-panel {{if this.isLoadingEmbed 'hidden-visibility' ''}}">
     {{#unless this.isSimulatorLaunched}}
       <div class="embed__acknowledgment-overlay">
-        <PixButton @triggerAction={{this.launchSimulator}}>
+        <PixButton
+          @triggerAction={{this.launchSimulator}}
+          @shape="rounded"
+          @backgroundColor="yellow"
+          aria-label={{t "pages.challenge.embed-simulator.actions.launch-label"}}
+        >
           {{t "pages.challenge.embed-simulator.actions.launch"}}
         </PixButton>
       </div>
@@ -17,6 +22,7 @@
 
     <div class="embed__simulator {{unless this.isSimulatorLaunched 'blurred'}}">
       <iframe
+        tabindex={{unless this.isSimulatorLaunched "-1"}}
         class="embed__iframe"
         src="{{@embedDocument.url}}"
         title="{{@embedDocument.title}}"
@@ -26,10 +32,15 @@
     </div>
 
     <div class="embed__reboot">
-      <div class="link link--grey embed-reboot__content" role="button" {{on "click" this.rebootSimulator}}>
-        <FaIcon @icon="rotate-right" class="embed-reboot-content__icon" role="presentation" />
-        <div class="embed-reboot-content__text">{{t "pages.challenge.embed-simulator.actions.reset"}} </div>
-      </div>
+      <button
+        type="button"
+        class="link link--grey embed-reboot__content"
+        aria-label={{t "pages.challenge.embed-simulator.actions.reset-label"}}
+        {{on "click" this.rebootSimulator}}
+      >
+        <FaIcon @icon="rotate-right" class="embed-reboot-content__icon" />
+        {{t "pages.challenge.embed-simulator.actions.reset"}}
+      </button>
     </div>
   </div>
 </div>

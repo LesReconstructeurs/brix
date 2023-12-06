@@ -1,9 +1,16 @@
 class ScoringSimulation {
-  constructor({ id, estimatedLevel, answers = [] } = {}) {
+  constructor({ id, user, answers = [] } = {}) {
     this.id = id;
-    this.estimatedLevel = estimatedLevel;
     this.answers = answers;
+    this.user = new ScoringSimulationUser(user);
   }
 }
 
-module.exports = ScoringSimulation;
+class ScoringSimulationUser {
+  constructor({ id, estimatedLevel } = {}) {
+    this.id = id;
+    this.estimatedLevel = estimatedLevel;
+  }
+}
+
+export { ScoringSimulation };

@@ -1,13 +1,13 @@
-const {
+import {
   expect,
   knex,
   databaseBuilder,
   generateValidRequestAuthorizationHeader,
   insertUserWithRoleSuperAdmin,
-} = require('../../../test-helper');
-const createServer = require('../../../../server');
+} from '../../../test-helper.js';
 
-const Assessment = require('../../../../lib/domain/models/Assessment');
+import { createServer } from '../../../../server.js';
+import { Assessment } from '../../../../lib/domain/models/Assessment.js';
 
 describe('Acceptance | Controller | assessment-results-controller', function () {
   let server;
@@ -26,7 +26,7 @@ describe('Acceptance | Controller | assessment-results-controller', function () 
 
       options = {
         method: 'POST',
-        url: '/api/admin/assessment-results',
+        url: `/api/admin/certification-courses/${certificationCourseId}/assessment-results`,
         headers: { authorization: generateValidRequestAuthorizationHeader() },
         payload: {
           data: {
@@ -74,6 +74,7 @@ describe('Acceptance | Controller | assessment-results-controller', function () 
     afterEach(async function () {
       await knex('authentication-methods').delete();
       await knex('competence-marks').delete();
+      await knex('certification-courses-last-assessment-results').delete();
       await knex('assessment-results').delete();
       await knex('assessments').delete();
       await knex('certification-courses').delete();
@@ -123,7 +124,7 @@ describe('Acceptance | Controller | assessment-results-controller', function () 
             emitter: 'PIX-ALGO',
             commentForJury: 'Computed',
           },
-          'id'
+          'id',
         );
 
         await knex('competence-marks').insert({
@@ -155,7 +156,7 @@ describe('Acceptance | Controller | assessment-results-controller', function () 
 
         const options = {
           method: 'POST',
-          url: '/api/admin/assessment-results',
+          url: `/api/admin/certification-courses/${certificationCourseId}/assessment-results`,
           headers: { authorization: generateValidRequestAuthorizationHeader() },
           payload: {
             data: {

@@ -1,7 +1,8 @@
-const { EntityValidationError, ForbiddenAccess, AlreadyExistingCampaignParticipationError } = require('../errors');
-const CampaignParticipation = require('./CampaignParticipation');
-const Assessment = require('./Assessment');
-const OrganizationLearner = require('./OrganizationLearner');
+import { EntityValidationError, ForbiddenAccess, AlreadyExistingCampaignParticipationError } from '../errors.js';
+
+import { CampaignParticipation } from './CampaignParticipation.js';
+import { Assessment } from './Assessment.js';
+import { OrganizationLearner } from './OrganizationLearner.js';
 const couldNotJoinCampaignErrorMessage = "Vous n'êtes pas autorisé à rejoindre la campagne";
 const couldNotImproveCampaignErrorMessage = 'Vous ne pouvez pas repasser la campagne';
 
@@ -70,7 +71,7 @@ class CampaignParticipant {
 
     if (this.previousCampaignParticipationForUser && !this.campaignToStartParticipation.multipleSendings) {
       throw new AlreadyExistingCampaignParticipationError(
-        `User ${this.userIdentity.id} has already a campaign participation with campaign ${this.campaignToStartParticipation.id}`
+        `User ${this.userIdentity.id} has already a campaign participation with campaign ${this.campaignToStartParticipation.id}`,
       );
     }
 
@@ -118,4 +119,4 @@ class CampaignParticipant {
   }
 }
 
-module.exports = CampaignParticipant;
+export { CampaignParticipant };

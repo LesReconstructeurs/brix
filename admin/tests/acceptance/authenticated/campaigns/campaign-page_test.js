@@ -4,7 +4,7 @@ import { visit } from '@1024pix/ember-testing-library';
 import { setupApplicationTest } from 'ember-qunit';
 import { authenticateAdminMemberWithRole } from 'pix-admin/tests/helpers/test-init';
 
-import setupMirage from 'ember-cli-mirage/test-support/setup-mirage';
+import { setupMirage } from 'ember-cli-mirage/test-support';
 
 module('Acceptance | Campaign Page', function (hooks) {
   setupApplicationTest(hooks);
@@ -31,7 +31,7 @@ module('Acceptance | Campaign Page', function (hooks) {
 
       // then
       assert.strictEqual(currentURL(), '/campaigns/1/participations');
-      assert.dom(screen.getByRole('heading', { name: 'Campaign name' })).exists();
+      assert.dom(screen.getByRole('heading', { name: 'Campaign name', level: 2 })).exists();
     });
   });
 });

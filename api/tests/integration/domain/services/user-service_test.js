@@ -1,16 +1,17 @@
-const pick = require('lodash/pick');
+import lodash from 'lodash';
+const { pick } = lodash;
 
-const { catchErr, domainBuilder, databaseBuilder, expect, knex } = require('../../../test-helper');
+import { catchErr, domainBuilder, databaseBuilder, expect, knex } from '../../../test-helper.js';
 
-const authenticationMethodRepository = require('../../../../lib/infrastructure/repositories/authentication-method-repository');
-const organizationLearnerRepository = require('../../../../lib/infrastructure/repositories/organization-learner-repository');
-const userRepository = require('../../../../lib/infrastructure/repositories/user-repository');
-const userToCreateRepository = require('../../../../lib/infrastructure/repositories/user-to-create-repository');
+import * as authenticationMethodRepository from '../../../../lib/infrastructure/repositories/authentication-method-repository.js';
+import * as organizationLearnerRepository from '../../../../lib/infrastructure/repositories/organization-learner-repository.js';
+import * as userRepository from '../../../../lib/infrastructure/repositories/user-repository.js';
+import * as userToCreateRepository from '../../../../lib/infrastructure/repositories/user-to-create-repository.js';
 
-const AuthenticationMethod = require('../../../../lib/domain/models/AuthenticationMethod');
-const { OrganizationLearnerNotFound } = require('../../../../lib/domain/errors');
+import { NON_OIDC_IDENTITY_PROVIDERS } from '../../../../lib/domain/constants/identity-providers.js';
+import { OrganizationLearnerNotFound } from '../../../../lib/domain/errors.js';
 
-const userService = require('../../../../lib/domain/services/user-service');
+import * as userService from '../../../../lib/domain/services/user-service.js';
 
 describe('Integration | Domain | Services | user-service', function () {
   const hashedPassword = 'Abcdef1234';
@@ -54,10 +55,10 @@ describe('Integration | Domain | Services | user-service', function () {
 
       const foundAuthenticationMethod = await authenticationMethodRepository.findOneByUserIdAndIdentityProvider({
         userId: foundUser.id,
-        identityProvider: AuthenticationMethod.identityProviders.PIX,
+        identityProvider: NON_OIDC_IDENTITY_PROVIDERS.PIX.code,
       });
       expect(pick(foundAuthenticationMethod, authenticationMethodPickedAttributes)).to.deep.equal(
-        expectedAuthenticationMethod
+        expectedAuthenticationMethod,
       );
     });
 
@@ -115,7 +116,7 @@ describe('Integration | Domain | Services | user-service', function () {
           password: hashedPassword,
           shouldChangePassword: true,
         },
-        identityProvider: AuthenticationMethod.identityProviders.PIX,
+        identityProvider: NON_OIDC_IDENTITY_PROVIDERS.PIX.code,
       };
 
       // when
@@ -131,7 +132,7 @@ describe('Integration | Domain | Services | user-service', function () {
       const foundUser = await userRepository.getByUsernameOrEmailWithRolesAndPassword(username);
       expect(pick(foundUser, userPickedAttributes)).to.deep.equal(expectedUser);
       expect(pick(foundUser.authenticationMethods[0], authenticationMethodPickedAttributes)).to.deep.equal(
-        expectedAuthenticationMethod
+        expectedAuthenticationMethod,
       );
     });
   });
@@ -224,7 +225,7 @@ describe('Integration | Domain | Services | user-service', function () {
 
           // then
           const foundAuthenticationMethod = await knex('authentication-methods').where({
-            identityProvider: AuthenticationMethod.identityProviders.GAR,
+            identityProvider: NON_OIDC_IDENTITY_PROVIDERS.GAR.code,
             externalIdentifier: samlId,
           });
           expect(foundAuthenticationMethod).to.have.lengthOf(1);

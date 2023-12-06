@@ -1,4 +1,4 @@
-exports.up = async function (knex) {
+const up = async function (knex) {
   await knex.schema.createTable('complementary-certification-habilitations', (t) => {
     t.increments().primary();
     t.dateTime('createdAt').notNullable().defaultTo(knex.fn.now());
@@ -15,7 +15,7 @@ exports.up = async function (knex) {
         certificationCenterId,
         createdAt,
       };
-    }
+    },
   );
 
   if (complementaryCertificationHabilitations.length > 0) {
@@ -25,11 +25,13 @@ exports.up = async function (knex) {
     const idForNextInsertion = maxIdResult.max + 1;
     // eslint-disable-next-line knex/avoid-injections
     await knex.raw(
-      `ALTER SEQUENCE "complementary-certification-habilitations_id_seq" RESTART WITH ${idForNextInsertion}`
+      `ALTER SEQUENCE "complementary-certification-habilitations_id_seq" RESTART WITH ${idForNextInsertion}`,
     );
   }
 };
 
-exports.down = function (knex) {
+const down = function (knex) {
   return knex.schema.dropTable('complementary-certification-habilitations');
 };
+
+export { up, down };

@@ -1,5 +1,5 @@
 import { action } from '@ember/object';
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 // eslint-disable-next-line ember/no-computed-properties-in-native-classes
 import { alias } from '@ember/object/computed';
 import Controller from '@ember/controller';
@@ -95,6 +95,6 @@ function _getCertificationResultsAfterJuryUpdate(competences) {
       }
       return data;
     },
-    { count: 0, good: 0, jury: false }
+    { count: 0, good: 0, jury: false },
   );
 }

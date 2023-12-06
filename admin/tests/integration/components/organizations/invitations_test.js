@@ -2,7 +2,7 @@ import { module, test } from 'qunit';
 import { setupRenderingTest } from 'ember-qunit';
 import { render } from '@1024pix/ember-testing-library';
 import { click } from '@ember/test-helpers';
-import hbs from 'htmlbars-inline-precompile';
+import { hbs } from 'ember-cli-htmlbars';
 import dayjs from 'dayjs';
 import sinon from 'sinon';
 import Service from '@ember/service';
@@ -62,7 +62,7 @@ module('Integration | Component | organization-invitations', function (hooks) {
           hbs`<Organizations::Invitations
   @invitations={{this.invitations}}
   @onCancelOrganizationInvitation={{this.cancelOrganizationInvitation}}
-/>`
+/>`,
         );
 
         // then
@@ -91,7 +91,7 @@ module('Integration | Component | organization-invitations', function (hooks) {
             hbs`<Organizations::Invitations
   @invitations={{this.invitations}}
   @onCancelOrganizationInvitation={{this.cancelOrganizationInvitation}}
-/>`
+/>`,
           );
           await click(screen.getByRole('button', { name: 'Annuler l’invitation de naruto.uzumaki@example.net' }));
 
@@ -160,7 +160,7 @@ module('Integration | Component | organization-invitations', function (hooks) {
           hbs`<Organizations::Invitations
   @invitations={{this.invitations}}
   @onCancelOrganizationInvitation={{this.cancelOrganizationInvitation}}
-/>`
+/>`,
         );
 
         // then
@@ -186,7 +186,7 @@ module('Integration | Component | organization-invitations', function (hooks) {
           hbs`<Organizations::Invitations
   @invitations={{this.invitations}}
   @onCancelOrganizationInvitation={{this.cancelOrganizationInvitation}}
-/>`
+/>`,
         );
 
         // then

@@ -1,7 +1,7 @@
 import Service from '@ember/service';
 import { module, test } from 'qunit';
 import setupIntlRenderingTest from '../../helpers/setup-intl-rendering';
-import hbs from 'htmlbars-inline-precompile';
+import { hbs } from 'ember-cli-htmlbars';
 import { render } from '@1024pix/ember-testing-library';
 
 module('Integration | Component | Footer', function (hooks) {
@@ -30,12 +30,12 @@ module('Integration | Component | Footer', function (hooks) {
 
   test('should not display marianne logo when url does not have frenchDomainExtension', async function (assert) {
     // given
-    class UrlServiceStub extends Service {
-      get isFrenchDomainExtension() {
+    class CurrentDomainServiceStub extends Service {
+      get isFranceDomain() {
         return false;
       }
     }
-    this.owner.register('service:url', UrlServiceStub);
+    this.owner.register('service:currentDomain', CurrentDomainServiceStub);
 
     // when
     const screen = await render(hbs`<Footer />`);
@@ -46,12 +46,12 @@ module('Integration | Component | Footer', function (hooks) {
 
   test('should display marianne logo when url does have frenchDomainExtension', async function (assert) {
     // given
-    class UrlServiceStub extends Service {
-      get isFrenchDomainExtension() {
+    class CurrentDomainServiceStub extends Service {
+      get isFranceDomain() {
         return true;
       }
     }
-    this.owner.register('service:url', UrlServiceStub);
+    this.owner.register('service:currentDomain', CurrentDomainServiceStub);
 
     // when
     const screen = await render(hbs`<Footer />`);

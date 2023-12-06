@@ -1,11 +1,12 @@
-const {
+import {
   expect,
   generateValidRequestAuthorizationHeader,
   databaseBuilder,
   mockLearningContent,
   learningContentBuilder,
-} = require('../../../test-helper');
-const createServer = require('../../../../server');
+} from '../../../test-helper.js';
+
+import { createServer } from '../../../../server.js';
 
 describe('Acceptance | Controller | users-controller-get-campaign-participation-overviews', function () {
   let server;
@@ -17,7 +18,6 @@ describe('Acceptance | Controller | users-controller-get-campaign-participation-
   describe('GET /users/1/campaign-participation-overviews', function () {
     let userId;
     let options;
-    let targetProfile;
 
     beforeEach(function () {
       const user = databaseBuilder.factory.buildUser();
@@ -43,11 +43,8 @@ describe('Acceptance | Controller | users-controller-get-campaign-participation-
           ],
         },
       ];
-      const learningContentObjects = learningContentBuilder.buildLearningContent.fromAreas(learningContent);
+      const learningContentObjects = learningContentBuilder.fromAreas(learningContent);
       mockLearningContent(learningContentObjects);
-
-      targetProfile = databaseBuilder.factory.buildTargetProfile();
-      databaseBuilder.factory.buildTargetProfileSkill({ targetProfileId: targetProfile.id, skillId: 'recSkillId1' });
 
       return databaseBuilder.commit();
     });

@@ -7,6 +7,7 @@
   @rowCount={{@rowCount}}
   @isHiddenStages={{true}}
   @isHiddenBadges={{true}}
+  @isHiddenCertificability={{true}}
   @onFilter={{@onFilter}}
   @onResetFilter={{@onResetFilter}}
 />
@@ -109,7 +110,7 @@
   <Campaign::Activity::DeleteParticipationModal
     @participation={{this.participationToDelete}}
     @campaign={{@campaign}}
-    @deleteCampaignParticipant={{@deleteCampaignParticipant}}
+    @deleteCampaignParticipation={{this.deleteCampaignParticipation}}
     @closeModal={{this.closeModal}}
     @isModalOpen={{this.isModalOpen}}
   />

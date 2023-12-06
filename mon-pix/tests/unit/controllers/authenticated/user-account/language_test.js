@@ -5,20 +5,53 @@ import sinon from 'sinon';
 module('Unit | Controller | user-account/language', function (hooks) {
   setupTest(hooks);
 
-  module('#onChangeLang', function () {
-    test('should refresh page on change lang if domain is not french', function (assert) {
-      // given
-      const controller = this.owner.lookup('controller:authenticated/user-account/language');
-      controller.url = { isFrenchDomainExtension: false };
-      const replaceStub = sinon.stub();
-      controller.location = { replace: replaceStub };
+  let controller;
+  let userSaveStub;
+  let setLocaleStub;
 
-      // when
-      controller.onChangeLang('en');
+  hooks.beforeEach(function () {
+    userSaveStub = sinon.stub();
+    setLocaleStub = sinon.stub();
 
-      // then
-      sinon.assert.calledWith(replaceStub, '/mon-compte/langue?lang=en');
-      assert.ok(true);
+    controller = this.owner.lookup('controller:authenticated/user-account/language');
+    controller.currentUser = { user: { save: userSaveStub } };
+    controller.locale = { setLocale: setLocaleStub };
+    controller.set('shouldDisplayLanguageUpdatedMessage', false);
+  });
+
+  module('#onLanguageChange', function () {
+    module('when domain is international', function () {
+      test('saves user language and update application locale', async function (assert) {
+        // given
+        const language = 'en';
+
+        controller.currentDomain = { isFranceDomain: false };
+
+        // when
+        await controller.onLanguageChange(language);
+
+        // then
+        sinon.assert.calledWith(userSaveStub, { adapterOptions: { lang: language } });
+        sinon.assert.calledWith(setLocaleStub, language);
+        assert.true(controller.shouldDisplayLanguageUpdatedMessage);
+        assert.ok(true);
+      });
+    });
+    module('when in France domain', function () {
+      test('does not save user language and update application locale', async function (assert) {
+        // given
+        const language = 'en';
+
+        controller.currentDomain = { isFranceDomain: true };
+
+        // when
+        await controller.onLanguageChange(language);
+
+        // then
+        sinon.assert.notCalled(userSaveStub);
+        sinon.assert.notCalled(setLocaleStub);
+        assert.ok(true);
+      });
     });
   });
 });

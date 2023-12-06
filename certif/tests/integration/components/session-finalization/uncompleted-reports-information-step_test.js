@@ -2,7 +2,7 @@ import { module, test } from 'qunit';
 import setupIntlRenderingTest from '../../../helpers/setup-intl-rendering';
 
 import { click } from '@ember/test-helpers';
-import hbs from 'htmlbars-inline-precompile';
+import { hbs } from 'ember-cli-htmlbars';
 import sinon from 'sinon';
 import { certificationIssueReportCategories } from 'pix-certif/models/certification-issue-report';
 import { render as renderScreen } from '@1024pix/ember-testing-library';
@@ -44,8 +44,8 @@ module('Integration | Component | SessionFinalization::UncompletedReportsInforma
     assert
       .dom(
         screen.getByText(
-          "Ces candidats n'ont pas fini leur test de certification ou le surveillant a mis fin à leur test"
-        )
+          "Ces candidats n'ont pas fini leur test de certification ou le surveillant a mis fin à leur test",
+        ),
       )
       .exists();
     assert.dom(screen.getByText('1 signalement')).exists();
@@ -88,8 +88,8 @@ module('Integration | Component | SessionFinalization::UncompletedReportsInforma
     assert
       .dom(
         screen.getByText(
-          "Ces candidats n'ont pas fini leur test de certification ou le surveillant a mis fin à leur test"
-        )
+          "Ces candidats n'ont pas fini leur test de certification ou le surveillant a mis fin à leur test",
+        ),
       )
       .exists();
     assert.dom(screen.getByText('2 signalements')).exists();
@@ -122,7 +122,7 @@ module('Integration | Component | SessionFinalization::UncompletedReportsInforma
     await click(
       await screen.findByRole('option', {
         name: 'Problème technique',
-      })
+      }),
     );
 
     // then
@@ -159,7 +159,7 @@ module('Integration | Component | SessionFinalization::UncompletedReportsInforma
           @onChangeAbortReason = {{this.abort}}
         />
       `);
-    await click(screen.getByRole('button', { name: 'Ajouter / supprimer' }));
+    await click(screen.getByRole('button', { name: 'Ajouter / Supprimer' }));
     await screen.findByRole('dialog');
 
     // then
@@ -226,10 +226,8 @@ module('Integration | Component | SessionFinalization::UncompletedReportsInforma
     assert
       .dom(
         screen.getByRole('table', {
-          name: `Ces candidats n'ont pas fini leur test de certification ou le surveillant a mis fin à leur test ${this.intl.t(
-            'pages.sessions.finalize.unfinished-test-list-description'
-          )}`,
-        })
+          name: "Ces candidats n'ont pas fini leur test de certification ou le surveillant a mis fin à leur test Liste des candidats qui n’ont pas fini leur test de certification, triée par nom de naissance, avec un lien pour ajouter un ou plusieurs signalements le cas échéant et une liste déroulante permettant de sélectionner la raison de l’abandon.",
+        }),
       )
       .exists();
   });

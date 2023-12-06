@@ -15,7 +15,7 @@
             @backgroundColor="transparent-light"
             @isBorderVisible={{true}}
           >
-            {{t "pages.login-or-register.register-form.button"}}
+            {{t "pages.login-or-register.register-form.actions.login"}}
           </PixButton>
         {{/unless}}
         <div
@@ -63,4 +63,11 @@
       </div>
     </div>
   </div>
+  {{#if this.isInternationalDomain}}
+    <LanguageSwitcher
+      class="login-or-register__language-switcher"
+      @selectedLanguage={{this.selectedLanguage}}
+      @onLanguageChange={{this.onLanguageChange}}
+    />
+  {{/if}}
 </div>

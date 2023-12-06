@@ -1,17 +1,18 @@
-const solutionServiceQCU = require('../services/solution-service-qcu');
-const Validation = require('./Validation');
-const Validator = require('./Validator');
+import * as solutionServiceQCU from '../services/solution-service-qcu.js';
+import { Validation } from './Validation.js';
+import { Validator } from './Validator.js';
 
 /**
  * Traduction: Vérificateur de réponse pour un QCU
  */
 class ValidatorQCU extends Validator {
-  constructor({ solution } = {}) {
+  constructor({ solution, dependencies = { solutionServiceQCU } } = {}) {
     super({ solution });
+    this.dependencies = dependencies;
   }
 
   assess({ answer }) {
-    const result = solutionServiceQCU.match(answer.value, this.solution.value);
+    const result = this.dependencies.solutionServiceQCU.match(answer.value, this.solution.value);
 
     return new Validation({
       result,
@@ -20,4 +21,4 @@ class ValidatorQCU extends Validator {
   }
 }
 
-module.exports = ValidatorQCU;
+export { ValidatorQCU };

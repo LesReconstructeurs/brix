@@ -1,10 +1,9 @@
-const { expect, sinon, domainBuilder, HttpTestServer } = require('../../../test-helper');
-
-const securityPreHandlers = require('../../../../lib/application/security-pre-handlers');
-const usecases = require('../../../../lib/domain/usecases');
-const { UserNotAuthorizedToRemoveAuthenticationMethod } = require('../../../../lib/domain/errors');
-const AssessmentResult = require('../../../../lib/domain/read-models/participant-results/AssessmentResult');
-const moduleUnderTest = require('../../../../lib/application/users');
+import { expect, sinon, domainBuilder, HttpTestServer } from '../../../test-helper.js';
+import { securityPreHandlers } from '../../../../lib/application/security-pre-handlers.js';
+import { usecases } from '../../../../lib/domain/usecases/index.js';
+import { UserNotAuthorizedToRemoveAuthenticationMethod } from '../../../../lib/domain/errors.js';
+import { AssessmentResult } from '../../../../lib/domain/read-models/participant-results/AssessmentResult.js';
+import * as moduleUnderTest from '../../../../lib/application/users/index.js';
 
 describe('Integration | Application | Users | user-controller', function () {
   let sandbox;
@@ -32,11 +31,10 @@ describe('Integration | Application | Users | user-controller', function () {
     const auth = { credentials: {}, strategy: {} };
 
     context('Success cases', function () {
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line mocha/no-setup-in-describe
-      const campaignParticipation = domainBuilder.buildCampaignParticipation();
+      let campaignParticipation;
 
       beforeEach(function () {
+        campaignParticipation = domainBuilder.buildCampaignParticipation();
         securityPreHandlers.checkRequestedUserIsAuthenticatedUser.returns(true);
         auth.credentials.userId = '1234';
       });
@@ -50,7 +48,7 @@ describe('Integration | Application | Users | user-controller', function () {
           'GET',
           '/api/users/1234/campaigns/5678/campaign-participations',
           null,
-          auth
+          auth,
         );
 
         // then
@@ -109,17 +107,18 @@ describe('Integration | Application | Users | user-controller', function () {
     const auth = { credentials: {}, strategy: {} };
 
     context('Success cases', function () {
-      const campaignAssessmentResult = new AssessmentResult({
-        participationResults: { knowledgeElements: [] },
-        competences: [],
-        badgeResultsDTO: [],
-        stages: [],
-        isCampaignMultipleSendings: false,
-      });
+      let campaignAssessmentResult;
 
       beforeEach(function () {
         securityPreHandlers.checkRequestedUserIsAuthenticatedUser.returns(true);
         auth.credentials.userId = '1234';
+        campaignAssessmentResult = new AssessmentResult({
+          participationResults: { knowledgeElements: [] },
+          competences: [],
+          badgeResultsDTO: [],
+          stageCollection: domainBuilder.buildStageCollectionForUserCampaignResults({ campaignId: 5678, stages: [] }),
+          isCampaignMultipleSendings: false,
+        });
       });
 
       it('should return an HTTP response with status code 200', async function () {
@@ -133,7 +132,7 @@ describe('Integration | Application | Users | user-controller', function () {
           'GET',
           '/api/users/1234/campaigns/5678/assessment-result',
           null,
-          auth
+          auth,
         );
 
         // then

@@ -4,6 +4,7 @@ import { setupApplicationTest } from 'ember-qunit';
 import authenticateSession from '../helpers/authenticate-session';
 import { createUserManagingStudents, createPrescriberByUser } from '../helpers/test-init';
 import setupMirage from 'ember-cli-mirage/test-support/setup-mirage';
+import sinon from 'sinon';
 
 module('Acceptance | Certifications page', function (hooks) {
   setupApplicationTest(hooks);
@@ -16,13 +17,31 @@ module('Acceptance | Certifications page', function (hooks) {
     await authenticateSession(user.id);
   });
 
-  module('When user arrives on certifications page', function () {
-    test('should not show any banner', async function (assert) {
+  module('When user arrives on certifications page', function (hooks) {
+    let dayjs;
+    hooks.afterEach(function () {
+      sinon.restore();
+    });
+
+    test('should display certification banner when it is time to', async function (assert) {
+      dayjs = this.owner.lookup('service:dayjs');
+      sinon.stub(dayjs.self.prototype, 'format').returns('04');
+
       // given / when
       await visit('/certifications');
 
       // then
-      assert.dom('.information-banner').doesNotExist();
+      assert.dom('.pix-banner').exists();
+    });
+
+    test('should not show any banner outside certification period', async function (assert) {
+      dayjs = this.owner.lookup('service:dayjs');
+      sinon.stub(dayjs.self.prototype, 'format').returns('10');
+
+      // given / when
+      await visit('/certifications');
+
+      // then
       assert.dom('.pix-banner').doesNotExist();
     });
 
@@ -35,7 +54,7 @@ module('Acceptance | Certifications page', function (hooks) {
         assert
           .dom('.certifications-page__text')
           .containsText(
-            'Dans cet onglet, vous retrouverez les résultats et les attestations de certification des élèves. Vous devez, dans un premier temps, importer la base élèves de votre établissement.'
+            'Dans cet onglet, vous retrouverez les résultats et les attestations de certification des élèves. Vous devez, dans un premier temps, importer la base élèves de votre établissement.',
           );
       });
     });
@@ -57,7 +76,7 @@ module('Acceptance | Certifications page', function (hooks) {
         assert
           .dom('.certifications-page__text')
           .containsText(
-            'Sélectionnez la classe pour laquelle vous souhaitez exporter les résultats de certification (.csv) ou télécharger les attestations (.pdf). Vous pouvez filtrer cette liste en renseignant le nom de la classe directement dans le champ.'
+            'Sélectionnez la classe pour laquelle vous souhaitez exporter les résultats de certification (.csv) ou télécharger les attestations (.pdf). Vous pouvez filtrer cette liste en renseignant le nom de la classe directement dans le champ.',
           );
         assert.contains('Exporter les résultats');
         assert.contains('Certifications');

@@ -1,6 +1,6 @@
 import Controller from '@ember/controller';
 import { action } from '@ember/object';
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
 import get from 'lodash/get';
 
@@ -53,7 +53,7 @@ export default class SessionToBePublishedController extends Controller {
     this.notifications.error(
       "Une ou plusieurs erreurs se sont produites, veuillez conserver la référence suivante pour investigation auprès de l'équipe technique : " +
         get(error, 'errors[0].detail'),
-      { autoClear: false }
+      { autoClear: false },
     );
   }
 

@@ -1,7 +1,8 @@
 import Service from '@ember/service';
 import { module, test } from 'qunit';
-import { click, render, triggerEvent, triggerKeyEvent } from '@ember/test-helpers';
-import hbs from 'htmlbars-inline-precompile';
+import { click, triggerEvent, triggerKeyEvent } from '@ember/test-helpers';
+import { render } from '@1024pix/ember-testing-library';
+import { hbs } from 'ember-cli-htmlbars';
 import setupIntlRenderingTest from '../../../../helpers/setup-intl-rendering';
 
 module('Integration | Component | Tooltip', function (hooks) {

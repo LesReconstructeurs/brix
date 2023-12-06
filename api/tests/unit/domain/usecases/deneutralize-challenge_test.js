@@ -1,7 +1,7 @@
-const { sinon, expect, domainBuilder } = require('../../../test-helper');
-const CertificationAssessment = require('../../../../lib/domain/models/CertificationAssessment');
-const deneutralizeChallenge = require('../../../../lib/domain/usecases/deneutralize-challenge');
-const ChallengeDeneutralized = require('../../../../lib/domain/events/ChallengeDeneutralized');
+import { sinon, expect, domainBuilder } from '../../../test-helper.js';
+import { CertificationAssessment } from '../../../../lib/domain/models/CertificationAssessment.js';
+import { deneutralizeChallenge } from '../../../../lib/domain/usecases/deneutralize-challenge.js';
+import { ChallengeDeneutralized } from '../../../../lib/domain/events/ChallengeDeneutralized.js';
 
 describe('Unit | UseCase | deneutralize-challenge', function () {
   it('deneutralizes a challenge by its recId', async function () {
@@ -39,7 +39,7 @@ describe('Unit | UseCase | deneutralize-challenge', function () {
 
     // then
     expect(certificationAssessment.deneutralizeChallengeByRecId).to.have.been.calledWith(
-      challengeToBeDeneutralized.challengeId
+      challengeToBeDeneutralized.challengeId,
     );
     expect(certificationAssessmentRepository.save).to.have.been.calledWith(certificationAssessment);
   });
@@ -63,7 +63,7 @@ describe('Unit | UseCase | deneutralize-challenge', function () {
       createdAt: new Date('2020-01-01'),
       completedAt: new Date('2020-01-01'),
       state: CertificationAssessment.states.STARTED,
-      isV2Certification: true,
+      version: 2,
       certificationChallenges: [
         challengeToBeDeneutralized,
         domainBuilder.buildCertificationChallengeWithType({ isNeutralized: false }),

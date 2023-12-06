@@ -1,9 +1,8 @@
-const { sinon, expect, nock } = require('../../../test-helper');
-
-const mailCheck = require('../../../../lib/infrastructure/mail-check');
-const { mailing } = require('../../../../lib/config');
-
-const SendinblueProvider = require('../../../../lib/infrastructure/mailers/SendinblueProvider');
+import { sinon, expect, nock, catchErr } from '../../../test-helper.js';
+import { config } from '../../../../lib/config.js';
+import { SendinblueProvider } from '../../../../lib/infrastructure/mailers/SendinblueProvider.js';
+import { MailingProviderInvalidEmailError } from '../../../../lib/infrastructure/mailers/MailingProviderInvalidEmailError.js';
+const { mailing } = config;
 
 describe('Unit | Class | SendinblueProvider', function () {
   beforeEach(function () {
@@ -24,7 +23,6 @@ describe('Unit | Class | SendinblueProvider', function () {
         sinon.stub(mailing, 'provider').value('sendinblue');
 
         sinon.stub(SendinblueProvider, 'createSendinblueSMTPApi');
-        sinon.stub(mailCheck, 'checkDomainIsValid').withArgs(userEmailAddress).resolves();
 
         stubbedSendinblueSMTPApi = { sendTransacEmail: sinon.stub() };
         SendinblueProvider.createSendinblueSMTPApi.returns(stubbedSendinblueSMTPApi);
@@ -145,6 +143,29 @@ describe('Unit | Class | SendinblueProvider', function () {
             // then
             expect(stubbedSendinblueSMTPApi.sendTransacEmail).to.have.been.calledWithExactly(expectedPayload);
           });
+        });
+      });
+
+      context('when email sending fails with code invalid_parameter', function () {
+        it('should throw a MailingProviderInvalidEmailError with provider message', async function () {
+          // given
+          const options = {
+            from: senderEmailAddress,
+            to: userEmailAddress,
+            fromName: 'Ne pas repondre',
+            subject: 'Creation de compte',
+            template: templateId,
+          };
+          stubbedSendinblueSMTPApi.sendTransacEmail.rejects({
+            response: { text: '{"code":"invalid_parameter","message":"email is not valid in to"}' },
+          });
+
+          // when
+          const error = await catchErr(mailingProvider.sendEmail, mailingProvider)(options);
+
+          // then
+          expect(error).to.be.instanceof(MailingProviderInvalidEmailError);
+          expect(error.message).to.equal('email is not valid in to');
         });
       });
     });

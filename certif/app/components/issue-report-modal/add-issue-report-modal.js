@@ -1,5 +1,5 @@
 import Component from '@glimmer/component';
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 import { action } from '@ember/object';
 import { tracked } from '@glimmer/tracking';
 import {
@@ -14,10 +14,10 @@ import {
 export class RadioButtonCategory {
   @tracked isChecked;
 
-  constructor({ name, isChecked = false }) {
+  constructor({ name, isChecked = false, intl }) {
     this.name = name;
     this.isChecked = isChecked;
-    this.categoryLabel = categoryToLabel[name];
+    this.categoryLabel = intl.t(categoryToLabel[name]);
     this.categoryCode = categoryToCode[name];
   }
 
@@ -53,8 +53,8 @@ export class RadioButtonCategoryWithDescription extends RadioButtonCategory {
 export class RadioButtonCategoryWithSubcategory extends RadioButtonCategory {
   @tracked subcategory;
 
-  constructor({ name, subcategory, isChecked }) {
-    super({ name, isChecked });
+  constructor({ name, subcategory, isChecked, intl }) {
+    super({ name, isChecked, intl });
     this.subcategory = subcategory;
     this.subcategoryCode = subcategoryToCode[name];
   }
@@ -105,27 +105,35 @@ export class RadioButtonCategoryWithSubcategoryAndQuestionNumber extends RadioBu
 
 export default class AddIssueReportModal extends Component {
   @service store;
+  @service intl;
 
   @tracked signatureIssueCategory = new RadioButtonCategoryWithDescription({
     name: certificationIssueReportCategories.SIGNATURE_ISSUE,
+    intl: this.intl,
   });
 
   @tracked candidateInformationChangeCategory = new RadioButtonCategoryWithSubcategoryWithDescription({
     name: certificationIssueReportCategories.CANDIDATE_INFORMATIONS_CHANGES,
     subcategory: certificationIssueReportSubcategories.NAME_OR_BIRTHDATE,
+    intl: this.intl,
   });
+
   @tracked inChallengeCategory = new RadioButtonCategoryWithSubcategoryAndQuestionNumber({
     name: certificationIssueReportCategories.IN_CHALLENGE,
     subcategory: certificationIssueReportSubcategories.IMAGE_NOT_DISPLAYING,
+    intl: this.intl,
   });
   @tracked fraudCategory = new RadioButtonCategory({
     name: certificationIssueReportCategories.FRAUD,
+    intl: this.intl,
   });
   @tracked nonBlockingTechnicalIssueCategory = new RadioButtonCategoryWithDescription({
     name: certificationIssueReportCategories.NON_BLOCKING_TECHNICAL_ISSUE,
+    intl: this.intl,
   });
   @tracked nonBlockingCandidateIssueCategory = new RadioButtonCategoryWithDescription({
     name: certificationIssueReportCategories.NON_BLOCKING_CANDIDATE_ISSUE,
+    intl: this.intl,
   });
   categories = [
     this.signatureIssueCategory,
@@ -147,6 +155,26 @@ export default class AddIssueReportModal extends Component {
   }
 
   @action
+  updateCandidateInformationChangeCategory(event) {
+    this.candidateInformationChangeCategory.description = event.target.value;
+  }
+
+  @action
+  updateNonBlockingCandidateIssueCategory(event) {
+    this.nonBlockingCandidateIssueCategory.description = event.target.value;
+  }
+
+  @action
+  updateNonBlockingTechnicalIssueCategory(event) {
+    this.nonBlockingTechnicalIssueCategory.description = event.target.value;
+  }
+
+  @action
+  updateSignatureIssueCategory(event) {
+    this.signatureIssueCategory.description = event.target.value;
+  }
+
+  @action
   async submitReport(event) {
     event.preventDefault();
     const categoryToAdd = this.categories.find((category) => category.isChecked);
@@ -156,7 +184,7 @@ export default class AddIssueReportModal extends Component {
     }
     const issueReportToSave = this.store.createRecord(
       'certification-issue-report',
-      categoryToAdd.issueReport(this.args.report)
+      categoryToAdd.issueReport(this.args.report),
     );
     try {
       await issueReportToSave.save();

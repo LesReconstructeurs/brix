@@ -1,4 +1,8 @@
-const { readFile } = require('fs/promises');
+import { readFile } from 'fs/promises';
+
+import * as url from 'url';
+
+const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 
 const embeddedFonts = {};
 const COVER_PAGE_VERSION_TEXT_FONT_SIZE = 20;
@@ -18,7 +22,7 @@ const fonts = {
   robotoRegular: 'Roboto-Regular.ttf',
 };
 
-module.exports = {
+const FontManager = {
   key: {
     robotoCondensedBold: 'robotoCondensedBold',
     robotoCondensedLight: 'robotoCondensedLight',
@@ -186,3 +190,5 @@ module.exports = {
     }
   },
 };
+
+export { FontManager };

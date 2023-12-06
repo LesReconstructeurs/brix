@@ -1,13 +1,14 @@
-const {
+import {
   MissingOrInvalidCredentialsError,
   UserNotFoundError,
   PasswordNotMatching,
   UnexpectedUserAccountError,
   UserAlreadyExistsWithAuthenticationMethodError,
   UserShouldChangePasswordError,
-} = require('../errors');
+} from '../errors.js';
 
-const AuthenticationMethod = require('../models/AuthenticationMethod');
+import { AuthenticationMethod } from '../models/AuthenticationMethod.js';
+import { NON_OIDC_IDENTITY_PROVIDERS } from '../constants/identity-providers.js';
 
 async function authenticateExternalUser({
   username,
@@ -33,7 +34,6 @@ async function authenticateExternalUser({
 
       throw new UnexpectedUserAccountError({
         message: undefined,
-        code: 'UNEXPECTED_USER_ACCOUNT',
         meta: { value: authenticationMethod.value },
       });
     }
@@ -74,7 +74,7 @@ async function _addGarAuthenticationMethod({
   await _checkIfSamlIdIsNotReconciledWithAnotherUser({ samlId, userId, userRepository });
 
   const garAuthenticationMethod = new AuthenticationMethod({
-    identityProvider: AuthenticationMethod.identityProviders.GAR,
+    identityProvider: NON_OIDC_IDENTITY_PROVIDERS.GAR.code,
     externalIdentifier: samlId,
     userId,
     authenticationComplement: new AuthenticationMethod.GARAuthenticationComplement({
@@ -92,4 +92,4 @@ const _checkIfSamlIdIsNotReconciledWithAnotherUser = async ({ samlId, userId, us
   }
 };
 
-module.exports = authenticateExternalUser;
+export { authenticateExternalUser };

@@ -1,0 +1,41 @@
+{{! template-lint-disable link-href-attributes }}
+{{page-title (t "pages.sessions.import.title")}}
+<main class="import-page">
+  <PixReturnTo @route="authenticated.sessions.list" class="import-page__previous-page-button">
+    {{t "pages.sessions.actions.return"}}
+  </PixReturnTo>
+  <h1 class="page-title">{{t "pages.sessions.import.title"}}</h1>
+
+  <div class="import-page__section--breadcrumb panel">
+    <ol aria-label={{t "pages.sessions.import.breadcrumb.extra-information"}}>
+      <li class={{if this.isImportStepOne "active" ""}} aria-current={{if this.isImportStepOne "step" ""}}>
+        {{t "pages.sessions.import.breadcrumb.import"}}
+      </li>
+      <FaIcon @icon="chevron-right" class="breadcrumb-icon" />
+      <li class={{if this.isImportStepOne "" "active"}} aria-current={{if this.isImportStepOne "" "step"}}>
+        {{t "pages.sessions.import.breadcrumb.summary"}}
+      </li>
+    </ol>
+  </div>
+
+  {{#if this.isImportStepOne}}
+    <Import::StepOneSection
+      @downloadSessionImportTemplate={{this.downloadSessionImportTemplate}}
+      @preImportSessions={{this.preImportSessions}}
+      @file={{this.file}}
+      @fileName={{this.fileName}}
+      @removeImport={{this.removeImport}}
+      @validateSessions={{this.validateSessions}}
+      @isImportDisabled={{this.isImportDisabled}}
+    />
+  {{else}}
+    <Import::StepTwoSection
+      @sessionsCount={{this.sessionsCount}}
+      @sessionsWithoutCandidatesCount={{this.sessionsWithoutCandidatesCount}}
+      @candidatesCount={{this.candidatesCount}}
+      @errorReports={{this.errorReports}}
+      @createSessions={{this.createSessions}}
+      @toggleStepOne={{this.toggleStepOne}}
+    />
+  {{/if}}
+</main>

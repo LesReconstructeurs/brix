@@ -1,4 +1,4 @@
-const { expect, domainBuilder } = require('../../../test-helper');
+import { expect, domainBuilder } from '../../../test-helper.js';
 
 describe('Unit | chai-custom-helpers | deepEqualInstanceOmitting', function () {
   it('should fail assertion when both objects are not of the same instance', function () {
@@ -43,7 +43,7 @@ describe('Unit | chai-custom-helpers | deepEqualInstanceOmitting', function () {
         actual: otherSkillSet,
         expected: skillSet,
         operator: 'deepStrictEqual',
-      }
+      },
     );
     global.chaiErr(
       function () {
@@ -53,7 +53,7 @@ describe('Unit | chai-custom-helpers | deepEqualInstanceOmitting', function () {
         actual: anotherSkillSet,
         expected: skillSet,
         operator: 'deepStrictEqual',
-      }
+      },
     );
   });
 

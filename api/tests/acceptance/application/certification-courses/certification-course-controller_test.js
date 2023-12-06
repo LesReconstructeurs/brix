@@ -1,4 +1,4 @@
-const {
+import {
   expect,
   databaseBuilder,
   knex,
@@ -6,14 +6,15 @@ const {
   mockLearningContent,
   generateValidRequestAuthorizationHeader,
   insertUserWithRoleSuperAdmin,
-} = require('../../../test-helper');
-const createServer = require('../../../../server');
-const {
-  CertificationIssueReportCategories,
-} = require('../../../../lib/domain/models/CertificationIssueReportCategory');
-const CertificationAssessment = require('../../../../lib/domain/models/CertificationAssessment');
-const KnowledgeElement = require('../../../../lib/domain/models/KnowledgeElement');
-const ComplementaryCertificationCourseResult = require('../../../../lib/domain/models/ComplementaryCertificationCourseResult');
+} from '../../../test-helper.js';
+
+import { createServer } from '../../../../server.js';
+import { CertificationIssueReportCategory } from '../../../../lib/domain/models/CertificationIssueReportCategory.js';
+import { CertificationAssessment } from '../../../../lib/domain/models/CertificationAssessment.js';
+import { KnowledgeElement } from '../../../../lib/domain/models/KnowledgeElement.js';
+import { ComplementaryCertificationCourseResult } from '../../../../lib/domain/models/ComplementaryCertificationCourseResult.js';
+import { CertificationVersion } from '../../../../lib/domain/models/CertificationVersion.js';
+import { config } from '../../../../lib/config.js';
 
 describe('Acceptance | API | Certification Course', function () {
   let server;
@@ -58,10 +59,10 @@ describe('Acceptance | API | Certification Course', function () {
           },
         ];
 
-        const learningContentObjects = learningContentBuilder.buildLearningContent.fromAreas(learningContent);
+        const learningContentObjects = learningContentBuilder.fromAreas(learningContent);
         mockLearningContent(learningContentObjects);
 
-        databaseBuilder.factory.buildCertificationCourse({ id: 1234, isV2Certification: true });
+        databaseBuilder.factory.buildCertificationCourse({ id: 1234 });
         const assessmentId = databaseBuilder.factory.buildAssessment({
           certificationCourseId: 1234,
           competenceId: 'competence_id',
@@ -133,10 +134,10 @@ describe('Acceptance | API | Certification Course', function () {
 
         const user = databaseBuilder.factory.buildUser({});
 
-        const learningContentObjects = learningContentBuilder.buildLearningContent.fromAreas(learningContent);
+        const learningContentObjects = learningContentBuilder.fromAreas(learningContent);
         mockLearningContent(learningContentObjects);
 
-        databaseBuilder.factory.buildCertificationCourse({ id: 1234, isV2Certification: true, userId: user.id });
+        databaseBuilder.factory.buildCertificationCourse({ id: 1234, userId: user.id });
         const assessmentId = databaseBuilder.factory.buildAssessment({
           certificationCourseId: 1234,
           competenceId: 'competence_id',
@@ -333,6 +334,7 @@ describe('Acceptance | API | Certification Course', function () {
           'birth-postal-code': null,
           'birth-country': 'France',
           status: 'rejected',
+          'is-cancelled': false,
           'is-published': true,
           'created-at': new Date('2020-01-01'),
           'completed-at': new Date('2020-02-01'),
@@ -341,6 +343,7 @@ describe('Acceptance | API | Certification Course', function () {
           'comment-for-candidate': 'comment candidate',
           'comment-for-jury': 'comment jury',
           'comment-for-organization': 'comment organization',
+          version: 2,
           'competences-with-mark': [
             {
               area_code: '3',
@@ -357,18 +360,16 @@ describe('Acceptance | API | Certification Course', function () {
           'certification-issue-reports': {
             data: [],
           },
-          'common-complementary-certification-course-results': {
-            data: [
-              {
-                id: '456',
-                type: 'commonComplementaryCertificationCourseResults',
-              },
-            ],
+          'common-complementary-certification-course-result': {
+            data: {
+              id: '456',
+              type: 'commonComplementaryCertificationCourseResults',
+            },
           },
-          'complementary-certification-course-results-with-external': {
+          'complementary-certification-course-result-with-external': {
             data: {
               id: '654',
-              type: 'complementaryCertificationCourseResultsWithExternals',
+              type: 'complementaryCertificationCourseResultWithExternals',
             },
           },
         },
@@ -384,7 +385,7 @@ describe('Acceptance | API | Certification Course', function () {
         },
         {
           id: '654',
-          type: 'complementaryCertificationCourseResultsWithExternals',
+          type: 'complementaryCertificationCourseResultWithExternals',
           attributes: {
             'allowed-external-levels': [
               {
@@ -491,12 +492,12 @@ describe('Acceptance | API | Certification Course', function () {
         expect(result.attributes['birth-country']).to.equal('FRANCE');
         expect(result.attributes['birth-insee-code']).to.equal('01091');
         expect(result.attributes['birth-postal-code']).to.be.null;
-        const { isV2Certification, verificationCode } = await knex
-          .select('isV2Certification', 'verificationCode')
+        const { version, verificationCode } = await knex
+          .select('version', 'verificationCode')
           .from('certification-courses')
           .where({ id: certificationCourseId })
           .first();
-        expect(isV2Certification).to.be.true;
+        expect(version).to.equal(2);
         expect(verificationCode).to.equal('ABCD123');
       });
 
@@ -525,7 +526,6 @@ describe('Acceptance | API | Certification Course', function () {
       otherUserId = databaseBuilder.factory.buildUser().id;
       const certificationCenter = databaseBuilder.factory.buildCertificationCenter({
         id: 99,
-        isSupervisorAccessEnabled: true,
       });
       const session = databaseBuilder.factory.buildSession({ certificationCenterId: certificationCenter.id });
       const certificationCourse = databaseBuilder.factory.buildCertificationCourse({
@@ -535,7 +535,7 @@ describe('Acceptance | API | Certification Course', function () {
       userId = certificationCourse.userId;
       databaseBuilder.factory.buildCertificationIssueReport({
         certificationCourseId: certificationCourse.id,
-        category: CertificationIssueReportCategories.OTHER,
+        category: CertificationIssueReportCategory.OTHER,
         description: "il s'est enfuit de la session",
       });
 
@@ -556,7 +556,6 @@ describe('Acceptance | API | Certification Course', function () {
           'nb-challenges': 0,
           'first-name': certificationCourse.firstName,
           'last-name': certificationCourse.lastName,
-          'is-end-test-screen-removal-enabled': true,
         },
         relationships: {
           assessment: {
@@ -597,53 +596,24 @@ describe('Acceptance | API | Certification Course', function () {
   });
 
   describe('POST /api/certification-courses', function () {
-    let options;
     let response;
-    let userId;
-    let sessionId;
-    let certificationCenterId;
-
-    beforeEach(async function () {
-      userId = databaseBuilder.factory.buildUser().id;
-      certificationCenterId = databaseBuilder.factory.buildCertificationCenter({ isSupervisorAccessEnabled: false }).id;
-      sessionId = databaseBuilder.factory.buildSession({ accessCode: '123', certificationCenterId }).id;
-      const payload = {
-        data: {
-          attributes: {
-            'access-code': '123',
-            'session-id': sessionId,
-          },
-        },
-      };
-      options = {
-        method: 'POST',
-        url: '/api/certification-courses',
-        headers: {
-          authorization: generateValidRequestAuthorizationHeader(userId),
-          'accept-language': 'fr-fr',
-        },
-        payload,
-      };
-      await databaseBuilder.commit();
-    });
 
     context('when the given access code does not correspond to the session', function () {
-      beforeEach(async function () {
+      it('should respond with 404 status code', async function () {
         // given
+        const { options } = _createRequestOptions();
+        await databaseBuilder.commit();
         options.payload.data.attributes['access-code'] = 'wrongcode';
 
         // when
         response = await server.inject(options);
-      });
 
-      it('should respond with 404 status code', function () {
         // then
         expect(response.statusCode).to.equal(404);
       });
     });
 
     context('when the certification course does not exist', function () {
-      let certificationCandidate;
       const learningContent = [
         {
           id: 'recArea0',
@@ -840,23 +810,6 @@ describe('Acceptance | API | Certification Course', function () {
       ];
 
       context('when locale is fr-fr', function () {
-        beforeEach(async function () {
-          // given
-          const learningContentObjects = learningContentBuilder.buildLearningContent.fromAreas(learningContent);
-          mockLearningContent(learningContentObjects);
-          certificationCandidate = databaseBuilder.factory.buildCertificationCandidate({ sessionId, userId });
-          databaseBuilder.factory.buildCorrectAnswersAndKnowledgeElementsForLearningContent.fromAreas({
-            learningContent,
-            userId,
-            earnedPix: 4,
-          });
-
-          await databaseBuilder.commit();
-
-          // when
-          response = await server.inject(options);
-        });
-
         afterEach(async function () {
           await knex('knowledge-elements').delete();
           await knex('answers').delete();
@@ -866,18 +819,66 @@ describe('Acceptance | API | Certification Course', function () {
           await knex('certification-courses').delete();
         });
 
-        it('should respond with 201 status code', function () {
+        it('should respond with 201 status code', async function () {
+          // given
+          const { options, userId, sessionId } = _createRequestOptions();
+          _createNonExistingCertifCourseSetup({ learningContent, userId, sessionId });
+          await databaseBuilder.commit();
+
+          // when
+          response = await server.inject(options);
+
           // then
           expect(response.statusCode).to.equal(201);
         });
 
-        it('should have created a certification course', async function () {
+        it('should have created a V2 certification course', async function () {
+          // given
+          const { options, userId, sessionId } = _createRequestOptions();
+          _createNonExistingCertifCourseSetup({ learningContent, userId, sessionId });
+          await databaseBuilder.commit();
+
+          // when
+          response = await server.inject(options);
+
           // then
           const certificationCourses = await knex('certification-courses').where({ userId, sessionId });
           expect(certificationCourses).to.have.length(1);
+          expect(certificationCourses[0].version).to.equal(CertificationVersion.V2);
+        });
+
+        context('when the session is v3', function () {
+          it('should have created a v3 certification course without any challenges', async function () {
+            // given
+            const { options, userId, sessionId } = _createRequestOptions({ version: CertificationVersion.V3 });
+            _createNonExistingCertifCourseSetup({ learningContent, userId, sessionId });
+            await databaseBuilder.commit();
+
+            // when
+            response = await server.inject(options);
+
+            // then
+            const [certificationCourse] = await knex('certification-courses').where({ userId, sessionId });
+            expect(certificationCourse.version).to.equal(CertificationVersion.V3);
+            expect(response.result.data.attributes).to.include({
+              'nb-challenges': config.v3Certification.numberOfChallengesPerCourse,
+            });
+          });
         });
 
         it('should have copied matching certification candidate info into created certification course', async function () {
+          // given
+          const { options, userId, sessionId } = _createRequestOptions();
+          const { certificationCandidate } = _createNonExistingCertifCourseSetup({
+            learningContent,
+            userId,
+            sessionId,
+          });
+          await databaseBuilder.commit();
+
+          // when
+          await server.inject(options);
+
           // then
           const certificationCourses = await knex('certification-courses').where({ userId, sessionId });
           expect(certificationCourses[0].firstName).to.equal(certificationCandidate.firstName);
@@ -888,6 +889,14 @@ describe('Acceptance | API | Certification Course', function () {
         });
 
         it('should have only fr-fr challenges associated with certification-course', async function () {
+          // given
+          const { options, userId, sessionId } = _createRequestOptions();
+          _createNonExistingCertifCourseSetup({ learningContent, userId, sessionId });
+          await databaseBuilder.commit();
+
+          // when
+          await server.inject(options);
+
           // then
           const certificationChallenges = await knex('certification-challenges');
           expect(certificationChallenges.length).to.equal(2);
@@ -897,24 +906,6 @@ describe('Acceptance | API | Certification Course', function () {
       });
 
       context('when locale is en', function () {
-        beforeEach(async function () {
-          // given
-          const learningContentObjects = learningContentBuilder.buildLearningContent.fromAreas(learningContent);
-          mockLearningContent(learningContentObjects);
-          certificationCandidate = databaseBuilder.factory.buildCertificationCandidate({ sessionId, userId });
-          databaseBuilder.factory.buildCorrectAnswersAndKnowledgeElementsForLearningContent.fromAreas({
-            learningContent,
-            userId,
-            earnedPix: 4,
-          });
-          options.headers['accept-language'] = 'en';
-
-          await databaseBuilder.commit();
-
-          // when
-          response = await server.inject(options);
-        });
-
         afterEach(async function () {
           await knex('knowledge-elements').delete();
           await knex('answers').delete();
@@ -925,6 +916,14 @@ describe('Acceptance | API | Certification Course', function () {
         });
 
         it('should have only en challenges associated with certification-course', async function () {
+          // given
+          const { options, userId, sessionId } = _createRequestOptions({ locale: 'en' });
+          _createNonExistingCertifCourseSetup({ learningContent, userId, sessionId });
+          await databaseBuilder.commit();
+
+          // when
+          response = await server.inject(options);
+
           // then
           const certificationChallenges = await knex('certification-challenges');
           expect(certificationChallenges.length).to.equal(2);
@@ -935,25 +934,28 @@ describe('Acceptance | API | Certification Course', function () {
     });
 
     context('when the certification course already exists', function () {
-      let certificationCourseId;
-
-      beforeEach(async function () {
+      it('should respond with 200 status code', async function () {
         // given
-        certificationCourseId = databaseBuilder.factory.buildCertificationCourse({ userId, sessionId }).id;
-        databaseBuilder.factory.buildAssessment({ userId, certificationCourseId: certificationCourseId });
-        databaseBuilder.factory.buildCertificationCandidate({ sessionId, userId });
+        const { options, userId, sessionId } = _createRequestOptions();
+        _createExistingCertifCourseSetup({ userId, sessionId });
         await databaseBuilder.commit();
 
         // when
         response = await server.inject(options);
-      });
 
-      it('should respond with 200 status code', function () {
         // then
         expect(response.statusCode).to.equal(200);
       });
 
-      it('should retrieve the already existing certification course', async function () {
+      it('should retrieve the already existing V2 certification course', async function () {
+        // given
+        const { options, userId, sessionId } = _createRequestOptions();
+        _createExistingCertifCourseSetup({ userId, sessionId, version: CertificationVersion.V2 });
+        await databaseBuilder.commit();
+
+        // when
+        response = await server.inject(options);
+
         // then
         const [certificationCourse, ...otherCertificationCourses] = await knex('certification-courses').where({
           userId,
@@ -961,6 +963,23 @@ describe('Acceptance | API | Certification Course', function () {
         });
         expect(otherCertificationCourses).to.have.length(0);
         expect(certificationCourse.id + '').to.equal(response.result.data.id);
+        expect(certificationCourse.version).to.equal(CertificationVersion.V2);
+      });
+
+      context('when the session is v3', function () {
+        it('should retrieve the already existing V3 certification course', async function () {
+          // given
+          const { options, userId, sessionId } = _createRequestOptions({ version: CertificationVersion.V3 });
+          _createExistingCertifCourseSetup({ userId, sessionId, version: CertificationVersion.V3 });
+          await databaseBuilder.commit();
+
+          // when
+          await server.inject(options);
+
+          // then
+          const [certificationCourse] = await knex('certification-courses').where({ userId, sessionId });
+          expect(certificationCourse.version).to.equal(CertificationVersion.V3);
+        });
       });
     });
   });
@@ -1005,3 +1024,60 @@ describe('Acceptance | API | Certification Course', function () {
     });
   });
 });
+
+function _createRequestOptions(
+  { locale = 'fr-fr', version = CertificationVersion.V2 } = { locale: 'fr-fr', version: CertificationVersion.V2 },
+) {
+  const isV3Pilot = version === CertificationVersion.V3;
+  const userId = databaseBuilder.factory.buildUser().id;
+  const certificationCenterId = databaseBuilder.factory.buildCertificationCenter({ isV3Pilot }).id;
+  const sessionId = databaseBuilder.factory.buildSession({ accessCode: '123', certificationCenterId, version }).id;
+  const payload = {
+    data: {
+      attributes: {
+        'access-code': '123',
+        'session-id': sessionId,
+      },
+    },
+  };
+  const options = {
+    method: 'POST',
+    url: '/api/certification-courses',
+    headers: {
+      authorization: generateValidRequestAuthorizationHeader(userId),
+      'accept-language': `${locale}`,
+    },
+    payload,
+  };
+
+  return {
+    options,
+    userId,
+    sessionId,
+  };
+}
+
+function _createNonExistingCertifCourseSetup({ learningContent, sessionId, userId }) {
+  const learningContentObjects = learningContentBuilder.fromAreas(learningContent);
+  mockLearningContent(learningContentObjects);
+  const certificationCandidate = databaseBuilder.factory.buildCertificationCandidate({
+    sessionId,
+    userId,
+    authorizedToStart: true,
+  });
+  databaseBuilder.factory.buildCorrectAnswersAndKnowledgeElementsForLearningContent.fromAreas({
+    learningContent,
+    userId,
+    earnedPix: 4,
+  });
+
+  return {
+    certificationCandidate,
+  };
+}
+
+function _createExistingCertifCourseSetup({ userId, sessionId, version = 2 }) {
+  const certificationCourseId = databaseBuilder.factory.buildCertificationCourse({ userId, sessionId, version }).id;
+  databaseBuilder.factory.buildAssessment({ userId, certificationCourseId });
+  databaseBuilder.factory.buildCertificationCandidate({ sessionId, userId, authorizedToStart: true });
+}

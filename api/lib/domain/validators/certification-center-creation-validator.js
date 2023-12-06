@@ -1,5 +1,5 @@
-const Joi = require('joi');
-const { EntityValidationError } = require('../errors');
+import Joi from 'joi';
+import { EntityValidationError } from '../errors.js';
 
 const validationConfiguration = { abortEarly: false, allowUnknown: true };
 
@@ -19,19 +19,14 @@ const certificationCenterSchema = Joi.object({
   externalId: Joi.string().optional().allow(null).max(255).messages({
     'string.max': 'L‘identifiant externe ne doit pas dépasser 255 caractères.',
   }),
-
-  isSupervisorAccessEnabled: Joi.boolean().required().messages({
-    'any.required': 'L‘accès à l‘espace surveillant n’est pas renseigné.',
-    'boolean.base': 'L‘accès à l‘espace surveillant n’est pas renseigné.',
-  }),
 });
 
-module.exports = {
-  validate(certificationCenter) {
-    const { error } = certificationCenterSchema.validate(certificationCenter, validationConfiguration);
-    if (error) {
-      throw EntityValidationError.fromJoiErrors(error.details);
-    }
-    return true;
-  },
+const validate = function (certificationCenter) {
+  const { error } = certificationCenterSchema.validate(certificationCenter, validationConfiguration);
+  if (error) {
+    throw EntityValidationError.fromJoiErrors(error.details);
+  }
+  return true;
 };
+
+export { validate };

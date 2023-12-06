@@ -1,7 +1,7 @@
 import { module, test } from 'qunit';
 import { setupRenderingTest } from 'ember-qunit';
 import { render } from '@1024pix/ember-testing-library';
-import hbs from 'htmlbars-inline-precompile';
+import { hbs } from 'ember-cli-htmlbars';
 
 module('Integration | Component | Badges::CampaignCriterion', function (hooks) {
   setupRenderingTest(hooks);
@@ -20,7 +20,7 @@ module('Integration | Component | Badges::CampaignCriterion', function (hooks) {
     // then
     assert.deepEqual(
       screen.getByTestId('triste').innerText,
-      'L‘évalué doit obtenir 60% sur l‘ensemble des sujets du profil cible.'
+      'L‘évalué doit obtenir 60% sur l‘ensemble des sujets du profil cible.',
     );
   });
 });

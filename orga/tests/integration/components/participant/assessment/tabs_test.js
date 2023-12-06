@@ -1,6 +1,6 @@
 import { module, test } from 'qunit';
 import setupIntlRenderingTest from '../../../../helpers/setup-intl-rendering';
-import hbs from 'htmlbars-inline-precompile';
+import { hbs } from 'ember-cli-htmlbars';
 import { render as renderScreen } from '@1024pix/ember-testing-library';
 
 module('Integration | Component | Participant::Assessment::Tabs', function (hooks) {
@@ -17,7 +17,7 @@ module('Integration | Component | Participant::Assessment::Tabs', function (hook
 
     // when
     const screen = await renderScreen(
-      hbs`<Participant::Assessment::Tabs @campaignId={{this.campaignId}} @participationId={{this.participationId}} />`
+      hbs`<Participant::Assessment::Tabs @campaignId={{this.campaignId}} @participationId={{this.participationId}} />`,
     );
 
     // then
@@ -32,7 +32,7 @@ module('Integration | Component | Participant::Assessment::Tabs', function (hook
 
     // when
     const screen = await renderScreen(
-      hbs`<Participant::Assessment::Tabs @campaignId={{this.campaignId}} @participationId={{this.participationId}} />`
+      hbs`<Participant::Assessment::Tabs @campaignId={{this.campaignId}} @participationId={{this.participationId}} />`,
     );
 
     // then

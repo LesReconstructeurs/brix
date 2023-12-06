@@ -1,31 +1,32 @@
 {
+  "current-lang": "fr",
   "account-recovery-email": {
     "params": {
       "choosePassword": "Choisir un mot de passe",
-      "context": "Vous avez demandé la récupération de votre compte Brix.",
+      "context": "Vous avez demandé la récupération de votre compte Pix.",
       "doNotAnswer": "Ceci est un e-mail automatique, merci de ne pas y répondre.",
       "instruction": "Choisissez un mot de passe pour finaliser la procédure.",
       "linkValidFor": "Ce lien est valide 24 heures. Si vous n'êtes pas à l'origine de cette demande, merci d'ignorer cet e-mail.",
       "moreOn": "En savoir plus sur",
-      "pixPresentation": "Brix est le service public en ligne pour évaluer, développer et certifier ses compétences numériques.",
-      "signing": "– L'équipe Brix"
+      "pixPresentation": "Pix est le service public en ligne pour évaluer, développer et certifier ses compétences numériques.",
+      "signing": "– L'équipe Pix"
     }
   },
   "campaign-export": {
     "assessment": {
       "competence-area": {
-        "items-successfully-completed": "Acquis maitrisés du domaine {{ name }}",
-        "mastery-percentage": "% de maitrise des acquis du domaine {{ name }}",
-        "total-items": "Nombre d'acquis du profil cible du domaine {{ name }}"
+        "items-successfully-completed": "Acquis maitrisés du domaine {name}",
+        "mastery-percentage": "% de maitrise des acquis du domaine {name}",
+        "total-items": "Nombre d'acquis du profil cible du domaine {name}"
       },
       "is-shared": "Partage (O/N)",
       "mastery-percentage-target-profile": "% maitrise de l'ensemble des acquis du profil",
       "progress": "% de progression",
       "shared-on": "Date du partage",
       "skill": {
-        "items-successfully-completed": "Acquis maitrisés dans la compétence {{name}}",
-        "mastery-percentage": "% de maitrise des acquis de la compétence {{name}}",
-        "total-items": "Nombre d'acquis du profil cible dans la compétence {{name}}"
+        "items-successfully-completed": "Acquis maitrisés dans la compétence {name}",
+        "mastery-percentage": "% de maitrise des acquis de la compétence {name}",
+        "total-items": "Nombre d'acquis du profil cible dans la compétence {name}"
       },
       "started-on": "Date de début",
       "status": {
@@ -33,14 +34,15 @@
         "not-tested": "Non testé",
         "ok": "OK"
       },
-      "success-rate": "Palier obtenu (/{{value}})",
+      "success-rate": "Palier obtenu (/{value})",
       "target-profile-name": "Parcours",
-      "thematic-result-name": "{{name}} obtenu (O/N)"
+      "thematic-result-name": "{name} obtenu (O/N)"
     },
     "common": {
+      "campaign-code": "Code",
       "campaign-id": "ID Campagne",
       "campaign-name": "Nom de la campagne",
-      "file-name": "Resultats-{{name}}-{{id}}-{{date}}.csv",
+      "file-name": "Resultats-{name}-{id}-{date}.csv",
       "no": "Non",
       "not-available": "NA",
       "organization-name": "Nom de l'organisation",
@@ -55,25 +57,144 @@
       "certifiable-skills": "Nombre de compétences certifiables",
       "is-certifiable": "Certifiable (O/N)",
       "is-sent": "Envoi (O/N)",
-      "pix-score": "Nombre de Brix total",
+      "pix-score": "Nombre de pix total",
       "sent-on": "Date de l'envoi",
-      "skill-level": "Niveau pour la compétence {{name}}",
-      "skill-ranking": "Nombre de Brix pour la compétence {{name}}"
+      "skill-level": "Niveau pour la compétence {name}",
+      "skill-ranking": "Nombre de pix pour la compétence {name}"
     }
+  },
+  "candidate-list-template": {
+    "billing-mode": {
+      "free": "Gratuite",
+      "paid": "Payante",
+      "prepaid": "Prépayée"
+    },
+    "certification": "Certification",
+    "complementary": "complémentaire",
+    "filename": "liste-candidats-session-",
+    "headers": {
+      "birth-date": "* Date de naissance (format : jj/mm/aaaa)",
+      "birthcity": "Nom de la commune",
+      "birthcity-inseecode": "Code Insee",
+      "birthcity-postcode": "Code postal",
+      "birthcountry": "Pays",
+      "birthname": "* Nom de naissance",
+      "birthplace": "* Lieu de naissance",
+      "birthplace-instructions": "Instructions de remplissage du lieu de naissance :",
+      "birthplace-instructions-abroad": "- Candidat né à l'étranger : Remplir les colonnes « Pays » et « Nom de la commune » et",
+      "birthplace-instructions-abroad-insee": "       inscrire 99 dans la colonne « Code Insee »",
+      "birthplace-instructions-france": "- Candidat né en France : Inscrire France dans la colonne « Pays »",
+      "birthplace-instructions-france-insee": "    - Si code Insee : Ne remplir que la colonne « Code Insee »",
+      "birthplace-instructions-france-postal": "    - Si code postal : Remplir les colonnes « Code postal » et « Nom de la commune »",
+      "born-abroad": "Candidat né à l’étranger : Code Insee 99 ET nom de la commune",
+      "born-in-france": "Candidat né en France : Code Insee OU Code postal et nom de la commune",
+      "candidates": "Participants",
+      "candidates-list": "Liste des candidats",
+      "date": "Date",
+      "email-convocation": "E-mail de convocation",
+      "email-results": "E-mail du destinataire des résultats (formateur, enseignant…)",
+      "externalid": "Identifiant local",
+      "extra-time": "Temps majoré ?",
+      "firstname": "* Prénom",
+      "gender": "* Sexe (M ou F)",
+      "locale-time": "Heure locale (début)",
+      "room-name": "Nom de la salle",
+      "session-certification": "La session de certification",
+      "session-invigilates-by": "Session surveillée par :",
+      "session-invigilators": "Signature des surveillant(s) :",
+      "session-number": "N° de session",
+      "site-name": "Nom du site"
+    },
+    "one-per-candidate": "(une seule par candidat)",
+    "options": "Options possibles :",
+    "prepayment": "Code de prépaiement",
+    "pricing": "Tarification",
+    "pricing-pix": "Tarification part Pix",
+    "tooltip-line-1": "(Requis notamment dans le cas d'un achat de crédits combinés)",
+    "tooltip-line-2": "Doit être composé du SIRET de l’organisation et du numéro de facture. Ex : 12345678912345/FACT12345",
+    "tooltip-line-3": "Si vous ne possédez pas de facture, un code de prépaiement doit être établi avec Pix.",
+    "tooltips": {
+      "date-format": "Utiliser le format de date jj/mm/aaaa",
+      "email-format": "Votre email doit contenir un ‘@' et un ‘.’ , \n Exemple : nom@exemple.fr Ce champ est facultatif, \n il sert à faciliter la convocation des candidats.",
+      "email-results": "E-mail du destinataire des résultats (formateur, enseignant…), \n Si le champ n’est pas renseigné, les résultats ne seront pas transmis par mail pour le/les candidats concernés., \n Le candidat verra ses résultats affichés directement sur son compte Pix.",
+      "extra-time": "Champ requis si le candidat est bénéficiaire d'un temps majoré pour réaliser sa certification. \n Un nombre entier compris entre 1 et 99% exprimé en pourcentage est attendu (ex : 33%)",
+      "gender-format": "M=Homme F=Femme"
+    },
+    "yes": "Oui",
+    "yes-or-empty": "(\"oui\" ou laisser vide)"
   },
   "certification-center-invitation-email": {
     "params": {
+      "title": "Invitation à rejoindre l’espace",
       "acceptInvitation": "Accepter l’invitation",
       "doNotAnswer": "Ceci est un e-mail automatique, merci de ne pas y répondre.",
       "here": "ici",
       "moreAbout": "En savoir plus sur",
       "needHelp": "Besoin d’aide, contactez-nous",
       "oneTimeLink": "Ce lien est à usage unique",
-      "pixCertifPresentation": "L’espace Brix Certif est un outil dédié à l’organisation des sessions de certification.",
-      "title": "Invitation à rejoindre l’espace",
+      "pixCertifPresentation": "L’espace Pix Certif est un outil dédié à l’organisation des sessions de certification.",
       "yourCertificationCenter": "Votre centre de certification"
     },
-    "subject": "Invitation à rejoindre Brix Certif"
+    "subject": "Invitation à rejoindre Pix Certif"
+  },
+  "certification-confirmation": {
+    "absolute-max-level-indication": "Lorsque les 8 niveaux du référentiel Pix seront disponibles, ce nombre maximum sera de 1024 pix.",
+    "file-name": "attestation-pix-{deliveredAt}.pdf",
+    "from-birthplace": " à { birthplace }",
+    "max-level": "(niveaux sur { maxReachableLevelOnCertificationDate })",
+    "max-reachable-level-indication": "* À la date d’obtention de cette certification, le nombre maximum de pix atteignable était de { maxReachableScore }, correspondant au niveau { maxReachableLevelOnCertificationDate }."
+  },
+  "certification-result-email": {
+    "title": "Consultez les résultats de la session de certification n° {sessionId} !",
+    "params": {
+      "doNotReply": "Ceci est un e-mail automatique, merci de ne pas y répondre.",
+      "download": "Télécharger les résultats",
+      "emailValidFor": "Ce lien est valable trente jours.",
+      "findOutMore": "En savoir plus sur ",
+      "findOutMoreFranceSuffix": " (France) ou ",
+      "findOutMoreInternationalSuffix": " (International)",
+      "guidelines": "Les signalements rapportés par le centre de certifications ont bien été pris en compte - le cas échéant - dans le cadre du jury Pix. Vous trouverez des indications pour interpréter ces résultats ici.",
+      "guidelinesLinkName": "Interprétation des résultats prescripteur",
+      "overviewText": "Bonjour, voici les résultats des certifications que vous avez prescrites à vos publics",
+      "resultsAvailable": "Les résultats des certifications Pix que vous avez prescrites à vos publics sont disponibles.",
+      "subject": "[Pix] Certification session",
+      "viewResultsInProfile": "Les candidats peuvent consulter leur résultat depuis leur profil Pix."
+    }
+  },
+  "certification-results-csv": {
+    "filenames": {
+      "DIVISION_CERTIFICATION_RESULTS_FILENAME": "{dateWithTime}_resultats_{division}.csv",
+      "SESSION_CERTIFICATION_RESULTS_FILENAME": "{dateWithTime}_resultats_session_{sessionId}.csv"
+    },
+    "headers": {
+      "BIRTHDATE": "Date de naissance",
+      "BIRTHPLACE": "Lieu de naissance",
+      "CERTIFICATION_CENTER": "Centre de certification",
+      "CERTIFICATION_DATE": "Date de passage de la certification",
+      "CERTIFICATION_LABEL": "Certification {label}",
+      "CERTIFICATION_NUMBER": "Numéro de certification",
+      "EXTERNAL_ID": "Identifiant Externe",
+      "FIRSTNAME": "Prénom",
+      "JURY_COMMENT_FOR_ORGANIZATION": "Commentaire jury pour l’organisation",
+      "LASTNAME": "Nom",
+      "PIX_SCORE": "Nombre de Pix",
+      "REGISTRATION_STATUS": "Statut à l'inscription",
+      "SESSION_ID": "Session",
+      "SKILL_LABEL": "{skillIndex}",
+      "STATUS": "Statut"
+    },
+    "values": {
+      "CERTIFICATION_CANCELLED": "Annulée",
+      "CERTIFICATION_IN_ERROR": "En erreur",
+      "CERTIFICATION_REJECTED": "Rejetée",
+      "CERTIFICATION_STARTED": "Démarrée",
+      "CERTIFICATION_VALIDATED": "Validée",
+      "COMPLEMENTARY_CERTIFICATION_CANCELLED": "Annulée",
+      "COMPLEMENTARY_CERTIFICATION_NOT_DONE": "Non passée",
+      "COMPLEMENTARY_CERTIFICATION_REJECTED": "Rejetée",
+      "COMPLEMENTARY_CERTIFICATION_VALIDATED": "Validée",
+      "REJECTED_AUTOMATICALLY_COMMENT": "Le candidat a répondu faux à plus de 50% des questions posées, cela a invalidé l'ensemble de sa certification, et a donc entraîné un score de 0 pix"
+    }
   },
   "csv-import-values": {
     "sup-organization-learner": {
@@ -140,9 +261,8 @@
     },
     "template-name": "modele-import"
   },
-  "current-lang": "fr",
   "entity-validation-errors": {
-    "ACCEPT_CGU": "Vous devez accepter les conditions d’utilisation de Brix pour créer un compte.",
+    "ACCEPT_CGU": "Vous devez accepter les conditions d’utilisation de Pix pour créer un compte.",
     "ALREADY_REGISTERED_EMAIL": "Cette adresse e-mail est déjà enregistrée, connectez-vous.",
     "CUSTOM_RESULT_PAGE_BUTTON_TEXT_IS_REQUIRED_WHEN_CUSTOM_RESULT_PAGE_BUTTON_URL_IS_FILLED": "Une URL pour le bouton est saisie : un texte est également requis.",
     "CUSTOM_RESULT_PAGE_BUTTON_URL_IS_REQUIRED_WHEN_CUSTOM_RESULT_PAGE_BUTTON_TEXT_IS_FILLED": "Un texte pour le bouton est saisi : une URL est également requise.",
@@ -163,58 +283,58 @@
   },
   "organization-invitation-email": {
     "params": {
+      "title": "Vous êtes invité(e) à rejoindre Pix Orga",
       "acceptInvitation": "Accepter l’invitation",
       "doNotAnswer": "Ceci est un e-mail automatique, merci de ne pas y répondre.",
       "here": "ici",
       "moreAbout": "En savoir plus sur",
       "needHelp": "Besoin d’aide, contactez-nous",
       "oneTimeLink": "Ce lien est à usage unique",
-      "pixPresentation": "Brix est le service public en ligne pour évaluer, développer et certifier ses compétences numériques.",
-      "subtitle": "La plateforme PiBrixx Orga vous permet de créer, gérer des campagnes de test et suivre la progression de vos participants.",
-      "title": "Vous êtes invité(e) à rejoindre Brix Orga",
+      "pixPresentation": "Pix est le service public en ligne pour évaluer, développer et certifier ses compétences numériques.",
+      "subtitle": "La plateforme Pix Orga vous permet de créer, gérer des campagnes de test et suivre la progression de vos participants.",
       "yourOrganization": "Votre organisation"
     },
-    "subject": "Invitation à rejoindre Brix Orga"
+    "subject": "Invitation à rejoindre Pix Orga"
   },
   "pix-account-creation-email": {
     "params": {
+      "title": "Votre compte Pix a bien été créé !",
       "askForHelp": "Besoin d’aide, contactez-nous",
       "disclaimer": "Si vous n'êtes pas à l’origine de cette création de compte, vous pouvez en demander la suppression",
       "doNotAnswer": "Ceci est un e-mail automatique, merci de ne pas y répondre.",
       "goToPix": "Commencer les tests",
       "helpdeskLinkLabel": "ici",
       "moreOn": "En savoir plus sur",
-      "pixPresentation": "Brix est le service public en ligne pour évaluer, développer et certifier ses compétences numériques.",
-      "subtitle": "Vous pouvez désormais commencer les tests.",
-      "title": "Votre compte Brix a bien été créé !"
+      "pixPresentation": "Pix est le service public en ligne pour évaluer, développer et certifier ses compétences numériques.",
+      "subtitle": "Vous pouvez désormais commencer les tests."
     },
-    "subject": "Votre compte Brix a bien été créé"
+    "subject": "Votre compte Pix a bien été créé"
   },
   "reset-password-demand-email": {
     "params": {
+      "title": "Réinitialisation de votre mot de passe",
       "clickOnTheButton": "Cliquez sur le bouton ci-dessous pour choisir un nouveau mot de passe.",
       "contactUs": "contactez-nous ici",
       "doNotAnswer": "Ceci est un e-mail automatique, merci de ne pas y répondre. Besoin d’aide, ",
       "linkValidFor": "Ce lien est valide 24 heures. Si vous n'êtes pas à l'origine de cette demande, merci d'ignorer cet e-mail.",
       "moreOn": "En savoir plus sur",
-      "pixPresentation": "Brix est le service public en ligne pour évaluer, développer et certifier ses compétences numériques.",
+      "pixPresentation": "Pix est le service public en ligne pour évaluer, développer et certifier ses compétences numériques.",
       "resetMyPassword": "Définir un nouveau mot de passe",
-      "title": "Réinitialisation de votre mot de passe",
       "weCannotSendYourPassword": "Bonjour, pour des raisons de sécurité, nous ne vous envoyons pas votre mot de passe par e-mail."
     },
-    "subject": "Demande de réinitialisation de mot de passe Brix"
+    "subject": "Demande de réinitialisation de mot de passe Pix"
   },
   "verification-code-email": {
     "body": {
-      "context": "Vous souhaitez faire une modification de votre adresse e-mail sur votre compte. Pour continuer, entrez le code suivant sur Brix :",
+      "context": "Vous souhaitez faire une modification de votre adresse e-mail sur votre compte. Pour continuer, entrez le code suivant sur Pix :",
       "doNotAnswer": "Ceci est un e-mail automatique, merci de ne pas y répondre",
       "greeting": "Bonjour,",
       "moreOn": "En savoir plus sur",
-      "pixPresentation": "Brix est le service public en ligne pour évaluer, développer et certifier ses compétences numériques.",
-      "seeYouSoon": "À tout de suite sur Brix.",
-      "signing": "— L'équipe Brix",
+      "pixPresentation": "Pix est le service public en ligne pour évaluer, développer et certifier ses compétences numériques.",
+      "seeYouSoon": "À tout de suite sur Pix.",
+      "signing": "— L'équipe Pix",
       "warningMessage": "Si ce n'était pas vous, nous vous invitons à réinitialiser votre mot de passe au plus vite afin de sécuriser votre compte."
     },
-    "subject": "Votre code Brix est {{ code }}"
+    "subject": "Votre code Pix est {code}"
   }
 }

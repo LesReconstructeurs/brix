@@ -1,4 +1,6 @@
-import { find, visit } from '@ember/test-helpers';
+// eslint-disable-next-line no-restricted-imports
+import { find } from '@ember/test-helpers';
+import { visit } from '@1024pix/ember-testing-library';
 import { module, test } from 'qunit';
 import { authenticate } from '../helpers/authentication';
 import { setupApplicationTest } from 'ember-qunit';
@@ -139,12 +141,12 @@ module('Acceptance | competences results', function (hooks) {
         assert.strictEqual(
           find('.competence-results-banner-text__results:first-child .competence-results-banner-text-results__value')
             .innerText,
-          'Niveau 2'
+          'Niveau 2',
         );
         assert.strictEqual(
           find('.competence-results-banner-text__results:last-child .competence-results-banner-text-results__value')
             .innerText,
-          '17 Pix'
+          '17 Pix',
         );
       });
     });

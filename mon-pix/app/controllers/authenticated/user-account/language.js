@@ -1,29 +1,26 @@
 import Controller from '@ember/controller';
 import { action } from '@ember/object';
-import { inject as service } from '@ember/service';
+import { tracked } from '@glimmer/tracking';
+import { service } from '@ember/service';
 
 export default class UserAccountPersonalInformationController extends Controller {
-  @service intl;
-  @service url;
-  @service location;
+  @service currentUser;
+  @service currentDomain;
+  @service locale;
 
-  get options() {
-    return [
-      {
-        value: 'fr',
-        label: this.intl.t('pages.user-account.language.fields.select.labels.french'),
-      },
-      {
-        value: 'en',
-        label: this.intl.t('pages.user-account.language.fields.select.labels.english'),
-      },
-    ];
-  }
+  @tracked shouldDisplayLanguageUpdatedMessage = false;
 
   @action
-  async onChangeLang(value) {
-    if (!this.url.isFrenchDomainExtension) {
-      this.location.replace(`/mon-compte/langue?lang=${value}`);
+  async onLanguageChange(language) {
+    if (!this.currentDomain.isFranceDomain) {
+      await this.currentUser.user.save({ adapterOptions: { lang: language } });
+
+      this.locale.setLocale(language);
+      this._displayLanguageUpdatedMessage();
     }
+  }
+
+  _displayLanguageUpdatedMessage() {
+    this.shouldDisplayLanguageUpdatedMessage = true;
   }
 }

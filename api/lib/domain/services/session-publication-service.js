@@ -1,17 +1,24 @@
-const { SendingEmailToResultRecipientError, SessionAlreadyPublishedError } = require('../../domain/errors');
-const mailService = require('../../domain/services/mail-service');
-const uniqBy = require('lodash/uniqBy');
-const some = require('lodash/some');
-const { SendingEmailToRefererError } = require('../errors');
-const logger = require('../../infrastructure/logger');
+import {
+  SendingEmailToResultRecipientError,
+  SessionAlreadyPublishedError,
+  SendingEmailToRefererError,
+} from '../../domain/errors.js';
+import * as mailService from '../../domain/services/mail-service.js';
+import lodash from 'lodash';
+
+const { some, uniqBy } = lodash;
+
+import { logger } from '../../infrastructure/logger.js';
 
 async function publishSession({
+  i18n,
   publishedAt = new Date(),
   sessionId,
   certificationCenterRepository,
   certificationRepository,
   finalizedSessionRepository,
   sessionRepository,
+  dependencies = { mailService },
 }) {
   const session = await sessionRepository.getWithCertificationCandidates(sessionId);
   if (session.isPublished()) {
@@ -24,6 +31,24 @@ async function publishSession({
 
   await _updateFinalizedSession(finalizedSessionRepository, sessionId, publishedAt);
 
+  await manageEmails({
+    i18n,
+    session,
+    publishedAt,
+    certificationCenterRepository,
+    sessionRepository,
+    dependencies,
+  });
+}
+
+async function manageEmails({
+  i18n,
+  session,
+  publishedAt,
+  certificationCenterRepository,
+  sessionRepository,
+  dependencies = { mailService },
+}) {
   const hasSomeCleaAcquired = await sessionRepository.hasSomeCleaAcquired(session.id);
 
   if (hasSomeCleaAcquired) {
@@ -35,11 +60,12 @@ async function publishSession({
 
     const refererEmailingAttempts = [];
     for (const refererEmail of refererEmails) {
-      const refererEmailingAttempt = await mailService.sendNotificationToCertificationCenterRefererForCleaResults({
-        sessionId: session.id,
-        email: refererEmail.email,
-        sessionDate: session.date,
-      });
+      const refererEmailingAttempt =
+        await dependencies.mailService.sendNotificationToCertificationCenterRefererForCleaResults({
+          sessionId: session.id,
+          email: refererEmail.email,
+          sessionDate: session.date,
+        });
       refererEmailingAttempts.push(refererEmailingAttempt);
     }
 
@@ -49,10 +75,14 @@ async function publishSession({
     }
   }
 
-  const emailingAttempts = await _sendPrescriberEmails(session);
+  const emailingAttempts = await _sendPrescriberEmails({
+    session,
+    mailService: dependencies.mailService,
+    i18n,
+  });
   if (_someHaveSucceeded(emailingAttempts) && _noneHaveFailed(emailingAttempts)) {
     await sessionRepository.flagResultsAsSentToPrescriber({
-      id: sessionId,
+      id: session.id,
       resultsSentToPrescriberAt: publishedAt,
     });
   }
@@ -62,7 +92,7 @@ async function publishSession({
   }
 }
 
-async function _sendPrescriberEmails(session) {
+async function _sendPrescriberEmails({ session, mailService, i18n }) {
   const recipientEmails = _distinctCandidatesResultRecipientEmails(session.certificationCandidates);
 
   const emailingAttempts = [];
@@ -74,6 +104,7 @@ async function _sendPrescriberEmails(session) {
       certificationCenterName: session.certificationCenter,
       resultRecipientEmail: recipientEmail,
       daysBeforeExpiration: 30,
+      translate: i18n.__,
     });
     emailingAttempts.push(emailingAttempt);
   }
@@ -108,6 +139,4 @@ async function _updateFinalizedSession(finalizedSessionRepository, sessionId, pu
   await finalizedSessionRepository.save(finalizedSession);
 }
 
-module.exports = {
-  publishSession,
-};
+export { publishSession, manageEmails };

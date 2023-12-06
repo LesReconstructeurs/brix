@@ -1,8 +1,11 @@
-const { find } = require('lodash');
-const boom = require('boom');
+import lodash from 'lodash';
 
-const tokenService = require('../domain/services/token-service');
-const config = require('../../lib/config');
+const { find } = lodash;
+
+import boom from '@hapi/boom';
+
+import { tokenService } from '../domain/services/token-service.js';
+import { config } from '../../lib/config.js';
 
 async function _checkIsAuthenticated(request, h, { key, validate }) {
   if (!request.headers.authorization) {
@@ -36,7 +39,7 @@ function validateUser(decoded) {
 }
 
 function validateClientApplication(decoded) {
-  const application = find(config.graviteeRegisterApplicationsCredentials, { clientId: decoded.client_id });
+  const application = find(config.apimRegisterApplicationsCredentials, { clientId: decoded.client_id });
 
   if (!application) {
     return { isValid: false, errorCode: 401 };
@@ -49,7 +52,7 @@ function validateClientApplication(decoded) {
   return { isValid: true, credentials: { client_id: decoded.clientId, scope: decoded.scope, source: decoded.source } };
 }
 
-module.exports = {
+const authentication = {
   schemeName: 'jwt-scheme',
 
   scheme(_, { key, validate }) {
@@ -82,3 +85,5 @@ module.exports = {
 
   defaultStrategy: 'jwt-user',
 };
+
+export { authentication };

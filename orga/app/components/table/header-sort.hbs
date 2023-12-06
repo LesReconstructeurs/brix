@@ -1,14 +1,14 @@
-<Table::Header @size={{@size}} @align={{@align}} aria-sort={{this.order}} ...attributes>
-  <span class="table__column--sort">
+<Table::Header @size={{@size}} @align={{@align}} aria-sort={{@order}} ...attributes>
+  <span class={{this.classname}}>
     {{yield}}
     {{#unless @isDisabled}}
       <PixIconButton
-        @icon="{{if (eq this.order 'asc') 'arrow-up' 'arrow-down'}}"
+        @icon={{this.icon}}
         @triggerAction={{this.toggleSort}}
         @withBackground={{false}}
         @size="small"
         @color="dark-grey"
-        aria-label={{@ariaLabel}}
+        aria-label={{this.ariaLabel}}
       />
     {{/unless}}
   </span>

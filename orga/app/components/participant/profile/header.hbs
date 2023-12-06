@@ -1,27 +1,31 @@
 <header class="navigation">
-  <Ui::PreviousPageButton
-    @route="authenticated.campaigns.campaign.activity"
-    @routeId={{@campaign.id}}
-    @backButtonAriaLabel={{t "common.actions.back"}}
-    aria-label={{t "pages.campaign.name"}}
-  >
-    {{@campaign.name}}
-  </Ui::PreviousPageButton>
+  <Ui::Breadcrumb @links={{this.breadcrumbLinks}} />
+</header>
+
+<header class="campaign-prescriber-profile page__title">
+  <div class="page-header">
+    <h1 class="page-title">
+      {{@campaignProfile.firstName}}
+      {{@campaignProfile.lastName}}
+    </h1>
+    {{#if (and @campaignProfile.isCertifiable @campaignProfile.isShared)}}
+      <PixTag @color="green-light" class="prescriber__certifiable-tag">
+        {{t "pages.profiles-individual-results.certifiable"}}
+      </PixTag>
+    {{/if}}
+  </div>
+  <p class="participant__link">
+    <FaIcon @prefix="far" @icon="user" />
+    <Participant::LinkTo @organizationLearnerId={{@campaignProfile.organizationLearnerId}}>
+      {{t "common.actions.link-to-participant"}}
+    </Participant::LinkTo>
+  </p>
 </header>
 
 <section class="panel panel--header">
   <header class="panel-header__headline">
-    <h2 class="panel-header-title">
-      {{@campaignProfile.firstName}}
-      {{@campaignProfile.lastName}}
-    </h2>
-    {{#if (and @campaignProfile.isCertifiable @campaignProfile.isShared)}}
-      <PixTag @color="green-light" class="profile-user__certifiable">
-        {{t "pages.profiles-individual-results.certifiable"}}
-      </PixTag>
-    {{/if}}
+    <h2 class="panel-header-title">{{@campaign.name}}</h2>
   </header>
-
   <div class="panel-header__body">
     <Ui::InformationWrapper>
       {{#if @campaignProfile.externalId}}

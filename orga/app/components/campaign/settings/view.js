@@ -1,5 +1,5 @@
 import { action } from '@ember/object';
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 import Component from '@glimmer/component';
 
 export default class CampaignView extends Component {
@@ -40,9 +40,18 @@ export default class CampaignView extends Component {
   }
 
   get multipleSendingsTooltipText() {
-    return this.args.campaign.multipleSendings
-      ? this.intl.t('pages.campaign-settings.multiple-sendings.tooltip.text-multiple-sendings-enabled')
-      : this.intl.t('pages.campaign-settings.multiple-sendings.tooltip.text-multiple-sendings-disabled');
+    return this.intl.t('pages.campaign-settings.multiple-sendings.tooltip.text');
+  }
+
+  get isMultipleSendingsEnable() {
+    return (
+      !this.args.campaign.isTypeAssessment ||
+      (this.args.campaign.isTypeAssessment && this.currentUser.prescriber.enableMultipleSendingAssessment)
+    );
+  }
+
+  get queryForDuplicate() {
+    return { source: this.args.campaign.id };
   }
 
   @action
@@ -51,7 +60,7 @@ export default class CampaignView extends Component {
       const campaign = this.store.peekRecord('campaign', campaignId);
       await campaign.archive();
     } catch (err) {
-      this.notifications.error(this.intl.t('api-error-messages.global'));
+      this.notifications.sendError(this.intl.t('api-error-messages.global'));
     }
   }
 }

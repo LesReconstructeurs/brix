@@ -1,9 +1,9 @@
-const certificationCenterController = require('./certification-center-controller');
-const securityPreHandlers = require('../security-pre-handlers');
-const Joi = require('joi');
-const identifiersType = require('../../domain/types/identifiers-type');
+import { certificationCenterController } from './certification-center-controller.js';
+import { securityPreHandlers } from '../security-pre-handlers.js';
+import Joi from 'joi';
+import { identifiersType } from '../../domain/types/identifiers-type.js';
 
-exports.register = async function (server) {
+const register = async function (server) {
   const adminRoutes = [
     {
       method: 'POST',
@@ -171,19 +171,48 @@ exports.register = async function (server) {
       },
     },
     {
-      method: 'POST',
-      path: '/api/certification-centers/{certificationCenterId}/sessions/import',
+      method: 'GET',
+      path: '/api/certification-centers/{certificationCenterId}/import',
       config: {
         pre: [
           {
             method: securityPreHandlers.checkUserIsMemberOfCertificationCenter,
             assign: 'isMemberOfCertificationCenter',
           },
+          {
+            method: securityPreHandlers.checkCertificationCenterIsNotScoManagingStudents,
+            assign: 'isCertificationCenterNotScoManagingStudents',
+          },
         ],
         validate: {
           params: Joi.object({ certificationCenterId: identifiersType.certificationCenterId }),
         },
-        handler: certificationCenterController.importSessions,
+        handler: certificationCenterController.getSessionsImportTemplate,
+        tags: ['api', 'sessions'],
+        notes: [
+          '- **Cette route est restreinte aux utilisateurs authentifiés**\n' +
+            '- Elle permet de récupérer le fichier de création de sessions de certification',
+        ],
+      },
+    },
+    {
+      method: 'POST',
+      path: '/api/certification-centers/{certificationCenterId}/sessions/validate-for-mass-import',
+      config: {
+        pre: [
+          {
+            method: securityPreHandlers.checkUserIsMemberOfCertificationCenter,
+            assign: 'isMemberOfCertificationCenter',
+          },
+          {
+            method: securityPreHandlers.checkCertificationCenterIsNotScoManagingStudents,
+            assign: 'isCertificationCenterNotScoManagingStudents',
+          },
+        ],
+        validate: {
+          params: Joi.object({ certificationCenterId: identifiersType.certificationCenterId }),
+        },
+        handler: certificationCenterController.validateSessionsForMassImport,
         payload: {
           maxBytes: 20715200,
           output: 'file',
@@ -192,7 +221,7 @@ exports.register = async function (server) {
         tags: ['api', 'certification-center', 'sessions'],
         notes: [
           '- **Cette route est restreinte aux utilisateurs authentifiés**\n' +
-            "- Elle permet d'importer un fichier contenant une liste de sessions à créer",
+            "- Elle permet de valider avant sauvegarde les données d'un fichier contenant une liste de sessions à importer",
         ],
       },
     },
@@ -393,7 +422,41 @@ exports.register = async function (server) {
         tags: ['api', 'certification-center-membership'],
       },
     },
+
+    {
+      method: 'POST',
+      path: '/api/certification-centers/{certificationCenterId}/sessions/confirm-for-mass-import',
+      config: {
+        pre: [
+          {
+            method: securityPreHandlers.checkUserIsMemberOfCertificationCenter,
+            assign: 'isMemberOfCertificationCenter',
+          },
+          {
+            method: securityPreHandlers.checkCertificationCenterIsNotScoManagingStudents,
+            assign: 'isCertificationCenterNotScoManagingStudents',
+          },
+        ],
+        validate: {
+          params: Joi.object({ certificationCenterId: identifiersType.certificationCenterId }),
+          payload: Joi.object({
+            data: {
+              attributes: {
+                cachedValidatedSessionsKey: Joi.string().required(),
+              },
+            },
+          }),
+        },
+        handler: certificationCenterController.createSessionsForMassImport,
+        tags: ['api', 'certification-center', 'sessions', 'mass-import'],
+        notes: [
+          '- **Cette route est restreinte aux utilisateurs authentifiés**\n' +
+            "- Elle permet de créer les sessions et candidats lors de l'import en masse",
+        ],
+      },
+    },
   ]);
 };
 
-exports.name = 'certification-centers-api';
+const name = 'certification-centers-api';
+export { register, name };

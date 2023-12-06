@@ -1,11 +1,13 @@
-const { AlreadyExistingMembershipError } = require('../../domain/errors');
+import { AlreadyExistingMembershipError } from '../../domain/errors.js';
 
-module.exports = async function acceptOrganizationInvitation({
+const acceptOrganizationInvitation = async function ({
   organizationInvitationId,
   code,
   email,
+  localeFromCookie,
   organizationInvitationRepository,
   organizationInvitedUserRepository,
+  userRepository,
 }) {
   const organizationInvitedUser = await organizationInvitedUserRepository.get({ organizationInvitationId, email });
 
@@ -18,6 +20,16 @@ module.exports = async function acceptOrganizationInvitation({
     throw error;
   }
 
+  if (localeFromCookie) {
+    const user = await userRepository.getById(organizationInvitedUser.userId);
+    user.setLocaleIfNotAlreadySet(localeFromCookie);
+    if (user.hasBeenModified) {
+      await userRepository.update({ id: user.id, locale: user.locale });
+    }
+  }
+
   await organizationInvitedUserRepository.save({ organizationInvitedUser });
   return { id: organizationInvitedUser.currentMembershipId, isAdmin: organizationInvitedUser.currentRole === 'ADMIN' };
 };
+
+export { acceptOrganizationInvitation };

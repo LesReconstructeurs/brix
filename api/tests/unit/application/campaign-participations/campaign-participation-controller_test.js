@@ -1,22 +1,18 @@
-const { sinon, expect, domainBuilder, hFake } = require('../../../test-helper');
-const campaignParticipationController = require('../../../../lib/application/campaign-participations/campaign-participation-controller');
-const campaignAnalysisSerializer = require('../../../../lib/infrastructure/serializers/jsonapi/campaign-analysis-serializer');
-const campaignAssessmentParticipationResultSerializer = require('../../../../lib/infrastructure/serializers/jsonapi/campaign-assessment-participation-result-serializer');
-const campaignParticipationSerializer = require('../../../../lib/infrastructure/serializers/jsonapi/campaign-participation-serializer');
-const campaignProfileSerializer = require('../../../../lib/infrastructure/serializers/jsonapi/campaign-profile-serializer');
-const trainingSerializer = require('../../../../lib/infrastructure/serializers/jsonapi/training-serializer');
-const requestResponseUtils = require('../../../../lib/infrastructure/utils/request-response-utils');
-const events = require('../../../../lib/domain/events');
-const usecases = require('../../../../lib/domain/usecases');
-const CampaignParticipationResultsShared = require('../../../../lib/domain/events/CampaignParticipationResultsShared');
-const CampaignParticipationStarted = require('../../../../lib/domain/events/CampaignParticipationStarted');
-const DomainTransaction = require('../../../../lib/infrastructure/DomainTransaction');
-const { FRENCH_SPOKEN } = require('../../../../lib/domain/constants').LOCALE;
-const monitoringTools = require('../../../../lib/infrastructure/monitoring-tools');
+import { sinon, expect, domainBuilder, hFake } from '../../../test-helper.js';
+import { campaignParticipationController } from '../../../../lib/application/campaign-participations/campaign-participation-controller.js';
+import * as events from '../../../../lib/domain/events/index.js';
+import { usecases } from '../../../../lib/domain/usecases/index.js';
+import { CampaignParticipationResultsShared } from '../../../../lib/domain/events/CampaignParticipationResultsShared.js';
+import { CampaignParticipationStarted } from '../../../../lib/domain/events/CampaignParticipationStarted.js';
+import { DomainTransaction } from '../../../../lib/infrastructure/DomainTransaction.js';
+import { LOCALE } from '../../../../lib/domain/constants.js';
+
+const { FRENCH_SPOKEN } = LOCALE;
 
 describe('Unit | Application | Controller | Campaign-Participation', function () {
   describe('#shareCampaignResult', function () {
     let domainTransaction;
+    let dependencies;
     const userId = 1;
     const request = {
       params: {
@@ -34,15 +30,27 @@ describe('Unit | Application | Controller | Campaign-Participation', function ()
 
     beforeEach(function () {
       sinon.stub(usecases, 'shareCampaignResult');
+
       sinon.stub(events.eventBus, 'publish');
-      sinon.stub(requestResponseUtils, 'extractUserIdFromRequest').returns(userId);
-      sinon.stub(monitoringTools, 'logErrorWithCorrelationIds');
+      const requestResponseUtilsStub = {
+        extractUserIdFromRequest: sinon.stub(),
+      };
+      requestResponseUtilsStub.extractUserIdFromRequest.returns(userId);
+
+      const monitoringToolsStub = {
+        logErrorWithCorrelationIds: sinon.stub(),
+      };
       domainTransaction = {
         knexTransaction: Symbol('transaction'),
       };
       sinon.stub(DomainTransaction, 'execute').callsFake((callback) => {
         return callback(domainTransaction);
       });
+
+      dependencies = {
+        requestResponseUtils: requestResponseUtilsStub,
+        monitoringTools: monitoringToolsStub,
+      };
     });
 
     it('should call the use case to share campaign result', async function () {
@@ -50,7 +58,7 @@ describe('Unit | Application | Controller | Campaign-Participation', function ()
       usecases.shareCampaignResult.resolves();
 
       // when
-      await campaignParticipationController.shareCampaignResult(request, hFake);
+      await campaignParticipationController.shareCampaignResult(request, hFake, dependencies);
 
       // then
       expect(usecases.shareCampaignResult).to.have.been.calledOnce;
@@ -65,12 +73,12 @@ describe('Unit | Application | Controller | Campaign-Participation', function ()
       usecases.shareCampaignResult.resolves(campaignParticipationResultsSharedEvent);
 
       // when
-      await campaignParticipationController.shareCampaignResult(request, hFake);
+      await campaignParticipationController.shareCampaignResult(request, hFake, dependencies);
 
       // then
       expect(events.eventBus.publish).to.have.been.calledWith(
         campaignParticipationResultsSharedEvent,
-        domainTransaction
+        domainTransaction,
       );
     });
 
@@ -80,7 +88,7 @@ describe('Unit | Application | Controller | Campaign-Participation', function ()
         usecases.shareCampaignResult.resolves();
 
         // when
-        await campaignParticipationController.shareCampaignResult(request, hFake);
+        await campaignParticipationController.shareCampaignResult(request, hFake, dependencies);
 
         // then
         expect(usecases.shareCampaignResult).to.have.been.calledOnce;
@@ -93,15 +101,29 @@ describe('Unit | Application | Controller | Campaign-Participation', function ()
 
   describe('#save', function () {
     let request;
+    let dependencies;
     const campaignId = 123456;
     const participantExternalId = 'azer@ty.com';
     const userId = 6;
 
     beforeEach(function () {
       sinon.stub(usecases, 'startCampaignParticipation');
-      sinon.stub(campaignParticipationSerializer, 'serialize');
+
+      const campaignParticipationSerializerStub = {
+        serialize: sinon.stub(),
+        deserialize: sinon.stub(),
+      };
+
+      const monitoringToolsStub = {
+        logErrorWithCorrelationIds: sinon.stub(),
+      };
+
+      dependencies = {
+        campaignParticipationSerializer: campaignParticipationSerializerStub,
+        monitoringTools: monitoringToolsStub,
+      };
+
       sinon.stub(events.eventDispatcher, 'dispatch');
-      sinon.stub(monitoringTools, 'logErrorWithCorrelationIds');
       request = {
         headers: { authorization: 'token' },
         auth: { credentials: { userId } },
@@ -127,13 +149,15 @@ describe('Unit | Application | Controller | Campaign-Participation', function ()
     it('should call the usecases to start the campaign participation', async function () {
       // given
       usecases.startCampaignParticipation.resolves(new CampaignParticipationStarted());
+      const deserializedCampaignParticipation = Symbol('campaignParticipation');
+      dependencies.campaignParticipationSerializer.deserialize.resolves(deserializedCampaignParticipation);
       sinon.stub(DomainTransaction, 'execute').callsFake((callback) => {
         return callback();
       });
       events.eventDispatcher.dispatch.resolves();
 
       // when
-      await campaignParticipationController.save(request, hFake);
+      await campaignParticipationController.save(request, hFake, dependencies);
 
       // then
       expect(usecases.startCampaignParticipation).to.have.been.calledOnce;
@@ -143,8 +167,7 @@ describe('Unit | Application | Controller | Campaign-Participation', function ()
       expect(args.userId).to.equal(userId);
 
       const campaignParticipation = args.campaignParticipation;
-      expect(campaignParticipation).to.have.property('campaignId', campaignId);
-      expect(campaignParticipation).to.have.property('participantExternalId', participantExternalId);
+      expect(campaignParticipation).to.equal(deserializedCampaignParticipation);
     });
 
     it('should dispatch CampaignParticipationStartedEvent', async function () {
@@ -157,7 +180,7 @@ describe('Unit | Application | Controller | Campaign-Participation', function ()
       events.eventDispatcher.dispatch.resolves();
 
       // when
-      await campaignParticipationController.save(request, hFake);
+      await campaignParticipationController.save(request, hFake, dependencies);
 
       // then
       expect(events.eventDispatcher.dispatch).to.have.been.calledWith(campaignParticipationStartedEvent);
@@ -176,13 +199,13 @@ describe('Unit | Application | Controller | Campaign-Participation', function ()
       events.eventDispatcher.dispatch.resolves();
 
       const serializedCampaignParticipation = { id: 88, assessmentId: 12 };
-      campaignParticipationSerializer.serialize.returns(serializedCampaignParticipation);
+      dependencies.campaignParticipationSerializer.serialize.returns(serializedCampaignParticipation);
 
       // when
-      const response = await campaignParticipationController.save(request, hFake);
+      const response = await campaignParticipationController.save(request, hFake, dependencies);
 
       // then
-      expect(campaignParticipationSerializer.serialize).to.have.been.calledWith(campaignParticipation);
+      expect(dependencies.campaignParticipationSerializer.serialize).to.have.been.calledWith(campaignParticipation);
       expect(response.statusCode).to.equal(201);
       expect(response.source).to.deep.equal(serializedCampaignParticipation);
     });
@@ -201,14 +224,16 @@ describe('Unit | Application | Controller | Campaign-Participation', function ()
       events.eventDispatcher.dispatch.rejects(errorInHandler);
 
       const serializedCampaignParticipation = { id: 88, assessmentId: 12 };
-      campaignParticipationSerializer.serialize.returns(serializedCampaignParticipation);
+      dependencies.campaignParticipationSerializer.serialize.returns(serializedCampaignParticipation);
 
       // when
-      const response = await campaignParticipationController.save(request, hFake);
+      const response = await campaignParticipationController.save(request, hFake, dependencies);
 
       // then
-      expect(monitoringTools.logErrorWithCorrelationIds).to.have.been.calledWith({ message: errorInHandler });
-      expect(campaignParticipationSerializer.serialize).to.have.been.calledWith(campaignParticipation);
+      expect(dependencies.monitoringTools.logErrorWithCorrelationIds).to.have.been.calledWith({
+        message: errorInHandler,
+      });
+      expect(dependencies.campaignParticipationSerializer.serialize).to.have.been.calledWith(campaignParticipation);
       expect(response.statusCode).to.equal(201);
       expect(response.source).to.deep.equal(serializedCampaignParticipation);
     });
@@ -244,6 +269,7 @@ describe('Unit | Application | Controller | Campaign-Participation', function ()
   });
 
   describe('#getCampaignAssessmentParticipationResult', function () {
+    let dependencies;
     const campaignId = 123;
     const userId = 456;
     const campaignParticipationId = 789;
@@ -251,7 +277,12 @@ describe('Unit | Application | Controller | Campaign-Participation', function ()
 
     beforeEach(function () {
       sinon.stub(usecases, 'getCampaignAssessmentParticipationResult');
-      sinon.stub(campaignAssessmentParticipationResultSerializer, 'serialize');
+      const campaignAssessmentParticipationResultSerializer = {
+        serialize: sinon.stub(),
+      };
+      dependencies = {
+        campaignAssessmentParticipationResultSerializer,
+      };
     });
 
     it('should call usecase and serializer with expected parameters', async function () {
@@ -261,7 +292,7 @@ describe('Unit | Application | Controller | Campaign-Participation', function ()
       usecases.getCampaignAssessmentParticipationResult
         .withArgs({ userId, campaignId, campaignParticipationId, locale })
         .resolves(campaignAssessmentParticipationResult);
-      campaignAssessmentParticipationResultSerializer.serialize
+      dependencies.campaignAssessmentParticipationResultSerializer.serialize
         .withArgs(campaignAssessmentParticipationResult)
         .returns(expectedResults);
 
@@ -270,9 +301,14 @@ describe('Unit | Application | Controller | Campaign-Participation', function ()
         params: { campaignId, campaignParticipationId },
         headers: { 'accept-language': locale },
       };
+      const h = Symbol('h');
 
       // when
-      const response = await campaignParticipationController.getCampaignAssessmentParticipationResult(request);
+      const response = await campaignParticipationController.getCampaignAssessmentParticipationResult(
+        request,
+        h,
+        dependencies,
+      );
 
       // then
       expect(response).to.equal(expectedResults);
@@ -280,6 +316,7 @@ describe('Unit | Application | Controller | Campaign-Participation', function ()
   });
 
   describe('#getCampaignProfile', function () {
+    let dependencies;
     const campaignId = 123;
     const userId = 456;
     const campaignParticipationId = 789;
@@ -287,7 +324,12 @@ describe('Unit | Application | Controller | Campaign-Participation', function ()
 
     beforeEach(function () {
       sinon.stub(usecases, 'getCampaignProfile');
-      sinon.stub(campaignProfileSerializer, 'serialize');
+      const campaignProfileSerializer = {
+        serialize: sinon.stub(),
+      };
+      dependencies = {
+        campaignProfileSerializer,
+      };
     });
 
     it('should call usecase and serializer with expected parameters', async function () {
@@ -297,16 +339,17 @@ describe('Unit | Application | Controller | Campaign-Participation', function ()
       usecases.getCampaignProfile
         .withArgs({ userId, campaignId, campaignParticipationId, locale })
         .resolves(campaignProfile);
-      campaignProfileSerializer.serialize.withArgs(campaignProfile).returns(expectedResults);
+      dependencies.campaignProfileSerializer.serialize.withArgs(campaignProfile).returns(expectedResults);
 
       const request = {
         auth: { credentials: { userId } },
         params: { campaignId, campaignParticipationId },
         headers: { 'accept-language': locale },
       };
+      const h = Symbol('h');
 
       // when
-      const response = await campaignParticipationController.getCampaignProfile(request);
+      const response = await campaignParticipationController.getCampaignProfile(request, h, dependencies);
 
       // then
       expect(response).to.equal(expectedResults);
@@ -314,13 +357,19 @@ describe('Unit | Application | Controller | Campaign-Participation', function ()
   });
 
   describe('#getAnalysis', function () {
+    let dependencies;
     const userId = 456;
     const campaignParticipationId = 789;
     const locale = FRENCH_SPOKEN;
 
     beforeEach(function () {
       sinon.stub(usecases, 'computeCampaignParticipationAnalysis');
-      sinon.stub(campaignAnalysisSerializer, 'serialize');
+      const campaignAnalysisSerializer = {
+        serialize: sinon.stub(),
+      };
+      dependencies = {
+        campaignAnalysisSerializer,
+      };
     });
 
     it('should call usecase and serializer with expected parameters', async function () {
@@ -330,16 +379,17 @@ describe('Unit | Application | Controller | Campaign-Participation', function ()
       usecases.computeCampaignParticipationAnalysis
         .withArgs({ userId, campaignParticipationId, locale })
         .resolves(campaignAnalysis);
-      campaignAnalysisSerializer.serialize.withArgs(campaignAnalysis).returns(expectedResults);
+      dependencies.campaignAnalysisSerializer.serialize.withArgs(campaignAnalysis).returns(expectedResults);
 
       const request = {
         auth: { credentials: { userId } },
         params: { id: campaignParticipationId },
         headers: { 'accept-language': locale },
       };
+      const h = Symbol('h');
 
       // when
-      const response = await campaignParticipationController.getAnalysis(request);
+      const response = await campaignParticipationController.getAnalysis(request, h, dependencies);
 
       // then
       expect(response).to.equal(expectedResults);
@@ -410,9 +460,16 @@ describe('Unit | Application | Controller | Campaign-Participation', function ()
   });
 
   describe('#findTrainings', function () {
+    let depencies;
+
     beforeEach(function () {
       sinon.stub(usecases, 'findCampaignParticipationTrainings');
-      sinon.stub(trainingSerializer, 'serialize');
+      const trainingSerializer = {
+        serialize: sinon.stub(),
+      };
+      depencies = {
+        trainingSerializer,
+      };
     });
 
     it('should call usecase and serializer with expected parameters', async function () {
@@ -425,16 +482,17 @@ describe('Unit | Application | Controller | Campaign-Participation', function ()
       usecases.findCampaignParticipationTrainings
         .withArgs({ userId, campaignParticipationId, locale })
         .resolves(trainings);
-      trainingSerializer.serialize.withArgs(trainings).returns(expectedResults);
+      depencies.trainingSerializer.serialize.withArgs(trainings).returns(expectedResults);
 
       const request = {
         auth: { credentials: { userId } },
         params: { id: campaignParticipationId },
         headers: { 'accept-language': locale },
       };
+      const h = Symbol('h');
 
       // when
-      const response = await campaignParticipationController.findTrainings(request);
+      const response = await campaignParticipationController.findTrainings(request, h, depencies);
 
       // then
       expect(response).to.equal(expectedResults);

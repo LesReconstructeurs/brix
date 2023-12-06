@@ -1,8 +1,8 @@
-const { expect, domainBuilder } = require('../../../../test-helper');
+import { expect, domainBuilder } from '../../../../test-helper.js';
 
-const serializer = require('../../../../../lib/infrastructure/serializers/jsonapi/prescriber-serializer');
-const Membership = require('../../../../../lib/domain/models/Membership');
-const { SamlIdentityProviders } = require('../../../../../lib/domain/constants/saml-identity-providers');
+import * as serializer from '../../../../../lib/infrastructure/serializers/jsonapi/prescriber-serializer.js';
+import { Membership } from '../../../../../lib/domain/models/index.js';
+import { NON_OIDC_IDENTITY_PROVIDERS } from '../../../../../lib/domain/constants/identity-providers.js';
 
 describe('Unit | Serializer | JSONAPI | prescriber-serializer', function () {
   describe('#serialize', function () {
@@ -106,7 +106,7 @@ describe('Unit | Serializer | JSONAPI | prescriber-serializer', function () {
       it('should serialize prescriber with identityProviderForCampaigns', function () {
         // given
         const organization = domainBuilder.buildOrganization({
-          identityProviderForCampaigns: SamlIdentityProviders.GAR.code,
+          identityProviderForCampaigns: NON_OIDC_IDENTITY_PROVIDERS.GAR.code,
         });
         const membership = domainBuilder.buildMembership({ organization });
 
@@ -165,6 +165,7 @@ describe('Unit | Serializer | JSONAPI | prescriber-serializer', function () {
           pixOrgaTermsOfServiceAccepted: user.pixOrgaTermsOfServiceAccepted,
           memberships: [membership],
           userOrgaSettings,
+          enableMultipleSendingAssessment: true,
         });
 
         const expectedPrescriberSerialized = createExpectedPrescriberSerialized({
@@ -203,6 +204,7 @@ function createExpectedPrescriberSerializedWithOneMoreField({
         'are-new-year-organization-learners-imported': prescriber.areNewYearOrganizationLearnersImported,
         'participant-count': prescriber.participantCount,
         lang: prescriber.lang,
+        'enable-multiple-sending-assessment': false,
       },
       relationships: {
         memberships: {
@@ -307,6 +309,7 @@ function createExpectedPrescriberSerialized({ prescriber, membership, userOrgaSe
         'are-new-year-organization-learners-imported': prescriber.areNewYearOrganizationLearnersImported,
         'participant-count': prescriber.participantCount,
         lang: prescriber.lang,
+        'enable-multiple-sending-assessment': true,
       },
       relationships: {
         memberships: {

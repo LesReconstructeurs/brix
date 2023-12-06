@@ -1,9 +1,10 @@
-const codeUtils = require('../../infrastructure/utils/code-utils');
-const AuthenticationMethod = require('../models/AuthenticationMethod');
-const { InvalidPasswordForUpdateEmailError, UserNotAuthorizedToUpdateEmailError } = require('../errors');
-const get = require('lodash/get');
+import { NON_OIDC_IDENTITY_PROVIDERS } from '../constants/identity-providers.js';
+import { InvalidPasswordForUpdateEmailError, UserNotAuthorizedToUpdateEmailError } from '../errors.js';
+import lodash from 'lodash';
 
-module.exports = async function sendVerificationCode({
+const { get } = lodash;
+
+const sendVerificationCode = async function ({
   i18n,
   locale,
   newEmail,
@@ -14,6 +15,7 @@ module.exports = async function sendVerificationCode({
   userRepository,
   encryptionService,
   mailService,
+  codeUtils,
 }) {
   const user = await userRepository.get(userId);
   if (!user.email) {
@@ -24,7 +26,7 @@ module.exports = async function sendVerificationCode({
 
   const authenticationMethod = await authenticationMethodRepository.findOneByUserIdAndIdentityProvider({
     userId,
-    identityProvider: AuthenticationMethod.identityProviders.PIX,
+    identityProvider: NON_OIDC_IDENTITY_PROVIDERS.PIX.code,
   });
 
   try {
@@ -43,3 +45,5 @@ module.exports = async function sendVerificationCode({
   await userEmailRepository.saveEmailModificationDemand({ userId, code, newEmail });
   await mailService.sendVerificationCodeEmail({ code, locale, translate: i18n.__, email: newEmail });
 };
+
+export { sendVerificationCode };

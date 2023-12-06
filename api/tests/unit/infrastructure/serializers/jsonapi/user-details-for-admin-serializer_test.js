@@ -1,14 +1,15 @@
-const { expect, domainBuilder } = require('../../../../test-helper');
-const serializer = require('../../../../../lib/infrastructure/serializers/jsonapi/user-details-for-admin-serializer');
+import { expect, domainBuilder } from '../../../../test-helper.js';
+import * as serializer from '../../../../../lib/infrastructure/serializers/jsonapi/user-details-for-admin-serializer.js';
 
 describe('Unit | Serializer | JSONAPI | user-details-for-admin-serializer', function () {
   describe('#serialize', function () {
-    it('should serialize user details for Pix Admin', function () {
+    it('serializes user details for Pix Admin', function () {
       // given
       const now = new Date();
       const userDetailsForAdmin = domainBuilder.buildUserDetailsForAdmin({
         createdAt: now,
         lang: 'fr',
+        locale: 'fr-FR',
         lastTermsOfServiceValidatedAt: now,
         lastPixOrgaTermsOfServiceValidatedAt: now,
         lastPixCertifTermsOfServiceValidatedAt: now,
@@ -17,7 +18,9 @@ describe('Unit | Serializer | JSONAPI | user-details-for-admin-serializer', func
         hasBeenAnonymised: false,
         anonymisedByFullName: null,
         organizationLearners: [domainBuilder.buildOrganizationLearnerForAdmin()],
-        authenticationMethods: [{ id: 1, identityProvider: 'PIX' }],
+        authenticationMethods: [
+          { id: 1, identityProvider: 'PIX', authenticationComplement: { shouldChangePassword: true } },
+        ],
         userLogin: [{ id: 123, failureCount: 8 }],
       });
 
@@ -37,6 +40,7 @@ describe('Unit | Serializer | JSONAPI | user-details-for-admin-serializer', func
             'pix-orga-terms-of-service-accepted': userDetailsForAdmin.pixOrgaTermsOfServiceAccepted,
             'pix-certif-terms-of-service-accepted': userDetailsForAdmin.pixCertifTermsOfServiceAccepted,
             lang: 'fr',
+            locale: 'fr-FR',
             'last-terms-of-service-validated-at': now,
             'last-pix-orga-terms-of-service-validated-at': now,
             'last-pix-certif-terms-of-service-validated-at': now,
@@ -115,6 +119,7 @@ describe('Unit | Serializer | JSONAPI | user-details-for-admin-serializer', func
           {
             attributes: {
               'identity-provider': userDetailsForAdmin.authenticationMethods[0].identityProvider,
+              'authentication-complement': { shouldChangePassword: true },
             },
             id: `${userDetailsForAdmin.authenticationMethods[0].id}`,
             type: 'authenticationMethods',
@@ -135,6 +140,7 @@ describe('Unit | Serializer | JSONAPI | user-details-for-admin-serializer', func
       const modelObject = domainBuilder.buildUserDetailsForAdmin({
         organizationLearners: [domainBuilder.buildOrganizationLearnerForAdmin()],
         authenticationMethods: [{ id: 1, identityProvider: 'PIX' }],
+        locale: 'fr-FR',
       });
 
       // when
@@ -149,6 +155,8 @@ describe('Unit | Serializer | JSONAPI | user-details-for-admin-serializer', func
             email: modelObject.email,
             username: modelObject.username,
             cgu: modelObject.cgu,
+            lang: 'fr',
+            locale: 'fr-FR',
             'pix-orga-terms-of-service-accepted': modelObject.pixOrgaTermsOfServiceAccepted,
             'pix-certif-terms-of-service-accepted': modelObject.pixCertifTermsOfServiceAccepted,
           },
@@ -204,10 +212,9 @@ describe('Unit | Serializer | JSONAPI | user-details-for-admin-serializer', func
   });
 
   describe('#deserialize', function () {
-    let jsonUser;
-
-    beforeEach(function () {
-      jsonUser = {
+    it('converts JSON API data into a map object that contain attribute to patch', function () {
+      // given
+      const jsonUser = {
         data: {
           type: 'user',
           attributes: {
@@ -215,12 +222,12 @@ describe('Unit | Serializer | JSONAPI | user-details-for-admin-serializer', func
             'last-name': 'Skywalker',
             email: 'lskywalker@deathstar.empire',
             username: 'luke.skywalker1212',
+            lang: 'en',
+            locale: 'en',
           },
         },
       };
-    });
 
-    it('should convert JSON API data into a map object that contain attribute to patch', function () {
       // when
       const user = serializer.deserialize(jsonUser);
 
@@ -229,6 +236,8 @@ describe('Unit | Serializer | JSONAPI | user-details-for-admin-serializer', func
       expect(user.lastName).to.equal('Skywalker');
       expect(user.email).to.equal('lskywalker@deathstar.empire');
       expect(user.username).to.equal('luke.skywalker1212');
+      expect(user.lang).to.equal('en');
+      expect(user.locale).to.equal('en');
     });
   });
 });

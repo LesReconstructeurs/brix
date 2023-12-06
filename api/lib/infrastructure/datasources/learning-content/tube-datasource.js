@@ -1,7 +1,7 @@
-const _ = require('lodash');
-const datasource = require('./datasource');
+import _ from 'lodash';
+import * as datasource from './datasource.js';
 
-module.exports = datasource.extend({
+const tubeDatasource = datasource.extend({
   modelName: 'tubes',
 
   async findByNames(tubeNames) {
@@ -13,4 +13,11 @@ module.exports = datasource.extend({
     const tubes = await this.list();
     return tubes.filter(({ id }) => tubeIds.includes(id));
   },
+
+  async findByThematicId(thematicId) {
+    const tubes = await this.list();
+    return tubes.filter((tubeData) => tubeData.thematicId === thematicId);
+  },
 });
+
+export { tubeDatasource };

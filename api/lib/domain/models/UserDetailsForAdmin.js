@@ -1,28 +1,38 @@
+import * as localeService from '../services/locale-service.js';
+
 class UserDetailsForAdmin {
-  constructor({
-    id,
-    cgu,
-    username,
-    firstName,
-    lastName,
-    email,
-    pixOrgaTermsOfServiceAccepted,
-    pixCertifTermsOfServiceAccepted,
-    organizationLearners,
-    authenticationMethods,
-    createdAt,
-    updatedAt,
-    lang,
-    lastTermsOfServiceValidatedAt,
-    lastPixOrgaTermsOfServiceValidatedAt,
-    lastPixCertifTermsOfServiceValidatedAt,
-    lastLoggedAt,
-    emailConfirmedAt,
-    userLogin,
-    hasBeenAnonymised,
-    anonymisedByFirstName,
-    anonymisedByLastName,
-  } = {}) {
+  constructor(
+    {
+      id,
+      cgu,
+      username,
+      firstName,
+      lastName,
+      email,
+      pixOrgaTermsOfServiceAccepted,
+      pixCertifTermsOfServiceAccepted,
+      organizationLearners,
+      authenticationMethods,
+      createdAt,
+      updatedAt,
+      lang,
+      locale,
+      lastTermsOfServiceValidatedAt,
+      lastPixOrgaTermsOfServiceValidatedAt,
+      lastPixCertifTermsOfServiceValidatedAt,
+      lastLoggedAt,
+      emailConfirmedAt,
+      userLogin,
+      hasBeenAnonymised,
+      anonymisedByFirstName,
+      anonymisedByLastName,
+    } = {},
+    dependencies = { localeService },
+  ) {
+    if (locale) {
+      locale = dependencies.localeService.getCanonicalLocale(locale);
+    }
+
     this.id = id;
     this.cgu = cgu;
     this.firstName = firstName;
@@ -35,6 +45,7 @@ class UserDetailsForAdmin {
     this.authenticationMethods = authenticationMethods;
     this.createdAt = createdAt;
     this.lang = lang;
+    this.locale = locale;
     this.lastTermsOfServiceValidatedAt = lastTermsOfServiceValidatedAt;
     this.lastPixOrgaTermsOfServiceValidatedAt = lastPixOrgaTermsOfServiceValidatedAt;
     this.lastPixCertifTermsOfServiceValidatedAt = lastPixCertifTermsOfServiceValidatedAt;
@@ -54,4 +65,4 @@ class UserDetailsForAdmin {
   }
 }
 
-module.exports = UserDetailsForAdmin;
+export { UserDetailsForAdmin };

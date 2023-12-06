@@ -1,4 +1,4 @@
-const { expect, knex, databaseBuilder } = require('../../../test-helper');
+import { expect, knex, databaseBuilder } from '../../../test-helper.js';
 
 describe('#changeAnswerIdTypeToBigint', function () {
   it('should insert answer with an id bigger than the maximum integer type value', async function () {
@@ -17,7 +17,7 @@ describe('#changeAnswerIdTypeToBigint', function () {
     // when migration 20220721115757_alter-answers-id-from-int-to-bigint.js is done
     // then
     const { rows: sequenceDataType } = await knex.raw(
-      `SELECT data_type FROM information_schema.sequences WHERE sequence_name = 'answers_id_seq'`
+      `SELECT data_type FROM information_schema.sequences WHERE sequence_name = 'answers_id_seq'`,
     );
     expect(sequenceDataType[0]['data_type']).to.equal('bigint');
   });

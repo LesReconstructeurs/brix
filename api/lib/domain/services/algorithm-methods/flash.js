@@ -1,25 +1,45 @@
-const _ = require('lodash');
+import lodash from 'lodash';
 
-const config = require('../../../config');
+const { orderBy, range, sortBy, sortedUniqBy, sumBy } = lodash;
+
+import { config } from '../../../config.js';
 
 const DEFAULT_ESTIMATED_LEVEL = 0;
 const START_OF_SAMPLES = -9;
 const STEP_OF_SAMPLES = 18 / 80;
 const END_OF_SAMPLES = 9 + STEP_OF_SAMPLES;
-const samples = _.range(START_OF_SAMPLES, END_OF_SAMPLES, STEP_OF_SAMPLES);
+const samples = range(START_OF_SAMPLES, END_OF_SAMPLES, STEP_OF_SAMPLES);
 const DEFAULT_PROBABILITY_TO_ANSWER = 1;
 const DEFAULT_ERROR_RATE = 5;
 const ERROR_RATE_CLASS_INTERVAL = 9 / 80;
 
-module.exports = {
+export {
   getPossibleNextChallenges,
   getEstimatedLevelAndErrorRate,
   getChallengesForNonAnsweredSkills,
-  calculateTotalPixScore,
+  calculateTotalPixScoreAndScoreByCompetence,
+  getReward,
 };
 
-function getPossibleNextChallenges({ allAnswers, challenges, estimatedLevel = DEFAULT_ESTIMATED_LEVEL } = {}) {
-  const nonAnsweredChallenges = getChallengesForNonAnsweredSkills({ allAnswers, challenges });
+function getPossibleNextChallenges({
+  allAnswers,
+  challenges,
+  estimatedLevel = DEFAULT_ESTIMATED_LEVEL,
+  warmUpLength = 0,
+  forcedCompetences = [],
+} = {}) {
+  let nonAnsweredChallenges = getChallengesForNonAnsweredSkills({ allAnswers, challenges });
+
+  if (allAnswers.length >= warmUpLength) {
+    const answersAfterWarmup = _getAnswersAfterWarmup({ answers: allAnswers, warmUpLength });
+
+    nonAnsweredChallenges = _filterAlreadyAnsweredCompetences({
+      answers: answersAfterWarmup,
+      nonAnsweredChallenges,
+      challenges,
+      forcedCompetences,
+    });
+  }
 
   if (nonAnsweredChallenges?.length === 0 || allAnswers.length >= config.features.numberOfChallengesForFlashMethod) {
     return {
@@ -27,28 +47,16 @@ function getPossibleNextChallenges({ allAnswers, challenges, estimatedLevel = DE
       possibleChallenges: [],
     };
   }
-
   const challengesWithReward = nonAnsweredChallenges.map((challenge) => {
     return {
       challenge,
-      reward: _getReward({ estimatedLevel, discriminant: challenge.discriminant, difficulty: challenge.difficulty }),
+      reward: getReward({ estimatedLevel, discriminant: challenge.discriminant, difficulty: challenge.difficulty }),
     };
   });
 
-  let maxReward = 0;
-  const possibleChallenges = challengesWithReward.reduce((acc, challengesWithReward) => {
-    if (challengesWithReward.reward > maxReward) {
-      acc = [challengesWithReward.challenge];
-      maxReward = challengesWithReward.reward;
-    } else if (challengesWithReward.reward === maxReward) {
-      acc.push(challengesWithReward.challenge);
-    }
-    return acc;
-  }, []);
-
   return {
     hasAssessmentEnded: false,
-    possibleChallenges,
+    possibleChallenges: _findBestPossibleChallenges(challengesWithReward),
   };
 }
 
@@ -67,7 +75,7 @@ function getEstimatedLevelAndErrorRate({ allAnswers, challenges }) {
   }));
 
   for (const answer of allAnswers) {
-    const answeredChallenge = _.find(challenges, ['id', answer.challengeId]);
+    const answeredChallenge = challenges.find(({ id }) => id === answer.challengeId);
 
     for (const sampleWithResults of samplesWithResults) {
       sampleWithResults.gaussian = _getGaussianValue({
@@ -94,13 +102,13 @@ function getEstimatedLevelAndErrorRate({ allAnswers, challenges }) {
 
     latestEstimatedLevel = samplesWithResults.reduce(
       (estimatedLevel, { sample, probability }) => estimatedLevel + sample * probability,
-      0
+      0,
     );
   }
 
   const rawErrorRate = samplesWithResults.reduce(
     (acc, { sample, probability }) => acc + probability * (sample - latestEstimatedLevel) ** 2,
-    0
+    0,
   );
 
   const correctedErrorRate = Math.sqrt(rawErrorRate - (ERROR_RATE_CLASS_INTERVAL ** 2) / 12.0); // prettier-ignore
@@ -119,67 +127,116 @@ function getChallengesForNonAnsweredSkills({ allAnswers, challenges }) {
   return challengesForNonAnsweredSkills;
 }
 
-function calculateTotalPixScore({ allAnswers, challenges, estimatedLevel }) {
-  const directPixScore = _getDirectPixScore({ allAnswers, challenges });
+function calculateTotalPixScoreAndScoreByCompetence({ allAnswers, challenges, estimatedLevel }) {
+  const succeededChallenges = _getDirectSucceededChallenges({ allAnswers, challenges });
 
-  const inferredPixScore = _getInferredPixScore({
+  const inferredChallenges = _getInferredChallenges({
     challenges: getChallengesForNonAnsweredSkills({ allAnswers, challenges }),
     estimatedLevel,
   });
 
-  const totalPixScore = directPixScore + inferredPixScore;
+  const pixScoreAndScoreByCompetence = _sumPixScoreAndScoreByCompetence([
+    ...succeededChallenges,
+    ...inferredChallenges,
+  ]);
 
-  return totalPixScore;
+  return pixScoreAndScoreByCompetence;
 }
 
-function _getDirectPixScore({ allAnswers, challenges }) {
-  const correctAnswers = allAnswers.filter((answer) => answer.isOk());
-  const succeededChallenges = correctAnswers.map((answer) => _findChallengeForAnswer(challenges, answer));
-  const directPixScore = _sumSkillsChallengesPixScore(succeededChallenges);
-  return directPixScore;
+function _getAnswersAfterWarmup({ answers, warmUpLength }) {
+  return answers.slice(warmUpLength);
 }
 
-function _getInferredPixScore({ challenges, estimatedLevel }) {
-  const lowestCapabilityChallengesBySkill = _findLowestCapabilityChallengesBySkill(challenges);
-  const inferredChallenges = lowestCapabilityChallengesBySkill.filter(
-    (challenge) => estimatedLevel >= challenge.minimumCapability
+function _filterAlreadyAnsweredCompetences({ answers, challenges, forcedCompetences, nonAnsweredChallenges }) {
+  const answeredCompetenceIds = answers.map(
+    ({ challengeId }) => lodash.find(challenges, { id: challengeId }).competenceId,
   );
-  const inferredPixScore = _sumSkillsChallengesPixScore(inferredChallenges);
-  return inferredPixScore;
+
+  const remainingCompetenceIds = forcedCompetences.filter(
+    (competenceId) => !answeredCompetenceIds.includes(competenceId),
+  );
+
+  const allCompetencesAreAnswered = remainingCompetenceIds.length === 0;
+
+  return nonAnsweredChallenges.filter(
+    ({ competenceId }) => allCompetencesAreAnswered || remainingCompetenceIds.includes(competenceId),
+  );
 }
 
-function _findLowestCapabilityChallengesBySkill(challenges) {
-  const challengesBySkillId = challenges.reduce((acc, challenge) => {
-    if (acc[challenge.skill.id] && acc[challenge.skill.id].minimumCapability < challenge.minimumCapability) {
-      return acc;
-    }
+function _findBestPossibleChallenges(challengesWithReward) {
+  const MAX_NUMBER_OF_RETURNED_CHALLENGES = 5;
+  const orderedChallengesWithReward = orderBy(challengesWithReward, 'reward', 'desc');
 
-    return {
-      ...acc,
-      [challenge.skill.id]: challenge,
-    };
-  }, {});
-  return Object.values(challengesBySkillId);
+  const possibleChallengesWithReward = orderedChallengesWithReward.slice(0, MAX_NUMBER_OF_RETURNED_CHALLENGES);
+
+  return possibleChallengesWithReward.map(({ challenge }) => challenge);
+}
+
+function _getDirectSucceededChallenges({ allAnswers, challenges }) {
+  const correctAnswers = allAnswers.filter((answer) => answer.isOk());
+  return correctAnswers.map((answer) => _findChallengeForAnswer(challenges, answer));
+}
+
+function _getInferredChallenges({ challenges, estimatedLevel }) {
+  const challengesForInferrence = _findChallengesForInferrence(challenges);
+  return challengesForInferrence.filter((challenge) => estimatedLevel >= challenge.minimumCapability);
+}
+
+/**
+ * Returns a list of challenges containing for each skill
+ * the challenge with the lowest minimum capability,
+ * prioritizing validated challenges over archived ones.
+ *
+ * @param {import('../../models/Challenge')[]} challenges
+ * @returns A list of challenges for scoring inferrence
+ */
+function _findChallengesForInferrence(challenges) {
+  return sortedUniqBy(
+    orderBy(challenges, ['skill.id', getChallengePriorityForInferrence, 'minimumCapability']),
+    'skill.id',
+  );
+}
+
+const challengeStatusPriorityForInferrence = ['validé', 'archivé'];
+
+function getChallengePriorityForInferrence(challenge) {
+  const priority = challengeStatusPriorityForInferrence.indexOf(challenge.status);
+  return priority === -1 ? 100 : priority;
 }
 
 function _findChallengeForAnswer(challenges, answer) {
   return challenges.find((challenge) => challenge.id === answer.challengeId);
 }
 
-function _sumSkillsChallengesPixScore(challenges) {
-  const scoreBySkillId = challenges.reduce((acc, challenge) => {
-    if (acc[challenge.skill.id]) return acc;
+function _sumPixScoreAndScoreByCompetence(challenges) {
+  const scoreBySkillId = {};
+  const scoreByCompetenceId = {};
 
-    return {
-      ...acc,
-      [challenge.skill.id]: challenge.skill.pixValue,
-    };
-  }, {});
+  for (const challenge of challenges) {
+    const { id: skillId, competenceId, pixValue } = challenge.skill;
 
-  return Object.values(scoreBySkillId).reduce((sum, pixValue) => sum + pixValue, 0);
+    if (scoreBySkillId[skillId]) continue;
+
+    scoreBySkillId[skillId] = pixValue;
+
+    const previousCompetenceScore = scoreByCompetenceId[competenceId] ?? 0;
+
+    scoreByCompetenceId[competenceId] = pixValue + previousCompetenceScore;
+  }
+
+  const pixScore = Object.values(scoreBySkillId).reduce((sum, pixValue) => sum + pixValue, 0);
+  const pixScoreByCompetence = sortBy(
+    Object.entries(scoreByCompetenceId).map(([competenceId, pixScore]) => ({
+      competenceId,
+      pixScore,
+    })),
+    'competenceId',
+  );
+
+  return { pixScore, pixScoreByCompetence };
 }
 
-function _getReward({ estimatedLevel, discriminant, difficulty }) {
+function getReward({ estimatedLevel, discriminant, difficulty }) {
   const probability = _getProbability({ estimatedLevel, discriminant, difficulty });
   return probability * (1 - probability) * Math.pow(discriminant, 2);
 }
@@ -194,7 +251,7 @@ function _getGaussianValue({ gaussianMean, value }) {
 }
 
 function _normalizeFieldDistribution(data, field) {
-  const sum = _.sumBy(data, field);
+  const sum = sumBy(data, field);
   for (const item of data) {
     item[field] /= sum;
   }

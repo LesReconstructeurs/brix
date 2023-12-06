@@ -1,8 +1,9 @@
-const _ = require('lodash');
-const { expect, sinon } = require('../../../../test-helper');
-const lcms = require('../../../../../lib/infrastructure/lcms');
-const challengeDatasource = require('../../../../../lib/infrastructure/datasources/learning-content/challenge-datasource');
-const cache = require('../../../../../lib/infrastructure/caches/learning-content-cache');
+import _ from 'lodash';
+import { expect, sinon, catchErr } from '../../../../test-helper.js';
+import { lcms } from '../../../../../lib/infrastructure/lcms.js';
+import { challengeDatasource } from '../../../../../lib/infrastructure/datasources/learning-content/challenge-datasource.js';
+import { learningContentCache } from '../../../../../lib/infrastructure/caches/learning-content-cache.js';
+import { LearningContentResourceNotFound } from '../../../../../lib/infrastructure/datasources/learning-content/LearningContentResourceNotFound.js';
 
 describe('Unit | Infrastructure | Datasource | Learning Content | ChallengeDatasource', function () {
   let competence1,
@@ -13,6 +14,7 @@ describe('Unit | Infrastructure | Datasource | Learning Content | ChallengeDatas
     challenge_competence1,
     challenge_competence1_noSkills,
     challenge_competence1_notValidated,
+    challenge_competence1_obsolete,
     challenge_competence2,
     challenge_web1,
     challenge_web1_notValidated,
@@ -54,6 +56,17 @@ describe('Unit | Infrastructure | Datasource | Learning Content | ChallengeDatas
       alpha: -0,
       delta: 0,
     };
+
+    challenge_competence1_obsolete = {
+      id: 'challenge-competence1-obsolete',
+      competenceId: competence1.id,
+      skillId: web1.id,
+      locales: ['fr', 'fr-fr'],
+      status: 'périmé',
+      alpha: -0,
+      delta: 0,
+    };
+
     challenge_competence2 = {
       id: 'challenge-competence2',
       competenceId: competence2.id,
@@ -74,16 +87,12 @@ describe('Unit | Infrastructure | Datasource | Learning Content | ChallengeDatas
       skillId: web1.id,
       status: 'proposé',
       locales: ['fr', 'fr-fr'],
-      alpha: -1.9,
-      delta: 2.34,
     };
     challenge_web1_archived = {
       id: 'challenge_web1_archived',
       skillId: web1.id,
       status: 'archivé',
       locales: ['fr', 'fr-fr'],
-      alpha: -1.9,
-      delta: 2.34,
     };
     challenge_web2_en = {
       id: 'challenge-web2',
@@ -110,7 +119,7 @@ describe('Unit | Infrastructure | Datasource | Learning Content | ChallengeDatas
       delta: 0,
     };
 
-    sinon.stub(cache, 'get').callsFake((generator) => generator());
+    sinon.stub(learningContentCache, 'get').callsFake((generator) => generator());
   });
 
   describe('#findOperativeBySkillIds', function () {
@@ -213,6 +222,59 @@ describe('Unit | Infrastructure | Datasource | Learning Content | ChallengeDatas
       sinon.stub(lcms, 'getLatestRelease').resolves({
         challenges: [
           challenge_competence1,
+          challenge_competence1_notValidated,
+          challenge_competence1_noSkills,
+          challenge_competence1_obsolete,
+          challenge_competence2,
+          challenge_web1,
+          challenge_web1_notValidated,
+          challenge_web2_en,
+          challenge_web3,
+          challenge_web3_archived,
+        ],
+      });
+    });
+
+    context('when not requesting obsolete challenges', function () {
+      it('should resolve an array of matching Challenges from learning content', async function () {
+        // when
+        const locale = 'fr-fr';
+        const result = await challengeDatasource.findFlashCompatible({ locale });
+
+        // then
+        expect(lcms.getLatestRelease).to.have.been.called;
+        expect(_.map(result, 'id').sort()).to.deep.equal(
+          [challenge_competence1.id, challenge_competence2.id, challenge_web3.id, challenge_web3_archived.id].sort(),
+        );
+      });
+    });
+
+    context('when requesting obsolete challenges', function () {
+      it('should resolve an array of matching Challenges from learning content', async function () {
+        // when
+        const locale = 'fr-fr';
+        const result = await challengeDatasource.findFlashCompatible({ locale, useObsoleteChallenges: true });
+
+        // then
+        expect(lcms.getLatestRelease).to.have.been.called;
+        expect(_.map(result, 'id').sort()).to.deep.equal(
+          [
+            challenge_competence1.id,
+            challenge_competence1_obsolete.id,
+            challenge_competence2.id,
+            challenge_web3.id,
+            challenge_web3_archived.id,
+          ].sort(),
+        );
+      });
+    });
+  });
+
+  describe('#findActiveFlashCompatible', function () {
+    beforeEach(function () {
+      sinon.stub(lcms, 'getLatestRelease').resolves({
+        challenges: [
+          challenge_competence1,
           challenge_competence1_noSkills,
           challenge_competence2,
           challenge_web1,
@@ -227,11 +289,47 @@ describe('Unit | Infrastructure | Datasource | Learning Content | ChallengeDatas
     it('should resolve an array of matching Challenges from learning content', async function () {
       // when
       const locale = 'fr-fr';
-      const result = await challengeDatasource.findFlashCompatible(locale);
+      const result = await challengeDatasource.findActiveFlashCompatible(locale);
 
       // then
       expect(lcms.getLatestRelease).to.have.been.called;
-      expect(_.map(result, 'id')).to.deep.equal(['challenge-competence1', 'challenge-competence2', 'challenge-web3']);
+      expect(_.map(result, 'id')).to.deep.equal([
+        challenge_competence1.id,
+        challenge_competence2.id,
+        challenge_web3.id,
+      ]);
+    });
+  });
+
+  describe('#findOperativeFlashCompatible', function () {
+    beforeEach(function () {
+      sinon.stub(lcms, 'getLatestRelease').resolves({
+        challenges: [
+          challenge_competence1,
+          challenge_competence1_noSkills,
+          challenge_competence2,
+          challenge_web1,
+          challenge_web1_notValidated,
+          challenge_web2_en,
+          challenge_web3,
+          challenge_web3_archived,
+        ],
+      });
+    });
+
+    it('should resolve an array of matching Challenges from learning content', async function () {
+      // when
+      const locale = 'fr-fr';
+      const result = await challengeDatasource.findOperativeFlashCompatible(locale);
+
+      // then
+      expect(lcms.getLatestRelease).to.have.been.called;
+      expect(_.map(result, 'id')).to.deep.equal([
+        challenge_competence1.id,
+        challenge_competence2.id,
+        challenge_web3.id,
+        challenge_web3_archived.id,
+      ]);
     });
   });
 
@@ -248,6 +346,36 @@ describe('Unit | Infrastructure | Datasource | Learning Content | ChallengeDatas
       // then
       expect(lcms.getLatestRelease).to.have.been.called;
       expect(result).to.deep.equal([challenge_web1, challenge_competence2]);
+    });
+  });
+
+  describe('#getBySkillId', function () {
+    let challenge_pix1d1;
+    const skillId = '@didacticiel1';
+    beforeEach(function () {
+      challenge_pix1d1 = {
+        id: 'challenge-competence1',
+        competenceId: competence1.id,
+        skillId,
+      };
+      sinon.stub(lcms, 'getLatestRelease').resolves({
+        challenges: [challenge_web1, challenge_competence2, challenge_pix1d1],
+      });
+    });
+    it('should resolve an array of validated challenge of a skill from learning content ', async function () {
+      // when
+      const result = await challengeDatasource.getBySkillId(skillId);
+
+      // then
+      expect(lcms.getLatestRelease).to.have.been.called;
+      expect(result).to.deep.equal(challenge_pix1d1);
+    });
+    it('should return an error if the challenge does not exist', async function () {
+      // when
+      const error = await catchErr(challengeDatasource.getBySkillId)('falseId');
+
+      // then
+      expect(error).to.be.instanceOf(LearningContentResourceNotFound);
     });
   });
 });

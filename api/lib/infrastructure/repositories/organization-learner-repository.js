@@ -1,33 +1,29 @@
-const _ = require('lodash');
+import _ from 'lodash';
 
-const {
+import {
   NotFoundError,
   OrganizationLearnerNotFound,
   OrganizationLearnersCouldNotBeSavedError,
   UserCouldNotBeReconciledError,
   UserNotFoundError,
-} = require('../../domain/errors');
+} from '../../domain/errors.js';
+import { OrganizationLearner } from '../../domain/models/OrganizationLearner.js';
+import { OrganizationLearnerForAdmin } from '../../domain/read-models/OrganizationLearnerForAdmin.js';
+import * as studentRepository from './student-repository.js';
 
-const OrganizationLearner = require('../../domain/models/OrganizationLearner');
-const OrganizationLearnerForAdmin = require('../../domain/read-models/OrganizationLearnerForAdmin');
-const studentRepository = require('./student-repository');
-
-const Bookshelf = require('../bookshelf');
-const { knex } = require('../../../db/knex-database-connection');
-const BookshelfOrganizationLearner = require('../orm-models/OrganizationLearner');
-
-const bookshelfToDomainConverter = require('../utils/bookshelf-to-domain-converter');
-const DomainTransaction = require('../DomainTransaction');
+import { knex } from '../../../db/knex-database-connection.js';
+import { fetchPage } from '../utils/knex-utils.js';
+import { DomainTransaction } from '../DomainTransaction.js';
 
 function _shouldStudentToImportBeReconciled(
   allOrganizationLearnersInSameOrganization,
   organizationLearner,
-  studentToImport
+  studentToImport,
 ) {
   const organizationLearnerWithSameUserId = allOrganizationLearnersInSameOrganization.find(
     (organizationLearnerInSameOrganization) => {
       return organizationLearnerInSameOrganization.userId === organizationLearner.account.userId;
-    }
+    },
   );
   const isOrganizationLearnerReconciled = organizationLearnerWithSameUserId != null;
   const organizationLearnerHasSameUserIdAndNationalStudentId =
@@ -43,291 +39,333 @@ function _shouldStudentToImportBeReconciled(
   return isFromSameOrganization || isFromDifferentOrganizationWithSameBirthday;
 }
 
-module.exports = {
-  findByIds({ ids }) {
-    const organizationLearners = BookshelfOrganizationLearner.where('id', 'in', ids).fetchAll();
+const findByIds = async function ({ ids }) {
+  const rawOrganizationLearners = await knex
+    .select('*')
+    .from('view-active-organization-learners')
+    .whereIn('id', ids)
+    .orderBy('id');
 
-    return bookshelfToDomainConverter.buildDomainObjects(BookshelfOrganizationLearner, organizationLearners);
-  },
+  return rawOrganizationLearners.map((rawOrganizationLearner) => new OrganizationLearner(rawOrganizationLearner));
+};
 
-  findByOrganizationId({ organizationId }, transaction = DomainTransaction.emptyTransaction()) {
-    const knexConn = transaction.knexTransaction || knex;
-    return knexConn('organization-learners')
-      .where({ organizationId })
-      .orderByRaw('LOWER("lastName") ASC, LOWER("firstName") ASC')
-      .then((organizationLearners) =>
-        organizationLearners.map((organizationLearner) => new OrganizationLearner(organizationLearner))
-      );
-  },
+const findByOrganizationId = function ({ organizationId }, transaction = DomainTransaction.emptyTransaction()) {
+  const knexConn = transaction.knexTransaction || knex;
+  return knexConn('view-active-organization-learners')
+    .where({ organizationId })
+    .orderByRaw('LOWER("lastName") ASC, LOWER("firstName") ASC')
+    .then((organizationLearners) =>
+      organizationLearners.map((organizationLearner) => new OrganizationLearner(organizationLearner)),
+    );
+};
 
-  async findByOrganizationIdAndUpdatedAtOrderByDivision({ organizationId, page, filter }) {
-    const BEGINNING_OF_THE_2020_SCHOOL_YEAR = '2020-08-15';
-    const query = BookshelfOrganizationLearner.where((qb) => {
-      qb.where({ organizationId });
-      qb.where('updatedAt', '>', BEGINNING_OF_THE_2020_SCHOOL_YEAR);
-      qb.where('isDisabled', false);
+const findByOrganizationIdAndUpdatedAtOrderByDivision = async function ({ organizationId, page, filter }) {
+  const BEGINNING_OF_THE_2020_SCHOOL_YEAR = '2020-08-15';
+  const query = knex('view-active-organization-learners')
+    .where({
+      organizationId,
+      isDisabled: false,
     })
-      .query((qb) => {
-        qb.orderByRaw('LOWER("division") ASC, LOWER("lastName") ASC, LOWER("firstName") ASC');
-        if (filter.divisions) {
-          qb.whereIn('division', filter.divisions);
-        }
-      })
-      .fetchPage({
-        page: page.number,
-        pageSize: page.size,
-      });
+    .where('updatedAt', '>', BEGINNING_OF_THE_2020_SCHOOL_YEAR)
+    .orderByRaw('LOWER("division") ASC, LOWER("lastName") ASC, LOWER("firstName") ASC');
 
-    const { models, pagination } = await query;
+  if (filter.divisions) {
+    query.whereIn('division', filter.divisions);
+  }
 
-    return {
-      data: bookshelfToDomainConverter.buildDomainObjects(BookshelfOrganizationLearner, models),
-      pagination,
-    };
-  },
+  const { results, pagination } = await fetchPage(query, page);
 
-  async findByUserId({ userId }) {
-    const organizationLearners = await BookshelfOrganizationLearner.where({ userId }).orderBy('id').fetchAll();
+  return {
+    data: results.map((result) => new OrganizationLearner(result)),
+    pagination,
+  };
+};
 
-    return bookshelfToDomainConverter.buildDomainObjects(BookshelfOrganizationLearner, organizationLearners);
-  },
+const findByUserId = async function ({ userId }) {
+  const rawOrganizationLearners = await knex
+    .select('*')
+    .from('view-active-organization-learners')
+    .where({ userId })
+    .orderBy('id');
 
-  async isOrganizationLearnerIdLinkedToUserAndSCOOrganization({ userId, organizationLearnerId }) {
-    const exist = await Bookshelf.knex('organization-learners')
-      .select('organization-learners.id')
-      .join('organizations', 'organization-learners.organizationId', 'organizations.id')
-      .where({ userId, type: 'SCO', 'organization-learners.id': organizationLearnerId })
-      .first();
+  return rawOrganizationLearners.map((rawOrganizationLearner) => new OrganizationLearner(rawOrganizationLearner));
+};
 
-    return Boolean(exist);
-  },
+const isOrganizationLearnerIdLinkedToUserAndSCOOrganization = async function ({ userId, organizationLearnerId }) {
+  const exist = await knex('view-active-organization-learners')
+    .select('view-active-organization-learners.id')
+    .join('organizations', 'view-active-organization-learners.organizationId', 'organizations.id')
+    .where({ userId, type: 'SCO', 'view-active-organization-learners.id': organizationLearnerId })
+    .first();
 
-  async disableAllOrganizationLearnersInOrganization({ domainTransaction, organizationId }) {
-    const knexConn = domainTransaction.knexTransaction;
+  return Boolean(exist);
+};
+
+const disableAllOrganizationLearnersInOrganization = async function ({ domainTransaction, organizationId }) {
+  const knexConn = domainTransaction.knexTransaction;
+  await knexConn('organization-learners')
+    .where({ organizationId, isDisabled: false })
+    .update({ isDisabled: true, updatedAt: knexConn.raw('CURRENT_TIMESTAMP') });
+};
+
+const addOrUpdateOrganizationOfOrganizationLearners = async function (
+  organizationLearnerDatas,
+  organizationId,
+  domainTransaction,
+) {
+  const knexConn = domainTransaction.knexTransaction;
+  const organizationLearnersFromFile = organizationLearnerDatas.map(
+    (organizationLearnerData) =>
+      new OrganizationLearner({
+        ...organizationLearnerData,
+        organizationId,
+      }),
+  );
+  const existingOrganizationLearners = await this.findByOrganizationId({ organizationId }, domainTransaction);
+
+  const reconciledOrganizationLearnersToImport = await this._reconcileOrganizationLearners(
+    organizationLearnersFromFile,
+    existingOrganizationLearners,
+    domainTransaction,
+  );
+
+  try {
+    const organizationLearnersToSave = reconciledOrganizationLearnersToImport.map((organizationLearner) => ({
+      ..._.omit(organizationLearner, ['id', 'createdAt']),
+      updatedAt: knexConn.raw('CURRENT_TIMESTAMP'),
+      isDisabled: false,
+    }));
     await knexConn('organization-learners')
-      .where({ organizationId, isDisabled: false })
-      .update({ isDisabled: true, updatedAt: knexConn.raw('CURRENT_TIMESTAMP') });
-  },
+      .insert(organizationLearnersToSave)
+      .onConflict(['organizationId', 'nationalStudentId'])
+      .merge();
+  } catch (err) {
+    throw new OrganizationLearnersCouldNotBeSavedError();
+  }
+};
 
-  async addOrUpdateOrganizationOfOrganizationLearners(organizationLearnerDatas, organizationId, domainTransaction) {
-    const knexConn = domainTransaction.knexTransaction;
-    const organizationLearnersFromFile = organizationLearnerDatas.map(
-      (organizationLearnerData) =>
-        new OrganizationLearner({
-          ...organizationLearnerData,
-          organizationId,
-        })
+const _reconcileOrganizationLearners = async function (
+  studentsToImport,
+  allOrganizationLearnersInSameOrganization,
+  domainTransaction,
+) {
+  const nationalStudentIdsFromFile = studentsToImport
+    .map((organizationLearnerData) => organizationLearnerData.nationalStudentId)
+    .filter(Boolean);
+  const organizationLearnersWithSameNationalStudentIdsAsImported =
+    await studentRepository.findReconciledStudentsByNationalStudentId(nationalStudentIdsFromFile, domainTransaction);
+
+  organizationLearnersWithSameNationalStudentIdsAsImported.forEach((organizationLearner) => {
+    const alreadyReconciledStudentToImport = studentsToImport.find(
+      (studentToImport) => studentToImport.userId === organizationLearner.account.userId,
     );
-    const existingOrganizationLearners = await this.findByOrganizationId({ organizationId }, domainTransaction);
 
-    const reconciledOrganizationLearnersToImport = await this._reconcileOrganizationLearners(
-      organizationLearnersFromFile,
-      existingOrganizationLearners,
-      domainTransaction
+    if (alreadyReconciledStudentToImport) {
+      alreadyReconciledStudentToImport.userId = null;
+      return;
+    }
+
+    const studentToImport = studentsToImport.find(
+      (studentToImport) => studentToImport.nationalStudentId === organizationLearner.nationalStudentId,
     );
 
-    try {
-      const organizationLearnersToSave = reconciledOrganizationLearnersToImport.map((organizationLearner) => ({
-        ..._.omit(organizationLearner, ['id', 'createdAt']),
-        updatedAt: knexConn.raw('CURRENT_TIMESTAMP'),
-        isDisabled: false,
-      }));
-      await knexConn('organization-learners')
-        .insert(organizationLearnersToSave)
-        .onConflict(['organizationId', 'nationalStudentId'])
-        .merge();
-    } catch (err) {
-      throw new OrganizationLearnersCouldNotBeSavedError();
+    if (
+      _shouldStudentToImportBeReconciled(
+        allOrganizationLearnersInSameOrganization,
+        organizationLearner,
+        studentToImport,
+      )
+    ) {
+      studentToImport.userId = organizationLearner.account.userId;
     }
-  },
+  });
+  return studentsToImport;
+};
 
-  async _reconcileOrganizationLearners(studentsToImport, allOrganizationLearnersInSameOrganization, domainTransaction) {
-    const nationalStudentIdsFromFile = studentsToImport
-      .map((organizationLearnerData) => organizationLearnerData.nationalStudentId)
-      .filter(Boolean);
-    const organizationLearnersWithSameNationalStudentIdsAsImported =
-      await studentRepository.findReconciledStudentsByNationalStudentId(nationalStudentIdsFromFile, domainTransaction);
+const findByOrganizationIdAndBirthdate = async function ({ organizationId, birthdate }) {
+  const rawOrganizationLearners = await knex
+    .select('*')
+    .from('view-active-organization-learners')
+    .where({ organizationId, birthdate, isDisabled: false })
+    .orderBy('id');
 
-    organizationLearnersWithSameNationalStudentIdsAsImported.forEach((organizationLearner) => {
-      const alreadyReconciledStudentToImport = studentsToImport.find(
-        (studentToImport) => studentToImport.userId === organizationLearner.account.userId
-      );
+  return rawOrganizationLearners.map((rawOrganizationLearner) => new OrganizationLearner(rawOrganizationLearner));
+};
 
-      if (alreadyReconciledStudentToImport) {
-        alreadyReconciledStudentToImport.userId = null;
-        return;
-      }
+const reconcileUserToOrganizationLearner = async function ({
+  userId,
+  organizationLearnerId,
+  domainTransaction = DomainTransaction.emptyTransaction(),
+}) {
+  try {
+    const knexConn = domainTransaction.knexTransaction ?? knex;
+    const [rawOrganizationLearner] = await knexConn('organization-learners')
+      .where({ id: organizationLearnerId })
+      .where('isDisabled', false)
+      .update({ userId, updatedAt: knex.fn.now() })
+      .returning('*');
+    if (!rawOrganizationLearner) throw new Error();
+    return new OrganizationLearner(rawOrganizationLearner);
+  } catch (error) {
+    throw new UserCouldNotBeReconciledError();
+  }
+};
 
-      const studentToImport = studentsToImport.find(
-        (studentToImport) => studentToImport.nationalStudentId === organizationLearner.nationalStudentId
-      );
-
-      if (
-        _shouldStudentToImportBeReconciled(
-          allOrganizationLearnersInSameOrganization,
-          organizationLearner,
-          studentToImport
-        )
-      ) {
-        studentToImport.userId = organizationLearner.account.userId;
-      }
-    });
-    return studentsToImport;
-  },
-
-  async findByOrganizationIdAndBirthdate({ organizationId, birthdate }) {
-    const organizationLearners = await BookshelfOrganizationLearner.query((qb) => {
-      qb.where('organizationId', organizationId);
-      qb.where('birthdate', birthdate);
-      qb.where('isDisabled', false);
-    }).fetchAll();
-
-    return bookshelfToDomainConverter.buildDomainObjects(BookshelfOrganizationLearner, organizationLearners);
-  },
-
-  async reconcileUserToOrganizationLearner({ userId, organizationLearnerId }) {
-    try {
-      const organizationLearner = await BookshelfOrganizationLearner.where({ id: organizationLearnerId })
-        .where('isDisabled', false)
-        .save(
-          { userId },
-          {
-            patch: true,
-          }
-        );
-      return bookshelfToDomainConverter.buildDomainObject(BookshelfOrganizationLearner, organizationLearner);
-    } catch (error) {
-      throw new UserCouldNotBeReconciledError();
-    }
-  },
-
-  async reconcileUserByNationalStudentIdAndOrganizationId({ nationalStudentId, userId, organizationId }) {
-    try {
-      const organizationLearner = await BookshelfOrganizationLearner.where({
+const reconcileUserByNationalStudentIdAndOrganizationId = async function ({
+  nationalStudentId,
+  userId,
+  organizationId,
+}) {
+  try {
+    const [rawOrganizationLearner] = await knex('organization-learners')
+      .where({
         organizationId,
         nationalStudentId,
         isDisabled: false,
-      }).save({ userId }, { patch: true });
-      return bookshelfToDomainConverter.buildDomainObject(BookshelfOrganizationLearner, organizationLearner);
-    } catch (error) {
-      throw new UserCouldNotBeReconciledError();
-    }
-  },
+      })
+      .update({ userId, updatedAt: knex.fn.now() })
+      .returning('*');
+    if (!rawOrganizationLearner) throw new Error();
+    return new OrganizationLearner(rawOrganizationLearner);
+  } catch (error) {
+    throw new UserCouldNotBeReconciledError();
+  }
+};
 
-  async getOrganizationLearnerForAdmin(organizationLearnerId) {
-    const organizationLearner = await knex('organization-learners')
-      .select(
-        'organization-learners.id as id',
-        'firstName',
-        'lastName',
-        'birthdate',
-        'division',
-        'group',
-        'organizationId',
-        'organizations.name as organizationName',
-        'organization-learners.createdAt as createdAt',
-        'organization-learners.updatedAt as updatedAt',
-        'isDisabled',
-        'organizations.isManagingStudents as organizationIsManagingStudents'
-      )
-      .innerJoin('organizations', 'organizations.id', 'organization-learners.organizationId')
-      .where({ 'organization-learners.id': organizationLearnerId })
-      .first();
+const getOrganizationLearnerForAdmin = async function (organizationLearnerId) {
+  const organizationLearner = await knex('view-active-organization-learners')
+    .select(
+      'view-active-organization-learners.id as id',
+      'firstName',
+      'lastName',
+      'birthdate',
+      'division',
+      'group',
+      'organizationId',
+      'organizations.name as organizationName',
+      'view-active-organization-learners.createdAt as createdAt',
+      'view-active-organization-learners.updatedAt as updatedAt',
+      'isDisabled',
+      'organizations.isManagingStudents as organizationIsManagingStudents',
+    )
+    .innerJoin('organizations', 'organizations.id', 'view-active-organization-learners.organizationId')
+    .where({ 'view-active-organization-learners.id': organizationLearnerId })
+    .first();
 
-    if (!organizationLearner) {
-      throw new NotFoundError(`Organization Learner not found for ID ${organizationLearnerId}`);
-    }
-    return new OrganizationLearnerForAdmin(organizationLearner);
-  },
+  if (!organizationLearner) {
+    throw new NotFoundError(`Organization Learner not found for ID ${organizationLearnerId}`);
+  }
+  return new OrganizationLearnerForAdmin(organizationLearner);
+};
 
-  async dissociateUserFromOrganizationLearner(organizationLearnerId) {
-    await knex('organization-learners').where({ id: organizationLearnerId }).update({ userId: null });
-  },
+const dissociateUserFromOrganizationLearner = async function (organizationLearnerId) {
+  await knex('organization-learners').where({ id: organizationLearnerId }).update({ userId: null });
+};
 
-  async dissociateAllStudentsByUserId({ userId, domainTransaction = DomainTransaction.emptyTransaction() }) {
-    const knexConn = domainTransaction.knexTransaction ?? knex;
-    await knexConn('organization-learners')
-      .update({ userId: null })
-      .where({ userId })
-      .whereIn(
-        'organization-learners.organizationId',
-        knex.select('id').from('organizations').where({ isManagingStudents: true })
-      );
-  },
+const dissociateAllStudentsByUserId = async function ({
+  userId,
+  domainTransaction = DomainTransaction.emptyTransaction(),
+}) {
+  const knexConn = domainTransaction.knexTransaction ?? knex;
+  await knexConn('organization-learners')
+    .update({ userId: null, updatedAt: knex.fn.now() })
+    .where({ userId })
+    .whereIn(
+      'organization-learners.organizationId',
+      knex.select('id').from('organizations').where({ isManagingStudents: true }),
+    );
+};
 
-  async findOneByUserIdAndOrganizationId({
-    userId,
-    organizationId,
-    domainTransaction = DomainTransaction.emptyTransaction(),
-  }) {
-    const organizationLearner = await knex('organization-learners')
-      .transacting(domainTransaction)
-      .first('*')
-      .where({ userId, organizationId });
-    if (!organizationLearner) return null;
-    return new OrganizationLearner(organizationLearner);
-  },
+const findOneByUserIdAndOrganizationId = async function ({
+  userId,
+  organizationId,
+  domainTransaction = DomainTransaction.emptyTransaction(),
+}) {
+  const organizationLearner = await knex('view-active-organization-learners')
+    .transacting(domainTransaction)
+    .where({ userId, organizationId })
+    .first('*');
+  if (!organizationLearner) return null;
+  return new OrganizationLearner(organizationLearner);
+};
 
-  async get(organizationLearnerId) {
-    const organizationLearner = await knex
-      .select('*')
-      .from('organization-learners')
-      .where({ id: organizationLearnerId })
-      .first();
+const get = async function (organizationLearnerId) {
+  const organizationLearner = await knex
+    .select('*')
+    .from('view-active-organization-learners')
+    .where({ id: organizationLearnerId })
+    .first();
 
-    if (!organizationLearner) {
-      throw new NotFoundError(`Student not found for ID ${organizationLearnerId}`);
-    }
-    return new OrganizationLearner(organizationLearner);
-  },
+  if (!organizationLearner) {
+    throw new NotFoundError(`Student not found for ID ${organizationLearnerId}`);
+  }
+  return new OrganizationLearner(organizationLearner);
+};
 
-  async getLatestOrganizationLearner({ nationalStudentId, birthdate }) {
-    const organizationLearner = await knex
-      .where({ nationalStudentId, birthdate })
-      .whereNotNull('userId')
-      .select()
-      .from('organization-learners')
-      .orderBy('updatedAt', 'desc')
-      .first();
+const getLatestOrganizationLearner = async function ({ nationalStudentId, birthdate }) {
+  const organizationLearner = await knex
+    .where({ nationalStudentId, birthdate })
+    .whereNotNull('userId')
+    .select()
+    .from('view-active-organization-learners')
+    .orderBy('updatedAt', 'desc')
+    .first();
 
-    if (!organizationLearner) {
-      throw new UserNotFoundError();
-    }
+  if (!organizationLearner) {
+    throw new UserNotFoundError();
+  }
 
-    return organizationLearner;
-  },
+  return organizationLearner;
+};
 
-  updateUserIdWhereNull({ organizationLearnerId, userId, domainTransaction = DomainTransaction.emptyTransaction() }) {
-    return BookshelfOrganizationLearner.where({ id: organizationLearnerId, userId: null })
-      .save(
-        { userId },
-        {
-          transacting: domainTransaction.knexTransaction,
-          patch: true,
-          method: 'update',
-        }
-      )
-      .then((organizationLearner) =>
-        bookshelfToDomainConverter.buildDomainObject(BookshelfOrganizationLearner, organizationLearner)
-      )
-      .catch((err) => {
-        if (err instanceof BookshelfOrganizationLearner.NoRowsUpdatedError) {
-          throw new OrganizationLearnerNotFound(
-            `OrganizationLearner not found for ID ${organizationLearnerId} and user ID null.`
-          );
-        }
-        throw err;
-      });
-  },
+const updateUserIdWhereNull = async function ({
+  organizationLearnerId,
+  userId,
+  domainTransaction = DomainTransaction.emptyTransaction(),
+}) {
+  const knexConn = domainTransaction.knexTransaction || knex;
+  const [rawOrganizationLearner] = await knexConn('organization-learners')
+    .where({ id: organizationLearnerId, userId: null })
+    .update({ userId, updatedAt: knex.fn.now() })
+    .returning('*');
 
-  async isActive({ userId, campaignId }) {
-    const learner = await knex('organization-learners')
-      .select('organization-learners.isDisabled')
-      .join('organizations', 'organizations.id', 'organization-learners.organizationId')
-      .join('campaigns', 'campaigns.organizationId', 'organizations.id')
-      .where({ 'campaigns.id': campaignId })
-      .andWhere({ 'organization-learners.userId': userId })
-      .first();
-    return !learner?.isDisabled;
-  },
+  if (!rawOrganizationLearner)
+    throw new OrganizationLearnerNotFound(
+      `OrganizationLearner not found for ID ${organizationLearnerId} and user ID null.`,
+    );
+
+  return new OrganizationLearner(rawOrganizationLearner);
+};
+
+const isActive = async function ({ userId, campaignId }) {
+  const learner = await knex('view-active-organization-learners')
+    .select('view-active-organization-learners.isDisabled')
+    .join('organizations', 'organizations.id', 'view-active-organization-learners.organizationId')
+    .join('campaigns', 'campaigns.organizationId', 'organizations.id')
+    .where({ 'campaigns.id': campaignId })
+    .andWhere({ 'view-active-organization-learners.userId': userId })
+    .first();
+  return !learner?.isDisabled;
+};
+
+export {
+  findByIds,
+  findByOrganizationId,
+  findByOrganizationIdAndUpdatedAtOrderByDivision,
+  findByUserId,
+  isOrganizationLearnerIdLinkedToUserAndSCOOrganization,
+  disableAllOrganizationLearnersInOrganization,
+  addOrUpdateOrganizationOfOrganizationLearners,
+  _reconcileOrganizationLearners,
+  findByOrganizationIdAndBirthdate,
+  reconcileUserToOrganizationLearner,
+  reconcileUserByNationalStudentIdAndOrganizationId,
+  getOrganizationLearnerForAdmin,
+  dissociateUserFromOrganizationLearner,
+  dissociateAllStudentsByUserId,
+  findOneByUserIdAndOrganizationId,
+  get,
+  getLatestOrganizationLearner,
+  updateUserIdWhereNull,
+  isActive,
 };

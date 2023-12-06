@@ -1,8 +1,17 @@
 .create-target-profile {
   color: $pix-neutral-70;
+  counter-reset: title;
 
   &__card {
-    margin-bottom: $spacing-m;
+    margin-bottom: $pix-spacing-m;
+  }
+
+  .card__title {
+    counter-increment: title;
+
+    &::before {
+      content: counter(title) '.\00a0';
+    }
   }
 
   &__checkbox-container {
@@ -10,9 +19,9 @@
   }
 
   &__checkbox {
-    margin: 0 $spacing-xs;
-    width: $spacing-s;
-    height: $spacing-s;
+    width: $pix-spacing-s;
+    height: $pix-spacing-s;
+    margin: 0 $pix-spacing-xs;
   }
 
   &__is-public-checkbox {
@@ -22,16 +31,16 @@
 
   &__checkbox-label {
     margin: 0;
-    font-family: $font-roboto;
     font-weight: normal;
     font-size: 0.875rem;
+    font-family: $font-roboto;
     line-height: 20px;
   }
 
   &__is-public-label {
-    font-family: $font-roboto;
     font-weight: $font-normal;
     font-size: 0.875rem;
+    font-family: $font-roboto;
     line-height: 21px;
   }
 
@@ -62,12 +71,12 @@
   }
 
   .input-url {
-    margin-bottom: $spacing-s;
+    margin-bottom: $pix-spacing-s;
   }
 
   &__multi-select {
     max-width: 300px;
-    margin-left: $spacing-s;
+    margin-left: $pix-spacing-s;
   }
 
   .textarea-label {

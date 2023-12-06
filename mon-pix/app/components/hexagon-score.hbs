@@ -3,8 +3,7 @@
     <div class="hexagon-score-content__title">{{t "common.pix"}}</div>
     <div class="hexagon-score-content__pix-score">{{this.score}}</div>
     <div class="hexagon-score-content__pix-total">
-      51
-      <!--
+      1024
       <PixTooltip @isLight={{true}} @isWide={{true}} @position="bottom" @id="hexagon-score-tooltip">
         <:triggerElement>
           <button
@@ -23,14 +22,13 @@
             </p>
             {{t
               "pages.profile.total-score-helper.explanation"
-              maxReachablePixCount=this.maxReachablePixCount
-              maxReachableLevel=this.maxReachableLevel
+              maxReachablePixScore=@maxReachablePixScore
+              maxReachableLevel=@maxReachableLevel
               htmlSafe=true
             }}
           </div>
         </:tooltip>
       </PixTooltip>
-      -->
     </div>
   </div>
 </div>

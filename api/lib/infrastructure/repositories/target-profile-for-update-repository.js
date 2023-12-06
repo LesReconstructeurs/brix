@@ -1,22 +1,23 @@
-const targetProfileForUpdate = require('../../domain/models/TargetProfileForUpdate');
-const { knex } = require('../../../db/knex-database-connection');
-const { NotFoundError } = require('../../domain/errors');
+import { knex } from '../../../db/knex-database-connection.js';
 
-module.exports = {
-  async get(id) {
-    const row = await knex('target-profiles')
-      .select('id', 'name', 'description', 'comment', 'category')
-      .where({ id })
-      .first();
-
-    if (!row) {
-      throw new NotFoundError(`Le profil cible avec l'id ${id} n'existe pas`);
-    }
-
-    return new targetProfileForUpdate(row);
-  },
-
-  async update(targetProfile) {
-    return await knex('target-profiles').where({ id: targetProfile.id }).update(targetProfile);
-  },
+const update = async function ({
+  targetProfileId,
+  name,
+  imageUrl,
+  description,
+  comment,
+  category,
+  areKnowledgeElementsResettable,
+}) {
+  const targetProfileToUpdate = {
+    name,
+    imageUrl,
+    description,
+    comment,
+    category,
+    areKnowledgeElementsResettable,
+  };
+  return knex('target-profiles').where({ id: targetProfileId }).update(targetProfileToUpdate);
 };
+
+export { update };

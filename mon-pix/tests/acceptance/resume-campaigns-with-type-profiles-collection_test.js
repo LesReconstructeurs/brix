@@ -8,7 +8,6 @@ import {
 import { invalidateSession } from '../helpers/invalidate-session';
 import { setupApplicationTest } from 'ember-qunit';
 import { setupMirage } from 'ember-cli-mirage/test-support';
-import { clickByLabel } from '../helpers/click-by-label';
 import { visit } from '@1024pix/ember-testing-library';
 
 const PROFILES_COLLECTION = 'PROFILES_COLLECTION';
@@ -29,34 +28,34 @@ module('Acceptance | Campaigns | Resume Campaigns with type Profiles Collection'
   module('When the user is not logged', function (hooks) {
     hooks.beforeEach(async function () {
       await invalidateSession();
-      await visit(`/campagnes/${campaign.code}`);
-      await clickByLabel("C'est parti !");
     });
 
-    test('should propose to signup', function (assert) {
+    test('should propose to signup', async function (assert) {
+      const screen = await visit(`/campagnes/${campaign.code}`);
+      await click(screen.getByRole('button', { name: "C'est parti !" }));
+
       assert.ok(currentURL().includes('/inscription'));
     });
 
     test('should redirect to send profile page when user logs in', async function (assert) {
       // given
-      await click('[href="/connexion"]');
-      await fillIn('#login', studentInfo.email);
-      await fillIn('#password', studentInfo.password);
+      const screen = await visit(`/campagnes/${campaign.code}`);
+      await click(screen.getByRole('button', { name: "C'est parti !" }));
+
+      await click(screen.getByRole('link', { name: 'connectez-vous à votre compte' }));
+      await fillIn(screen.getByRole('textbox', { name: 'Adresse e-mail ou identifiant' }), studentInfo.email);
+      await fillIn(screen.getByLabelText('Mot de passe'), studentInfo.password);
 
       // when
-      await click('.sign-form-body__bottom-button button');
+      await click(screen.getByRole('button', { name: 'Je me connecte' }));
 
       // then
       assert.ok(currentURL().includes('/envoi-profil'));
     });
   });
 
-  // TODO: Fix this the next time the file is edited.
-  // eslint-disable-next-line qunit/no-async-module-callbacks
-  module('When user is logged', async function () {
-    // TODO: Fix this the next time the file is edited.
-    // eslint-disable-next-line qunit/no-async-module-callbacks
-    module('When user has seen profile page but has not send it', async function () {
+  module('When user is logged', function () {
+    module('When user has seen profile page but has not send it', function () {
       test('should redirect directly to send profile page', async function (assert) {
         // when
         await visit(`/campagnes/${campaign.code}`);
@@ -66,9 +65,7 @@ module('Acceptance | Campaigns | Resume Campaigns with type Profiles Collection'
       });
     });
 
-    // TODO: Fix this the next time the file is edited.
-    // eslint-disable-next-line qunit/no-async-module-callbacks
-    module('When user has already send his profile', async function () {
+    module('When user has already send his profile', function () {
       test('should redirect directly to send already sent page', async function (assert) {
         // given
         await completeCampaignOfTypeProfilesCollectionByCode(campaign.code);
@@ -90,9 +87,8 @@ module('Acceptance | Campaigns | Resume Campaigns with type Profiles Collection'
         // then
         assert.ok(screen.getByText('156'));
         const area1Titles = screen.getAllByText('Area_1_title').length;
-        // TODO: Fix this the next time the file is edited.
-        // eslint-disable-next-line qunit/no-assert-equal
-        assert.equal(area1Titles, 2);
+
+        assert.strictEqual(area1Titles, 2);
         assert.ok(screen.getByText('Area_1_Competence_1_name'));
       });
     });

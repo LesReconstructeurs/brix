@@ -1,35 +1,49 @@
-const { Serializer } = require('jsonapi-serializer');
+import _ from 'lodash';
+import jsonapiSerializer from 'jsonapi-serializer';
 
-const attributes = [
-  'id',
-  'firstName',
-  'lastName',
-  'birthdate',
-  'extraTimePercentage',
-  'authorizedToStart',
-  'assessmentStatus',
-  'startDateTime',
-];
+const { Serializer } = jsonapiSerializer;
 
-module.exports = {
-  serialize(sessions) {
-    return new Serializer('sessionForSupervising', {
+const serialize = function (sessions) {
+  return new Serializer('sessionForSupervising', {
+    transform(currentSessionForSupervising) {
+      const cloneSession = _.cloneDeep(currentSessionForSupervising);
+
+      cloneSession.certificationCandidates.forEach((candidate) => {
+        candidate.enrolledComplementaryCertificationLabel = candidate.enrolledComplementaryCertification?.label ?? null;
+      });
+
+      return cloneSession;
+    },
+    attributes: [
+      'room',
+      'examiner',
+      'accessCode',
+      'date',
+      'time',
+      'certificationCenterName',
+      'certificationCandidates',
+    ],
+    typeForAttribute: (attribute) =>
+      attribute === 'certificationCandidates' ? 'certification-candidate-for-supervising' : attribute,
+    certificationCandidates: {
+      included: true,
+      ref: 'id',
       attributes: [
-        'room',
-        'examiner',
-        'accessCode',
-        'date',
-        'time',
-        'certificationCenterName',
-        'certificationCandidates',
+        'id',
+        'userId',
+        'firstName',
+        'lastName',
+        'birthdate',
+        'extraTimePercentage',
+        'authorizedToStart',
+        'assessmentStatus',
+        'startDateTime',
+        'theoricalEndDateTime',
+        'enrolledComplementaryCertificationLabel',
+        'isStillEligibleToComplementaryCertification',
       ],
-      typeForAttribute: (attribute) =>
-        attribute === 'certificationCandidates' ? 'certification-candidate-for-supervising' : attribute,
-      certificationCandidates: {
-        included: true,
-        ref: 'id',
-        attributes: [...attributes],
-      },
-    }).serialize(sessions);
-  },
+    },
+  }).serialize(sessions);
 };
+
+export { serialize };

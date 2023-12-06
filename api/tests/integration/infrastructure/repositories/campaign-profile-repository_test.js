@@ -1,8 +1,9 @@
-const { expect, databaseBuilder, mockLearningContent, catchErr } = require('../../../test-helper');
-const CampaignProfileRepository = require('../../../../lib/infrastructure/repositories/campaign-profile-repository');
-const { PIX_COUNT_BY_LEVEL } = require('../../../../lib/domain/constants');
-const { NotFoundError } = require('../../../../lib/domain/errors');
-const { ENGLISH_SPOKEN, FRENCH_SPOKEN } = require('../../../../lib/domain/constants').LOCALE;
+import { expect, databaseBuilder, mockLearningContent, catchErr } from '../../../test-helper.js';
+import * as CampaignProfileRepository from '../../../../lib/infrastructure/repositories/campaign-profile-repository.js';
+import { PIX_COUNT_BY_LEVEL, LOCALE } from '../../../../lib/domain/constants.js';
+import { NotFoundError } from '../../../../lib/domain/errors.js';
+
+const { ENGLISH_SPOKEN, FRENCH_SPOKEN } = LOCALE;
 
 describe('Integration | Repository | CampaignProfileRepository', function () {
   const locale = FRENCH_SPOKEN;
@@ -84,20 +85,21 @@ describe('Integration | Repository | CampaignProfileRepository', function () {
       it('return the first name and last name of the organization learner', async function () {
         const organizationId = databaseBuilder.factory.buildOrganization().id;
         const campaignId = databaseBuilder.factory.buildCampaign({ organizationId }).id;
-        const campaignParticipationId = databaseBuilder.factory.buildCampaignParticipationWithOrganizationLearner(
+        const campaignParticipation = databaseBuilder.factory.buildCampaignParticipationWithOrganizationLearner(
           { firstName: 'Greg', lastName: 'Duboire', organizationId },
-          { campaignId }
-        ).id;
+          { campaignId },
+        );
         await databaseBuilder.commit();
 
         const campaignProfile = await CampaignProfileRepository.findProfile({
           campaignId,
-          campaignParticipationId,
+          campaignParticipationId: campaignParticipation.id,
           locale,
         });
 
         expect(campaignProfile.firstName).to.equal('Greg');
         expect(campaignProfile.lastName).to.equal('Duboire');
+        expect(campaignProfile.organizationLearnerId).to.equal(campaignParticipation.organizationLearnerId);
       });
 
       it('return the first name and last name of the current organization learner', async function () {
@@ -106,7 +108,7 @@ describe('Integration | Repository | CampaignProfileRepository', function () {
         const campaignId = databaseBuilder.factory.buildCampaign({ organizationId }).id;
         const campaignParticipationCreated = databaseBuilder.factory.buildCampaignParticipationWithOrganizationLearner(
           { firstName: 'Greg', lastName: 'Duboire', organizationId },
-          { campaignId }
+          { campaignId },
         );
         databaseBuilder.factory.buildOrganizationLearner({
           firstName: 'Gregoire',

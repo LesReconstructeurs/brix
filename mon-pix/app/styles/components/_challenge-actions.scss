@@ -17,10 +17,10 @@
 }
 
 .rounded-panel__row.challenge-actions {
-  padding: 20px 0;
+  padding: 16px 0;
 
   @include device-is('tablet') {
-    padding: 20px;
+    padding: 16px;
   }
 }
 
@@ -28,36 +28,41 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  margin: 6px;
+  margin: $pix-spacing-xxs;
   background-color: $pix-neutral-10;
+
+  @include device-is('mobile') {
+    &__group {
+      display: flex;
+      flex-direction: column;
+      padding: 0 $pix-spacing-m;
+    }
+
+    &__action-validate {
+      margin-bottom: 1rem;
+    }
+  }
 
   @include device-is('tablet') {
     flex-direction: row;
     align-items: center;
     justify-content: flex-end;
-  }
 
-  &__group {
-    display: flex;
-    flex-direction: row-reverse;
-  }
+    &__group {
+      display: flex;
+      flex-direction: row-reverse;
+    }
 
-  &__action-skip {
-    @include action-button;
-  }
-
-  &__action-validate {
-    @include action-button;
-  }
-
-  &__action-continue {
-    @include action-button;
+    &__action-validate {
+      min-width: 12.5em;
+      margin-left: $pix-spacing-s;
+    }
   }
 
   &__already-answered {
     margin-right: 20px;
     color: $pix-neutral-70;
-    font-weight: $font-semi-bold;
+    font-weight: $font-medium;
     font-size: 1rem;
     font-family: $font-roboto;
     letter-spacing: 0.031rem;
@@ -82,7 +87,6 @@
 }
 
 .challenge-actions-alert-message {
-
   &__icon {
     margin-right: 20px;
     margin-left: 0;

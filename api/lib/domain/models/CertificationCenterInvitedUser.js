@@ -1,5 +1,5 @@
-const { NotFoundError, AlreadyAcceptedOrCancelledInvitationError } = require('../errors');
-const CertificationCenterInvitation = require('./CertificationCenterInvitation');
+import { NotFoundError, AlreadyAcceptedOrCancelledInvitationError } from '../errors.js';
+import { CertificationCenterInvitation } from './CertificationCenterInvitation.js';
 
 class CertificationCenterInvitedUser {
   constructor({ userId, invitation, status } = {}) {
@@ -11,7 +11,7 @@ class CertificationCenterInvitedUser {
   acceptInvitation(code) {
     if (code !== this.invitation.code) {
       throw new NotFoundError(
-        `Not found certification center invitation for ID ${this.invitation.id} and code ${code}`
+        `Not found certification center invitation for ID ${this.invitation.id} and code ${code}`,
       );
     }
 
@@ -23,4 +23,4 @@ class CertificationCenterInvitedUser {
   }
 }
 
-module.exports = CertificationCenterInvitedUser;
+export { CertificationCenterInvitedUser };

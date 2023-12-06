@@ -1,6 +1,5 @@
-const { status: assessmentResultStatuses } = require('../models/AssessmentResult');
+import { status as assessmentResultStatuses } from '../models/AssessmentResult.js';
 const STARTED = 'started';
-const CANCELLED = 'cancelled';
 const ENDED_BY_SUPERVISOR = 'endedBySupervisor';
 
 class JuryCertificationSummary {
@@ -14,19 +13,20 @@ class JuryCertificationSummary {
     completedAt,
     abortReason,
     isPublished,
-    isCourseCancelled,
+    isCancelled,
     isEndedBySupervisor,
     hasSeenEndTestScreen,
-    complementaryCertificationTakenLabels,
+    complementaryCertificationTakenLabel,
     certificationIssueReports,
   } = {}) {
     this.id = id;
     this.firstName = firstName;
     this.lastName = lastName;
-    this.status = _getStatus(status, isCourseCancelled, isEndedBySupervisor);
+    this.status = _getStatus({ status, isEndedBySupervisor });
+    this.isCancelled = isCancelled;
     this.pixScore = pixScore;
     this.isFlaggedAborted = Boolean(abortReason) && !completedAt;
-    this.complementaryCertificationTakenLabels = complementaryCertificationTakenLabels;
+    this.complementaryCertificationTakenLabel = complementaryCertificationTakenLabel;
     this.createdAt = createdAt;
     this.completedAt = completedAt;
     this.isPublished = isPublished;
@@ -47,11 +47,7 @@ class JuryCertificationSummary {
   }
 }
 
-function _getStatus(status, isCourseCancelled, isEndedBySupervisor) {
-  if (isCourseCancelled) {
-    return CANCELLED;
-  }
-
+function _getStatus({ status, isEndedBySupervisor }) {
   if (isEndedBySupervisor) {
     return ENDED_BY_SUPERVISOR;
   }
@@ -62,6 +58,8 @@ function _getStatus(status, isCourseCancelled, isEndedBySupervisor) {
 
   return status;
 }
+const statuses = { ...assessmentResultStatuses, STARTED, ENDED_BY_SUPERVISOR };
 
-module.exports = JuryCertificationSummary;
-module.exports.statuses = { ...assessmentResultStatuses, STARTED, ENDED_BY_SUPERVISOR };
+JuryCertificationSummary.statuses = statuses;
+
+export { JuryCertificationSummary, statuses };

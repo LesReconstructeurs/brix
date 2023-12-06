@@ -1,9 +1,11 @@
-const { PassThrough } = require('stream');
-const { expect, mockLearningContent, databaseBuilder, streamToPromise } = require('../../../test-helper');
+import stream from 'stream';
 
-const usecases = require('../../../../lib/domain/usecases');
-const Assessment = require('../../../../lib/domain/models/Assessment');
-const { getI18n } = require('../../../tooling/i18n/i18n');
+const { PassThrough } = stream;
+
+import { expect, mockLearningContent, databaseBuilder, streamToPromise } from '../../../test-helper.js';
+import { usecases } from '../../../../lib/domain/usecases/index.js';
+import { Assessment } from '../../../../lib/domain/models/Assessment.js';
+import { getI18n } from '../../../tooling/i18n/i18n.js';
 
 describe('Integration | Domain | Use Cases | start-writing-campaign-assessment-results-to-stream', function () {
   describe('#startWritingCampaignAssessmentResultsToStream', function () {
@@ -82,7 +84,7 @@ describe('Integration | Domain | Use Cases | start-writing-campaign-assessment-r
           campaignId: campaign.id,
           userId: participant.id,
           masteryRate: 0.67,
-        }
+        },
       );
       databaseBuilder.factory.buildAssessment({
         campaignParticipationId: campaignParticipation.id,
@@ -90,6 +92,7 @@ describe('Integration | Domain | Use Cases | start-writing-campaign-assessment-r
         state: Assessment.states.COMPLETED,
         type: Assessment.types.CAMPAIGN,
       });
+      databaseBuilder.factory.buildStage({ targetProfileId: targetProfile.id, threshold: 0 });
       databaseBuilder.factory.buildStage({ targetProfileId: targetProfile.id, threshold: 1 });
       databaseBuilder.factory.buildBadge({ targetProfileId: targetProfile.id });
       await databaseBuilder.commit();
@@ -128,6 +131,7 @@ describe('Integration | Domain | Use Cases | start-writing-campaign-assessment-r
       const csvSecondLine =
         `"${organization.name}";` +
         `${campaign.id};` +
+        `"${campaign.code}";` +
         `"'${campaign.name}";` +
         `"'${targetProfile.name}";` +
         `"'${organizationLearner.lastName}";` +

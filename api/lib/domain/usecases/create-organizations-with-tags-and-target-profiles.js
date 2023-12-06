@@ -1,29 +1,33 @@
-const { isEmpty, uniqBy } = require('lodash');
-const bluebird = require('bluebird');
-const Organization = require('../models/Organization');
-const OrganizationTag = require('../models/OrganizationTag');
-const organizationValidator = require('../validators/organization-with-tags-and-target-profiles-script');
+import lodash from 'lodash';
 
-const {
+const { isEmpty, uniqBy } = lodash;
+
+import bluebird from 'bluebird';
+import { Organization } from '../models/Organization.js';
+import { OrganizationTag } from '../models/OrganizationTag.js';
+import { DomainTransaction } from '../../infrastructure/DomainTransaction.js';
+
+import {
   ManyOrganizationsFoundError,
   OrganizationAlreadyExistError,
   OrganizationTagNotFound,
   ObjectValidationError,
   TargetProfileInvalidError,
-} = require('../errors');
+} from '../errors.js';
 
 const SEPARATOR = '_';
-const organizationInvitationService = require('../../domain/services/organization-invitation-service');
 
-module.exports = async function createOrganizationsWithTagsAndTargetProfiles({
+const createOrganizationsWithTagsAndTargetProfiles = async function ({
   organizations,
-  domainTransaction,
+  domainTransaction = DomainTransaction,
   organizationRepository,
   tagRepository,
   targetProfileShareRepository,
   organizationTagRepository,
   organizationInvitationRepository,
   dataProtectionOfficerRepository,
+  organizationValidator,
+  organizationInvitationService,
 }) {
   if (isEmpty(organizations)) {
     throw new ObjectValidationError('Les organisations ne sont pas renseignées.');
@@ -48,7 +52,7 @@ module.exports = async function createOrganizationsWithTagsAndTargetProfiles({
 
     createdOrganizations = await organizationRepository.batchCreateOrganizations(
       organizationsToCreate,
-      domainTransaction
+      domainTransaction,
     );
 
     const dataProtectionOfficers = createdOrganizations
@@ -62,7 +66,7 @@ module.exports = async function createOrganizationsWithTagsAndTargetProfiles({
 
     await dataProtectionOfficerRepository.batchAddDataProtectionOfficerToOrganization(
       dataProtectionOfficers,
-      domainTransaction
+      domainTransaction,
     );
 
     const organizationsTags = createdOrganizations.flatMap(({ id, externalId, name }) => {
@@ -87,7 +91,7 @@ module.exports = async function createOrganizationsWithTagsAndTargetProfiles({
     try {
       await targetProfileShareRepository.batchAddTargetProfilesToOrganization(
         organizationsTargetProfiles,
-        domainTransaction
+        domainTransaction,
       );
     } catch (error) {
       if (error.constraint === 'target_profile_shares_targetprofileid_foreign') {
@@ -116,29 +120,33 @@ module.exports = async function createOrganizationsWithTagsAndTargetProfiles({
       organizationRepository,
       organizationInvitationRepository,
       ...organizationWithEmail,
-    })
+    }),
   );
 
   return createdOrganizations;
 };
 
+export { createOrganizationsWithTagsAndTargetProfiles };
+
 function _checkIfOrganizationsDataAreUnique(organizations) {
   const uniqOrganizations = uniqBy(organizations, 'externalId');
 
   if (uniqOrganizations.length !== organizations.length) {
-    throw new ManyOrganizationsFoundError('Une organisation apparaît plusieurs fois.');
+    throw new ManyOrganizationsFoundError(
+      `Plusieurs organisations (${uniqOrganizations.length}) ont le même externalId.`,
+    );
   }
 }
 
 async function _checkIfOrganizationsAlreadyExistInDatabase(organizations, organizationRepository) {
   const foundOrganizations = await organizationRepository.findByExternalIdsFetchingIdsOnly(
-    organizations.map((organization) => organization.externalId)
+    organizations.map((organization) => organization.externalId),
   );
 
   if (!isEmpty(foundOrganizations)) {
     const foundOrganizationIds = foundOrganizations.map((foundOrganization) => foundOrganization.externalId);
     const message = `Les organisations avec les externalIds suivants : ${foundOrganizationIds.join(
-      ', '
+      ', ',
     )} existent déjà.`;
     throw new OrganizationAlreadyExistError(message);
   }

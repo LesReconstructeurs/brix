@@ -1,20 +1,21 @@
-const {
+import {
   ForbiddenAccess,
   ChallengeNotAskedError,
   CertificationEndedBySupervisorError,
   CertificationEndedByFinalizationError,
-} = require('../errors');
-const Examiner = require('../models/Examiner');
-const KnowledgeElement = require('../models/KnowledgeElement');
-const logger = require('../../infrastructure/logger');
-const dateUtils = require('../../infrastructure/utils/date-utils');
+} from '../errors.js';
 
-module.exports = async function correctAnswerThenUpdateAssessment({
+import { Examiner } from '../models/Examiner.js';
+import { KnowledgeElement } from '../models/KnowledgeElement.js';
+import { logger } from '../../infrastructure/logger.js';
+
+const correctAnswerThenUpdateAssessment = async function ({
   answer,
   userId,
   locale,
   answerRepository,
   assessmentRepository,
+  areaRepository,
   challengeRepository,
   scorecardService,
   competenceRepository,
@@ -26,6 +27,7 @@ module.exports = async function correctAnswerThenUpdateAssessment({
   flashAlgorithmService,
   algorithmDataFetcherService,
   examiner,
+  dateUtils,
 } = {}) {
   const assessment = await assessmentRepository.get(answer.assessmentId);
   if (assessment.userId !== userId) {
@@ -52,6 +54,7 @@ module.exports = async function correctAnswerThenUpdateAssessment({
     scorecardBeforeAnswer = await scorecardService.computeScorecard({
       userId,
       competenceId: challenge.competenceId,
+      areaRepository,
       competenceRepository,
       competenceEvaluationRepository,
       knowledgeElementRepository,
@@ -87,6 +90,7 @@ module.exports = async function correctAnswerThenUpdateAssessment({
     scorecardService,
     userId,
     competenceId: challenge.competenceId,
+    areaRepository,
     competenceRepository,
     competenceEvaluationRepository,
     knowledgeElementRepository,
@@ -112,6 +116,8 @@ module.exports = async function correctAnswerThenUpdateAssessment({
   }
   return answerSaved;
 };
+
+export { correctAnswerThenUpdateAssessment };
 
 function _evaluateAnswer({ challenge, answer, assessment, examiner: injectedExaminer }) {
   const examiner = injectedExaminer ?? new Examiner({ validator: challenge.validator });
@@ -155,12 +161,12 @@ async function _getKnowledgeElements({
     previouslyFailedSkills: _getSkillsFilteredByStatus(
       knowledgeElements,
       targetSkills,
-      KnowledgeElement.StatusType.INVALIDATED
+      KnowledgeElement.StatusType.INVALIDATED,
     ),
     previouslyValidatedSkills: _getSkillsFilteredByStatus(
       knowledgeElements,
       targetSkills,
-      KnowledgeElement.StatusType.VALIDATED
+      KnowledgeElement.StatusType.VALIDATED,
     ),
     targetSkills,
     userId: assessment.userId,
@@ -180,6 +186,7 @@ async function _addLevelUpInformation({
   userId,
   competenceId,
   competenceRepository,
+  areaRepository,
   competenceEvaluationRepository,
   knowledgeElementRepository,
   scorecardBeforeAnswer,
@@ -195,6 +202,7 @@ async function _addLevelUpInformation({
     userId,
     competenceId,
     competenceRepository,
+    areaRepository,
     competenceEvaluationRepository,
     knowledgeElementRepository,
     locale,

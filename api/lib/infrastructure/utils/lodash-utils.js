@@ -1,5 +1,6 @@
-const _ = require('lodash').runInContext();
-
+import pkg from 'lodash';
+const { runInContext } = pkg;
+const _ = runInContext();
 _.mixin({
   /*
    * Returns the second element of an array.
@@ -72,4 +73,4 @@ _.mixin({
   },
 });
 
-module.exports = _;
+export { _ };

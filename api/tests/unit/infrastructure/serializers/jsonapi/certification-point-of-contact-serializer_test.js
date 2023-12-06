@@ -1,6 +1,6 @@
-const { expect, domainBuilder, sinon } = require('../../../../test-helper');
-const settings = require('../../../../../lib/config');
-const certificationPointOfContactSerializer = require('../../../../../lib/infrastructure/serializers/jsonapi/certification-point-of-contact-serializer');
+import { expect, domainBuilder, sinon } from '../../../../test-helper.js';
+import { config as settings } from '../../../../../lib/config.js';
+import * as certificationPointOfContactSerializer from '../../../../../lib/infrastructure/serializers/jsonapi/certification-point-of-contact-serializer.js';
 
 describe('Unit | Serializer | JSONAPI | certification-point-of-contact-serializer', function () {
   describe('#serialize()', function () {
@@ -31,7 +31,6 @@ describe('Unit | Serializer | JSONAPI | certification-point-of-contact-serialize
         relatedOrganizationTags: ['tag1'],
         habilitations: [],
       });
-      allowedCertificationCenterAccess2.isEndTestScreenRemovalEnabled = sinon.stub().returns(true);
       const certificationPointOfContact = domainBuilder.buildCertificationPointOfContact({
         id: 789,
         firstName: 'Buffy',
@@ -53,6 +52,7 @@ describe('Unit | Serializer | JSONAPI | certification-point-of-contact-serialize
             'first-name': 'Buffy',
             'last-name': 'Summers',
             email: 'buffy.summers@example.net',
+            lang: 'fr',
             'pix-certif-terms-of-service-accepted': true,
           },
           relationships: {
@@ -90,7 +90,6 @@ describe('Unit | Serializer | JSONAPI | certification-point-of-contact-serialize
                 { id: 1, name: 'Certif comp 1' },
                 { id: 2, name: 'Certif comp 2' },
               ],
-              'is-end-test-screen-removal-enabled': false,
             },
           },
           {
@@ -109,7 +108,6 @@ describe('Unit | Serializer | JSONAPI | certification-point-of-contact-serialize
               'pix-certif-sco-blocked-access-date-lycee': '2022-08-01',
               'related-organization-tags': ['tag1'],
               habilitations: [],
-              'is-end-test-screen-removal-enabled': true,
             },
           },
         ],

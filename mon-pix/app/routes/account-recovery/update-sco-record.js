@@ -1,5 +1,5 @@
 import Route from '@ember/routing/route';
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 import get from 'lodash/get';
 
 export default class UpdateScoRecordRoute extends Route {
@@ -25,7 +25,7 @@ export default class UpdateScoRecordRoute extends Route {
     };
 
     const internalError = {
-      errorMessage: this.intl.t('api-error-messages.internal-server-error'),
+      errorMessage: this.intl.t('common.api-error-messages.internal-server-error'),
       showBackToHomeButton: true,
     };
 

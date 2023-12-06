@@ -1,6 +1,6 @@
 import { action } from '@ember/object';
 import isEmpty from 'lodash/isEmpty';
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 import Component from '@glimmer/component';
 import { tracked } from '@glimmer/tracking';
 import get from 'lodash/get';
@@ -8,13 +8,13 @@ import ENV from 'pix-orga/config/environment';
 import isEmailValid from '../../utils/email-validator';
 
 export default class LoginForm extends Component {
+  @service currentDomain;
   @service url;
   @service intl;
   @service session;
   @service store;
 
   @tracked errorMessage = null;
-  @tracked isErrorMessagePresent = false;
   @tracked isLoading = false;
   @tracked password = null;
   @tracked email = null;
@@ -22,7 +22,7 @@ export default class LoginForm extends Component {
   @tracked emailValidationMessage = null;
 
   get displayRecoveryLink() {
-    if (this.intl.t('current-lang') === 'en' || !this.url.isFrenchDomainExtension) {
+    if (this.intl.t('current-lang') === 'en' || !this.currentDomain.isFranceDomain) {
       return false;
     }
     return !this.args.isWithInvitation;
@@ -46,14 +46,22 @@ export default class LoginForm extends Component {
         await this._acceptOrganizationInvitation(
           this.args.organizationInvitationId,
           this.args.organizationInvitationCode,
-          email
+          email,
         );
-      } catch (responseError) {
-        responseError.errors.forEach((error) => {
-          if (error.status === '412') {
-            return this._authenticate(password, email);
-          }
-        });
+      } catch (err) {
+        const error = err.errors[0];
+        const isInvitationAlreadyAcceptedByAnotherUser = error.status === '409';
+        if (isInvitationAlreadyAcceptedByAnotherUser) {
+          this.errorMessage = this.intl.t('pages.login-form.errors.status.409');
+          this.isLoading = false;
+          return;
+        }
+        const isUserAlreadyOrganizationMember = error.status === '412';
+        if (!isUserAlreadyOrganizationMember) {
+          this.errorMessage = this.intl.t(this._getI18nKeyByStatus(+error.status));
+          this.isLoading = false;
+          return;
+        }
       }
     }
 
@@ -95,27 +103,31 @@ export default class LoginForm extends Component {
   async _authenticate(password, email) {
     const scope = 'pix-orga';
 
-    this.isErrorMessagePresent = false;
-    this.errorMessage = '';
-
+    this.errorMessage = null;
     try {
       await this.session.authenticate('authenticator:oauth2', email, password, scope);
     } catch (responseError) {
-      this.isErrorMessagePresent = true;
       this._handleApiError(responseError);
     } finally {
       this.isLoading = false;
     }
   }
 
-  _acceptOrganizationInvitation(organizationInvitationId, organizationInvitationCode, email) {
-    return this.store
-      .createRecord('organization-invitation-response', {
-        id: organizationInvitationId + '_' + organizationInvitationCode,
-        code: organizationInvitationCode,
-        email,
-      })
-      .save({ adapterOptions: { organizationInvitationId } });
+  async _acceptOrganizationInvitation(organizationInvitationId, organizationInvitationCode, email) {
+    const type = 'organization-invitation-response';
+    const id = `${organizationInvitationId}_${organizationInvitationCode}`;
+    const organizationInvitationRecord = this.store.peekRecord(type, id);
+
+    if (!organizationInvitationRecord) {
+      let record;
+      try {
+        record = this.store.createRecord(type, { id, code: organizationInvitationCode, email });
+        await record.save({ adapterOptions: { organizationInvitationId } });
+      } catch (error) {
+        record.deleteRecord();
+        throw error;
+      }
+    }
   }
 
   _handleApiError(responseError) {
@@ -154,6 +166,8 @@ export default class LoginForm extends Component {
       // TODO: This case should be handled with a specific error code like USER_IS_TEMPORARY_BLOCKED or USER_IS_BLOCKED
       case 403:
         return ENV.APP.API_ERROR_MESSAGES.NOT_LINKED_ORGANIZATION.I18N_KEY;
+      case 404:
+        return ENV.APP.API_ERROR_MESSAGES.USER_NOT_FOUND.I18N_KEY;
       case 422:
         return ENV.APP.API_ERROR_MESSAGES.BAD_REQUEST.I18N_KEY;
       case 504:

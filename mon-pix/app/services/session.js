@@ -1,6 +1,9 @@
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 import SessionService from 'ember-simple-auth/services/session';
 import get from 'lodash/get';
+import { FRENCH_INTERNATIONAL_LOCALE, FRENCH_FRANCE_LOCALE } from 'mon-pix/services/locale';
+
+const FRANCE_TLD = 'fr';
 
 export default class CurrentSessionService extends SessionService {
   @service currentUser;
@@ -10,6 +13,7 @@ export default class CurrentSessionService extends SessionService {
   @service url;
   @service router;
   @service oidcIdentityProviders;
+  @service locale;
 
   routeAfterAuthentication = 'authenticated.user-dashboard';
 
@@ -61,7 +65,8 @@ export default class CurrentSessionService extends SessionService {
   }
 
   async handleUserLanguageAndLocale(transition = null) {
-    await this._loadCurrentUserAndSetLocale(transition?.to?.queryParams?.lang);
+    const language = this.locale.handleUnsupportedLanguage(transition?.to?.queryParams?.lang);
+    await this._loadCurrentUserAndSetLocale(language);
   }
 
   requireAuthenticationAndApprovedTermsOfService(transition, authenticationRoute) {
@@ -85,45 +90,27 @@ export default class CurrentSessionService extends SessionService {
   async _handleLocale(localeFromQueryParam = null) {
     const isUserLoaded = !!this.currentUser.user;
     const domain = this.currentDomain.getExtension();
-    const defaultLocale = 'fr';
 
-    if (domain === 'fr') {
-      await this._setLocale(defaultLocale);
+    if (domain === FRANCE_TLD) {
+      this.locale.setLocale(FRENCH_INTERNATIONAL_LOCALE);
+
+      if (!this.locale.hasLocaleCookie()) {
+        this.locale.setLocaleCookie(FRENCH_FRANCE_LOCALE);
+      }
+      return;
+    }
+
+    if (localeFromQueryParam) {
+      this.locale.setLocale(localeFromQueryParam);
       return;
     }
 
     if (isUserLoaded) {
-      if (localeFromQueryParam) {
-        this.currentUser.user.lang = localeFromQueryParam;
-        try {
-          await this.currentUser.user.save({ adapterOptions: { lang: this.currentUser.user.lang } });
-          await this._setLocale(this.currentUser.user.lang);
-        } catch (error) {
-          const status = get(error, 'errors[0].status');
-          if (status === '400') {
-            this.currentUser.user.rollbackAttributes();
-            await this._setLocale(this.currentUser.user.lang);
-          } else {
-            throw error;
-          }
-        }
-      } else {
-        await this._setLocale(this.currentUser.user.lang);
-      }
-    } else {
-      if (localeFromQueryParam) {
-        await this._setLocale(localeFromQueryParam);
-      } else {
-        await this._setLocale(defaultLocale);
-      }
+      this.locale.setLocale(this.currentUser.user.lang);
+      return;
     }
-  }
 
-  _setLocale(locale) {
-    const defaultLocale = 'fr';
-    this.intl.setLocale([locale, defaultLocale]);
-    this.dayjs.setLocale(locale);
-    this.dayjs.self.locale(locale);
+    this.locale.setLocale(FRENCH_INTERNATIONAL_LOCALE);
   }
 
   _getRouteAfterInvalidation() {

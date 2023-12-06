@@ -1,11 +1,15 @@
-const { expect, sinon, catchErr, domainBuilder, MockDate } = require('../../../test-helper');
-const { ForbiddenAccess } = require('../../../../lib/domain/errors');
-const learningContentConversionService = require('../../../../lib/domain/services/learning-content/learning-content-conversion-service');
-const getTargetProfileContentAsJson = require('../../../../lib/domain/usecases/get-target-profile-content-as-json');
+import { expect, sinon, catchErr, domainBuilder, MockDate } from '../../../test-helper.js';
+import { ForbiddenAccess } from '../../../../lib/domain/errors.js';
+import { getTargetProfileContentAsJson } from '../../../../lib/domain/usecases/get-target-profile-content-as-json.js';
 
 describe('Unit | UseCase | get-target-profile-content-as-json', function () {
   let targetProfileForAdminRepository;
   let adminMemberRepository;
+  let learningContentConversionService;
+
+  beforeEach(function () {
+    learningContentConversionService = { findActiveSkillsForCappedTubes: sinon.stub() };
+  });
 
   afterEach(function () {
     MockDate.reset();
@@ -15,7 +19,6 @@ describe('Unit | UseCase | get-target-profile-content-as-json', function () {
     beforeEach(function () {
       targetProfileForAdminRepository = { get: sinon.stub() };
       targetProfileForAdminRepository.get.rejects(new Error('I should not be called'));
-      sinon.stub(learningContentConversionService, 'findActiveSkillsForCappedTubes');
       learningContentConversionService.findActiveSkillsForCappedTubes.rejects(new Error('I should not be called'));
     });
 
@@ -30,6 +33,7 @@ describe('Unit | UseCase | get-target-profile-content-as-json', function () {
         targetProfileId: 123,
         adminMemberRepository,
         targetProfileForAdminRepository,
+        learningContentConversionService,
       });
 
       // then
@@ -44,7 +48,7 @@ describe('Unit | UseCase | get-target-profile-content-as-json', function () {
       const targetProfileForAdmin = domainBuilder.buildTargetProfileForAdmin({
         name: 'Profil Rentrée scolaire',
         areas: [area],
-        competences: [domainBuilder.buildCompetence({ id: 'recCompetence', area })],
+        competences: [domainBuilder.buildCompetence({ id: 'recCompetence', area, areaId: area.id })],
         thematics: [
           domainBuilder.buildThematic({ id: 'recThematic1', competenceId: 'recCompetence' }),
           domainBuilder.buildThematic({ id: 'recThematic2', competenceId: 'recCompetence' }),
@@ -75,7 +79,6 @@ describe('Unit | UseCase | get-target-profile-content-as-json', function () {
         domainBuilder.buildSkill({ id: 'skill2Tube2', tubeId: 'recTube2' }),
       ];
       const skillsForTube3 = [];
-      sinon.stub(learningContentConversionService, 'findActiveSkillsForCappedTubes');
       learningContentConversionService.findActiveSkillsForCappedTubes
         .withArgs([
           {
@@ -106,12 +109,13 @@ describe('Unit | UseCase | get-target-profile-content-as-json', function () {
           targetProfileId: 123,
           adminMemberRepository,
           targetProfileForAdminRepository,
+          learningContentConversionService,
         });
 
         // then
         expect(fileName).to.equal('20201201_profil_cible_Profil Rentrée scolaire.json');
         expect(jsonContent).to.equal(
-          '[{"id":"recTube1","level":8,"frameworkId":"recFramework","skills":["skill1Tube1"]},{"id":"recTube2","level":7,"frameworkId":"recFramework","skills":["skill1Tube2","skill2Tube2"]},{"id":"recTube3","level":1,"frameworkId":"recFramework","skills":[]}]'
+          '[{"id":"recTube1","level":8,"frameworkId":"recFramework","skills":["skill1Tube1"]},{"id":"recTube2","level":7,"frameworkId":"recFramework","skills":["skill1Tube2","skill2Tube2"]},{"id":"recTube3","level":1,"frameworkId":"recFramework","skills":[]}]',
         );
       });
     });
@@ -128,12 +132,13 @@ describe('Unit | UseCase | get-target-profile-content-as-json', function () {
           targetProfileId: 123,
           adminMemberRepository,
           targetProfileForAdminRepository,
+          learningContentConversionService,
         });
 
         // then
         expect(fileName).to.equal('20201201_profil_cible_Profil Rentrée scolaire.json');
         expect(jsonContent).to.equal(
-          '[{"id":"recTube1","level":8,"frameworkId":"recFramework","skills":["skill1Tube1"]},{"id":"recTube2","level":7,"frameworkId":"recFramework","skills":["skill1Tube2","skill2Tube2"]},{"id":"recTube3","level":1,"frameworkId":"recFramework","skills":[]}]'
+          '[{"id":"recTube1","level":8,"frameworkId":"recFramework","skills":["skill1Tube1"]},{"id":"recTube2","level":7,"frameworkId":"recFramework","skills":["skill1Tube2","skill2Tube2"]},{"id":"recTube3","level":1,"frameworkId":"recFramework","skills":[]}]',
         );
       });
     });
@@ -150,12 +155,13 @@ describe('Unit | UseCase | get-target-profile-content-as-json', function () {
           targetProfileId: 123,
           adminMemberRepository,
           targetProfileForAdminRepository,
+          learningContentConversionService,
         });
 
         // then
         expect(fileName).to.equal('20201201_profil_cible_Profil Rentrée scolaire.json');
         expect(jsonContent).to.equal(
-          '[{"id":"recTube1","level":8,"frameworkId":"recFramework","skills":["skill1Tube1"]},{"id":"recTube2","level":7,"frameworkId":"recFramework","skills":["skill1Tube2","skill2Tube2"]},{"id":"recTube3","level":1,"frameworkId":"recFramework","skills":[]}]'
+          '[{"id":"recTube1","level":8,"frameworkId":"recFramework","skills":["skill1Tube1"]},{"id":"recTube2","level":7,"frameworkId":"recFramework","skills":["skill1Tube2","skill2Tube2"]},{"id":"recTube3","level":1,"frameworkId":"recFramework","skills":[]}]',
         );
       });
     });

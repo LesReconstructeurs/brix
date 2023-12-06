@@ -1,30 +1,41 @@
-const _ = require('lodash');
-const bluebird = require('bluebird');
-const certifiableBadgeAcquisitionRepository = require('../../infrastructure/repositories/certifiable-badge-acquisition-repository');
-const knowledgeElementRepository = require('../../infrastructure/repositories/knowledge-element-repository');
-const badgeForCalculationRepository = require('../../infrastructure/repositories/badge-for-calculation-repository');
+import _ from 'lodash';
+import bluebird from 'bluebird';
+import * as certifiableBadgeAcquisitionRepository from '../../infrastructure/repositories/certifiable-badge-acquisition-repository.js';
+import * as knowledgeElementRepository from '../../infrastructure/repositories/knowledge-element-repository.js';
+import * as badgeForCalculationRepository from '../../infrastructure/repositories/badge-for-calculation-repository.js';
 
-module.exports = {
-  async findStillValidBadgeAcquisitions({ userId, domainTransaction }) {
-    const highestCertifiableBadgeAcquisitions = await certifiableBadgeAcquisitionRepository.findHighestCertifiable({
+const findStillValidBadgeAcquisitions = async function ({
+  userId,
+  domainTransaction,
+  limitDate = new Date(),
+  dependencies = { certifiableBadgeAcquisitionRepository, knowledgeElementRepository, badgeForCalculationRepository },
+}) {
+  const highestCertifiableBadgeAcquisitions =
+    await dependencies.certifiableBadgeAcquisitionRepository.findHighestCertifiable({
       userId,
       domainTransaction,
+      limitDate,
     });
 
-    const knowledgeElements = await knowledgeElementRepository.findUniqByUserId({ userId, domainTransaction });
+  const knowledgeElements = await dependencies.knowledgeElementRepository.findUniqByUserId({
+    userId,
+    limitDate,
+    domainTransaction,
+  });
 
-    const badgeAcquisitions = await bluebird.mapSeries(
-      highestCertifiableBadgeAcquisitions,
-      async (certifiableBadgeAcquisition) => {
-        const badgeForCalculation = await badgeForCalculationRepository.getByCertifiableBadgeAcquisition({
-          certifiableBadgeAcquisition,
-        });
-        if (!badgeForCalculation) return null;
-        const isBadgeValid = badgeForCalculation.shouldBeObtained(knowledgeElements);
-        return isBadgeValid ? certifiableBadgeAcquisition : null;
-      }
-    );
+  const badgeAcquisitions = await bluebird.mapSeries(
+    highestCertifiableBadgeAcquisitions,
+    async (certifiableBadgeAcquisition) => {
+      const badgeForCalculation = await dependencies.badgeForCalculationRepository.getByCertifiableBadgeAcquisition({
+        certifiableBadgeAcquisition,
+      });
+      if (!badgeForCalculation) return null;
+      const isBadgeValid = badgeForCalculation.shouldBeObtained(knowledgeElements);
+      return isBadgeValid ? certifiableBadgeAcquisition : null;
+    },
+  );
 
-    return _.compact(badgeAcquisitions);
-  },
+  return _.compact(badgeAcquisitions);
 };
+
+export { findStillValidBadgeAcquisitions };

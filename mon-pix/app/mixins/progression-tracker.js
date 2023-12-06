@@ -1,7 +1,6 @@
 /* eslint ember/require-computed-property-dependencies: 0 */
 
-import { set } from '@ember/object';
-import EmberObject, { computed } from '@ember/object';
+import EmberObject, { computed, set } from '@ember/object';
 import Mixin from '@ember/object/mixin';
 
 const STEPS = {
@@ -22,7 +21,7 @@ export default Mixin.create({
     set(
       this,
       'stepsAhead',
-      this.steps.map((step) => EmberObject.create({ name: step, status: STEPS.TO_COMPLETE }))
+      this.steps.map((step) => EmberObject.create({ name: step, status: STEPS.TO_COMPLETE })),
     );
     this.stepsActivated = [];
     this.next();

@@ -1,11 +1,10 @@
-const _ = require('lodash');
-const Assessment = require('../../../../lib/domain/models/Assessment');
-
-const buildAnswer = require('./build-answer');
-const buildCourse = require('./build-course');
-const buildKnowledgeElement = require('./build-knowledge-element');
-const buildTargetProfile = require('./build-target-profile');
-const buildCampaignParticipation = require('./build-campaign-participation');
+import _ from 'lodash';
+import { Assessment } from '../../../../lib/domain/models/Assessment.js';
+import { buildAnswer } from './build-answer.js';
+import { buildCourse } from './build-course.js';
+import { buildKnowledgeElement } from './build-knowledge-element.js';
+import { buildTargetProfile } from './build-target-profile.js';
+import { buildCampaignParticipation } from './build-campaign-participation.js';
 
 function buildAssessment({
   id = 123,
@@ -27,6 +26,7 @@ function buildAssessment({
   lastQuestionState = Assessment.statesOfLastQuestion.ASKED,
   method,
   campaignCode,
+  missionId = null,
 } = {}) {
   return new Assessment({
     id,
@@ -48,6 +48,7 @@ function buildAssessment({
     campaignParticipation,
     method,
     campaignCode,
+    missionId,
   });
 }
 
@@ -71,6 +72,7 @@ buildAssessment.ofTypeCampaign = function ({
   title = 'campaignTitle',
   method,
   campaignCode,
+  missionId,
 } = {}) {
   if (!_.isNil(campaignParticipation) && _.isNil(campaignParticipationId)) {
     campaignParticipationId = campaignParticipation.id;
@@ -104,6 +106,7 @@ buildAssessment.ofTypeCampaign = function ({
     campaignParticipation,
     method,
     campaignCode,
+    missionId,
   });
 };
 
@@ -126,6 +129,7 @@ buildAssessment.ofTypeCompetenceEvaluation = function ({
   knowledgeElements = [buildKnowledgeElement()],
   campaignParticipation = null,
   competenceId = 789,
+  missionId,
 } = {}) {
   return new Assessment({
     id,
@@ -149,9 +153,10 @@ buildAssessment.ofTypeCompetenceEvaluation = function ({
     knowledgeElements,
     campaignParticipation,
     campaignCode: null,
+    missionId,
   });
 };
 
 buildAssessment.ofTypeCertification = buildAssessment;
 
-module.exports = buildAssessment;
+export { buildAssessment };

@@ -1,5 +1,5 @@
 import Component from '@glimmer/component';
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 import { action } from '@ember/object';
 import { htmlSafe } from '@ember/template';
 
@@ -7,6 +7,7 @@ export default class ImportCandidates extends Component {
   @service session;
   @service notifications;
   @service store;
+  @service intl;
 
   @action
   async importCertificationCandidates(files) {
@@ -17,7 +18,7 @@ export default class ImportCandidates extends Component {
     this.notifications.clearAll();
     try {
       await adapter.addCertificationCandidatesFromOds(sessionId, files);
-      this.notifications.success('La liste des candidats a été importée avec succès.');
+      this.notifications.success(this.intl.t('pages.sessions.import.candidates-list.import-success'));
       this.args.reloadCertificationCandidate();
     } catch (errorResponse) {
       const errorMessage = this._handleErrorMessage(errorResponse);
@@ -28,30 +29,19 @@ export default class ImportCandidates extends Component {
   }
 
   _handleErrorMessage(errorResponse) {
-    const errorPrefix = 'Aucun candidat n’a été importé. <br>';
-    let errorMessage = `${errorPrefix} Veuillez réessayer ou nous contacter via le formulaire du centre d'aide`;
+    const error = errorResponse?.errors?.[0];
+    const errorPrefix = this.intl.t('pages.sessions.import.candidates-list.import-fail-prefix', { htmlSafe: true });
 
-    if (errorResponse.errors) {
-      errorResponse.errors.forEach((error) => {
-        if (error.status === '422') {
-          if (error.code === 'INVALID_DOCUMENT') {
-            errorMessage = htmlSafe(`
-              <p>
-                ${errorPrefix}<b>${error.detail}</b><br>
-                Veuillez télécharger à nouveau le modèle de liste des candidats et l'importer à nouveau.
-              </p>`);
-          } else {
-            errorMessage = htmlSafe(`
-              <p>
-                ${errorPrefix}<b>${error.detail}</b>
-              </p>`);
-          }
-        }
-        if (error.status === '403' && error.detail === 'At least one candidate is already linked to a user') {
-          errorMessage = "La session a débuté, il n'est plus possible de modifier la liste des candidats.";
-        }
-      });
+    if (error?.code) {
+      if (error.meta?.line) {
+        return `${errorPrefix} ${this.intl.t(`common.labels.line`, { line: error.meta.line })}
+        ${this.intl.t(`common.api-error-messages.certification-candidate.${error.code}`, {
+          ...error.meta,
+        })}`;
+      }
+
+      return `${errorPrefix} ${this.intl.t(`common.api-error-messages.${error.code}`)}`;
     }
-    return errorMessage;
+    return `${errorPrefix} ${this.intl.t('pages.sessions.import.candidates-list.try-again-or-contact')}`;
   }
 }

@@ -1,7 +1,7 @@
-const logger = require('../../infrastructure/logger');
-const Assessment = require('../models/Assessment');
+import { logger } from '../../infrastructure/logger.js';
+import { Assessment } from '../models/Assessment.js';
 
-module.exports = async function updateLastQuestionState({
+const updateLastQuestionState = async function ({
   assessmentId,
   lastQuestionState,
   challengeId,
@@ -18,7 +18,7 @@ module.exports = async function updateLastQuestionState({
           challengeId: challengeId,
           assessmentId: assessmentId,
         },
-        'Trying to focusOut a non focused challenge'
+        'Trying to focusOut a non focused challenge',
       );
 
       return;
@@ -32,7 +32,7 @@ module.exports = async function updateLastQuestionState({
           challengeId: challengeId,
           assessmentId: assessmentId,
         },
-        'An event has been received on a answer that has already been answered'
+        'An event has been received on a answer that has already been answered',
       );
 
       return;
@@ -45,3 +45,5 @@ module.exports = async function updateLastQuestionState({
     domainTransaction,
   });
 };
+
+export { updateLastQuestionState };

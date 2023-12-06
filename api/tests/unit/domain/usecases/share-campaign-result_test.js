@@ -1,7 +1,7 @@
-const { sinon, expect, domainBuilder, catchErr } = require('../../../test-helper');
-const { UserNotAuthorizedToAccessEntityError } = require('../../../../lib/domain/errors');
-const CampaignParticipationResultsShared = require('../../../../lib/domain/events/CampaignParticipationResultsShared');
-const shareCampaignResult = require('../../../../lib/domain/usecases/share-campaign-result');
+import { sinon, expect, domainBuilder, catchErr } from '../../../test-helper.js';
+import { UserNotAuthorizedToAccessEntityError } from '../../../../lib/domain/errors.js';
+import { CampaignParticipationResultsShared } from '../../../../lib/domain/events/CampaignParticipationResultsShared.js';
+import { shareCampaignResult } from '../../../../lib/domain/usecases/share-campaign-result.js';
 
 describe('Unit | UseCase | share-campaign-result', function () {
   let campaignParticipationRepository;
@@ -58,7 +58,7 @@ describe('Unit | UseCase | share-campaign-result', function () {
       expect(campaignParticipation.share).to.have.been.called;
       expect(campaignParticipationRepository.updateWithSnapshot).to.have.been.calledWithExactly(
         campaignParticipation,
-        domainTransaction
+        domainTransaction,
       );
     });
 

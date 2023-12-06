@@ -1,13 +1,10 @@
-const { expect, knex, sinon } = require('../../../test-helper');
-const _ = require('lodash');
-const {
+import { expect, knex, mockLearningContent } from '../../../test-helper.js';
+import _ from 'lodash';
+import {
   main,
-  databaseBuilder: databaseBuilderCli,
-} = require('../../../../scripts/data-generation/generate-certif-cli');
-const skillRepository = require('../../../../lib/infrastructure/repositories/skill-repository');
-const competenceRepository = require('../../../../lib/infrastructure/repositories/competence-repository');
-const challengeRepository = require('../../../../lib/infrastructure/repositories/challenge-repository');
-const databaseBuffer = require('../../../../db/database-builder/database-buffer');
+  databaseBuilder as databaseBuilderCli,
+} from '../../../../scripts/data-generation/generate-certif-cli.js';
+import { databaseBuffer } from '../../../../db/database-builder/database-buffer.js';
 // FIXME Too hard to edit \o/
 describe('Integration | Scripts | generate-certif-cli.js', function () {
   const certificationCenterSup = { id: 3, type: 'SUP' };
@@ -19,9 +16,12 @@ describe('Integration | Scripts | generate-certif-cli.js', function () {
   };
 
   beforeEach(async function () {
-    sinon.stub(skillRepository, 'findActiveByCompetenceId').resolves([]);
-    sinon.stub(competenceRepository, 'list').resolves([]);
-    sinon.stub(challengeRepository, 'list').resolves([]);
+    const learningContent = {
+      competences: [],
+      skills: [],
+      challenges: [],
+    };
+    mockLearningContent(learningContent);
   });
 
   afterEach(function () {
@@ -45,7 +45,7 @@ describe('Integration | Scripts | generate-certif-cli.js', function () {
             await main({
               centerType: type,
               candidateNumber: 2,
-              complementaryCertifications: false,
+              complementaryCertifications: [],
             });
 
             // then
@@ -61,7 +61,7 @@ describe('Integration | Scripts | generate-certif-cli.js', function () {
               'firstName',
               'lastName',
               'email',
-              'sessionId'
+              'sessionId',
             );
             expect(session.accessCode).to.exist;
             expect(session.certificationCenterId).to.equal(certificationCenterId);
@@ -69,7 +69,7 @@ describe('Integration | Scripts | generate-certif-cli.js', function () {
             expect(certificationCandidates).to.have.length(2);
             const name = `${type}1`.toLowerCase();
             expect(
-              _.pick(organizationLearner, ['birthdate', 'firstName', 'lastName', 'email', 'sessionId'])
+              _.pick(organizationLearner, ['birthdate', 'firstName', 'lastName', 'email', 'sessionId']),
             ).to.deep.equal(_.omit(certificationCandidates[0], ['sessionId']));
 
             expect(certificationCandidates[0]).to.deep.equals({
@@ -97,9 +97,7 @@ describe('Integration | Scripts | generate-certif-cli.js', function () {
                 candidateNumber: 2,
                 complementaryCertifications: [
                   { candidateNumber: 1, key: 'CLEA' },
-                  { candidateNumber: 1, key: 'DROIT' },
-                  { candidateNumber: 1, key: 'EDU_1ER_DEGRE' },
-                  { candidateNumber: 1, key: 'EDU_2ND_DEGRE' },
+                  { candidateNumber: 2, key: 'DROIT' },
                 ],
               });
 
@@ -117,13 +115,8 @@ describe('Integration | Scripts | generate-certif-cli.js', function () {
                 ])
                 .pluck('key');
 
-              expect(badgeAcquisitions).to.deep.equal([
-                'PIX_EMPLOI_CLEA_V3',
-                'PIX_DROIT_EXPERT_CERTIF',
-                'PIX_EDU_FORMATION_INITIALE_1ER_DEGRE_CONFIRME',
-                'PIX_EDU_FORMATION_INITIALE_2ND_DEGRE_CONFIRME',
-              ]);
-              expect(habilitations).to.equal(4);
+              expect(badgeAcquisitions).to.deep.equal(['PIX_EMPLOI_CLEA_V3', 'PIX_DROIT_EXPERT_CERTIF']);
+              expect(habilitations).to.equal(2);
             });
           });
         });
@@ -142,7 +135,7 @@ describe('Integration | Scripts | generate-certif-cli.js', function () {
           await main({
             centerType: 'SCO',
             candidateNumber: 2,
-            complementaryCertifications: false,
+            complementaryCertifications: [],
           });
 
           // then
@@ -157,7 +150,7 @@ describe('Integration | Scripts | generate-certif-cli.js', function () {
             'firstName',
             'lastName',
             'sessionId',
-            'email'
+            'email',
           );
 
           expect(session.accessCode).to.exist;
@@ -186,12 +179,7 @@ describe('Integration | Scripts | generate-certif-cli.js', function () {
             await main({
               centerType: 'SCO',
               candidateNumber: 2,
-              complementaryCertifications: [
-                { candidateNumber: 1, key: 'CLEA' },
-                { candidateNumber: 1, key: 'DROIT' },
-                { candidateNumber: 1, key: 'EDU_1ER_DEGRE' },
-                { candidateNumber: 1, key: 'EDU_2ND_DEGRE' },
-              ],
+              complementaryCertification: { candidateNumber: 1, key: 'CLEA' },
             });
 
             // then
@@ -238,7 +226,7 @@ describe('Integration | Scripts | generate-certif-cli.js', function () {
     complementaryCertificationBadgeKey,
   }) {
     const { id: targetProfileId } = databaseBuilderCli.factory.buildTargetProfile();
-    databaseBuilderCli.factory.buildTargetProfileSkill({ targetProfileId });
+    databaseBuilderCli.factory.buildTargetProfileTube({ targetProfileId });
 
     databaseBuilderCli.factory.buildComplementaryCertification({
       id: complementaryCertificationId,

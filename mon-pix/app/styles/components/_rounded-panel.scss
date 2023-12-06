@@ -26,7 +26,8 @@
   }
 
   &__row {
-    padding: 20px;
+    padding: 16px;
+    border-radius: 8px;
   }
 
   &__row label {
@@ -64,7 +65,6 @@
 }
 
 .rounded-panel-header {
-
   &__left-wrapper {
     margin-left: 8px;
   }
@@ -117,14 +117,12 @@
 }
 
 .rounded-panel-header-text {
-
   &__content {
     margin: 10px 0;
   }
 
   &__content--first-title {
     color: $pix-neutral-90;
-    font-weight: $font-light;
     font-size: 1.625rem;
     font-family: $font-open-sans;
     line-height: 2.75rem;

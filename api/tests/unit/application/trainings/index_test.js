@@ -1,10 +1,136 @@
-const { expect, HttpTestServer, sinon } = require('../../../test-helper');
-
-const securityPreHandlers = require('../../../../lib/application/security-pre-handlers');
-const trainingController = require('../../../../lib/application/trainings/training-controller');
-const moduleUnderTest = require('../../../../lib/application/trainings');
+import { expect, HttpTestServer, sinon } from '../../../test-helper.js';
+import { securityPreHandlers } from '../../../../lib/application/security-pre-handlers.js';
+import { trainingController } from '../../../../lib/application/trainings/training-controller.js';
+import * as moduleUnderTest from '../../../../lib/application/trainings/index.js';
 
 describe('Unit | Router | training-router', function () {
+  describe('GET /api/admin/trainings/${trainingId}', function () {
+    describe('Security Prehandlers', function () {
+      it('should allow user if its role is SUPER_ADMIN', async function () {
+        // given
+        sinon.stub(trainingController, 'getById').returns('ok');
+        sinon
+          .stub(securityPreHandlers, 'checkAdminMemberHasRoleSupport')
+          .callsFake((request, h) => h.response({ errors: new Error('forbidden') }).code(403));
+        sinon
+          .stub(securityPreHandlers, 'checkAdminMemberHasRoleMetier')
+          .callsFake((request, h) => h.response({ errors: new Error('forbidden') }).code(403));
+        sinon
+          .stub(securityPreHandlers, 'checkAdminMemberHasRoleSuperAdmin')
+          .callsFake((request, h) => h.response(true));
+        const httpTestServer = new HttpTestServer();
+        await httpTestServer.register(moduleUnderTest);
+
+        // when
+        await httpTestServer.request('GET', '/api/admin/trainings/1');
+
+        // then
+        sinon.assert.calledOnce(trainingController.getById);
+      });
+
+      it('should allow user if the role is METIER', async function () {
+        // given
+        sinon.stub(trainingController, 'getById').returns('ok');
+        sinon
+          .stub(securityPreHandlers, 'checkAdminMemberHasRoleSupport')
+          .callsFake((request, h) => h.response({ errors: new Error('forbidden') }).code(403));
+        sinon
+          .stub(securityPreHandlers, 'checkAdminMemberHasRoleSuperAdmin')
+          .callsFake((request, h) => h.response({ errors: new Error('forbidden') }).code(403));
+        sinon.stub(securityPreHandlers, 'checkAdminMemberHasRoleMetier').callsFake((request, h) => h.response(true));
+        const httpTestServer = new HttpTestServer();
+        await httpTestServer.register(moduleUnderTest);
+
+        // when
+        await httpTestServer.request('GET', '/api/admin/trainings/1');
+
+        // then
+        sinon.assert.calledOnce(trainingController.getById);
+      });
+
+      it('should allow user if the role is SUPPORT', async function () {
+        // given
+        sinon.stub(trainingController, 'getById').returns('ok');
+        sinon
+          .stub(securityPreHandlers, 'checkAdminMemberHasRoleMetier')
+          .callsFake((request, h) => h.response({ errors: new Error('forbidden') }).code(403));
+        sinon
+          .stub(securityPreHandlers, 'checkAdminMemberHasRoleSuperAdmin')
+          .callsFake((request, h) => h.response({ errors: new Error('forbidden') }).code(403));
+        sinon.stub(securityPreHandlers, 'checkAdminMemberHasRoleSupport').callsFake((request, h) => h.response(true));
+        const httpTestServer = new HttpTestServer();
+        await httpTestServer.register(moduleUnderTest);
+
+        // when
+        await httpTestServer.request('GET', '/api/admin/trainings/1');
+
+        // then
+        sinon.assert.calledOnce(trainingController.getById);
+      });
+
+      it('should return 403 it if the role is not allowed', async function () {
+        // given
+        sinon.stub(trainingController, 'getById').returns('not ok');
+        sinon
+          .stub(securityPreHandlers, 'checkAdminMemberHasRoleSupport')
+          .callsFake((request, h) => h.response({ errors: new Error('forbidden') }).code(403));
+        sinon
+          .stub(securityPreHandlers, 'checkAdminMemberHasRoleSuperAdmin')
+          .callsFake((request, h) => h.response({ errors: new Error('forbidden') }).code(403));
+        sinon
+          .stub(securityPreHandlers, 'checkAdminMemberHasRoleMetier')
+          .callsFake((request, h) => h.response({ errors: new Error('forbidden') }).code(403));
+        const httpTestServer = new HttpTestServer();
+        await httpTestServer.register(moduleUnderTest);
+
+        // when
+        const response = await httpTestServer.request('GET', '/api/admin/trainings/1');
+
+        // then
+        expect(response.statusCode).to.equal(403);
+        sinon.assert.notCalled(trainingController.getById);
+      });
+    });
+
+    describe('Param validation', function () {
+      let httpTestServer;
+
+      beforeEach(function () {
+        sinon.stub(trainingController, 'getById').callsFake((request, h) => h.response('ok'));
+
+        sinon.stub(securityPreHandlers, 'checkAdminMemberHasRoleSupport').callsFake((request, h) => h.response(false));
+        sinon.stub(securityPreHandlers, 'checkAdminMemberHasRoleMetier').callsFake((request, h) => h.response(false));
+        sinon
+          .stub(securityPreHandlers, 'checkAdminMemberHasRoleSuperAdmin')
+          .callsFake((request, h) => h.response(true));
+
+        httpTestServer = new HttpTestServer();
+      });
+
+      it('should return 200 if the trainingId param is a number', async function () {
+        // given
+        await httpTestServer.register(moduleUnderTest);
+
+        // when
+        const response = await httpTestServer.request('GET', '/api/admin/trainings/1');
+
+        // then
+        expect(response.statusCode).to.equal(200);
+      });
+
+      it('should return 400 if the trainingId param is not a number', async function () {
+        // given
+        await httpTestServer.register(moduleUnderTest);
+
+        // when
+        const response = await httpTestServer.request('GET', '/api/admin/trainings/toto');
+
+        // then
+        expect(response.statusCode).to.equal(400);
+      });
+    });
+  });
+
   describe('POST /api/admin/trainings', function () {
     let validPayload;
     beforeEach(function () {
@@ -146,7 +272,7 @@ describe('Unit | Router | training-router', function () {
 
         // then
         expect(JSON.parse(response.payload).errors[0].detail).to.equal(
-          '"data.attributes.editor-logo-url" must be a valid uri'
+          '"data.attributes.editor-logo-url" must be a valid uri',
         );
         expect(response.statusCode).to.equal(400);
       });
@@ -753,7 +879,7 @@ describe('Unit | Router | training-router', function () {
               h
                 .response({ errors: new Error('forbidden') })
                 .code(403)
-                .takeover()
+                .takeover(),
           );
         const httpTestServer = new HttpTestServer();
         await httpTestServer.register(moduleUnderTest);
@@ -827,6 +953,388 @@ describe('Unit | Router | training-router', function () {
 
         // then
         expect(response.statusCode).to.equal(400);
+      });
+    });
+  });
+
+  describe('PUT /api/admin/trainings/:id/triggers', function () {
+    let validPayload;
+
+    beforeEach(function () {
+      validPayload = {
+        data: {
+          type: 'training-triggers',
+          attributes: {
+            trainingId: 123,
+            type: 'prerequisite',
+            threshold: 30,
+            tubes: [{ tubeId: 'recTube123', level: 2 }],
+          },
+        },
+      };
+    });
+
+    describe('Security Prehandlers', function () {
+      // eslint-disable-next-line mocha/no-setup-in-describe
+      [
+        {
+          role: 'SUPER_ADMIN',
+          securityPreHandlersResponses: {
+            checkAdminMemberHasRoleSuperAdmin: (request, h) => h.response(true),
+            checkAdminMemberHasRoleMetier: (request, h) => h.response({ errors: new Error('forbidden') }).code(403),
+          },
+        },
+        {
+          role: 'METIER',
+          securityPreHandlersResponses: {
+            checkAdminMemberHasRoleSuperAdmin: (request, h) => h.response({ errors: new Error('forbidden') }).code(403),
+            checkAdminMemberHasRoleMetier: (request, h) => h.response(true),
+          },
+        },
+      ].forEach(({ role, securityPreHandlersResponses }) => {
+        it(`should verify user identity and return success update when user role is "${role}"`, async function () {
+          // given
+          sinon.stub(trainingController, 'createOrUpdateTrigger').returns('ok');
+          sinon
+            .stub(securityPreHandlers, 'checkAdminMemberHasRoleSuperAdmin')
+            .callsFake(securityPreHandlersResponses.checkAdminMemberHasRoleSuperAdmin);
+          sinon
+            .stub(securityPreHandlers, 'checkAdminMemberHasRoleMetier')
+            .callsFake(securityPreHandlersResponses.checkAdminMemberHasRoleMetier);
+          const httpTestServer = new HttpTestServer();
+          await httpTestServer.register(moduleUnderTest);
+
+          const payload = validPayload;
+
+          // when
+          const result = await httpTestServer.request('PUT', '/api/admin/trainings/12344/triggers', payload);
+
+          // then
+          sinon.assert.calledOnce(securityPreHandlers.checkAdminMemberHasRoleSuperAdmin);
+          sinon.assert.calledOnce(securityPreHandlers.checkAdminMemberHasRoleMetier);
+          sinon.assert.calledOnce(trainingController.createOrUpdateTrigger);
+          expect(result.statusCode).to.equal(200);
+        });
+      });
+
+      it(`should return 403 when user does not have access METIER`, async function () {
+        // given
+        sinon.stub(trainingController, 'createOrUpdateTrigger').returns('ok');
+        sinon
+          .stub(securityPreHandlers, 'checkAdminMemberHasRoleSuperAdmin')
+          .callsFake((request, h) => h.response({ errors: new Error('forbidden') }).code(403));
+        sinon
+          .stub(securityPreHandlers, 'checkAdminMemberHasRoleMetier')
+          .callsFake((request, h) => h.response({ errors: new Error('forbidden') }).code(403));
+        const httpTestServer = new HttpTestServer();
+        await httpTestServer.register(moduleUnderTest);
+
+        const payload = validPayload;
+
+        // when
+        const result = await httpTestServer.request('PUT', '/api/admin/trainings/12344/triggers', payload);
+
+        // then
+        sinon.assert.calledOnce(securityPreHandlers.checkAdminMemberHasRoleSuperAdmin);
+        sinon.assert.calledOnce(securityPreHandlers.checkAdminMemberHasRoleMetier);
+        sinon.assert.notCalled(trainingController.createOrUpdateTrigger);
+        expect(result.statusCode).to.equal(403);
+      });
+    });
+
+    describe('Data validation', function () {
+      it('should return bad request when param id is not numeric', async function () {
+        // given
+        const httpTestServer = new HttpTestServer();
+        await httpTestServer.register(moduleUnderTest);
+
+        const payload = validPayload;
+
+        // when
+        const result = await httpTestServer.request('PUT', '/api/admin/trainings/not_number/triggers', payload);
+
+        // then
+        expect(result.statusCode).to.equal(400);
+      });
+
+      it('should return bad request when payload is not provided', async function () {
+        // given
+        const httpTestServer = new HttpTestServer();
+        await httpTestServer.register(moduleUnderTest);
+
+        // when
+        const result = await httpTestServer.request('PUT', '/api/admin/trainings/12344/triggers');
+
+        // then
+        expect(result.statusCode).to.equal(400);
+      });
+    });
+  });
+
+  describe('GET /api/admin/trainings/{id}/target-profile-summaries', function () {
+    describe('Security Prehandlers', function () {
+      it('should verify user identity and return success update when user role is SUPER_ADMIN', async function () {
+        // given
+        sinon.stub(trainingController, 'findTargetProfileSummaries').returns('ok');
+        sinon
+          .stub(securityPreHandlers, 'checkAdminMemberHasRoleSupport')
+          .callsFake((request, h) => h.response({ errors: new Error('forbidden') }).code(403));
+        sinon
+          .stub(securityPreHandlers, 'checkAdminMemberHasRoleMetier')
+          .callsFake((request, h) => h.response({ errors: new Error('forbidden') }).code(403));
+        sinon
+          .stub(securityPreHandlers, 'checkAdminMemberHasRoleSuperAdmin')
+          .callsFake((request, h) => h.response(true));
+        const httpTestServer = new HttpTestServer();
+        await httpTestServer.register(moduleUnderTest);
+
+        // when
+        const result = await httpTestServer.request('GET', '/api/admin/trainings/12344/target-profile-summaries');
+
+        // then
+        sinon.assert.calledOnce(trainingController.findTargetProfileSummaries);
+        expect(result.statusCode).to.equal(200);
+      });
+
+      it('should verify user identity and return success update when user role is METIER', async function () {
+        // given
+        sinon.stub(trainingController, 'findTargetProfileSummaries').returns('ok');
+        sinon
+          .stub(securityPreHandlers, 'checkAdminMemberHasRoleSupport')
+          .callsFake((request, h) => h.response({ errors: new Error('forbidden') }).code(403));
+        sinon
+          .stub(securityPreHandlers, 'checkAdminMemberHasRoleSuperAdmin')
+          .callsFake((request, h) => h.response({ errors: new Error('forbidden') }).code(403));
+        sinon.stub(securityPreHandlers, 'checkAdminMemberHasRoleMetier').callsFake((request, h) => h.response(true));
+        const httpTestServer = new HttpTestServer();
+        await httpTestServer.register(moduleUnderTest);
+
+        // when
+        const result = await httpTestServer.request('GET', '/api/admin/trainings/12344/target-profile-summaries');
+
+        // then
+        sinon.assert.calledOnce(trainingController.findTargetProfileSummaries);
+        expect(result.statusCode).to.equal(200);
+      });
+
+      it('should allow user if the role is SUPPORT', async function () {
+        // given
+        sinon.stub(trainingController, 'findTargetProfileSummaries').returns('ok');
+        sinon
+          .stub(securityPreHandlers, 'checkAdminMemberHasRoleMetier')
+          .callsFake((request, h) => h.response({ errors: new Error('forbidden') }).code(403));
+        sinon
+          .stub(securityPreHandlers, 'checkAdminMemberHasRoleSuperAdmin')
+          .callsFake((request, h) => h.response({ errors: new Error('forbidden') }).code(403));
+        sinon.stub(securityPreHandlers, 'checkAdminMemberHasRoleSupport').callsFake((request, h) => h.response(true));
+        const httpTestServer = new HttpTestServer();
+        await httpTestServer.register(moduleUnderTest);
+
+        // when
+        await httpTestServer.request('GET', '/api/admin/trainings/12344/target-profile-summaries');
+
+        // then
+        sinon.assert.calledOnce(trainingController.findTargetProfileSummaries);
+      });
+
+      it('should return 403 it if the role is not allowed', async function () {
+        // given
+        sinon.stub(trainingController, 'findTargetProfileSummaries').returns('not ok');
+        sinon
+          .stub(securityPreHandlers, 'checkAdminMemberHasRoleSupport')
+          .callsFake((request, h) => h.response({ errors: new Error('forbidden') }).code(403));
+        sinon
+          .stub(securityPreHandlers, 'checkAdminMemberHasRoleSuperAdmin')
+          .callsFake((request, h) => h.response({ errors: new Error('forbidden') }).code(403));
+        sinon
+          .stub(securityPreHandlers, 'checkAdminMemberHasRoleMetier')
+          .callsFake((request, h) => h.response({ errors: new Error('forbidden') }).code(403));
+        const httpTestServer = new HttpTestServer();
+        await httpTestServer.register(moduleUnderTest);
+
+        // when
+        const response = await httpTestServer.request('GET', '/api/admin/trainings/12344/target-profile-summaries');
+
+        // then
+        expect(response.statusCode).to.equal(403);
+        sinon.assert.notCalled(trainingController.findTargetProfileSummaries);
+      });
+    });
+
+    describe('Param validation', function () {
+      let httpTestServer;
+
+      beforeEach(function () {
+        sinon.stub(trainingController, 'findTargetProfileSummaries').callsFake((request, h) => h.response('ok'));
+
+        sinon.stub(securityPreHandlers, 'checkAdminMemberHasRoleSupport').callsFake((request, h) => h.response(false));
+        sinon.stub(securityPreHandlers, 'checkAdminMemberHasRoleMetier').callsFake((request, h) => h.response(false));
+        sinon
+          .stub(securityPreHandlers, 'checkAdminMemberHasRoleSuperAdmin')
+          .callsFake((request, h) => h.response(true));
+
+        httpTestServer = new HttpTestServer();
+      });
+
+      it('should return 200 if the trainingId param is a number', async function () {
+        // given
+        await httpTestServer.register(moduleUnderTest);
+
+        // when
+        const response = await httpTestServer.request('GET', '/api/admin/trainings/1/target-profile-summaries');
+
+        // then
+        expect(response.statusCode).to.equal(200);
+      });
+
+      it('should return 400 if the trainingId param is not a number', async function () {
+        // given
+        await httpTestServer.register(moduleUnderTest);
+
+        // when
+        const response = await httpTestServer.request('GET', '/api/admin/trainings/toto/target-profile-summaries');
+
+        // then
+        expect(response.statusCode).to.equal(400);
+      });
+    });
+    describe('POST /api/admin/trainings/{id}/attach-target-profiles', function () {
+      describe('Security PreHandlers', function () {
+        it('should verify user identity and reach controller if user has role SUPER_ADMIN', async function () {
+          // given
+          sinon.stub(trainingController, 'attachTargetProfiles').returns('ok');
+          sinon
+            .stub(securityPreHandlers, 'checkAdminMemberHasRoleMetier')
+            .callsFake((request, h) => h.response({ errors: new Error('forbidden') }).code(403));
+          sinon
+            .stub(securityPreHandlers, 'checkAdminMemberHasRoleSuperAdmin')
+            .callsFake((request, h) => h.response(true));
+          const httpTestServer = new HttpTestServer();
+          await httpTestServer.register(moduleUnderTest);
+
+          const payload = {
+            'target-profile-ids': [1, 2],
+          };
+
+          // when
+          await httpTestServer.request('POST', '/api/admin/trainings/1/attach-target-profiles', payload);
+
+          // then
+          sinon.assert.calledOnce(trainingController.attachTargetProfiles);
+        });
+
+        it('should verify user identity and reach controller if user has role METIER', async function () {
+          // given
+          sinon.stub(trainingController, 'attachTargetProfiles').returns('ok');
+          sinon.stub(securityPreHandlers, 'checkAdminMemberHasRoleMetier').callsFake((request, h) => h.response(true));
+          sinon
+            .stub(securityPreHandlers, 'checkAdminMemberHasRoleSuperAdmin')
+            .callsFake((request, h) => h.response({ errors: new Error('forbidden') }).code(403));
+
+          const httpTestServer = new HttpTestServer();
+          await httpTestServer.register(moduleUnderTest);
+
+          const payload = {
+            'target-profile-ids': [1, 2],
+          };
+
+          // when
+          await httpTestServer.request('POST', '/api/admin/trainings/1/attach-target-profiles', payload);
+
+          // then
+          sinon.assert.calledOnce(trainingController.attachTargetProfiles);
+        });
+
+        it('should return 403 without reaching controller if user has not an allowed role', async function () {
+          // given
+          sinon.stub(trainingController, 'attachTargetProfiles').returns('ok');
+          sinon
+            .stub(securityPreHandlers, 'checkAdminMemberHasRoleSuperAdmin')
+            .callsFake((request, h) => h.response({ errors: new Error('forbidden') }).code(403));
+          sinon
+            .stub(securityPreHandlers, 'checkAdminMemberHasRoleMetier')
+            .callsFake((request, h) => h.response({ errors: new Error('forbidden') }).code(403));
+          const httpTestServer = new HttpTestServer();
+          await httpTestServer.register(moduleUnderTest);
+
+          const payload = {
+            'target-profile-ids': [1, 2],
+          };
+
+          // when
+          const response = await httpTestServer.request(
+            'POST',
+            '/api/admin/trainings/1/attach-target-profiles',
+            payload,
+          );
+
+          // then
+          expect(response.statusCode).to.equal(403);
+          sinon.assert.notCalled(trainingController.attachTargetProfiles);
+        });
+      });
+      describe('Param validation', function () {
+        it('should return a 404 HTTP response when target-profile-ids do not contain only numbers', async function () {
+          // given
+          sinon.stub(trainingController, 'attachTargetProfiles').returns('ok');
+          sinon
+            .stub(securityPreHandlers, 'checkAdminMemberHasRoleSuperAdmin')
+            .callsFake((request, h) => h.response({ errors: new Error('forbidden') }).code(403));
+          sinon
+            .stub(securityPreHandlers, 'checkAdminMemberHasRoleSupport')
+            .callsFake((request, h) => h.response({ errors: new Error('forbidden') }).code(403));
+          sinon.stub(securityPreHandlers, 'checkAdminMemberHasRoleMetier').callsFake((request, h) => h.response(true));
+          const httpTestServer = new HttpTestServer();
+          await httpTestServer.register(moduleUnderTest);
+
+          const payload = {
+            'target-profile-ids': ['a', 2],
+          };
+
+          // when
+          const response = await httpTestServer.request(
+            'POST',
+            '/api/admin/trainings/1/attach-target-profiles',
+            payload,
+          );
+
+          // then
+          expect(response.statusCode).to.equal(404);
+          expect(response.payload).to.have.string(
+            "L'id d'un des profils cible ou du contenu formatif n'est pas valide",
+          );
+        });
+
+        it('should return a 404 HTTP response when training id is not valid', async function () {
+          // given
+          sinon.stub(trainingController, 'attachTargetProfiles').returns('ok');
+          sinon
+            .stub(securityPreHandlers, 'checkAdminMemberHasRoleSuperAdmin')
+            .callsFake((request, h) => h.response({ errors: new Error('forbidden') }).code(403));
+          sinon
+            .stub(securityPreHandlers, 'checkAdminMemberHasRoleSupport')
+            .callsFake((request, h) => h.response({ errors: new Error('forbidden') }).code(403));
+          sinon.stub(securityPreHandlers, 'checkAdminMemberHasRoleMetier').callsFake((request, h) => h.response(true));
+          const httpTestServer = new HttpTestServer();
+          await httpTestServer.register(moduleUnderTest);
+
+          const payload = {
+            'target-profile-ids': [1, 2],
+          };
+
+          // when
+          const response = await httpTestServer.request(
+            'POST',
+            '/api/admin/trainings/chaton/attach-target-profiles',
+            payload,
+          );
+
+          // then
+          expect(response.statusCode).to.equal(404);
+          expect(response.payload).to.have.string(
+            "L'id d'un des profils cible ou du contenu formatif n'est pas valide",
+          );
+        });
       });
     });
   });

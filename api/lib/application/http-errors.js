@@ -1,4 +1,6 @@
-const JSONAPIError = require('jsonapi-serializer').Error;
+import jsonapiSerializer from 'jsonapi-serializer';
+
+const { Error: JSONAPIError } = jsonapiSerializer;
 
 class BaseHttpError extends Error {
   constructor(message) {
@@ -102,10 +104,11 @@ class ImproveCompetenceEvaluationForbiddenError extends BaseHttpError {
 }
 
 class BadRequestError extends BaseHttpError {
-  constructor(message, code) {
+  constructor(message, code, meta) {
     super(message);
     this.title = 'Bad Request';
     this.status = 400;
+    this.meta = meta;
     this.code = code;
   }
 }
@@ -155,7 +158,28 @@ function sendJsonApiError(httpError, h) {
   return h.response(jsonApiError).code(httpError.status).takeover();
 }
 
-module.exports = {
+const HttpErrors = {
+  BadRequestError,
+  BaseHttpError,
+  ConflictError,
+  ForbiddenError,
+  ImproveCompetenceEvaluationForbiddenError,
+  InternalServerError,
+  MissingQueryParamError,
+  NotFoundError,
+  PasswordShouldChangeError,
+  PayloadTooLargeError,
+  PreconditionFailedError,
+  sendJsonApiError,
+  ServiceUnavailableError,
+  SessionPublicationBatchError,
+  UnauthorizedError,
+  UnprocessableEntityError,
+  TooManyRequestsError,
+};
+
+export {
+  HttpErrors,
   BadRequestError,
   BaseHttpError,
   ConflictError,

@@ -1,6 +1,6 @@
-const Assessment = require('../models/Assessment');
+import { Assessment } from '../models/Assessment.js';
 
-module.exports = async function getAssessment({
+const getAssessment = async function ({
   assessmentId,
   locale,
   assessmentRepository,
@@ -20,11 +20,13 @@ module.exports = async function getAssessment({
 
   if (assessment.type === Assessment.types.CAMPAIGN) {
     assessment.campaignCode = await campaignRepository.getCampaignCodeByCampaignParticipationId(
-      assessment.campaignParticipationId
+      assessment.campaignParticipationId,
     );
   }
   return assessment;
 };
+
+export { getAssessment };
 
 function _fetchAssessmentTitle({ assessment, locale, competenceRepository, courseRepository, campaignRepository }) {
   switch (assessment.type) {

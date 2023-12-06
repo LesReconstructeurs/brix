@@ -9,6 +9,7 @@ class Prescriber {
     participantCount,
     memberships = [],
     userOrgaSettings,
+    enableMultipleSendingAssessment,
   } = {}) {
     this.id = id;
     this.firstName = firstName;
@@ -19,7 +20,8 @@ class Prescriber {
     this.participantCount = participantCount;
     this.memberships = memberships;
     this.userOrgaSettings = userOrgaSettings;
+    this.enableMultipleSendingAssessment = enableMultipleSendingAssessment;
   }
 }
 
-module.exports = Prescriber;
+export { Prescriber };

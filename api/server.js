@@ -1,30 +1,24 @@
-require('dotenv').config();
-const Hapi = require('@hapi/hapi');
-const Oppsy = require('oppsy');
+import Hapi from '@hapi/hapi';
+import Oppsy from 'oppsy';
 
-const settings = require('./lib/config');
-const preResponseUtils = require('./lib/application/pre-response-utils');
-
-const routes = require('./lib/routes');
-const plugins = require('./lib/infrastructure/plugins');
-const swaggers = require('./lib/swaggers');
-const authentication = require('./lib/infrastructure/authentication');
-
-const { handleFailAction } = require('./lib/validate');
-const monitoringTools = require('./lib/infrastructure/monitoring-tools');
-const deserializer = require('./lib/infrastructure/serializers/jsonapi/deserializer');
-const { knex } = require('./db/knex-database-connection');
+import { config } from './lib/config.js';
+import * as preResponseUtils from './lib/application/pre-response-utils.js';
+import { routes } from './lib/routes.js';
+import { plugins } from './lib/infrastructure/plugins/index.js';
+import { swaggers } from './lib/swaggers.js';
+import { authentication } from './lib/infrastructure/authentication.js';
+import { handleFailAction } from './lib/validate.js';
+import { monitoringTools } from './lib/infrastructure/monitoring-tools.js';
+import { deserializer } from './lib/infrastructure/serializers/jsonapi/deserializer.js';
+import { knex } from './db/knex-database-connection.js';
 
 monitoringTools.installHapiHook();
 
-let config;
-
+const { logOpsMetrics, port, logging } = config;
 const createServer = async () => {
-  loadConfiguration();
-
   const server = createBareServer();
 
-  if (settings.logOpsMetrics) await enableOpsMetrics(server);
+  if (logOpsMetrics) await enableOpsMetrics(server);
 
   setupErrorHandling(server);
 
@@ -55,7 +49,7 @@ const createBareServer = function () {
         emptyStatusCode: 204,
       },
     },
-    port: config.port,
+    port,
     router: {
       isCaseSensitive: false,
       stripTrailingSlash: true,
@@ -81,12 +75,8 @@ const enableOpsMetrics = async function (server) {
     });
   });
 
-  oppsy.start(config.logging.emitOpsEventEachSeconds * 1000);
+  oppsy.start(logging.emitOpsEventEachSeconds * 1000);
   server.oppsy = oppsy;
-};
-
-const loadConfiguration = function () {
-  config = require('./lib/config');
 };
 
 const setupErrorHandling = function (server) {
@@ -121,4 +111,4 @@ const setupOpenApiSpecification = async function (server) {
   }
 };
 
-module.exports = createServer;
+export { createServer };

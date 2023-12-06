@@ -1,23 +1,26 @@
 import Component from '@glimmer/component';
 import { action } from '@ember/object';
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
 
 export default class Header extends Component {
+  @service router;
+  @service intl;
+
   @tracked modalDescriptionText;
   @tracked modalCancelText;
-  @tracked modalConfirmationText;
-  @tracked modalInstructionText = 'Information';
+  @tracked modalConfirmationText = this.intl.t('common.actions.confirm');
+  @tracked modalInstructionText = this.intl.t('pages.session-supervising.candidate-in-list.default-modal-title');
   @tracked isConfirmationModalDisplayed = false;
-  @service router;
 
   @action
   askUserToConfirmLeaving() {
-    this.modalDescriptionText =
-      'Attention, assurez-vous que tous les candidats aient terminé leur test avant de quitter la surveillance. Pour reprendre la surveillance de cette session, vous devrez entrer à nouveau son numéro de session et son mot de passe.';
-    this.modalCancelText = 'Annuler';
-    this.modalConfirmationText = `Quitter la surveillance`;
-    this.modalInstructionText = `Quitter la surveillance de la session ${this.args.session.id}`;
+    this.modalDescriptionText = this.intl.t('pages.session-supervising.header.information');
+    this.modalCancelText = this.intl.t('common.actions.cancel');
+    this.modalConfirmationText = this.intl.t('pages.session-supervising.header.actions.confirmation');
+    this.modalInstructionText = this.intl.t('pages.session-supervising.header.actions.exit-extra-information', {
+      sessionId: this.args.session.id,
+    });
     this.isConfirmationModalDisplayed = true;
   }
 

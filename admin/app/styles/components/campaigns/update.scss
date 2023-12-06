@@ -3,9 +3,9 @@
   display: flex;
   align-items: center;
 
-  & > input[type="checkbox"] {
-    margin: 0 8px;
+  & > input[type='checkbox'] {
     width: 16px;
     height: 16px;
+    margin: 0 8px;
   }
 }

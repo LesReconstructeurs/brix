@@ -1,4 +1,4 @@
-const { CERTIFICATION_CENTER_TYPES } = require('../constants');
+import { CERTIFICATION_CENTER_TYPES } from '../constants.js';
 
 class CertificationCenterForAdmin {
   constructor({
@@ -9,7 +9,6 @@ class CertificationCenterForAdmin {
     createdAt,
     updatedAt,
     habilitations = [],
-    isSupervisorAccessEnabled = false,
     dataProtectionOfficerFirstName,
     dataProtectionOfficerLastName,
     dataProtectionOfficerEmail,
@@ -21,7 +20,6 @@ class CertificationCenterForAdmin {
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
     this.habilitations = habilitations;
-    this.isSupervisorAccessEnabled = isSupervisorAccessEnabled;
     this.dataProtectionOfficerFirstName = dataProtectionOfficerFirstName;
     this.dataProtectionOfficerLastName = dataProtectionOfficerLastName;
     this.dataProtectionOfficerEmail = dataProtectionOfficerEmail;
@@ -36,5 +34,6 @@ class CertificationCenterForAdmin {
   }
 }
 
-module.exports = CertificationCenterForAdmin;
-module.exports.types = CERTIFICATION_CENTER_TYPES;
+CertificationCenterForAdmin.types = CERTIFICATION_CENTER_TYPES;
+
+export { CertificationCenterForAdmin, CERTIFICATION_CENTER_TYPES as types };

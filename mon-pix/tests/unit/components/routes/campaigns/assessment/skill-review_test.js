@@ -12,22 +12,134 @@ module('Unit | component | Campaigns | Evaluation | Skill Review', function (hoo
 
   hooks.beforeEach(function () {
     possibleBadgesCombinations = [
-      { id: 30, isAcquired: true, isCertifiable: true, isValid: true, isAlwaysVisible: true },
-      { id: 31, isAcquired: true, isCertifiable: true, isValid: true, isAlwaysVisible: false },
-      { id: 32, isAcquired: true, isCertifiable: true, isValid: false, isAlwaysVisible: true },
-      { id: 33, isAcquired: true, isCertifiable: true, isValid: false, isAlwaysVisible: false },
-      { id: 34, isAcquired: true, isCertifiable: false, isValid: true, isAlwaysVisible: true },
-      { id: 35, isAcquired: true, isCertifiable: false, isValid: true, isAlwaysVisible: false },
-      { id: 36, isAcquired: true, isCertifiable: false, isValid: false, isAlwaysVisible: true },
-      { id: 37, isAcquired: true, isCertifiable: false, isValid: false, isAlwaysVisible: false },
-      { id: 38, isAcquired: false, isCertifiable: true, isValid: true, isAlwaysVisible: true },
-      { id: 39, isAcquired: false, isCertifiable: true, isValid: true, isAlwaysVisible: false },
-      { id: 40, isAcquired: false, isCertifiable: true, isValid: false, isAlwaysVisible: true },
-      { id: 41, isAcquired: false, isCertifiable: true, isValid: false, isAlwaysVisible: false },
-      { id: 42, isAcquired: false, isCertifiable: false, isValid: true, isAlwaysVisible: true },
-      { id: 43, isAcquired: false, isCertifiable: false, isValid: true, isAlwaysVisible: false },
-      { id: 44, isAcquired: false, isCertifiable: false, isValid: false, isAlwaysVisible: true },
-      { id: 45, isAcquired: false, isCertifiable: false, isValid: false, isAlwaysVisible: false },
+      {
+        id: 30,
+        isAcquired: true,
+        isCertifiable: true,
+        isValid: true,
+        isAlwaysVisible: true,
+        acquisitionPercentage: 10,
+      },
+      {
+        id: 31,
+        isAcquired: true,
+        isCertifiable: true,
+        isValid: true,
+        isAlwaysVisible: false,
+        acquisitionPercentage: 15,
+      },
+      {
+        id: 32,
+        isAcquired: true,
+        isCertifiable: true,
+        isValid: false,
+        isAlwaysVisible: true,
+        acquisitionPercentage: 1,
+      },
+      {
+        id: 33,
+        isAcquired: true,
+        isCertifiable: true,
+        isValid: false,
+        isAlwaysVisible: false,
+        acquisitionPercentage: 67,
+      },
+      {
+        id: 34,
+        isAcquired: true,
+        isCertifiable: false,
+        isValid: true,
+        isAlwaysVisible: true,
+        acquisitionPercentage: 56,
+      },
+      {
+        id: 35,
+        isAcquired: true,
+        isCertifiable: false,
+        isValid: true,
+        isAlwaysVisible: false,
+        acquisitionPercentage: 100,
+      },
+      {
+        id: 36,
+        isAcquired: true,
+        isCertifiable: false,
+        isValid: false,
+        isAlwaysVisible: true,
+        acquisitionPercentage: 0,
+      },
+      {
+        id: 37,
+        isAcquired: true,
+        isCertifiable: false,
+        isValid: false,
+        isAlwaysVisible: false,
+        acquisitionPercentage: 0,
+      },
+      {
+        id: 38,
+        isAcquired: false,
+        isCertifiable: true,
+        isValid: true,
+        isAlwaysVisible: true,
+        acquisitionPercentage: 30,
+      },
+      {
+        id: 39,
+        isAcquired: false,
+        isCertifiable: true,
+        isValid: true,
+        isAlwaysVisible: false,
+        acquisitionPercentage: 98,
+      },
+      {
+        id: 40,
+        isAcquired: false,
+        isCertifiable: true,
+        isValid: false,
+        isAlwaysVisible: true,
+        acquisitionPercentage: 67,
+      },
+      {
+        id: 41,
+        isAcquired: false,
+        isCertifiable: true,
+        isValid: false,
+        isAlwaysVisible: false,
+        acquisitionPercentage: 32,
+      },
+      {
+        id: 42,
+        isAcquired: false,
+        isCertifiable: false,
+        isValid: true,
+        isAlwaysVisible: true,
+        acquisitionPercentage: 34,
+      },
+      {
+        id: 43,
+        isAcquired: false,
+        isCertifiable: false,
+        isValid: true,
+        isAlwaysVisible: false,
+        acquisitionPercentage: 3,
+      },
+      {
+        id: 44,
+        isAcquired: false,
+        isCertifiable: false,
+        isValid: false,
+        isAlwaysVisible: true,
+        acquisitionPercentage: 0,
+      },
+      {
+        id: 45,
+        isAcquired: false,
+        isCertifiable: false,
+        isValid: false,
+        isAlwaysVisible: false,
+        acquisitionPercentage: 100,
+      },
     ];
 
     const model = {
@@ -35,7 +147,7 @@ module('Unit | component | Campaigns | Evaluation | Skill Review', function (hoo
       campaignParticipationResult: EmberObject.create({ id: 12345 }),
     };
 
-    component = createGlimmerComponent('component:routes/campaigns/assessment/skill-review', {
+    component = createGlimmerComponent('routes/campaigns/assessment/skill-review', {
       model,
     });
 
@@ -298,20 +410,64 @@ module('Unit | component | Campaigns | Evaluation | Skill Review', function (hoo
     });
   });
 
-  module('#acquiredNotCertifiableBadges', function () {
+  module('#notCertifiableBadges', function () {
     test('should only return acquired and not certifiable badges', function (assert) {
       // given
       component.args.model.campaignParticipationResult.campaignParticipationBadges = possibleBadgesCombinations;
 
       // when
-      const acquiredBadges = component.acquiredNotCertifiableBadges;
+      const notCertifiableBadges = component.notCertifiableBadges;
 
       // then
-      assert.deepEqual(acquiredBadges, [
-        { id: 34, isAcquired: true, isCertifiable: false, isValid: true, isAlwaysVisible: true },
-        { id: 35, isAcquired: true, isCertifiable: false, isValid: true, isAlwaysVisible: false },
-        { id: 36, isAcquired: true, isCertifiable: false, isValid: false, isAlwaysVisible: true },
-        { id: 37, isAcquired: true, isCertifiable: false, isValid: false, isAlwaysVisible: false },
+      assert.deepEqual(notCertifiableBadges, [
+        {
+          id: 34,
+          isAcquired: true,
+          isCertifiable: false,
+          isValid: true,
+          isAlwaysVisible: true,
+          acquisitionPercentage: 56,
+        },
+        {
+          id: 35,
+          isAcquired: true,
+          isCertifiable: false,
+          isValid: true,
+          isAlwaysVisible: false,
+          acquisitionPercentage: 100,
+        },
+        {
+          id: 36,
+          isAcquired: true,
+          isCertifiable: false,
+          isValid: false,
+          isAlwaysVisible: true,
+          acquisitionPercentage: 0,
+        },
+        {
+          id: 37,
+          isAcquired: true,
+          isCertifiable: false,
+          isValid: false,
+          isAlwaysVisible: false,
+          acquisitionPercentage: 0,
+        },
+        {
+          id: 42,
+          isAcquired: false,
+          isCertifiable: false,
+          isValid: true,
+          isAlwaysVisible: true,
+          acquisitionPercentage: 34,
+        },
+        {
+          id: 44,
+          isAcquired: false,
+          isCertifiable: false,
+          isValid: false,
+          isAlwaysVisible: true,
+          acquisitionPercentage: 0,
+        },
       ]);
     });
   });
@@ -326,8 +482,22 @@ module('Unit | component | Campaigns | Evaluation | Skill Review', function (hoo
 
       // then
       assert.deepEqual(acquiredBadges, [
-        { id: 30, isAcquired: true, isCertifiable: true, isValid: true, isAlwaysVisible: true },
-        { id: 31, isAcquired: true, isCertifiable: true, isValid: true, isAlwaysVisible: false },
+        {
+          id: 30,
+          isAcquired: true,
+          isCertifiable: true,
+          isValid: true,
+          isAlwaysVisible: true,
+          acquisitionPercentage: 10,
+        },
+        {
+          id: 31,
+          isAcquired: true,
+          isCertifiable: true,
+          isValid: true,
+          isAlwaysVisible: false,
+          acquisitionPercentage: 15,
+        },
       ]);
     });
   });
@@ -342,10 +512,38 @@ module('Unit | component | Campaigns | Evaluation | Skill Review', function (hoo
 
       // then
       assert.deepEqual(acquiredBadges, [
-        { id: 32, isAcquired: true, isCertifiable: true, isValid: false, isAlwaysVisible: true },
-        { id: 33, isAcquired: true, isCertifiable: true, isValid: false, isAlwaysVisible: false },
-        { id: 38, isAcquired: false, isCertifiable: true, isValid: true, isAlwaysVisible: true },
-        { id: 40, isAcquired: false, isCertifiable: true, isValid: false, isAlwaysVisible: true },
+        {
+          id: 32,
+          isAcquired: true,
+          isCertifiable: true,
+          isValid: false,
+          isAlwaysVisible: true,
+          acquisitionPercentage: 1,
+        },
+        {
+          id: 33,
+          isAcquired: true,
+          isCertifiable: true,
+          isValid: false,
+          isAlwaysVisible: false,
+          acquisitionPercentage: 67,
+        },
+        {
+          id: 38,
+          isAcquired: false,
+          isCertifiable: true,
+          isValid: true,
+          isAlwaysVisible: true,
+          acquisitionPercentage: 30,
+        },
+        {
+          id: 40,
+          isAcquired: false,
+          isCertifiable: true,
+          isValid: false,
+          isAlwaysVisible: true,
+          acquisitionPercentage: 67,
+        },
       ]);
     });
   });
@@ -360,12 +558,54 @@ module('Unit | component | Campaigns | Evaluation | Skill Review', function (hoo
 
       // then
       assert.deepEqual(acquiredBadges, [
-        { id: 30, isAcquired: true, isCertifiable: true, isValid: true, isAlwaysVisible: true },
-        { id: 31, isAcquired: true, isCertifiable: true, isValid: true, isAlwaysVisible: false },
-        { id: 32, isAcquired: true, isCertifiable: true, isValid: false, isAlwaysVisible: true },
-        { id: 33, isAcquired: true, isCertifiable: true, isValid: false, isAlwaysVisible: false },
-        { id: 38, isAcquired: false, isCertifiable: true, isValid: true, isAlwaysVisible: true },
-        { id: 40, isAcquired: false, isCertifiable: true, isValid: false, isAlwaysVisible: true },
+        {
+          id: 30,
+          isAcquired: true,
+          isCertifiable: true,
+          isValid: true,
+          isAlwaysVisible: true,
+          acquisitionPercentage: 10,
+        },
+        {
+          id: 31,
+          isAcquired: true,
+          isCertifiable: true,
+          isValid: true,
+          isAlwaysVisible: false,
+          acquisitionPercentage: 15,
+        },
+        {
+          id: 32,
+          isAcquired: true,
+          isCertifiable: true,
+          isValid: false,
+          isAlwaysVisible: true,
+          acquisitionPercentage: 1,
+        },
+        {
+          id: 33,
+          isAcquired: true,
+          isCertifiable: true,
+          isValid: false,
+          isAlwaysVisible: false,
+          acquisitionPercentage: 67,
+        },
+        {
+          id: 38,
+          isAcquired: false,
+          isCertifiable: true,
+          isValid: true,
+          isAlwaysVisible: true,
+          acquisitionPercentage: 30,
+        },
+        {
+          id: 40,
+          isAcquired: false,
+          isCertifiable: true,
+          isValid: false,
+          isAlwaysVisible: true,
+          acquisitionPercentage: 67,
+        },
       ]);
     });
   });
@@ -447,9 +687,7 @@ module('Unit | component | Campaigns | Evaluation | Skill Review', function (hoo
           const url = component.customButtonUrl;
 
           // then
-          // TODO: Fix this the next time the file is edited.
-          // eslint-disable-next-line qunit/no-assert-equal
-          assert.equal(url, 'http://www.my-url.net/resultats?stage=6');
+          assert.strictEqual(url, 'http://www.my-url.net/resultats?stage=6');
         });
       });
 
@@ -463,9 +701,7 @@ module('Unit | component | Campaigns | Evaluation | Skill Review', function (hoo
           const url = component.customButtonUrl;
 
           // then
-          // TODO: Fix this the next time the file is edited.
-          // eslint-disable-next-line qunit/no-assert-equal
-          assert.equal(url, 'http://www.my-url.net/resultats?masteryPercentage=56');
+          assert.strictEqual(url, 'http://www.my-url.net/resultats?masteryPercentage=56');
         });
       });
 
@@ -479,9 +715,7 @@ module('Unit | component | Campaigns | Evaluation | Skill Review', function (hoo
           const url = component.customButtonUrl;
 
           // then
-          // TODO: Fix this the next time the file is edited.
-          // eslint-disable-next-line qunit/no-assert-equal
-          assert.equal(url, 'http://www.my-url.net/resultats?masteryPercentage=0');
+          assert.strictEqual(url, 'http://www.my-url.net/resultats?masteryPercentage=0');
         });
       });
 
@@ -495,9 +729,7 @@ module('Unit | component | Campaigns | Evaluation | Skill Review', function (hoo
           const url = component.customButtonUrl;
 
           // then
-          // TODO: Fix this the next time the file is edited.
-          // eslint-disable-next-line qunit/no-assert-equal
-          assert.equal(url, 'http://www.my-url.net/resultats?externalId=1234F56');
+          assert.strictEqual(url, 'http://www.my-url.net/resultats?externalId=1234F56');
         });
       });
 
@@ -515,9 +747,7 @@ module('Unit | component | Campaigns | Evaluation | Skill Review', function (hoo
           const url = component.customButtonUrl;
 
           // then
-          // TODO: Fix this the next time the file is edited.
-          // eslint-disable-next-line qunit/no-assert-equal
-          assert.equal(url, 'http://www.my-url.net/resultats?masteryPercentage=56&externalId=1234F56&stage=6');
+          assert.strictEqual(url, 'http://www.my-url.net/resultats?masteryPercentage=56&externalId=1234F56&stage=6');
         });
       });
 
@@ -535,9 +765,10 @@ module('Unit | component | Campaigns | Evaluation | Skill Review', function (hoo
           const url = component.customButtonUrl;
 
           // then
-          // TODO: Fix this the next time the file is edited.
-          // eslint-disable-next-line qunit/no-assert-equal
-          assert.equal(url, 'http://www.my-url.net/resultats?foo=bar&masteryPercentage=56&externalId=1234F56&stage=6');
+          assert.strictEqual(
+            url,
+            'http://www.my-url.net/resultats?foo=bar&masteryPercentage=56&externalId=1234F56&stage=6',
+          );
         });
       });
 
@@ -555,9 +786,7 @@ module('Unit | component | Campaigns | Evaluation | Skill Review', function (hoo
           const url = component.customButtonUrl;
 
           // then
-          // TODO: Fix this the next time the file is edited.
-          // eslint-disable-next-line qunit/no-assert-equal
-          assert.equal(url, 'http://www.my-url.net/?masteryPercentage=56&externalId=1234F56&stage=6#page1');
+          assert.strictEqual(url, 'http://www.my-url.net/?masteryPercentage=56&externalId=1234F56&stage=6#page1');
         });
       });
 
@@ -571,9 +800,7 @@ module('Unit | component | Campaigns | Evaluation | Skill Review', function (hoo
           const url = component.customButtonUrl;
 
           // then
-          // TODO: Fix this the next time the file is edited.
-          // eslint-disable-next-line qunit/no-assert-equal
-          assert.equal(url, 'http://www.my-url.net/');
+          assert.strictEqual(url, 'http://www.my-url.net/');
         });
       });
     });
@@ -588,9 +815,7 @@ module('Unit | component | Campaigns | Evaluation | Skill Review', function (hoo
         const url = component.customButtonUrl;
 
         // then
-        // TODO: Fix this the next time the file is edited.
-        // eslint-disable-next-line qunit/no-assert-equal
-        assert.equal(url, null);
+        assert.strictEqual(url, null);
       });
     });
   });
@@ -604,9 +829,7 @@ module('Unit | component | Campaigns | Evaluation | Skill Review', function (hoo
       const result = component.customButtonText;
 
       // then
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(result, 'Next step');
+      assert.strictEqual(result, 'Next step');
     });
   });
 
@@ -693,6 +916,69 @@ module('Unit | component | Campaigns | Evaluation | Skill Review', function (hoo
     });
   });
 
+  module('#competenceResultsGroupedByAreas', function () {
+    test('should return a competence results object with area keys', function (assert) {
+      // given
+      component.args.model.campaignParticipationResult.competenceResults = [
+        {
+          areaColor: 'areaColor1',
+          areaTitle: 'area1',
+          name: 'competence1',
+          masteryRate: '33',
+          reachedStage: 1,
+        },
+        {
+          areaColor: 'areaColor1',
+          areaTitle: 'area1',
+          name: 'competence2',
+          masteryRate: '50',
+          reachedStage: 2,
+        },
+        {
+          areaColor: 'areaColor2',
+          areaTitle: 'area2',
+          name: 'competence3',
+          masteryRate: '60',
+          reachedStage: 3,
+        },
+      ];
+
+      // when
+      const competenceResults = component.competenceResultsGroupedByAreas;
+
+      // then
+      assert.deepEqual(competenceResults, {
+        area1: {
+          areaColor: 'areaColor1',
+          areaTitle: 'area1',
+          competences: [
+            {
+              masteryRate: '33',
+              name: 'competence1',
+              reachedStage: 1,
+            },
+            {
+              masteryRate: '50',
+              name: 'competence2',
+              reachedStage: 2,
+            },
+          ],
+        },
+        area2: {
+          areaColor: 'areaColor2',
+          areaTitle: 'area2',
+          competences: [
+            {
+              masteryRate: '60',
+              name: 'competence3',
+              reachedStage: 3,
+            },
+          ],
+        },
+      });
+    });
+  });
+
   module('#redirectToSignupIfUserIsAnonymous', function () {
     test('should redirect to sign up page on click when user is anonymous', async function (assert) {
       // given
@@ -754,24 +1040,6 @@ module('Unit | component | Campaigns | Evaluation | Skill Review', function (hoo
       // then
       sinon.assert.called(event.preventDefault);
       assert.ok(true);
-    });
-  });
-
-  module('#showDetail', function () {
-    test('should be true when campaign is not FLASH', async function (assert) {
-      // given
-      component.args.model.campaign.isFlash = false;
-
-      // then
-      assert.true(component.showDetail);
-    });
-
-    test('should be false when campaign is FLASH', async function (assert) {
-      // given
-      component.args.model.campaign.isFlash = true;
-
-      // then
-      assert.false(component.showDetail);
     });
   });
 });

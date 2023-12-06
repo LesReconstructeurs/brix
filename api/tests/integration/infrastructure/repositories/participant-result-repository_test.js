@@ -1,9 +1,9 @@
-const { catchErr, expect, databaseBuilder, mockLearningContent, domainBuilder } = require('../../../test-helper');
-const participantResultRepository = require('../../../../lib/infrastructure/repositories/participant-result-repository');
-const KnowledgeElement = require('../../../../lib/domain/models/KnowledgeElement');
-const { NotFoundError } = require('../../../../lib/domain/errors');
-const CampaignParticipationStatuses = require('../../../../lib/domain/models/CampaignParticipationStatuses');
-const Assessment = require('../../../../lib/domain/models/Assessment');
+import { catchErr, expect, databaseBuilder, mockLearningContent, domainBuilder } from '../../../test-helper.js';
+import * as participantResultRepository from '../../../../lib/infrastructure/repositories/participant-result-repository.js';
+import { KnowledgeElement } from '../../../../lib/domain/models/KnowledgeElement.js';
+import { NotFoundError } from '../../../../lib/domain/errors.js';
+import { CampaignParticipationStatuses } from '../../../../lib/domain/models/CampaignParticipationStatuses.js';
+import { Assessment } from '../../../../lib/domain/models/Assessment.js';
 
 const { STARTED } = CampaignParticipationStatuses;
 
@@ -18,8 +18,20 @@ describe('Integration | Repository | ParticipantResultRepository', function () {
 
       const learningContent = {
         areas: [
-          { id: 'recArea1', name: 'area1', competenceIds: ['rec1'], color: 'colorArea1' },
-          { id: 'recArea2', name: 'area2', competenceIds: ['rec2'], color: 'colorArea2' },
+          {
+            id: 'recArea1',
+            name: 'area1',
+            title_i18n: { fr: 'domaine1' },
+            competenceIds: ['rec1'],
+            color: 'colorArea1',
+          },
+          {
+            id: 'recArea2',
+            name: 'area2',
+            title_i18n: { fr: 'domaine2' },
+            competenceIds: ['rec2'],
+            color: 'colorArea2',
+          },
         ],
         competences: [
           {
@@ -540,22 +552,28 @@ describe('Integration | Repository | ParticipantResultRepository', function () {
         name: 'comp1Fr',
         index: '1.1',
         areaName: 'area1',
+        areaTitle: 'domaine1',
         areaColor: 'colorArea1',
         testedSkillsCount: 2,
         totalSkillsCount: 2,
         validatedSkillsCount: 2,
         masteryPercentage: 100,
+        reachedStage: undefined,
+        flashPixScore: undefined,
       });
       expect(competenceResult2).to.deep.equal({
         id: 'rec2',
         name: 'comp2Fr',
         index: '2.1',
         areaName: 'area2',
+        areaTitle: 'domaine2',
         areaColor: 'colorArea2',
         testedSkillsCount: 2,
         totalSkillsCount: 2,
         validatedSkillsCount: 1,
         masteryPercentage: 50,
+        reachedStage: undefined,
+        flashPixScore: undefined,
       });
     });
 
@@ -646,11 +664,10 @@ describe('Integration | Repository | ParticipantResultRepository', function () {
         expect(participantResult.reachedStage).to.deep.include({
           id: 2,
           message: 'Message2',
-          starCount: 3,
-          threshold: 50,
+          reachedStage: 3,
+          totalStage: 4,
           title: 'Stage2',
         });
-        expect(participantResult.stageCount).to.equal(4);
       });
     });
 
@@ -788,10 +805,10 @@ describe('Integration | Repository | ParticipantResultRepository', function () {
           locale: 'FR',
         });
         const badgeResult1 = participantResult.badgeResults.find(
-          ({ id }) => id === badgeObtainedInAnotherCampaign.badgeId
+          ({ id }) => id === badgeObtainedInAnotherCampaign.badgeId,
         );
         const badgeResult2 = participantResult.badgeResults.find(
-          ({ id }) => id === badgeObtainedInThisCampaign.badgeId
+          ({ id }) => id === badgeObtainedInThisCampaign.badgeId,
         );
         expect(badgeResult1).to.deep.include({
           id: 1,
@@ -877,7 +894,7 @@ describe('Integration | Repository | ParticipantResultRepository', function () {
           ];
 
           knowledgeElementsAttributes.forEach((attributes) =>
-            databaseBuilder.factory.buildKnowledgeElement(attributes)
+            databaseBuilder.factory.buildKnowledgeElement(attributes),
           );
 
           await databaseBuilder.commit();
@@ -1032,13 +1049,12 @@ describe('Integration | Repository | ParticipantResultRepository', function () {
     });
 
     context('when campaign is flash', function () {
-      it('returns the estimated flash level and calculated pix score', async function () {
+      it('returns the estimated flash level and calculated pix score (total and by competence)', async function () {
         // given
         const { id: userId } = databaseBuilder.factory.buildUser();
         const { id: campaignId } = databaseBuilder.factory.buildCampaign({
           assessmentMethod: Assessment.methods.FLASH,
         });
-        _buildCampaignSkills(campaignId);
         const { id: campaignParticipationId } = databaseBuilder.factory.buildCampaignParticipation({
           userId,
           campaignId,
@@ -1075,6 +1091,37 @@ describe('Integration | Repository | ParticipantResultRepository', function () {
           estimatedFlashLevel: estimatedLevel,
           flashPixScore: 202,
         });
+
+        expect(participantResult.competenceResults).to.deep.equal([
+          {
+            id: 'rec1',
+            name: 'comp1Fr',
+            index: '1.1',
+            areaName: 'area1',
+            areaTitle: 'domaine1',
+            areaColor: 'colorArea1',
+            testedSkillsCount: 0,
+            totalSkillsCount: 2,
+            validatedSkillsCount: 0,
+            masteryPercentage: 0,
+            reachedStage: undefined,
+            flashPixScore: 2,
+          },
+          {
+            id: 'rec2',
+            name: 'comp2Fr',
+            index: '2.1',
+            areaName: 'area2',
+            areaTitle: 'domaine2',
+            areaColor: 'colorArea2',
+            testedSkillsCount: 0,
+            totalSkillsCount: 3,
+            validatedSkillsCount: 0,
+            masteryPercentage: 0,
+            reachedStage: undefined,
+            flashPixScore: 200,
+          },
+        ]);
       });
     });
   });

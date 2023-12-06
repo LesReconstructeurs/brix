@@ -1,10 +1,13 @@
-const Joi = require('joi');
+import Joi from 'joi';
 
-const certificationController = require('./certification-controller');
-const identifiersType = require('../../domain/types/identifiers-type');
-const securityPreHandlers = require('../security-pre-handlers');
+import { certificationController } from './certification-controller.js';
+import { identifiersType } from '../../domain/types/identifiers-type.js';
+import { securityPreHandlers } from '../security-pre-handlers.js';
+import { LANG } from '../../domain/constants.js';
 
-exports.register = async function (server) {
+const { FRENCH, ENGLISH } = LANG;
+
+const register = async function (server) {
   server.route([
     {
       method: 'GET',
@@ -65,6 +68,7 @@ exports.register = async function (server) {
           }),
           query: Joi.object({
             isFrenchDomainExtension: Joi.boolean().required(),
+            lang: Joi.string().valid(FRENCH, ENGLISH),
           }),
         },
         handler: certificationController.getPDFAttestation,
@@ -137,4 +141,5 @@ exports.register = async function (server) {
   ]);
 };
 
-exports.name = 'certifications-api';
+const name = 'certifications-api';
+export { register, name };

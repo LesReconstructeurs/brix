@@ -1,14 +1,15 @@
-const { expect, domainBuilder } = require('../../../test-helper');
-const CertificationIssueReport = require('../../../../lib/domain/models/CertificationIssueReport');
-const {
-  CertificationIssueReportCategories,
+import { expect, domainBuilder } from '../../../test-helper.js';
+import { CertificationIssueReport } from '../../../../lib/domain/models/CertificationIssueReport.js';
+import {
+  CertificationIssueReportCategory,
   CertificationIssueReportSubcategories,
-} = require('../../../../lib/domain/models/CertificationIssueReportCategory');
-const {
+} from '../../../../lib/domain/models/CertificationIssueReportCategory.js';
+
+import {
   InvalidCertificationIssueReportForSaving,
   DeprecatedCertificationIssueReportSubcategoryError,
   DeprecatedCertificationIssueReportCategoryError,
-} = require('../../../../lib/domain/errors');
+} from '../../../../lib/domain/errors.js';
 
 const MISSING_VALUE = null;
 const EMPTY_VALUE = '';
@@ -23,14 +24,14 @@ describe('Unit | Domain | Models | CertificationIssueReport', function () {
       beforeEach(function () {
         certificationIssueReportDTO = {
           certificationCourseId: 123,
-          category: CertificationIssueReportCategories.NON_BLOCKING_TECHNICAL_ISSUE,
+          category: CertificationIssueReportCategory.NON_BLOCKING_TECHNICAL_ISSUE,
           description: 'Une description obligatoire',
         };
       });
 
       it('should create a NON_BLOCKING_TECHNICAL_ISSUE CertificationIssueReport', function () {
         expect(CertificationIssueReport.create(certificationIssueReportDTO)).to.be.an.instanceOf(
-          CertificationIssueReport
+          CertificationIssueReport,
         );
       });
 
@@ -39,7 +40,7 @@ describe('Unit | Domain | Models | CertificationIssueReport', function () {
         it(`should throw an InvalidCertificationIssueReportForSaving when description is of value ${emptyValue}`, function () {
           // when
           expect(() =>
-            CertificationIssueReport.create({ ...certificationIssueReportDTO, description: emptyValue })
+            CertificationIssueReport.create({ ...certificationIssueReportDTO, description: emptyValue }),
           ).to.throw(InvalidCertificationIssueReportForSaving);
         });
       });
@@ -49,7 +50,7 @@ describe('Unit | Domain | Models | CertificationIssueReport', function () {
         it(`should create a NON_BLOCKING_TECHNICAL_ISSUE CertificationIssueReport when subcategory is empty with value ${emptyValue}`, function () {
           // when
           expect(
-            CertificationIssueReport.create({ ...certificationIssueReportDTO, subcategory: emptyValue })
+            CertificationIssueReport.create({ ...certificationIssueReportDTO, subcategory: emptyValue }),
           ).to.be.an.instanceOf(CertificationIssueReport);
         });
       });
@@ -61,14 +62,14 @@ describe('Unit | Domain | Models | CertificationIssueReport', function () {
       beforeEach(function () {
         certificationIssueReportDTO = {
           certificationCourseId: 123,
-          category: CertificationIssueReportCategories.NON_BLOCKING_CANDIDATE_ISSUE,
+          category: CertificationIssueReportCategory.NON_BLOCKING_CANDIDATE_ISSUE,
           description: 'Une description obligatoire',
         };
       });
 
       it('should create a NON_BLOCKING_CANDIDATE_ISSUE CertificationIssueReport', function () {
         expect(CertificationIssueReport.create(certificationIssueReportDTO)).to.be.an.instanceOf(
-          CertificationIssueReport
+          CertificationIssueReport,
         );
       });
 
@@ -77,7 +78,7 @@ describe('Unit | Domain | Models | CertificationIssueReport', function () {
         it(`should throw an InvalidCertificationIssueReportForSaving when description is of value "${emptyValue}"`, function () {
           // when
           expect(() =>
-            CertificationIssueReport.create({ ...certificationIssueReportDTO, description: emptyValue })
+            CertificationIssueReport.create({ ...certificationIssueReportDTO, description: emptyValue }),
           ).to.throw(InvalidCertificationIssueReportForSaving);
         });
       });
@@ -87,7 +88,7 @@ describe('Unit | Domain | Models | CertificationIssueReport', function () {
         it(`should create a NON_BLOCKING_CANDIDATE_ISSUE CertificationIssueReport when subcategory is empty with value "${emptyValue}"`, function () {
           // when
           expect(
-            CertificationIssueReport.create({ ...certificationIssueReportDTO, subcategory: emptyValue })
+            CertificationIssueReport.create({ ...certificationIssueReportDTO, subcategory: emptyValue }),
           ).to.be.an.instanceOf(CertificationIssueReport);
         });
       });
@@ -99,14 +100,14 @@ describe('Unit | Domain | Models | CertificationIssueReport', function () {
       beforeEach(function () {
         certificationIssueReportDTO = {
           certificationCourseId: 123,
-          category: CertificationIssueReportCategories.SIGNATURE_ISSUE,
+          category: CertificationIssueReportCategory.SIGNATURE_ISSUE,
           description: 'Une description obligatoire',
         };
       });
 
       it('should create a SIGNATURE_ISSUE CertificationIssueReport of category', function () {
         expect(CertificationIssueReport.create(certificationIssueReportDTO)).to.be.an.instanceOf(
-          CertificationIssueReport
+          CertificationIssueReport,
         );
       });
 
@@ -115,7 +116,7 @@ describe('Unit | Domain | Models | CertificationIssueReport', function () {
         it(`should throw an InvalidCertificationIssueReportForSaving when description is of value ${emptyValue}`, function () {
           // when
           expect(() =>
-            CertificationIssueReport.create({ ...certificationIssueReportDTO, description: emptyValue })
+            CertificationIssueReport.create({ ...certificationIssueReportDTO, description: emptyValue }),
           ).to.throw(InvalidCertificationIssueReportForSaving);
         });
       });
@@ -127,7 +128,7 @@ describe('Unit | Domain | Models | CertificationIssueReport', function () {
       beforeEach(function () {
         certificationIssueReportDTO = {
           certificationCourseId: 123,
-          category: CertificationIssueReportCategories.CANDIDATE_INFORMATIONS_CHANGES,
+          category: CertificationIssueReportCategory.CANDIDATE_INFORMATIONS_CHANGES,
           description: 'Une description obligatoire',
           subcategory: CertificationIssueReportSubcategories.NAME_OR_BIRTHDATE,
         };
@@ -135,7 +136,7 @@ describe('Unit | Domain | Models | CertificationIssueReport', function () {
 
       it('should create a CANDIDATE_INFORMATIONS_CHANGES CertificationIssueReport', function () {
         expect(CertificationIssueReport.create(certificationIssueReportDTO)).to.be.an.instanceOf(
-          CertificationIssueReport
+          CertificationIssueReport,
         );
       });
 
@@ -144,7 +145,7 @@ describe('Unit | Domain | Models | CertificationIssueReport', function () {
         it(`should throw an InvalidCertificationIssueReportForSaving when description is of value ${emptyValue}`, function () {
           // when
           expect(() =>
-            CertificationIssueReport.create({ ...certificationIssueReportDTO, description: emptyValue })
+            CertificationIssueReport.create({ ...certificationIssueReportDTO, description: emptyValue }),
           ).to.throw(InvalidCertificationIssueReportForSaving);
         });
       });
@@ -161,14 +162,14 @@ describe('Unit | Domain | Models | CertificationIssueReport', function () {
           it(`should create a CANDIDATE_INFORMATIONS_CHANGES CertificationIssueReport when subcategory is of value ${subcategory}`, function () {
             // when
             expect(
-              CertificationIssueReport.create({ ...certificationIssueReportDTO, subcategory })
+              CertificationIssueReport.create({ ...certificationIssueReportDTO, subcategory }),
             ).to.be.an.instanceOf(CertificationIssueReport);
           });
         } else {
           it(`should throw an InvalidCertificationIssueReportForSaving when subcategory is ${subcategory}`, function () {
             // when
             expect(() => CertificationIssueReport.create({ ...certificationIssueReportDTO, subcategory })).to.throw(
-              InvalidCertificationIssueReportForSaving
+              InvalidCertificationIssueReportForSaving,
             );
           });
         }
@@ -181,7 +182,7 @@ describe('Unit | Domain | Models | CertificationIssueReport', function () {
       beforeEach(function () {
         certificationIssueReportDTO = {
           certificationCourseId: 123,
-          category: CertificationIssueReportCategories.IN_CHALLENGE,
+          category: CertificationIssueReportCategory.IN_CHALLENGE,
           subcategory: CertificationIssueReportSubcategories.IMAGE_NOT_DISPLAYING,
           questionNumber: 5,
         };
@@ -189,7 +190,7 @@ describe('Unit | Domain | Models | CertificationIssueReport', function () {
 
       it('should create an IN_CHALLENGE CertificationIssueReport', function () {
         expect(CertificationIssueReport.create(certificationIssueReportDTO)).to.be.an.instanceOf(
-          CertificationIssueReport
+          CertificationIssueReport,
         );
       });
 
@@ -217,7 +218,7 @@ describe('Unit | Domain | Models | CertificationIssueReport', function () {
                 ...certificationIssueReportDTO,
                 subcategory,
                 description: subcategory === CertificationIssueReportSubcategories.OTHER ? 'salut' : null,
-              })
+              }),
             ).to.be.an.instanceOf(CertificationIssueReport);
           });
         } else if (
@@ -231,7 +232,7 @@ describe('Unit | Domain | Models | CertificationIssueReport', function () {
             const createIssueReport = () =>
               CertificationIssueReport.create({
                 ...certificationIssueReportDTO,
-                category: CertificationIssueReportCategories.IN_CHALLENGE,
+                category: CertificationIssueReportCategory.IN_CHALLENGE,
                 subcategory: CertificationIssueReportSubcategories.LINK_NOT_WORKING,
               });
 
@@ -242,7 +243,7 @@ describe('Unit | Domain | Models | CertificationIssueReport', function () {
           it(`should throw an InvalidCertificationIssueReportForSaving when subcategory is ${subcategory}`, function () {
             // when
             expect(() => CertificationIssueReport.create({ ...certificationIssueReportDTO, subcategory })).to.throw(
-              InvalidCertificationIssueReportForSaving
+              InvalidCertificationIssueReportForSaving,
             );
           });
         }
@@ -253,7 +254,7 @@ describe('Unit | Domain | Models | CertificationIssueReport', function () {
         it(`should throw an InvalidCertificationIssueReportForSaving when questionNumber is empty with value ${emptyValue}`, function () {
           // when
           expect(() =>
-            CertificationIssueReport.create({ ...certificationIssueReportDTO, questionNumber: emptyValue })
+            CertificationIssueReport.create({ ...certificationIssueReportDTO, questionNumber: emptyValue }),
           ).to.throw(InvalidCertificationIssueReportForSaving);
         });
       });
@@ -261,14 +262,14 @@ describe('Unit | Domain | Models | CertificationIssueReport', function () {
       it('should throw an InvalidCertificationIssueReportForSaving when questionNumber is over 500', function () {
         // when
         expect(() => CertificationIssueReport.create({ ...certificationIssueReportDTO, questionNumber: 501 })).to.throw(
-          InvalidCertificationIssueReportForSaving
+          InvalidCertificationIssueReportForSaving,
         );
       });
 
       it('should throw an InvalidCertificationIssueReportForSaving when questionNumber is under 1', function () {
         // when
         expect(() => CertificationIssueReport.create({ ...certificationIssueReportDTO, questionNumber: 0 })).to.throw(
-          InvalidCertificationIssueReportForSaving
+          InvalidCertificationIssueReportForSaving,
         );
       });
     });
@@ -277,7 +278,7 @@ describe('Unit | Domain | Models | CertificationIssueReport', function () {
       it('should be valid', function () {
         const certificationIssueReportDTO = {
           certificationCourseId: 123,
-          category: CertificationIssueReportCategories.FRAUD,
+          category: CertificationIssueReportCategory.FRAUD,
         };
 
         expect(() => CertificationIssueReport.create(certificationIssueReportDTO)).not.to.throw();
@@ -290,14 +291,14 @@ describe('Unit | Domain | Models | CertificationIssueReport', function () {
       beforeEach(function () {
         certificationIssueReportDTO = {
           certificationCourseId: 123,
-          category: CertificationIssueReportCategories.TECHNICAL_PROBLEM,
+          category: CertificationIssueReportCategory.TECHNICAL_PROBLEM,
           description: 'Une description obligatoire',
         };
       });
 
       it('should throw DeprecatedCertificationIssueReportCategoryError error', function () {
         expect(() => CertificationIssueReport.create(certificationIssueReportDTO)).to.throw(
-          DeprecatedCertificationIssueReportCategoryError
+          DeprecatedCertificationIssueReportCategoryError,
         );
       });
 
@@ -306,7 +307,7 @@ describe('Unit | Domain | Models | CertificationIssueReport', function () {
         it(`should throw an InvalidCertificationIssueReportForSaving when description is of value ${emptyValue}`, function () {
           // when
           expect(() =>
-            CertificationIssueReport.create({ ...certificationIssueReportDTO, description: emptyValue })
+            CertificationIssueReport.create({ ...certificationIssueReportDTO, description: emptyValue }),
           ).to.throw(InvalidCertificationIssueReportForSaving);
         });
       });
@@ -389,7 +390,9 @@ describe('Unit | Domain | Models | CertificationIssueReport', function () {
             description: 'toto',
           },
           { certificationCourseId: 42, category: 'SIGNATURE_ISSUE' },
-          { certificationCourseId: 42, category: 'CONNECTION_OR_END_SCREEN' },
+          { certificationCourseId: 42, category: 'IN_CHALLENGE' },
+          { certificationCourseId: 42, category: 'NON_BLOCKING_CANDIDATE_ISSUE' },
+          { certificationCourseId: 42, category: 'NON_BLOCKING_TECHNICAL_ISSUE' },
         ].forEach((certificationIssueReportDTO) => {
           it(`for ${certificationIssueReportDTO.category} ${
             certificationIssueReportDTO.subcategory ? certificationIssueReportDTO.subcategory : ''
@@ -397,7 +400,7 @@ describe('Unit | Domain | Models | CertificationIssueReport', function () {
             expect(new CertificationIssueReport({ ...certificationIssueReportDTO }).isImpactful).to.be.false;
           });
         });
-      }
+      },
     );
   });
 

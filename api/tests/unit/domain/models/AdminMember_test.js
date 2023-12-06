@@ -1,8 +1,10 @@
-const { expect } = require('../../../test-helper');
-const { ROLES } = require('../../../../lib/domain/constants').PIX_ADMIN;
-const { ObjectValidationError } = require('../../../../lib/domain/errors');
+import { expect } from '../../../test-helper.js';
+import { PIX_ADMIN } from '../../../../lib/domain/constants.js';
 
-const AdminMember = require('../../../../lib/domain/models/AdminMember');
+const { ROLES } = PIX_ADMIN;
+
+import { ObjectValidationError } from '../../../../lib/domain/errors.js';
+import { AdminMember } from '../../../../lib/domain/models/AdminMember.js';
 
 describe('Unit | Domain | Models | AdminMember', function () {
   describe('constructor', function () {
@@ -14,7 +16,7 @@ describe('Unit | Domain | Models | AdminMember', function () {
             new AdminMember({
               id: 1,
               role: ROLES.SUPER_ADMIN,
-            })
+            }),
         ).not.to.throw(ObjectValidationError);
       });
 
@@ -25,7 +27,7 @@ describe('Unit | Domain | Models | AdminMember', function () {
             new AdminMember({
               id: 1,
               role: ROLES.SUPPORT,
-            })
+            }),
         ).not.to.throw(ObjectValidationError);
       });
 
@@ -36,7 +38,7 @@ describe('Unit | Domain | Models | AdminMember', function () {
             new AdminMember({
               id: 1,
               role: ROLES.METIER,
-            })
+            }),
         ).not.to.throw(ObjectValidationError);
       });
 
@@ -47,7 +49,7 @@ describe('Unit | Domain | Models | AdminMember', function () {
             new AdminMember({
               id: 1,
               role: ROLES.CERTIF,
-            })
+            }),
         ).not.to.throw(ObjectValidationError);
       });
     });
@@ -60,7 +62,7 @@ describe('Unit | Domain | Models | AdminMember', function () {
             new AdminMember({
               id: 1,
               role: undefined,
-            })
+            }),
         ).to.throw(ObjectValidationError);
 
         expect(
@@ -68,7 +70,7 @@ describe('Unit | Domain | Models | AdminMember', function () {
             new AdminMember({
               id: 1,
               role: null,
-            })
+            }),
         ).to.throw(ObjectValidationError);
       });
     });
@@ -81,7 +83,7 @@ describe('Unit | Domain | Models | AdminMember', function () {
             new AdminMember({
               id: 1,
               role: 'SUPER ROLE DE LA MORT QUI TUE',
-            })
+            }),
         ).to.throw(ObjectValidationError);
       });
     });

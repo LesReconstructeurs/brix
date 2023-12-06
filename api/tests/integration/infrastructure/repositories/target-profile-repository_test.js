@@ -1,13 +1,12 @@
-const _ = require('lodash');
-const { expect, databaseBuilder, catchErr, sinon, knex, domainBuilder } = require('../../../test-helper');
-const TargetProfile = require('../../../../lib/domain/models/TargetProfile');
-const targetProfileRepository = require('../../../../lib/infrastructure/repositories/target-profile-repository');
-const skillDatasource = require('../../../../lib/infrastructure/datasources/learning-content/skill-datasource');
-const DomainTransaction = require('../../../../lib/infrastructure/DomainTransaction');
-const { NotFoundError, ObjectValidationError, InvalidSkillSetError } = require('../../../../lib/domain/errors');
+import _ from 'lodash';
+import { catchErr, databaseBuilder, domainBuilder, expect, knex } from '../../../test-helper.js';
+import { TargetProfile } from '../../../../lib/domain/models/TargetProfile.js';
+import * as targetProfileRepository from '../../../../lib/infrastructure/repositories/target-profile-repository.js';
+import { DomainTransaction } from '../../../../lib/infrastructure/DomainTransaction.js';
+import { InvalidSkillSetError, NotFoundError, ObjectValidationError } from '../../../../lib/domain/errors.js';
 
 describe('Integration | Repository | Target-profile', function () {
-  describe('#createWithTubes', function () {
+  describe('#create', function () {
     afterEach(async function () {
       await knex('target-profile_tubes').delete();
       await knex('target-profiles').delete();
@@ -25,11 +24,12 @@ describe('Integration | Repository | Target-profile', function () {
         isPublic: true,
         imageUrl: 'mon-image/stylée',
         ownerOrganizationId: 1,
+        areKnowledgeElementsResettable: true,
       });
 
       // when
       const targetProfileId = await DomainTransaction.execute(async (domainTransaction) => {
-        return targetProfileRepository.createWithTubes({
+        return targetProfileRepository.create({
           targetProfileForCreation,
           domainTransaction,
         });
@@ -37,7 +37,16 @@ describe('Integration | Repository | Target-profile', function () {
 
       // then
       const targetProfileInDB = await knex('target-profiles')
-        .select(['name', 'category', 'description', 'comment', 'isPublic', 'imageUrl', 'ownerOrganizationId'])
+        .select([
+          'name',
+          'category',
+          'description',
+          'comment',
+          'isPublic',
+          'imageUrl',
+          'ownerOrganizationId',
+          'areKnowledgeElementsResettable',
+        ])
         .where({ id: targetProfileId })
         .first();
       expect(targetProfileInDB).to.deep.equal({
@@ -48,6 +57,7 @@ describe('Integration | Repository | Target-profile', function () {
         isPublic: true,
         imageUrl: 'mon-image/stylée',
         ownerOrganizationId: 1,
+        areKnowledgeElementsResettable: true,
       });
     });
 
@@ -63,7 +73,7 @@ describe('Integration | Repository | Target-profile', function () {
 
       // when
       const targetProfileId = await DomainTransaction.execute(async (domainTransaction) => {
-        return targetProfileRepository.createWithTubes({
+        return targetProfileRepository.create({
           targetProfileForCreation,
           domainTransaction,
         });
@@ -91,7 +101,7 @@ describe('Integration | Repository | Target-profile', function () {
       // when
       try {
         await DomainTransaction.execute(async (domainTransaction) => {
-          await targetProfileRepository.createWithTubes({
+          await targetProfileRepository.create({
             targetProfileForCreation,
             domainTransaction,
           });
@@ -108,77 +118,15 @@ describe('Integration | Repository | Target-profile', function () {
     });
   });
 
-  describe('#updateTargetProfileWithSkills', function () {
-    afterEach(async function () {
-      await knex('target-profiles_skills').delete();
-    });
-
-    it('should create the target profile skills in database', async function () {
-      // given
-      databaseBuilder.factory.buildTargetProfile({ id: 1 });
-      await databaseBuilder.commit();
-      const skills = [domainBuilder.buildSkill({ id: 'recSkill2' }), domainBuilder.buildSkill({ id: 'recSkill1' })];
-
-      // when
-      await DomainTransaction.execute(async (domainTransaction) => {
-        await targetProfileRepository.updateTargetProfileWithSkills({
-          targetProfileId: 1,
-          skills,
-          domainTransaction,
-        });
-      });
-
-      // then
-      const targetProfileSkillsInDB = await knex('target-profiles_skills')
-        .select(['targetProfileId', 'skillId'])
-        .where({ targetProfileId: 1 })
-        .orderBy('skillId', 'ASC');
-      expect(targetProfileSkillsInDB).to.deep.equal([
-        { targetProfileId: 1, skillId: 'recSkill1' },
-        { targetProfileId: 1, skillId: 'recSkill2' },
-      ]);
-    });
-
-    it('should be transactional through DomainTransaction and do nothing if an error occurs', async function () {
-      // given
-      databaseBuilder.factory.buildTargetProfile({ id: 1 });
-      await databaseBuilder.commit();
-      const skills = [domainBuilder.buildSkill({ id: 'recSkill2' }), domainBuilder.buildSkill({ id: 'recSkill1' })];
-
-      // when
-      try {
-        await DomainTransaction.execute(async (domainTransaction) => {
-          await targetProfileRepository.updateTargetProfileWithSkills({
-            targetProfileId: 1,
-            skills,
-            domainTransaction,
-          });
-          throw new Error();
-        });
-        // eslint-disable-next-line no-empty
-      } catch (error) {}
-
-      // then
-      const targetProfileSkillsInDB = await knex('target-profiles_skills').select('id');
-      expect(targetProfileSkillsInDB).to.deepEqualArray([]);
-    });
-  });
-
   describe('#get', function () {
     let targetProfile;
-    let targetProfileFirstSkill;
-    let skillAssociatedToTargetProfile;
     let organizationId;
 
     beforeEach(async function () {
       organizationId = databaseBuilder.factory.buildOrganization({}).id;
       targetProfile = databaseBuilder.factory.buildTargetProfile({});
-      targetProfileFirstSkill = databaseBuilder.factory.buildTargetProfileSkill({ targetProfileId: targetProfile.id });
       databaseBuilder.factory.buildTargetProfileShare({ targetProfileId: targetProfile.id, organizationId });
       await databaseBuilder.commit();
-
-      skillAssociatedToTargetProfile = { id: targetProfileFirstSkill.skillId, name: '@Acquis2' };
-      sinon.stub(skillDatasource, 'findOperativeByRecordIds').resolves([skillAssociatedToTargetProfile]);
     });
 
     it('should return the target profile with its associated skills and the list of organizations which could access it', function () {
@@ -208,13 +156,10 @@ describe('Integration | Repository | Target-profile', function () {
     beforeEach(async function () {
       targetProfileId = databaseBuilder.factory.buildTargetProfile().id;
       campaignId = databaseBuilder.factory.buildCampaign({ targetProfileId }).id;
-      const { skillId } = databaseBuilder.factory.buildTargetProfileSkill({ targetProfileId });
-      const skillAssociatedToTargetProfile = { id: skillId, name: '@Acquis2' };
       databaseBuilder.factory.buildTargetProfile();
       databaseBuilder.factory.buildCampaign();
       databaseBuilder.factory.buildStage({ targetProfileId, threshold: 40 });
       databaseBuilder.factory.buildStage({ targetProfileId, threshold: 20 });
-      sinon.stub(skillDatasource, 'findOperativeByRecordIds').resolves([skillAssociatedToTargetProfile]);
 
       await databaseBuilder.commit();
     });
@@ -225,7 +170,6 @@ describe('Integration | Repository | Target-profile', function () {
 
       // then
       expect(targetProfile.id).to.equal(targetProfileId);
-      expect(targetProfile.skills).to.deep.equal([]);
     });
   });
 
@@ -244,7 +188,7 @@ describe('Integration | Repository | Target-profile', function () {
       targetProfileIds = [targetProfile1.id];
 
       const expectedTargetProfilesAttributes = _.map([targetProfile1], (item) =>
-        _.pick(item, ['id', 'isPublic', 'name', 'organizationId', 'outdated'])
+        _.pick(item, ['id', 'isPublic', 'name', 'organizationId', 'outdated']),
       );
 
       // when
@@ -252,7 +196,7 @@ describe('Integration | Repository | Target-profile', function () {
 
       // then
       const foundTargetProfilesAttributes = _.map(foundTargetProfiles, (item) =>
-        _.pick(item, ['id', 'isPublic', 'name', 'organizationId', 'outdated'])
+        _.pick(item, ['id', 'isPublic', 'name', 'organizationId', 'outdated']),
       );
       expect(foundTargetProfilesAttributes).to.deep.equal(expectedTargetProfilesAttributes);
     });
@@ -266,7 +210,7 @@ describe('Integration | Repository | Target-profile', function () {
       targetProfileIds = [targetProfile1.id, targetProfileIdNotExisting, targetProfile2.id, targetProfile3.id];
 
       const expectedTargetProfilesAttributes = _.map([targetProfile1, targetProfile2, targetProfile3], (item) =>
-        _.pick(item, ['id', 'isPublic', 'name', 'organizationId', 'outdated'])
+        _.pick(item, ['id', 'isPublic', 'name', 'organizationId', 'outdated']),
       );
 
       // when
@@ -274,7 +218,7 @@ describe('Integration | Repository | Target-profile', function () {
 
       // then
       const foundTargetProfilesAttributes = _.map(foundTargetProfiles, (item) =>
-        _.pick(item, ['id', 'isPublic', 'name', 'organizationId', 'outdated'])
+        _.pick(item, ['id', 'isPublic', 'name', 'organizationId', 'outdated']),
       );
       expect(foundTargetProfilesAttributes).to.deep.equal(expectedTargetProfilesAttributes);
     });
@@ -288,7 +232,7 @@ describe('Integration | Repository | Target-profile', function () {
 
       // then
       const foundTargetProfilesAttributes = _.map(foundTargetProfiles, (item) =>
-        _.pick(item, ['id', 'isPublic', 'name', 'organizationId', 'outdated'])
+        _.pick(item, ['id', 'isPublic', 'name', 'organizationId', 'outdated']),
       );
       expect(foundTargetProfilesAttributes).to.deep.equal([]);
     });
@@ -445,6 +389,7 @@ describe('Integration | Repository | Target-profile', function () {
     });
   });
 
+  /* touche pas */
   describe('#hasSkills', function () {
     let targetProfileId;
 
@@ -481,63 +426,8 @@ describe('Integration | Repository | Target-profile', function () {
         expect(error).to.be.instanceOf(InvalidSkillSetError);
         expect(error).to.haveOwnProperty(
           'message',
-          'Les acquis suivants ne font pas partie du profil cible : recSkill666'
+          'Les acquis suivants ne font pas partie du profil cible : recSkill666',
         );
-      });
-    });
-  });
-
-  describe('#findStages', function () {
-    describe('Stage with threshold', function () {
-      it('should retrieve stage given targetProfileId', async function () {
-        // given
-        const targetProfile = databaseBuilder.factory.buildTargetProfile();
-        const anotherTargetProfile = databaseBuilder.factory.buildTargetProfile();
-
-        databaseBuilder.factory.buildStage({ targetProfileId: targetProfile.id, threshold: 24 });
-        databaseBuilder.factory.buildStage({ targetProfileId: anotherTargetProfile.id, threshold: 56 });
-
-        await databaseBuilder.commit();
-
-        // when
-        const stages = await targetProfileRepository.findStages({ targetProfileId: targetProfile.id });
-
-        // then
-        expect(stages.length).to.equal(1);
-      });
-
-      it('should retrieve stages sorted by threshold', async function () {
-        // given
-        const targetProfile = databaseBuilder.factory.buildTargetProfile();
-
-        databaseBuilder.factory.buildStage({ targetProfileId: targetProfile.id, threshold: 24 });
-        databaseBuilder.factory.buildStage({ targetProfileId: targetProfile.id, threshold: 0 });
-
-        await databaseBuilder.commit();
-
-        // when
-        const stages = await targetProfileRepository.findStages({ targetProfileId: targetProfile.id });
-
-        // then
-        expect(stages.length).to.equal(2);
-        expect(stages[0].threshold).to.equal(0);
-      });
-    });
-
-    describe('Stage with levels', function () {
-      it('should return stages sorted by levels', async function () {
-        // given
-        const targetProfile = databaseBuilder.factory.buildTargetProfile();
-        const stage1 = databaseBuilder.factory.buildStage.withLevel({ targetProfileId: targetProfile.id, level: 3 });
-        const stage2 = databaseBuilder.factory.buildStage.withLevel({ targetProfileId: targetProfile.id, level: 2 });
-        await databaseBuilder.commit();
-
-        // when
-        const stages = await targetProfileRepository.findStages({ targetProfileId: targetProfile.id });
-
-        // then
-        expect(stages.length).to.be.equal(2);
-        expect(stages).to.deep.equal([stage2, stage1]);
       });
     });
   });

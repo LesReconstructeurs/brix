@@ -1,20 +1,19 @@
-const _ = require('lodash');
+import _ from 'lodash';
 
-const { expect, domainBuilder, databaseBuilder, knex, catchErr, sinon } = require('../../../test-helper');
+import { expect, domainBuilder, databaseBuilder, knex, catchErr, sinon } from '../../../test-helper.js';
+import { OrganizationLearner } from '../../../../lib/domain/models/OrganizationLearner.js';
+import { OrganizationLearnerForAdmin } from '../../../../lib/domain/read-models/OrganizationLearnerForAdmin.js';
 
-const OrganizationLearner = require('../../../../lib/domain/models/OrganizationLearner');
-const OrganizationLearnerForAdmin = require('../../../../lib/domain/read-models/OrganizationLearnerForAdmin');
-
-const {
+import {
   NotFoundError,
   OrganizationLearnersCouldNotBeSavedError,
   OrganizationLearnerNotFound,
   UserCouldNotBeReconciledError,
   UserNotFoundError,
-} = require('../../../../lib/domain/errors');
+} from '../../../../lib/domain/errors.js';
 
-const organizationLearnerRepository = require('../../../../lib/infrastructure/repositories/organization-learner-repository');
-const DomainTransaction = require('../../../../lib/infrastructure/DomainTransaction');
+import * as organizationLearnerRepository from '../../../../lib/infrastructure/repositories/organization-learner-repository.js';
+import { DomainTransaction } from '../../../../lib/infrastructure/DomainTransaction.js';
 
 describe('Integration | Infrastructure | Repository | organization-learner-repository', function () {
   describe('#findByIds', function () {
@@ -665,7 +664,7 @@ describe('Integration | Infrastructure | Repository | organization-learner-repos
               return organizationLearnerRepository.addOrUpdateOrganizationOfOrganizationLearners(
                 importedOrganizationLearners,
                 anotherOrganizationId,
-                domainTransaction
+                domainTransaction,
               );
             });
 
@@ -712,7 +711,7 @@ describe('Integration | Infrastructure | Repository | organization-learner-repos
               return organizationLearnerRepository.addOrUpdateOrganizationOfOrganizationLearners(
                 importedOrganizationLearners,
                 anotherOrganizationId,
-                domainTransaction
+                domainTransaction,
               );
             });
 
@@ -734,7 +733,7 @@ describe('Integration | Infrastructure | Repository | organization-learner-repos
             expect(newOrganizationLearner.birthdate).to.not.equal(existingOrganizationLearner.birthdate);
           });
         });
-      }
+      },
     );
 
     context('when there are only organizationLearners to create', function () {
@@ -780,7 +779,7 @@ describe('Integration | Infrastructure | Repository | organization-learner-repos
           return organizationLearnerRepository.addOrUpdateOrganizationOfOrganizationLearners(
             organizationLearners,
             organizationId,
-            domainTransaction
+            domainTransaction,
           );
         });
 
@@ -790,7 +789,7 @@ describe('Integration | Infrastructure | Repository | organization-learner-repos
         });
         expect(actualOrganizationLearners).to.have.length(1);
         expect(_.omit(actualOrganizationLearners[0], ['updatedAt', 'id'])).to.deep.equal(
-          _.omit(firstOrganizationLearner, ['updatedAt', 'id'])
+          _.omit(firstOrganizationLearner, ['updatedAt', 'id']),
         );
       });
     });
@@ -833,7 +832,7 @@ describe('Integration | Infrastructure | Repository | organization-learner-repos
             return organizationLearnerRepository.addOrUpdateOrganizationOfOrganizationLearners(
               organizationLearners,
               organizationId,
-              domainTransaction
+              domainTransaction,
             );
           });
 
@@ -886,7 +885,7 @@ describe('Integration | Infrastructure | Repository | organization-learner-repos
             return organizationLearnerRepository.addOrUpdateOrganizationOfOrganizationLearners(
               organizationLearners,
               organizationId,
-              domainTransaction
+              domainTransaction,
             );
           });
 
@@ -925,7 +924,7 @@ describe('Integration | Infrastructure | Repository | organization-learner-repos
             return organizationLearnerRepository.addOrUpdateOrganizationOfOrganizationLearners(
               [organizationLearner],
               organizationId,
-              domainTransaction
+              domainTransaction,
             );
           });
 
@@ -958,7 +957,7 @@ describe('Integration | Infrastructure | Repository | organization-learner-repos
           return organizationLearnerRepository.addOrUpdateOrganizationOfOrganizationLearners(
             [organizationLearner],
             organizationId,
-            domainTransaction
+            domainTransaction,
           );
         });
 
@@ -995,7 +994,7 @@ describe('Integration | Infrastructure | Repository | organization-learner-repos
           return organizationLearnerRepository.addOrUpdateOrganizationOfOrganizationLearners(
             [organizationLearner],
             organizationId,
-            domainTransaction
+            domainTransaction,
           );
         });
 
@@ -1029,7 +1028,7 @@ describe('Integration | Infrastructure | Repository | organization-learner-repos
           return organizationLearnerRepository.addOrUpdateOrganizationOfOrganizationLearners(
             [organizationLearner1, organizationLearner2],
             organizationId,
-            domainTransaction
+            domainTransaction,
           );
         });
 
@@ -1091,7 +1090,7 @@ describe('Integration | Infrastructure | Repository | organization-learner-repos
           return organizationLearnerRepository.addOrUpdateOrganizationOfOrganizationLearners(
             organizationLearners,
             organizationId,
-            domainTransaction
+            domainTransaction,
           );
         });
 
@@ -1120,7 +1119,7 @@ describe('Integration | Infrastructure | Repository | organization-learner-repos
           return organizationLearnerRepository.addOrUpdateOrganizationOfOrganizationLearners(
             organizationLearners,
             organizationId,
-            domainTransaction
+            domainTransaction,
           );
         });
 
@@ -1146,7 +1145,7 @@ describe('Integration | Infrastructure | Repository | organization-learner-repos
             return organizationLearnerRepository.addOrUpdateOrganizationOfOrganizationLearners(
               organizationLearners,
               organizationId,
-              domainTransaction
+              domainTransaction,
             );
           });
 
@@ -1208,7 +1207,7 @@ describe('Integration | Infrastructure | Repository | organization-learner-repos
           return organizationLearnerRepository.addOrUpdateOrganizationOfOrganizationLearners(
             organizationLearners,
             organizationId,
-            domainTransaction
+            domainTransaction,
           );
         });
 
@@ -1262,7 +1261,7 @@ describe('Integration | Infrastructure | Repository | organization-learner-repos
         await DomainTransaction.execute(async (domainTransaction) => {
           error = await catchErr(
             organizationLearnerRepository.addOrUpdateOrganizationOfOrganizationLearners,
-            organizationLearnerRepository
+            organizationLearnerRepository,
           )(organizationLearners, organizationId, domainTransaction);
         });
 
@@ -1276,7 +1275,7 @@ describe('Integration | Infrastructure | Repository | organization-learner-repos
         await DomainTransaction.execute(async (domainTransaction) => {
           error = await catchErr(
             organizationLearnerRepository.addOrUpdateOrganizationOfOrganizationLearners,
-            organizationLearnerRepository
+            organizationLearnerRepository,
           )([{ nationalStudentId: 'something' }], organizationId, domainTransaction);
         });
 
@@ -1317,7 +1316,7 @@ describe('Integration | Infrastructure | Repository | organization-learner-repos
           return organizationLearnerRepository.addOrUpdateOrganizationOfOrganizationLearners(
             [organizationLearner_updated],
             organizationId,
-            domainTransaction
+            domainTransaction,
           );
         });
 
@@ -1344,7 +1343,7 @@ describe('Integration | Infrastructure | Repository | organization-learner-repos
             await organizationLearnerRepository.addOrUpdateOrganizationOfOrganizationLearners(
               [organizationLearner],
               organizationId,
-              domainTransaction
+              domainTransaction,
             );
             throw new Error('an error occurs within the domain transaction');
           });
@@ -1492,6 +1491,8 @@ describe('Integration | Infrastructure | Repository | organization-learner-repos
       const otherUser = databaseBuilder.factory.buildUser();
       const userIdToDissociate = databaseBuilder.factory.buildUser().id;
 
+      const initialDate = new Date('2023-01-01');
+
       const otherOrganizationLearnerToNotDissociate = databaseBuilder.factory.buildOrganizationLearner({
         userId: otherUser.id,
         organizationId: managingStudentOrganization.id,
@@ -1503,10 +1504,12 @@ describe('Integration | Infrastructure | Repository | organization-learner-repos
       const firstOrganizationLearnerToDissociate = databaseBuilder.factory.buildOrganizationLearner({
         userId: userIdToDissociate,
         organizationId: managingStudentOrganization.id,
+        updatedAt: initialDate,
       });
       const secondOrganizationLearnerToDissociate = databaseBuilder.factory.buildOrganizationLearner({
         userId: userIdToDissociate,
         organizationId: otherManagingStudentOrganization.id,
+        updatedAt: initialDate,
       });
       await databaseBuilder.commit();
 
@@ -1518,10 +1521,12 @@ describe('Integration | Infrastructure | Repository | organization-learner-repos
         .where({ id: firstOrganizationLearnerToDissociate.id })
         .first();
       expect(firstOrganizationLearnerDissociated.userId).to.equal(null);
+      expect(firstOrganizationLearnerDissociated.updatedAt).to.be.above(initialDate);
       const secondOrganizationLearnerDissociated = await knex('organization-learners')
         .where({ id: secondOrganizationLearnerToDissociate.id })
         .first();
       expect(secondOrganizationLearnerDissociated.userId).to.equal(null);
+      expect(secondOrganizationLearnerDissociated.updatedAt).to.be.above(initialDate);
 
       const otherOrganizationLearnerInDb = await knex('organization-learners')
         .where({ id: otherOrganizationLearnerToNotDissociate.id })
@@ -1542,14 +1547,17 @@ describe('Integration | Infrastructure | Repository | organization-learner-repos
     let organization;
     let organizationLearner;
     let user;
+    let initialDate;
 
     beforeEach(async function () {
+      initialDate = new Date('2023-01-01');
       organization = databaseBuilder.factory.buildOrganization();
       organizationLearner = databaseBuilder.factory.buildOrganizationLearner({
         organizationId: organization.id,
         userId: null,
         firstName: 'Steeve',
         lastName: 'Roger',
+        updatedAt: initialDate,
       });
       user = databaseBuilder.factory.buildUser({ firstName: 'Steeve', lastName: 'Roger' });
       await databaseBuilder.commit();
@@ -1564,6 +1572,7 @@ describe('Integration | Infrastructure | Repository | organization-learner-repos
 
       // then
       expect(organizationLearnerPatched).to.be.instanceof(OrganizationLearner);
+      expect(organizationLearnerPatched.updatedAt).to.be.above(initialDate);
       expect(organizationLearnerPatched.userId).to.equal(user.id);
     });
 
@@ -1623,8 +1632,10 @@ describe('Integration | Infrastructure | Repository | organization-learner-repos
       let organization;
       let organizationLearner;
       let user;
+      let initialDate;
 
       beforeEach(async function () {
+        initialDate = new Date('2023-01-01');
         organization = databaseBuilder.factory.buildOrganization();
         organizationLearner = databaseBuilder.factory.buildOrganizationLearner({
           organizationId: organization.id,
@@ -1648,6 +1659,7 @@ describe('Integration | Infrastructure | Repository | organization-learner-repos
 
         // then
         expect(organizationLearnerPatched).to.be.instanceof(OrganizationLearner);
+        expect(organizationLearnerPatched.updatedAt).to.be.above(initialDate);
         expect(organizationLearnerPatched.userId).to.equal(user.id);
       });
 
@@ -1815,7 +1827,7 @@ describe('Integration | Infrastructure | Repository | organization-learner-repos
     it('should return an instance of OrganizationLearnerForAdmin', async function () {
       // when
       const organizationLearner = await organizationLearnerRepository.getOrganizationLearnerForAdmin(
-        organizationLearnerId
+        organizationLearnerId,
       );
 
       // then
@@ -1829,7 +1841,7 @@ describe('Integration | Infrastructure | Repository | organization-learner-repos
 
       // when
       const result = await catchErr(organizationLearnerRepository.getOrganizationLearnerForAdmin)(
-        nonExistentOrganizationLearnerId
+        nonExistentOrganizationLearnerId,
       );
 
       // then

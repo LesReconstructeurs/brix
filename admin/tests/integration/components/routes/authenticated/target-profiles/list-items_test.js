@@ -1,7 +1,7 @@
 import { module, test } from 'qunit';
 import { setupRenderingTest } from 'ember-qunit';
 import { render } from '@1024pix/ember-testing-library';
-import hbs from 'htmlbars-inline-precompile';
+import { hbs } from 'ember-cli-htmlbars';
 
 module('Integration | Component | routes/authenticated/target-profiles | list-items', function (hooks) {
   setupRenderingTest(hooks);
@@ -19,7 +19,7 @@ module('Integration | Component | routes/authenticated/target-profiles | list-it
       hbs`<TargetProfiles::ListSummaryItems
   @triggerFiltering={{this.triggerFiltering}}
   @goToTargetProfilePage={{this.goToTargetProfilePage}}
-/>`
+/>`,
     );
 
     // then
@@ -34,7 +34,7 @@ module('Integration | Component | routes/authenticated/target-profiles | list-it
       hbs`<TargetProfiles::ListSummaryItems
   @triggerFiltering={{this.triggerFiltering}}
   @goToTargetProfilePage={{this.goToTargetProfilePage}}
-/>`
+/>`,
     );
 
     // then
@@ -56,7 +56,7 @@ module('Integration | Component | routes/authenticated/target-profiles | list-it
   @summaries={{this.summaries}}
   @triggerFiltering={{this.triggerFiltering}}
   @goToTargetProfilePage={{this.goToTargetProfilePage}}
-/>`
+/>`,
     );
 
     // then
@@ -77,7 +77,7 @@ module('Integration | Component | routes/authenticated/target-profiles | list-it
   @summaries={{this.summaries}}
   @triggerFiltering={{this.triggerFiltering}}
   @goToTargetProfilePage={{this.goToTargetProfilePage}}
-/>`
+/>`,
     );
 
     // then
@@ -99,7 +99,7 @@ module('Integration | Component | routes/authenticated/target-profiles | list-it
   @summaries={{this.summaries}}
   @triggerFiltering={{this.triggerFiltering}}
   @goToTargetProfilePage={{this.goToTargetProfilePage}}
-/>`
+/>`,
     );
 
     // then
@@ -120,7 +120,7 @@ module('Integration | Component | routes/authenticated/target-profiles | list-it
   @summaries={{this.summaries}}
   @triggerFiltering={{this.triggerFiltering}}
   @goToTargetProfilePage={{this.goToTargetProfilePage}}
-/>`
+/>`,
     );
 
     // then

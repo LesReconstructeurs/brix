@@ -1,7 +1,7 @@
-const { expect, databaseBuilder } = require('../../../test-helper');
-const organizationLearnerActivityRepository = require('../../../../lib/infrastructure/repositories/organization-learner-activity-repository');
-const CampaignTypes = require('../../../../lib/domain/models/CampaignTypes');
-const CampaignParticipationStatuses = require('../../../../lib/domain/models/CampaignParticipationStatuses');
+import { expect, databaseBuilder } from '../../../test-helper.js';
+import * as organizationLearnerActivityRepository from '../../../../lib/infrastructure/repositories/organization-learner-activity-repository.js';
+import { CampaignTypes } from '../../../../lib/domain/models/CampaignTypes.js';
+import { CampaignParticipationStatuses } from '../../../../lib/domain/models/CampaignParticipationStatuses.js';
 const { SHARED } = CampaignParticipationStatuses;
 
 describe('Integration | Infrastructure | Repository | organization-learner-activity', function () {
@@ -63,6 +63,7 @@ describe('Integration | Infrastructure | Repository | organization-learner-activ
       expect(organizationLearnerParticipation.sharedAt).to.deep.equal(sharedAt);
       expect(organizationLearnerParticipation.campaignName).to.equal(campaignName);
       expect(organizationLearnerParticipation.campaignType).to.equal(campaignType);
+      expect(organizationLearnerParticipation.campaignId).to.equal(campaignId);
     });
 
     it('Should not return an activity with participations of another organization learner', async function () {

@@ -1,9 +1,10 @@
-const { expect, databaseBuilder, mockLearningContent, knex, catchErr } = require('../../../test-helper');
+import { expect, databaseBuilder, mockLearningContent, knex, catchErr } from '../../../test-helper.js';
 
-const campaignManagementRepository = require('../../../../lib/infrastructure/repositories/campaign-management-repository');
-const updateCampaignDetailsManagement = require('../../../../lib/domain/usecases/update-campaign-details-management');
-const CampaignParticipationStatuses = require('../../../../lib/domain/models/CampaignParticipationStatuses');
-const { EntityValidationError } = require('../../../../lib/domain/errors');
+import * as campaignManagementRepository from '../../../../lib/infrastructure/repositories/campaign-management-repository.js';
+import * as campaignValidator from '../../../../lib/domain/validators/campaign-validator.js';
+import { updateCampaignDetailsManagement } from '../../../../lib/domain/usecases/update-campaign-details-management.js';
+import { CampaignParticipationStatuses } from '../../../../lib/domain/models/CampaignParticipationStatuses.js';
+import { EntityValidationError } from '../../../../lib/domain/errors.js';
 
 const { SHARED } = CampaignParticipationStatuses;
 
@@ -46,7 +47,12 @@ describe('Integration | UseCases | update-campaign-details-management', function
     };
     const expectedCampaign = { ...campaign, ...campaignAttributes };
 
-    await updateCampaignDetailsManagement({ campaignId, ...campaignAttributes, campaignManagementRepository });
+    await updateCampaignDetailsManagement({
+      campaignId,
+      ...campaignAttributes,
+      campaignManagementRepository,
+      campaignValidator,
+    });
 
     const actualCampaign = await knex.select('*').from('campaigns').first();
     expect(actualCampaign).to.deep.equal(expectedCampaign);
@@ -80,6 +86,7 @@ describe('Integration | UseCases | update-campaign-details-management', function
       campaignId,
       ...campaignAttributes,
       campaignManagementRepository,
+      campaignValidator,
     });
 
     //then
@@ -118,7 +125,12 @@ describe('Integration | UseCases | update-campaign-details-management', function
       multipleSendings: false,
     };
 
-    await updateCampaignDetailsManagement({ campaignId, ...campaignAttributes, campaignManagementRepository });
+    await updateCampaignDetailsManagement({
+      campaignId,
+      ...campaignAttributes,
+      campaignManagementRepository,
+      campaignValidator,
+    });
 
     //then
     const { name: actualName } = await knex.select('name').from('campaigns').where({ id: campaignId }).first();
@@ -140,7 +152,12 @@ describe('Integration | UseCases | update-campaign-details-management', function
     const expectedCampaign = { ...campaign, ...campaignAttributes };
 
     //when
-    await updateCampaignDetailsManagement({ campaignId, ...campaignAttributes, campaignManagementRepository });
+    await updateCampaignDetailsManagement({
+      campaignId,
+      ...campaignAttributes,
+      campaignManagementRepository,
+      campaignValidator,
+    });
 
     //then
     const { multipleSendings: actualMultipleSendings } = await knex

@@ -1,8 +1,8 @@
 import { module, test } from 'qunit';
 import { setupRenderingTest } from 'ember-qunit';
-import { click, find } from '@ember/test-helpers';
 import { render, fillByLabel } from '@1024pix/ember-testing-library';
-import hbs from 'htmlbars-inline-precompile';
+import { click } from '@ember/test-helpers';
+import { hbs } from 'ember-cli-htmlbars';
 import { A as EmberArray } from '@ember/array';
 
 module('Integration | Component | certification-centers/creation-form', function (hooks) {
@@ -20,14 +20,13 @@ module('Integration | Component | certification-centers/creation-form', function
         @certificationCenter={{this.certificationCenter}}
         @onSubmit={{this.onSubmit}}
         @onCancel={{this.onCancel}}
-      />`
+      />`,
     );
 
     // then
     assert.dom(screen.getByText('Nom du centre')).exists();
     assert.dom(screen.getByText("Type d'établissement")).exists();
     assert.dom(screen.getByText('Identifiant externe')).exists();
-    assert.false(find('#supervisor-portal').checked);
     assert.dom(screen.getByRole('button', { name: 'Annuler' })).exists();
     assert.dom(screen.getByText('Ajouter')).exists();
   });
@@ -43,7 +42,7 @@ module('Integration | Component | certification-centers/creation-form', function
           @certificationCenter={{this.certificationCenter}}
           @onSubmit={{this.onSubmit}}
           @onCancel={{this.onCancel}}
-        />`
+        />`,
       );
 
       // when
@@ -60,8 +59,8 @@ module('Integration | Component | certification-centers/creation-form', function
     test('should add habilitation to certification center on checked checkbox', async function (assert) {
       // given
       const store = this.owner.lookup('service:store');
-      const habilitation1 = store.createRecord('habilitation', { key: 'E', label: 'Pix+Edu' });
-      const habilitation2 = store.createRecord('habilitation', { key: 'S', label: 'Pix+Surf' });
+      const habilitation1 = store.createRecord('complementary-certification', { key: 'E', label: 'Pix+Edu' });
+      const habilitation2 = store.createRecord('complementary-certification', { key: 'S', label: 'Pix+Surf' });
       this.certificationCenter = store.createRecord('certification-center');
       this.habilitations = EmberArray([habilitation1, habilitation2]);
       this.stub = () => {};
@@ -72,7 +71,7 @@ module('Integration | Component | certification-centers/creation-form', function
           @habilitations={{this.habilitations}}
           @onSubmit={{this.stub}}
           @onCancel={{this.stub}}
-        />`
+        />`,
       );
 
       // when
@@ -85,8 +84,8 @@ module('Integration | Component | certification-centers/creation-form', function
     test('should remove habilitation to certification center on unchecked checkbox', async function (assert) {
       // given
       const store = this.owner.lookup('service:store');
-      const habilitation1 = store.createRecord('habilitation', { key: 'E', label: 'Pix+Edu' });
-      const habilitation2 = store.createRecord('habilitation', { key: 'S', label: 'Pix+Surf' });
+      const habilitation1 = store.createRecord('complementary-certification', { key: 'E', label: 'Pix+Edu' });
+      const habilitation2 = store.createRecord('complementary-certification', { key: 'S', label: 'Pix+Surf' });
       this.certificationCenter = store.createRecord('certification-center', {
         habilitations: [habilitation2],
       });
@@ -99,7 +98,7 @@ module('Integration | Component | certification-centers/creation-form', function
           @habilitations={{this.habilitations}}
           @onSubmit={{this.stub}}
           @onCancel={{this.stub}}
-        />`
+        />`,
       );
 
       // when
@@ -117,7 +116,7 @@ module('Integration | Component | certification-centers/creation-form', function
     const store = this.owner.lookup('service:store');
     this.certificationCenter = store.createRecord('certificationCenter', { name: 'Super centre' });
     await render(
-      hbs`<CertificationCenters::CreationForm @certificationCenter={{this.certificationCenter}} @onSubmit={{this.onSubmit}} @onCancel={{this.onCancel}} />`
+      hbs`<CertificationCenters::CreationForm @certificationCenter={{this.certificationCenter}} @onSubmit={{this.onSubmit}} @onCancel={{this.onCancel}} />`,
     );
 
     // when

@@ -1,5 +1,5 @@
-const { CertificationComputeError } = require('../../../lib/domain/errors');
-const _ = require('lodash');
+import { CertificationComputeError } from '../../../lib/domain/errors.js';
+import _ from 'lodash';
 
 class CertificationContract {
   /* PUBLIC INTERFACE */
@@ -14,7 +14,7 @@ class CertificationContract {
 
     if (someUnansweredChallenges) {
       throw new CertificationComputeError(
-        "L’utilisateur n’a pas répondu à toutes les questions, alors qu'aucune raison d'abandon n'a été fournie."
+        "L’utilisateur n’a pas répondu à toutes les questions, alors qu'aucune raison d'abandon n'a été fournie.",
       );
     }
   }
@@ -56,4 +56,4 @@ class CertificationContract {
   }
 }
 
-module.exports = CertificationContract;
+export { CertificationContract };

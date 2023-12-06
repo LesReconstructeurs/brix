@@ -1,35 +1,34 @@
 .login-page {
   display: flex;
   flex-direction: column;
-  width: 100%;
-  min-height: 100vh;
-  background: $pix-orga-old-gradient;
   align-items: center;
   justify-content: center;
+  width: 100%;
+  min-height: 100vh;
+  background: $pix-secondary-orga-gradient;
 
-  &__panel {
-    border-radius: 0;
-    display: flex;
-    flex-direction: column;
-    padding: 40px 10px;
+  &__header {
+    text-align: center;
+  }
 
-    @include device-is('tablet') {
-      border-radius: 10px;
-      margin: 10px 0;
-      padding: 40px 60px;
+  &__title {
+    @extend %pix-title-m;
+
+    margin-top: $pix-spacing-m;
+    color: $pix-neutral-80;
+    font-weight: $font-normal;
+    font-family: $font-open-sans;
+  }
+
+  &__container {
+    margin-bottom: $pix-spacing-s;
+    padding: $pix-spacing-xl 60px;
+    background-color: $pix-neutral-0;
+    border-radius: 10px;
+
+    @include device-is('mobile') {
+      padding: $pix-spacing-xl $pix-spacing-s;
+      border-radius: 0px;
     }
   }
-
-  .form-title {
-    text-align: center;
-    font-family: $font-open-sans;
-    font-size: 2rem;
-    color: $pix-neutral-80;
-    margin-bottom: 8px;
-  }
-}
-
-.panel__image {
-  text-align: center;
-  margin-bottom: $spacing-m;
 }

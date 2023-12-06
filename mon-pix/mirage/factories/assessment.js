@@ -1,9 +1,9 @@
 import { Factory, trait } from 'miragejs';
-import faker from 'faker';
+import { faker } from '@faker-js/faker';
 
 export default Factory.extend({
   title() {
-    return faker.random.words();
+    return faker.lorem.words();
   },
 
   type() {
@@ -20,6 +20,11 @@ export default Factory.extend({
 
   ofCompetenceEvaluationType: trait({
     type: 'COMPETENCE_EVALUATION',
+    afterCreate(assessment, server) {
+      assessment.update({
+        progression: server.create('progression', { id: 3, completionRate: 20 }),
+      });
+    },
   }),
 
   ofCertificationType: trait({

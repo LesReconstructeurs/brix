@@ -6,6 +6,7 @@
     @details={{t "pages.campaign-results.filters.participations-count" count=@rowCount}}
     @clearFiltersLabel={{t "pages.campaign-results.filters.actions.clear"}}
     @onClearFilters={{@onResetFilter}}
+    @isClearFilterButtonDisabled={{this.isClearFiltersButtonDisabled}}
   >
     {{#if this.displayStatusFilter}}
       <PixSelect
@@ -46,10 +47,16 @@
         @onChange={{this.onSelectStage}}
         @values={{@selectedStages}}
         @options={{this.stageOptions}}
-        class="participant-filter-banner__stages"
+        class="participant-filter-banner__stages-select"
         as |stage|
       >
-        <Campaign::StageStars @result={{stage.threshold}} @stages={{@campaign.stages}} />
+        <PixStars
+          @count={{stage.reachedStage}}
+          @total={{stage.totalStage}}
+          @alt={{t "common.result.stages" count=stage.reachedStage total=stage.totalStage}}
+          @color="blue"
+          class="participant-filter-banner__stars"
+        />
       </PixMultiSelect>
     {{/if}}
     {{#if this.displayBadgesFilter}}
@@ -65,6 +72,16 @@
       >
         {{badge.label}}
       </PixMultiSelect>
+    {{/if}}
+    {{#if this.displayCertificabilityFilter}}
+      <PixSelect
+        @options={{this.certificabilityOptions}}
+        @value={{@selectedCertificability}}
+        @onChange={{this.onSelectCertificability}}
+        @screenReaderOnly={{true}}
+        @label={{t "pages.sco-organization-participants.filter.certificability.label"}}
+        @placeholder={{t "components.certificability.placeholder-select"}}
+      />
     {{/if}}
   </PixFilterBanner>
 {{/if}}

@@ -1,7 +1,7 @@
 import { action } from '@ember/object';
 import { tracked } from '@glimmer/tracking';
 
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 import Controller from '@ember/controller';
 
 export default class NewController extends Controller {
@@ -12,13 +12,14 @@ export default class NewController extends Controller {
 
   @tracked errors;
 
+  queryParams = ['source'];
+
   @action
-  async createCampaign(campaignAttributes) {
+  async createCampaign() {
     this.notifications.clearAll();
     this.errors = null;
 
     try {
-      this.model.campaign.setProperties(campaignAttributes);
       await this.model.campaign.save();
     } catch (errorResponse) {
       errorResponse.errors.forEach((error) => {
@@ -36,6 +37,10 @@ export default class NewController extends Controller {
 
   @action
   cancel() {
-    this.router.transitionTo('authenticated.campaigns');
+    if (this.source) {
+      this.router.transitionTo('authenticated.campaigns.campaign.settings', this.source);
+    } else {
+      this.router.transitionTo('authenticated.campaigns');
+    }
   }
 }

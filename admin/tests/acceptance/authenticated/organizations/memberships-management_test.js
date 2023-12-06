@@ -1,7 +1,7 @@
 import { module, test } from 'qunit';
 import { click, currentURL, fillIn } from '@ember/test-helpers';
 import { setupApplicationTest } from 'ember-qunit';
-import setupMirage from 'ember-cli-mirage/test-support/setup-mirage';
+import { setupMirage } from 'ember-cli-mirage/test-support';
 import { visit, clickByName } from '@1024pix/ember-testing-library';
 import { authenticateAdminMemberWithRole } from 'pix-admin/tests/helpers/test-init';
 
@@ -22,6 +22,14 @@ module('Acceptance | Organizations | Memberships management', function (hooks) {
 
     // then
     assert.strictEqual(currentURL(), `/organizations/${organization.id}/team`);
+  });
+
+  test('it should set organizations menubar item active', async function (assert) {
+    // when
+    const screen = await visit(`/organizations/${organization.id}`);
+
+    // then
+    assert.dom(screen.getByRole('link', { name: 'Organisations' })).hasClass('active');
   });
 
   module('listing members', function () {
@@ -109,7 +117,7 @@ module('Acceptance | Organizations | Memberships management', function (hooks) {
       const screen = await visit(`/organizations/${organization.id}`);
       await fillIn(
         screen.getByRole('textbox', { name: "Adresse e-mail de l'utilisateur à ajouter" }),
-        'user@example.com'
+        'user@example.com',
       );
       await clickByName('Ajouter un membre');
 
@@ -133,7 +141,7 @@ module('Acceptance | Organizations | Memberships management', function (hooks) {
       const screen = await visit(`/organizations/${organization.id}`);
       await fillIn(
         screen.getByRole('textbox', { name: "Adresse e-mail de l'utilisateur à ajouter" }),
-        'denise@example.com'
+        'denise@example.com',
       );
       await clickByName('Ajouter un membre');
 
@@ -153,7 +161,7 @@ module('Acceptance | Organizations | Memberships management', function (hooks) {
       const screen = await visit(`/organizations/${organization.id}`);
       await fillIn(
         screen.getByRole('textbox', { name: "Adresse e-mail de l'utilisateur à ajouter" }),
-        'unexisting@example.com'
+        'unexisting@example.com',
       );
       await clickByName('Ajouter un membre');
 

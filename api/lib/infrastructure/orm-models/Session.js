@@ -1,9 +1,9 @@
-const Bookshelf = require('../bookshelf');
-require('./CertificationCandidate');
+import { Bookshelf } from '../bookshelf.js';
+import './CertificationCandidate.js';
 
 const modelName = 'Session';
 
-module.exports = Bookshelf.model(
+const BookshelfSession = Bookshelf.model(
   modelName,
   {
     tableName: 'sessions',
@@ -15,5 +15,7 @@ module.exports = Bookshelf.model(
   },
   {
     modelName,
-  }
+  },
 );
+
+export { BookshelfSession };

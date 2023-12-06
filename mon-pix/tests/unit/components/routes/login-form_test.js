@@ -2,9 +2,14 @@ import { module, test } from 'qunit';
 import sinon from 'sinon';
 import { setupTest } from 'ember-qunit';
 import createGlimmerComponent from 'mon-pix/tests/helpers/create-glimmer-component';
+import setupIntl from '../../../helpers/setup-intl';
+import Service from '@ember/service';
+
+import ENV from 'mon-pix/config/environment';
 
 module('Unit | Component | routes/login-form', function (hooks) {
   setupTest(hooks);
+  setupIntl(hooks);
 
   let sessionStub;
   let storeStub;
@@ -31,7 +36,7 @@ module('Unit | Component | routes/login-form', function (hooks) {
 
     addGarAuthenticationMethodToUserStub = sinon.stub();
 
-    component = createGlimmerComponent('component:routes/login-form');
+    component = createGlimmerComponent('routes/login-form');
     component.session = sessionStub;
     component.store = storeStub;
     component.router = routerStub;
@@ -46,8 +51,8 @@ module('Unit | Component | routes/login-form', function (hooks) {
         await component.authenticate(eventStub);
 
         // then
-        assert.false(component.isErrorMessagePresent);
-        assert.false(component.hasUpdateUserError);
+        assert.notOk(component.errorMessage);
+        assert.false(component.isLoading);
       });
 
       test('should notify error when authentication fails', async function (assert) {
@@ -58,8 +63,57 @@ module('Unit | Component | routes/login-form', function (hooks) {
         await component.authenticate(eventStub);
 
         // then
-        assert.true(component.isErrorMessagePresent);
-        assert.false(component.hasUpdateUserError);
+        assert.ok(component.errorMessage);
+        assert.false(component.isLoading);
+      });
+
+      module('when user is temporary blocked', function () {
+        test('sets the correct error message', async function (assert) {
+          // given
+          sessionStub.authenticate.rejects({
+            responseJSON: {
+              errors: [
+                {
+                  code: 'USER_IS_TEMPORARY_BLOCKED',
+                },
+              ],
+            },
+          });
+
+          // when
+          await component.authenticate(eventStub);
+
+          // then
+          const expectedErrorMessage = this.intl.t(ENV.APP.API_ERROR_MESSAGES.USER_IS_TEMPORARY_BLOCKED.I18N_KEY, {
+            url: '/mot-de-passe-oublie',
+            htmlSafe: true,
+          });
+          assert.deepEqual(component.errorMessage, expectedErrorMessage);
+        });
+      });
+      module('when user is blocked', function () {
+        test('sets the correct error message', async function (assert) {
+          // given
+          sessionStub.authenticate.rejects({
+            responseJSON: {
+              errors: [
+                {
+                  code: 'USER_IS_BLOCKED',
+                },
+              ],
+            },
+          });
+
+          // when
+          await component.authenticate(eventStub);
+
+          // then
+          const expectedErrorMessage = this.intl.t(ENV.APP.API_ERROR_MESSAGES.USER_IS_BLOCKED.I18N_KEY, {
+            url: 'https://support.pix.org/support/tickets/new',
+            htmlSafe: true,
+          });
+          assert.deepEqual(component.errorMessage, expectedErrorMessage);
+        });
       });
 
       module('when user should change password', function () {
@@ -88,6 +142,30 @@ module('Unit | Component | routes/login-form', function (hooks) {
           assert.ok(true);
         });
       });
+
+      module('while waiting for submission completion', function () {
+        test('isLoading is true', async function (assert) {
+          // given
+          let inflightLoading;
+
+          const component = createGlimmerComponent('routes/login-form');
+          const authenticateStub = function () {
+            inflightLoading = component.isLoading;
+            return Promise.resolve();
+          };
+          class SessionStub extends Service {
+            authenticate = authenticateStub;
+          }
+
+          this.owner.register('service:session', SessionStub);
+
+          // when
+          await component.authenticate(eventStub);
+
+          // then
+          assert.true(inflightLoading);
+        });
+      });
     });
 
     module('when user is external with an existing token id', function (hooks) {
@@ -107,8 +185,7 @@ module('Unit | Component | routes/login-form', function (hooks) {
         await component.authenticate(eventStub);
 
         // then
-        assert.false(component.isErrorMessagePresent);
-        assert.true(component.hasUpdateUserError);
+        assert.ok(component.errorMessage);
       });
 
       module('when user should change password', function () {

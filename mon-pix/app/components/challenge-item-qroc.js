@@ -1,22 +1,21 @@
 import { action } from '@ember/object';
 import { tracked } from '@glimmer/tracking';
 import ChallengeItemGeneric from './challenge-item-generic';
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 import generateRandomString from 'mon-pix/utils/generate-random-string';
 import proposalsAsBlocks from 'mon-pix/utils/proposals-as-blocks';
-import ENV from 'mon-pix/config/environment';
+import { isEmbedAllowedOrigin } from 'mon-pix/utils/embed-allowed-origins';
 
 export default class ChallengeItemQroc extends ChallengeItemGeneric {
   @service intl;
 
   @tracked autoReplyAnswer = '';
-  @tracked qcrocProposalAnswerValue = '';
+  @tracked qrocProposalAnswerValue = '';
   postMessageHandler = null;
-  embedOrigins = ENV.APP.EMBED_ALLOWED_ORIGINS;
 
   constructor() {
     super(...arguments);
-    this.qcrocProposalAnswerValue = this.userAnswer;
+    this.qrocProposalAnswerValue = this.userAnswer;
     if (this.args.challenge.autoReply) {
       this._addEventListener();
     }
@@ -32,9 +31,9 @@ export default class ChallengeItemQroc extends ChallengeItemGeneric {
   }
 
   _getAnswerValue() {
-    const qcrocProposalAnswerValueBis =
-      document.querySelector('[data-uid="qroc-proposal-uid"]')?.value || this.qcrocProposalAnswerValue;
-    return this.showProposal ? qcrocProposalAnswerValueBis : this.autoReplyAnswer;
+    const qrocProposalAnswerValueBis =
+      document.querySelector('[data-uid="qroc-proposal-uid"]')?.value || this.qrocProposalAnswerValue;
+    return this.showProposal ? qrocProposalAnswerValueBis : this.autoReplyAnswer;
   }
 
   _getErrorMessage() {
@@ -62,24 +61,26 @@ export default class ChallengeItemQroc extends ChallengeItemGeneric {
   }
 
   _getMessageFromEventData(event) {
-    let data = null;
-    const isAllowedOrigin = this.allowedOriginWithRegExp.some((allowedOrigin) => {
-      return event.origin.match(allowedOrigin);
-    });
-    if (isAllowedOrigin) {
-      if (this._isNumeric(event.data)) {
-        data = this._transformToObjectMessage(event.data);
-      } else if (typeof event.data === 'string') {
-        try {
-          data = JSON.parse(event.data);
-        } catch {
-          data = this._transformToObjectMessage(event.data);
-        }
-      } else if (typeof event.data === 'object') {
-        data = event.data;
+    if (!isEmbedAllowedOrigin(event.origin)) return null;
+
+    if (this._isNumeric(event.data)) {
+      return this._transformToObjectMessage(event.data);
+    }
+
+    if (typeof event.data === 'string') {
+      try {
+        return JSON.parse(event.data);
+      } catch {
+        return this._transformToObjectMessage(event.data);
       }
     }
-    return data;
+
+    if (typeof event.data === 'object') {
+      if (event.data.type && event.data.type !== 'answer') return null;
+      return event.data;
+    }
+
+    return null;
   }
 
   _isNumeric(x) {
@@ -102,7 +103,7 @@ export default class ChallengeItemQroc extends ChallengeItemGeneric {
   @action
   onChangeSelect(value) {
     this.errorMessage = null;
-    this.qcrocProposalAnswerValue = value;
+    this.qrocProposalAnswerValue = value;
   }
 
   @action
@@ -121,14 +122,17 @@ export default class ChallengeItemQroc extends ChallengeItemGeneric {
   }
 
   get userAnswer() {
-    const answerIfExist = this.args.answer && this.args.answer.value;
-    const answer = answerIfExist || '';
-    return answer.indexOf('#ABAND#') > -1 ? '' : answer;
+    const answer = this.args.answer?.value ?? this._defaultAnswer;
+    return _wasSkipped(answer) ? '' : answer;
   }
 
-  get allowedOriginWithRegExp() {
-    return this.embedOrigins.map((allowedOrigin) => {
-      return new RegExp(allowedOrigin.replace('*', '[\\w-]+'));
-    });
+  get _defaultAnswer() {
+    const inputBlock = this._blocks.find((block) => block.input != null);
+    return inputBlock?.defaultValue ?? '';
   }
+}
+
+function _wasSkipped(answer) {
+  if (typeof answer !== 'string') return false;
+  return answer.includes('#ABAND#');
 }

@@ -19,8 +19,8 @@
     }
 
     &--icon {
-      height: 30px;
       width: 30px;
+      height: 30px;
     }
   }
 }
@@ -31,4 +31,8 @@
 
 .pix-select-in-table {
   max-width: 100%;
+}
+
+.member-information {
+  overflow-wrap: break-word;
 }

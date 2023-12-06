@@ -3,7 +3,7 @@ import { click, currentURL } from '@ember/test-helpers';
 import { visit } from '@1024pix/ember-testing-library';
 import { setupApplicationTest } from 'ember-qunit';
 
-import setupMirage from 'ember-cli-mirage/test-support/setup-mirage';
+import { setupMirage } from 'ember-cli-mirage/test-support';
 
 import { authenticateAdminMemberWithRole } from 'pix-admin/tests/helpers/test-init';
 
@@ -32,6 +32,14 @@ module('Acceptance | Certification Centers | List', function (hooks) {
 
       // then
       assert.strictEqual(currentURL(), '/certification-centers/list');
+    });
+
+    test('it should set certification-centers menubar item active', async function (assert) {
+      // when
+      const screen = await visit('/certification-centers/list');
+
+      // then
+      assert.dom(screen.getByRole('link', { name: 'Centres de certification' })).hasClass('active');
     });
 
     test('it should list the certification-centers', async function (assert) {

@@ -1,5 +1,5 @@
 import { action } from '@ember/object';
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 import Component from '@glimmer/component';
 import { tracked } from '@glimmer/tracking';
 
@@ -27,7 +27,7 @@ export default class EditStudentNumberModal extends Component {
         this.intl.t('pages.sup-organization-participants.edit-student-number-modal.form.success', {
           firstName: this.args.student.firstName,
           lastName: this.args.student.lastName,
-        })
+        }),
       );
       this.close();
     } catch (errorResponse) {

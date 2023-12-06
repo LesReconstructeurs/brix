@@ -28,17 +28,17 @@ module('Unit | Component | result-item-component', function (hooks) {
   let component;
 
   module('#resultItem Computed property - undefined case', function () {
-    [undefinedAnswer, answerWithEmptyResult, answerWithUndefinedResult, answerWithNullResult].forEach(function (
-      answer
-    ) {
-      test(`should returns undefined when answer provided is: ${answer.name}`, function (assert) {
-        // when
-        component = createGlimmerComponent('component:result-item', { answer });
+    [undefinedAnswer, answerWithEmptyResult, answerWithUndefinedResult, answerWithNullResult].forEach(
+      function (answer) {
+        test(`should returns undefined when answer provided is: ${answer.name}`, function (assert) {
+          // when
+          component = createGlimmerComponent('result-item', { answer });
 
-        // then
-        assert.notOk(component.resultItem);
-      });
-    });
+          // then
+          assert.notOk(component.resultItem);
+        });
+      },
+    );
   });
 
   module('#resultItem Computed property - defined case', function () {
@@ -54,15 +54,11 @@ module('Unit | Component | result-item-component', function (hooks) {
         const answerWithOkResult = { result: `${data.result}` };
 
         // when
-        component = createGlimmerComponent('component:result-item', { answer: answerWithOkResult });
+        component = createGlimmerComponent('result-item', { answer: answerWithOkResult });
 
         // then
-        // TODO: Fix this the next time the file is edited.
-        // eslint-disable-next-line qunit/no-assert-equal
-        assert.equal(component.resultItem.color, `${data.expectedColor}`);
-        // TODO: Fix this the next time the file is edited.
-        // eslint-disable-next-line qunit/no-assert-equal
-        assert.equal(component.resultItem.icon, `${data.expectedIcon}`);
+        assert.strictEqual(component.resultItem.color, `${data.expectedColor}`);
+        assert.strictEqual(component.resultItem.icon, `${data.expectedIcon}`);
       });
     });
   });
@@ -78,15 +74,13 @@ module('Unit | Component | result-item-component', function (hooks) {
       test(`should return a tooltip text equal to ${data.expectedTooltip}`, function (assert) {
         // given
         const answerWithOkResult = { result: `${data.result}` };
-        component = createGlimmerComponent('component:result-item', { answer: answerWithOkResult });
+        component = createGlimmerComponent('result-item', { answer: answerWithOkResult });
 
         // when
         const tooltipText = component.resultTooltip;
 
         // then
-        // TODO: Fix this the next time the file is edited.
-        // eslint-disable-next-line qunit/no-assert-equal
-        assert.equal(tooltipText, `${data.expectedTooltip}`);
+        assert.strictEqual(tooltipText, `${data.expectedTooltip}`);
       });
     });
   });
@@ -97,9 +91,7 @@ module('Unit | Component | result-item-component', function (hooks) {
       window.innerWidth = 600;
 
       //then
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(component.textLength, 60);
+      assert.strictEqual(component.textLength, 60);
     });
 
     test('should be 110 when it a tablet/desktop', function (assert) {
@@ -107,9 +99,7 @@ module('Unit | Component | result-item-component', function (hooks) {
       window.innerWidth = 1200;
 
       //then
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(component.textLength, 110);
+      assert.strictEqual(component.textLength, 110);
     });
   });
 
@@ -128,12 +118,10 @@ module('Unit | Component | result-item-component', function (hooks) {
         const answer = EmberObject.create({ challenge });
 
         // when
-        component = createGlimmerComponent('component:result-item', { answer });
+        component = createGlimmerComponent('result-item', { answer });
 
         // then
-        // TODO: Fix this the next time the file is edited.
-        // eslint-disable-next-line qunit/no-assert-equal
-        assert.equal(component.validationImplementedForChallengeType, data.expected);
+        assert.strictEqual(component.validationImplementedForChallengeType, data.expected);
       });
     });
   });

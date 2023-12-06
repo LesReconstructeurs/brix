@@ -1,13 +1,11 @@
-const buildSkill = require('./build-skill');
-const TargetProfile = require('../../../../lib/domain/models/TargetProfile');
+import { TargetProfile } from '../../../../lib/domain/models/TargetProfile.js';
 
-module.exports = function buildTargetProfile({
+const buildTargetProfile = function ({
   id = 123,
   name = 'Profil cible super cool',
   imageUrl = 'ImageURL',
   isPublic = true,
   isSimplifiedAccess = false,
-  skills = [buildSkill()],
   ownerOrganizationId = 456,
   outdated = false,
   stages = [],
@@ -19,10 +17,11 @@ module.exports = function buildTargetProfile({
     imageUrl,
     isPublic,
     isSimplifiedAccess,
-    skills,
     ownerOrganizationId,
     outdated,
     stages,
     badges,
   });
 };
+
+export { buildTargetProfile };

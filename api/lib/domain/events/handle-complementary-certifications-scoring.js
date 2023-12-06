@@ -1,10 +1,10 @@
-const { checkEventTypes } = require('./check-event-types');
-const CertificationScoringCompleted = require('./CertificationScoringCompleted');
-const CertificationRescoringCompleted = require('./CertificationRescoringCompleted');
-const { ReproducibilityRate } = require('../models/ReproducibilityRate');
-const AnswerCollectionForScoring = require('../models/AnswerCollectionForScoring');
-const ComplementaryCertificationScoringWithComplementaryReferential = require('../models/ComplementaryCertificationScoringWithComplementaryReferential');
-const ComplementaryCertificationScoringWithoutComplementaryReferential = require('../models/ComplementaryCertificationScoringWithoutComplementaryReferential');
+import { checkEventTypes } from './check-event-types.js';
+import { CertificationScoringCompleted } from './CertificationScoringCompleted.js';
+import { CertificationRescoringCompleted } from './CertificationRescoringCompleted.js';
+import { ReproducibilityRate } from '../models/ReproducibilityRate.js';
+import { AnswerCollectionForScoring } from '../models/AnswerCollectionForScoring.js';
+import { ComplementaryCertificationScoringWithComplementaryReferential } from '../models/ComplementaryCertificationScoringWithComplementaryReferential.js';
+import { ComplementaryCertificationScoringWithoutComplementaryReferential } from '../models/ComplementaryCertificationScoringWithoutComplementaryReferential.js';
 
 const eventTypes = [CertificationScoringCompleted, CertificationRescoringCompleted];
 
@@ -52,7 +52,7 @@ async function handleComplementaryCertificationsScoring({
           pixPlusChallenges,
           pixPlusAnswers,
           complementaryCertificationBadgeKey,
-          assessmentResult
+          assessmentResult,
         );
     } else {
       complementaryCertificationScoringWithComplementaryReferential =
@@ -78,7 +78,7 @@ function _buildComplementaryCertificationScoringWithReferential(
   challenges,
   answers,
   complementaryCertificationBadgeKey,
-  assessmentResult
+  assessmentResult,
 ) {
   const answerCollection = AnswerCollectionForScoring.from({ answers, challenges });
   const reproducibilityRate = ReproducibilityRate.from({
@@ -96,4 +96,4 @@ function _buildComplementaryCertificationScoringWithReferential(
 }
 
 handleComplementaryCertificationsScoring.eventTypes = eventTypes;
-module.exports = handleComplementaryCertificationsScoring;
+export { handleComplementaryCertificationsScoring };

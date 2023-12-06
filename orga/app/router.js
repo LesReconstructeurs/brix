@@ -7,8 +7,10 @@ export default class Router extends EmberRouter {
 
   constructor() {
     super(...arguments);
-    this.on('routeDidChange', () => {
-      window.scrollTo(0, 0);
+    this.on('routeDidChange', (transition) => {
+      if (transition.from && transition.to.name !== transition.from.name) {
+        window.scrollTo(0, 0);
+      }
     });
   }
 }
@@ -62,7 +64,7 @@ Router.map(function () {
         function () {
           this.route('results', { path: '/resultats' });
           this.route('analysis', { path: '/analyse' });
-        }
+        },
       );
       this.route('participant-profile', { path: '/:campaign_id/profils/:campaign_participation_id' });
       this.route('campaign', { path: '/:campaign_id' }, function () {

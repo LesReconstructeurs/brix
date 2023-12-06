@@ -1,10 +1,9 @@
-import { reject, resolve } from 'rsvp';
-import hbs from 'htmlbars-inline-precompile';
+import { hbs } from 'ember-cli-htmlbars';
 import { module, test } from 'qunit';
-import EmberObject from '@ember/object';
 import Service from '@ember/service';
 import { triggerEvent } from '@ember/test-helpers';
 import { fillByLabel, clickByName, render as renderScreen } from '@1024pix/ember-testing-library';
+import sinon from 'sinon';
 
 import setupIntlRenderingTest from '../../../helpers/setup-intl-rendering';
 
@@ -14,17 +13,15 @@ const ApiErrorMessages = ENV.APP.API_ERROR_MESSAGES;
 module('Integration | Component | Auth::LoginForm', function (hooks) {
   setupIntlRenderingTest(hooks);
 
-  class SessionStub extends Service {}
-  class StoreStub extends Service {}
-
+  let sessionService;
+  let storeService;
   let emailInputLabel;
   let passwordInputLabel;
   let loginLabel;
 
   hooks.beforeEach(function () {
-    this.owner.register('service:session', SessionStub);
-    this.owner.unregister('service:store');
-    this.owner.register('service:store', StoreStub);
+    sessionService = this.owner.lookup('service:session');
+    storeService = this.owner.lookup('service:store');
 
     emailInputLabel = this.intl.t('pages.login-form.email');
     loginLabel = this.intl.t('pages.login-form.login');
@@ -33,7 +30,7 @@ module('Integration | Component | Auth::LoginForm', function (hooks) {
 
   test('it should ask for email and password', async function (assert) {
     // when
-    await renderScreen(hbs`<Auth::LoginForm/>`);
+    await renderScreen(hbs`<Auth::LoginForm />`);
 
     // then
     assert.dom('#login-email').exists();
@@ -42,7 +39,7 @@ module('Integration | Component | Auth::LoginForm', function (hooks) {
 
   test('[a11y] it should display a message that all inputs are required', async function (assert) {
     // when
-    const screen = await renderScreen(hbs`<Auth::LoginForm/>`);
+    const screen = await renderScreen(hbs`<Auth::LoginForm />`);
 
     // then
     assert.dom(screen.getByText('Tous les champs sont obligatoires.')).exists();
@@ -50,7 +47,7 @@ module('Integration | Component | Auth::LoginForm', function (hooks) {
 
   test('it should not display error message', async function (assert) {
     // when
-    await renderScreen(hbs`<Auth::LoginForm/>`);
+    await renderScreen(hbs`<Auth::LoginForm />`);
 
     // then
     assert.dom('#login-form-error-message').doesNotExist();
@@ -58,19 +55,13 @@ module('Integration | Component | Auth::LoginForm', function (hooks) {
 
   module('When there is no invitation', function (hooks) {
     hooks.beforeEach(function () {
-      SessionStub.prototype.authenticate = function (authenticator, email, password, scope) {
-        this.authenticator = authenticator;
-        this.email = email;
-        this.password = password;
-        this.scope = scope;
-        return resolve();
-      };
+      sinon.stub(sessionService, 'authenticate');
+      sessionService.authenticate.resolves();
     });
 
     test('it should call authentication service with appropriate parameters', async function (assert) {
       // given
-      const sessionServiceObserver = this.owner.lookup('service:session');
-      await renderScreen(hbs`<Auth::LoginForm @organizationInvitationId=1 @organizationInvitationCode='C0D3'/>`);
+      await renderScreen(hbs`<Auth::LoginForm @organizationInvitationId='1' @organizationInvitationCode='C0D3' />`);
       await fillByLabel(emailInputLabel, 'pix@example.net');
       await fillByLabel(passwordInputLabel, 'JeMeLoggue1024');
 
@@ -78,36 +69,28 @@ module('Integration | Component | Auth::LoginForm', function (hooks) {
       await clickByName(loginLabel);
 
       // then
-      assert.strictEqual(sessionServiceObserver.authenticator, 'authenticator:oauth2');
-      assert.strictEqual(sessionServiceObserver.email, 'pix@example.net');
-      assert.strictEqual(sessionServiceObserver.password, 'JeMeLoggue1024');
-      assert.strictEqual(sessionServiceObserver.scope, 'pix-orga');
+      assert.ok(
+        sessionService.authenticate.calledWith('authenticator:oauth2', 'pix@example.net', 'JeMeLoggue1024', 'pix-orga'),
+      );
     });
   });
 
   module('When there is an invitation', function (hooks) {
     hooks.beforeEach(function () {
-      StoreStub.prototype.createRecord = () => {
-        return EmberObject.create({
-          save() {
-            return resolve();
-          },
-        });
-      };
-      SessionStub.prototype.authenticate = function (authenticator, email, password, scope) {
-        this.authenticator = authenticator;
-        this.email = email;
-        this.password = password;
-        this.scope = scope;
-        return resolve();
-      };
+      sinon.stub(storeService, 'peekRecord');
+      storeService.peekRecord.returns(null);
+      const createRecordStub = sinon.stub(storeService, 'createRecord');
+      createRecordStub.returns({
+        save: sinon.stub().resolves(),
+      });
+      sinon.stub(sessionService, 'authenticate');
+      sessionService.authenticate.resolves();
     });
 
     test('it should be ok and call authentication service with appropriate parameters', async function (assert) {
       // given
-      const sessionServiceObserver = this.owner.lookup('service:session');
       await renderScreen(
-        hbs`<Auth::LoginForm @isWithInvitation=true @organizationInvitationId=1 @organizationInvitationCode='C0D3'/>`
+        hbs`<Auth::LoginForm @isWithInvitation='true' @organizationInvitationId='1' @organizationInvitationCode='C0D3' />`,
       );
       await fillByLabel(emailInputLabel, 'pix@example.net');
       await fillByLabel(passwordInputLabel, 'JeMeLoggue1024');
@@ -116,10 +99,9 @@ module('Integration | Component | Auth::LoginForm', function (hooks) {
       await clickByName(loginLabel);
 
       // then
-      assert.strictEqual(sessionServiceObserver.authenticator, 'authenticator:oauth2');
-      assert.strictEqual(sessionServiceObserver.email, 'pix@example.net');
-      assert.strictEqual(sessionServiceObserver.password, 'JeMeLoggue1024');
-      assert.strictEqual(sessionServiceObserver.scope, 'pix-orga');
+      assert.ok(
+        sessionService.authenticate.calledWith('authenticator:oauth2', 'pix@example.net', 'JeMeLoggue1024', 'pix-orga'),
+      );
     });
   });
 
@@ -132,9 +114,10 @@ module('Integration | Component | Auth::LoginForm', function (hooks) {
       },
     };
 
-    SessionStub.prototype.authenticate = () => reject(errorResponse);
+    sinon.stub(sessionService, 'authenticate');
+    sessionService.authenticate.rejects(errorResponse);
 
-    const screen = await renderScreen(hbs`<Auth::LoginForm/>`);
+    const screen = await renderScreen(hbs`<Auth::LoginForm />`);
     await fillByLabel(emailInputLabel, 'pix@example.net');
     await fillByLabel(passwordInputLabel, 'Mauvais mot de passe');
 
@@ -153,9 +136,10 @@ module('Integration | Component | Auth::LoginForm', function (hooks) {
       },
     };
 
-    SessionStub.prototype.authenticate = () => reject(errorResponse);
+    sinon.stub(sessionService, 'authenticate');
+    sessionService.authenticate.rejects(errorResponse);
 
-    const screen = await renderScreen(hbs`<Auth::LoginForm/>`);
+    const screen = await renderScreen(hbs`<Auth::LoginForm />`);
     await fillByLabel(emailInputLabel, 'pix@example.net');
     await fillByLabel(passwordInputLabel, 'Mauvais mot de passe');
 
@@ -170,11 +154,11 @@ module('Integration | Component | Auth::LoginForm', function (hooks) {
     assert
       .dom(
         screen.getByText((content, node) => {
-          const hasText = (node) => node.innerHTML.trim() === expectedErrorMessage.string;
+          const hasText = (node) => node.innerHTML.trim() === expectedErrorMessage.__string;
           const nodeHasText = hasText(node);
           const childrenDontHaveText = Array.from(node.children).every((child) => !hasText(child));
           return nodeHasText && childrenDontHaveText;
-        })
+        }),
       )
       .exists();
   });
@@ -188,9 +172,10 @@ module('Integration | Component | Auth::LoginForm', function (hooks) {
       },
     };
 
-    SessionStub.prototype.authenticate = () => reject(errorResponse);
+    sinon.stub(sessionService, 'authenticate');
+    sessionService.authenticate.rejects(errorResponse);
 
-    const screen = await renderScreen(hbs`<Auth::LoginForm/>`);
+    const screen = await renderScreen(hbs`<Auth::LoginForm />`);
     await fillByLabel(emailInputLabel, 'pix@example.net');
     await fillByLabel(passwordInputLabel, 'pix123');
 
@@ -205,18 +190,43 @@ module('Integration | Component | Auth::LoginForm', function (hooks) {
     assert.dom('login-form__information').doesNotExist();
   });
 
+  module('When the user fills the login form with an invalid email or password', function (hooks) {
+    hooks.beforeEach(function () {
+      const createRecordStub = sinon.stub(storeService, 'createRecord');
+      createRecordStub.returns({
+        save: sinon.stub().rejects({ errors: [{ status: '404' }] }),
+        deleteRecord: sinon.stub(),
+      });
+    });
+
+    test('displays the correct error message', async function (assert) {
+      // given
+      const screen = await renderScreen(
+        hbs`<Auth::LoginForm @isWithInvitation='true' @organizationInvitationId='1' @organizationInvitationCode='C0D3' />`,
+      );
+      await fillByLabel(emailInputLabel, 'pix@example.net');
+      await fillByLabel(passwordInputLabel, 'JeMeLoggue1024');
+
+      //  when
+      await clickByName(loginLabel);
+
+      // then
+      assert.dom(screen.getByText("L'adresse e-mail et/ou le mot de passe saisis sont incorrects.")).exists();
+    });
+  });
+
   module('when domain is pix.org', function () {
     test('should not display recovery link', async function (assert) {
-      //given
-      class UrlStub extends Service {
-        get isFrenchDomainExtension() {
+      // given
+      class CurrentDomainServiceStub extends Service {
+        get isFranceDomain() {
           return false;
         }
       }
-      this.owner.register('service:url', UrlStub);
+      this.owner.register('service:currentDomain', CurrentDomainServiceStub);
 
       // when
-      await renderScreen(hbs`<Auth::LoginForm/>`);
+      await renderScreen(hbs`<Auth::LoginForm />`);
 
       // then
       assert.dom('.login-form__recover-access-link').doesNotExist();
@@ -225,16 +235,16 @@ module('Integration | Component | Auth::LoginForm', function (hooks) {
 
   module('when domain is pix.fr', function () {
     test('should display recovery link', async function (assert) {
-      //given
-      class UrlStub extends Service {
-        get isFrenchDomainExtension() {
+      // given
+      class CurrentDomainServiceStub extends Service {
+        get isFranceDomain() {
           return true;
         }
       }
-      this.owner.register('service:url', UrlStub);
+      this.owner.register('service:currentDomain', CurrentDomainServiceStub);
 
       // when
-      await renderScreen(hbs`<Auth::LoginForm/>`);
+      await renderScreen(hbs`<Auth::LoginForm />`);
 
       // then
       assert.dom('.login-form__recover-access-link').exists();
@@ -245,7 +255,7 @@ module('Integration | Component | Auth::LoginForm', function (hooks) {
     test('should display an invalid email error message when focus-out', async function (assert) {
       //given
       const invalidEmail = 'invalidEmail';
-      const screen = await renderScreen(hbs`<Auth::LoginForm/>`);
+      const screen = await renderScreen(hbs`<Auth::LoginForm />`);
 
       // when
       await fillByLabel(emailInputLabel, invalidEmail);
@@ -257,7 +267,7 @@ module('Integration | Component | Auth::LoginForm', function (hooks) {
 
     test('should display an empty password error message when focus-out', async function (assert) {
       //given
-      const screen = await renderScreen(hbs`<Auth::LoginForm/>`);
+      const screen = await renderScreen(hbs`<Auth::LoginForm />`);
 
       // when
       await fillByLabel(passwordInputLabel, '');

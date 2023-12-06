@@ -1,14 +1,17 @@
-const pick = require('lodash/pick');
-const CampaignParticipant = require('../../domain/models/CampaignParticipant');
-const CampaignToStartParticipation = require('../../domain/models/CampaignToStartParticipation');
-const { AlreadyExistingCampaignParticipationError, NotFoundError } = require('../../domain/errors');
-const campaignRepository = require('../repositories/campaign-repository');
-const { knex } = require('../../../db/knex-database-connection');
+import lodash from 'lodash';
+
+const { pick } = lodash;
+
+import { CampaignParticipant } from '../../domain/models/CampaignParticipant.js';
+import { CampaignToStartParticipation } from '../../domain/models/CampaignToStartParticipation.js';
+import { AlreadyExistingCampaignParticipationError, NotFoundError } from '../../domain/errors.js';
+import * as campaignRepository from '../repositories/campaign-repository.js';
+import { knex } from '../../../db/knex-database-connection.js';
 
 async function save(campaignParticipant, domainTransaction) {
   const newlyCreatedOrganizationLearnerId = await _createNewOrganizationLearner(
     campaignParticipant.organizationLearner,
-    domainTransaction.knexTransaction
+    domainTransaction.knexTransaction,
   );
   if (newlyCreatedOrganizationLearnerId) {
     campaignParticipant.campaignParticipation.organizationLearnerId = newlyCreatedOrganizationLearnerId;
@@ -16,11 +19,11 @@ async function save(campaignParticipant, domainTransaction) {
 
   await _updatePreviousParticipation(
     campaignParticipant.previousCampaignParticipationForUser,
-    domainTransaction.knexTransaction
+    domainTransaction.knexTransaction,
   );
   const campaignParticipationId = await _createNewCampaignParticipation(
     domainTransaction.knexTransaction,
-    campaignParticipant.campaignParticipation
+    campaignParticipant.campaignParticipation,
   );
   await _createAssessment(campaignParticipant.assessment, campaignParticipationId, domainTransaction.knexTransaction);
   return campaignParticipationId;
@@ -28,17 +31,28 @@ async function save(campaignParticipant, domainTransaction) {
 
 async function _createNewOrganizationLearner(organizationLearner, queryBuilder) {
   if (organizationLearner) {
-    const [{ id }] = await queryBuilder('organization-learners')
-      .insert({
+    const existingOrganizationLearner = await queryBuilder('view-active-organization-learners')
+      .where({
         userId: organizationLearner.userId,
         organizationId: organizationLearner.organizationId,
-        firstName: organizationLearner.firstName,
-        lastName: organizationLearner.lastName,
       })
-      .onConflict(['userId', 'organizationId'])
-      .merge({ isDisabled: false })
-      .returning('id');
-    return id;
+      .first();
+
+    if (existingOrganizationLearner) {
+      const [{ id }] = await queryBuilder('organization-learners').update({ isDisabled: false }).returning('id');
+      return id;
+    } else {
+      const [{ id }] = await queryBuilder('organization-learners').insert(
+        {
+          userId: organizationLearner.userId,
+          organizationId: organizationLearner.organizationId,
+          firstName: organizationLearner.firstName,
+          lastName: organizationLearner.lastName,
+        },
+        ['id'],
+      );
+      return id;
+    }
   }
 }
 
@@ -66,7 +80,7 @@ async function _createNewCampaignParticipation(queryBuilder, campaignParticipati
   } catch (error) {
     if (error.constraint === 'campaign_participations_campaignid_userid_isimproved_deleted') {
       throw new AlreadyExistingCampaignParticipationError(
-        `User ${campaignParticipation.userId} has already a campaign participation with campaign ${campaignParticipation.campaignId}`
+        `User ${campaignParticipation.userId} has already a campaign participation with campaign ${campaignParticipation.campaignId}`,
       );
     }
     throw error;
@@ -90,7 +104,7 @@ async function get({ userId, campaignId, domainTransaction }) {
   const previousCampaignParticipationForUser = await _findpreviousCampaignParticipationForUser(
     campaignId,
     userId,
-    domainTransaction
+    domainTransaction,
   );
 
   return new CampaignParticipant({
@@ -134,22 +148,26 @@ async function _getOrganizationLearner(campaignId, userId, domainTransaction) {
   const organizationLearner = { id: null, hasParticipated: false };
   const row = await domainTransaction
     .knexTransaction('campaigns')
-    .select({ id: 'organization-learners.id', campaignParticipationId: 'campaign-participations.id' })
-    .join('organization-learners', 'organization-learners.organizationId', 'campaigns.organizationId')
+    .select({ id: 'view-active-organization-learners.id', campaignParticipationId: 'campaign-participations.id' })
+    .join(
+      'view-active-organization-learners',
+      'view-active-organization-learners.organizationId',
+      'campaigns.organizationId',
+    )
     .leftJoin(
       'campaign-participations',
       function () {
-        this.on('campaign-participations.organizationLearnerId', 'organization-learners.id');
+        this.on('campaign-participations.organizationLearnerId', 'view-active-organization-learners.id');
         this.on('campaign-participations.campaignId', 'campaigns.id');
         this.on('campaign-participations.deletedAt', knex.raw('IS'), knex.raw('NULL'));
         this.on('campaign-participations.isImproved', knex.raw('false'));
-        this.on('campaign-participations.userId', '!=', 'organization-learners.userId');
+        this.on('campaign-participations.userId', '!=', 'view-active-organization-learners.userId');
       },
-      'organization-learners.id'
+      'view-active-organization-learners.id',
     )
     .where({
       'campaigns.id': campaignId,
-      'organization-learners.userId': userId,
+      'view-active-organization-learners.userId': userId,
       isDisabled: false,
     })
     .first();
@@ -178,7 +196,4 @@ async function _findpreviousCampaignParticipationForUser(campaignId, userId, dom
   };
 }
 
-module.exports = {
-  get,
-  save,
-};
+export { get, save };

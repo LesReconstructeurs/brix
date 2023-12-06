@@ -17,11 +17,12 @@ module('Unit | Helper | scorecard-aria-label', function (hooks) {
       class IntlServiceStub extends Service {
         t() {}
       }
+
       this.owner.register('service:intl', IntlServiceStub);
       intlServiceStub = this.owner.lookup('service:intl');
       sinon.spy(intlServiceStub, 't');
 
-      component = createGlimmerComponent('component:scorecard-aria-label');
+      component = createGlimmerComponent('scorecard-aria-label');
     });
 
     test('should return that competence is not started', async function (assert) {
@@ -56,7 +57,7 @@ module('Unit | Helper | scorecard-aria-label', function (hooks) {
       sinon.assert.calledWith(
         intlServiceStub.t,
         'pages.profile.competence-card.image-info.first-level',
-        expectedTranslationsParams
+        expectedTranslationsParams,
       );
       assert.ok(true);
     });
@@ -80,7 +81,7 @@ module('Unit | Helper | scorecard-aria-label', function (hooks) {
       sinon.assert.calledWith(
         intlServiceStub.t,
         'pages.profile.competence-card.image-info.level',
-        expectedTranslationsParams
+        expectedTranslationsParams,
       );
       assert.ok(true);
     });

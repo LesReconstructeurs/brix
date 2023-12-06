@@ -1,9 +1,17 @@
-const fs = require('fs');
-const { readFile, access } = require('fs').promises;
-const { difference, isEmpty } = require('lodash');
-const papa = require('papaparse');
+import fs from 'fs';
 
-const { NotFoundError, FileValidationError } = require('../../lib/domain/errors');
+const { difference, isEmpty } = lodash;
+
+const { promises } = fs;
+
+const { readFile, access } = promises;
+
+import lodash from 'lodash';
+import papa from 'papaparse';
+
+import { NotFoundError, FileValidationError } from '../../lib/domain/errors.js';
+import { UnprocessableEntityError } from '../../lib/application/http-errors.js';
+
 const ERRORS = {
   INVALID_FILE_EXTENSION: 'INVALID_FILE_EXTENSION',
   MISSING_REQUIRED_FIELD_NAMES: 'MISSING_REQUIRED_FIELD_NAMES',
@@ -18,7 +26,7 @@ const optionsWithHeader = {
     if (typeof value === 'string') {
       value = value.trim();
     }
-    if (columnName === 'uai') {
+    if (columnName === 'uai' || columnName === '* Sexe (M ou F)') {
       value = value.toUpperCase();
     }
     if (columnName === 'createdBy') {
@@ -78,8 +86,13 @@ async function parseCsvData(cleanedData, options) {
   return data;
 }
 
-function parseCsvWithHeader(filePath, options = optionsWithHeader) {
-  return parseCsv(filePath, options);
+async function parseCsvWithHeader(filePath, options = optionsWithHeader) {
+  const parsedCsvData = await parseCsv(filePath, options);
+  if (parsedCsvData.length === 0) {
+    throw new UnprocessableEntityError('No session data in csv', 'CSV_DATA_REQUIRED');
+  }
+
+  return parsedCsvData;
 }
 
 async function parseCsvWithHeaderAndRequiredFields({ filePath, requiredFieldNames }) {
@@ -91,7 +104,7 @@ async function parseCsvWithHeaderAndRequiredFields({ filePath, requiredFieldName
         parser.abort();
         throw new FileValidationError(
           ERRORS.MISSING_REQUIRED_FIELD_VALUES,
-          `Field values are required for ${requiredFieldName}`
+          `Field values are required for ${requiredFieldName}`,
         );
       }
     });
@@ -104,7 +117,7 @@ async function parseCsvWithHeaderAndRequiredFields({ filePath, requiredFieldName
   return csvData;
 }
 
-module.exports = {
+export {
   checkCsvHeader,
   readCsvFile,
   parseCsvData,

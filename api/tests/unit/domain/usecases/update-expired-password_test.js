@@ -1,9 +1,8 @@
-const { sinon, expect, domainBuilder, catchErr } = require('../../../test-helper');
-
-const { ForbiddenAccess, UserNotFoundError } = require('../../../../lib/domain/errors');
-const AuthenticationMethod = require('../../../../lib/domain/models/AuthenticationMethod');
-const updateExpiredPassword = require('../../../../lib/domain/usecases/update-expired-password');
-const logger = require('../../../../lib/infrastructure/logger');
+import { sinon, expect, domainBuilder, catchErr } from '../../../test-helper.js';
+import { ForbiddenAccess, UserNotFoundError } from '../../../../lib/domain/errors.js';
+import { NON_OIDC_IDENTITY_PROVIDERS } from '../../../../lib/domain/constants/identity-providers.js';
+import { updateExpiredPassword } from '../../../../lib/domain/usecases/update-expired-password.js';
+import { logger } from '../../../../lib/infrastructure/logger.js';
 
 describe('Unit | UseCase | update-expired-password', function () {
   const passwordResetToken = 'PASSWORD_RESET_TOKEN';
@@ -61,7 +60,7 @@ describe('Unit | UseCase | update-expired-password', function () {
     expect(encryptionService.hashPassword).to.have.been.calledOnceWith(newPassword);
     expect(authenticationMethodRepository.findOneByUserIdAndIdentityProvider).to.have.been.calledOnceWith({
       userId: user.id,
-      identityProvider: AuthenticationMethod.identityProviders.PIX,
+      identityProvider: NON_OIDC_IDENTITY_PROVIDERS.PIX.code,
     });
     expect(authenticationMethodRepository.updateExpiredPassword).to.have.been.calledOnceWith({
       userId: user.id,

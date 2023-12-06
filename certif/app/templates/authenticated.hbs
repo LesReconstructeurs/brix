@@ -15,41 +15,35 @@
               @route="authenticated.sessions.list"
               class="sidebar-menu__item"
               type="button"
-              aria-label="Sessions de certification"
+              aria-label={{t "navigation.main.sessions-label"}}
             >
+              {{! template-lint-disable no-redundant-role }}
               <img
                 src="{{this.rootURL}}/icons/chevron-square-right.svg"
                 alt=""
                 role="presentation"
                 class="sidebar-menu__item-icon"
               />
-              Sessions
+              {{t "navigation.main.sessions"}}
             </LinkTo>
           </li>
-          {{#if this.isEndTestScreenRemovalEnabled}}
-            <li>
-              <LinkTo
-                @route="login-session-supervisor"
-                class="sidebar-menu__item"
-                type="button"
-                aria-label="Espace surveillant"
-              >
-                <FaIcon @icon="eye" class="sidebar-menu__item-icon" />
-                Espace surveillant
-              </LinkTo>
-            </li>
-          {{/if}}
+          <li>
+            <LinkTo @route="login-session-supervisor" class="sidebar-menu__item" type="button">
+              <FaIcon @icon="eye" class="sidebar-menu__item-icon" />
+              {{t "navigation.main.supervisor"}}
+            </LinkTo>
+          </li>
         {{/if}}
         <li>
-          <LinkTo @route="authenticated.team" class="sidebar-menu__item" type="button" aria-label="Équipe">
+          <LinkTo @route="authenticated.team" class="sidebar-menu__item" type="button">
             <FaIcon @icon="users" class="sidebar-menu__item-icon" />
-            Équipe
+            {{t "navigation.main.team"}}
           </LinkTo>
         </li>
         <li>
           <a class="sidebar-menu__item" href="{{this.documentationLink}}" target="_blank" rel="noopener noreferrer">
             <FaIcon @icon="book" class="sidebar-menu__item-icon" />
-            Documentation
+            {{t "navigation.main.documentation"}}
           </a>
         </li>
       </ul>
@@ -60,20 +54,24 @@
   <div class="app__main-content main-content">
 
     <div class="main-content__topbar topbar">
-      <div class="topbar__user-logged-menu"><UserLoggedMenu
-          @onCertificationCenterAccessChanged={{this.changeCurrentCertificationCenterAccess}}
-        /></div>
+      <UserLoggedMenu @onCertificationCenterAccessChanged={{this.changeCurrentCertificationCenterAccess}} />
     </div>
 
     {{#if this.showBanner}}
       <PixBanner
-        @actionLabel="documentation pour voir les nouveautés."
+        @actionLabel={{t "pages.sco.banner.url-label"}}
         @actionUrl="https://cloud.pix.fr/s/GqwW6dFDDrHezfS"
         @canCloseBanner="true"
-      >La certification Pix se déroulera du 14 novembre 2022 au 17 mars 2023 pour les lycées et du 6 mars au 16 juin
-        2023 pour les collèges. Pensez à consulter la
+      >
+        {{t "pages.sco.banner.information"}}
       </PixBanner>
 
+    {{/if}}
+
+    {{#if this.showMassImportBanner}}
+      <PixBanner @canCloseBanner="true">
+        {{t "pages.banner.information" htmlSafe=true}}
+      </PixBanner>
     {{/if}}
 
     <div class="page">

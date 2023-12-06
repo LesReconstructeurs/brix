@@ -1,0 +1,5 @@
+{{#if this.showTriggersEditForm}}
+  {{outlet}}
+{{else if this.canCreateTriggers}}
+  <Trainings::CreateTrainingTriggers @training={{this.model}} />
+{{/if}}

@@ -1,4 +1,5 @@
 import Model, { attr, belongsTo, hasMany } from '@ember-data/model';
+
 export default class User extends Model {
   // attributes
   @attr('string') firstName;
@@ -12,10 +13,12 @@ export default class User extends Model {
   @attr('boolean') hasSeenNewDashboardInfo;
   @attr('boolean') hasSeenFocusedChallengeTooltip;
   @attr('boolean') hasSeenOtherChallengesTooltip;
+  @attr('boolean') hasSeenLevelSevenInfo;
   @attr('boolean') hasAssessmentParticipations;
   @attr('boolean') hasRecommendedTrainings;
   @attr('string') codeForLastProfileToShare;
   @attr('string') lang;
+  @attr('string') locale;
   @attr('boolean') isAnonymous;
   @attr('boolean') shouldSeeDataProtectionPolicyInformationBanner;
   @attr() lastDataProtectionPolicySeenAt;

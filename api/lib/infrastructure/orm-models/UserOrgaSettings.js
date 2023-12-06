@@ -1,11 +1,11 @@
-const Bookshelf = require('../bookshelf');
+import { Bookshelf } from '../bookshelf.js';
 
-require('./User');
-require('./Organization');
+import './User.js';
+import './Organization.js';
 
 const modelName = 'UserOrgaSettings';
 
-module.exports = Bookshelf.model(
+const BookshelfUserOrgaSetting = Bookshelf.model(
   modelName,
   {
     tableName: 'user-orga-settings',
@@ -21,5 +21,7 @@ module.exports = Bookshelf.model(
   },
   {
     modelName,
-  }
+  },
 );
+
+export { BookshelfUserOrgaSetting as BookshelfUserOrgaSettings };

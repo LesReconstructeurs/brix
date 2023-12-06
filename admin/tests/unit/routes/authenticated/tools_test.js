@@ -11,15 +11,17 @@ module('Unit | Route | authenticated/tools', function (hooks) {
     const route = this.owner.lookup('route:authenticated/tools');
 
     const restrictAccessToStub = sinon.stub().returns();
+
     class AccessControlStub extends Service {
       restrictAccessTo = restrictAccessToStub;
     }
+
     this.owner.register('service:access-control', AccessControlStub);
 
     // when
     route.beforeModel();
 
     // then
-    assert.ok(restrictAccessToStub.calledWith(['isSuperAdmin'], 'authenticated'));
+    assert.ok(restrictAccessToStub.calledWith(['isMetier', 'isSuperAdmin'], 'authenticated'));
   });
 });

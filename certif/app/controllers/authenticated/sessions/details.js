@@ -1,5 +1,5 @@
 import Controller from '@ember/controller';
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 /* eslint-disable ember/no-computed-properties-in-native-classes*/
 import { computed } from '@ember/object';
 import { alias } from '@ember/object/computed';
@@ -7,16 +7,13 @@ import { alias } from '@ember/object/computed';
 
 export default class SessionsDetailsController extends Controller {
   @service currentUser;
+  @service intl;
 
   @alias('model.session') session;
   @alias('model.certificationCandidates') certificationCandidates;
 
   get pageTitle() {
-    return `Détails | Session ${this.session.id} | Pix Certif`;
-  }
-
-  get shouldDisplaySupervisorKitButton() {
-    return this.currentUser.currentAllowedCertificationCenterAccess.isEndTestScreenRemovalEnabled;
+    return `${this.intl.t('pages.sessions.detail.page-title')} | Session ${this.session.id} | Pix Certif`;
   }
 
   @computed('certificationCandidates.length')

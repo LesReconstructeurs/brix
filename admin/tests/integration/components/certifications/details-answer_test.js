@@ -1,7 +1,7 @@
 import { module, test } from 'qunit';
 import { setupRenderingTest } from 'ember-qunit';
 import { render } from '@1024pix/ember-testing-library';
-import hbs from 'htmlbars-inline-precompile';
+import { hbs } from 'ember-cli-htmlbars';
 import { resolve } from 'rsvp';
 import { click } from '@ember/test-helpers';
 
@@ -26,7 +26,7 @@ module('Integration | Component | certifications/details-answer', function (hook
 
     // when
     const screen = await render(
-      hbs`<Certifications::DetailsAnswer @answer={{this.answer}} @onUpdateRate={{this.onUpdateRate}} />`
+      hbs`<Certifications::DetailsAnswer @answer={{this.answer}} @onUpdateRate={{this.onUpdateRate}} />`,
     );
 
     // then
@@ -42,7 +42,7 @@ module('Integration | Component | certifications/details-answer', function (hook
 
     // when
     const screen = await render(
-      hbs`<Certifications::DetailsAnswer @answer={{this.answer}} @onUpdateRate={{this.onUpdateRate}} />`
+      hbs`<Certifications::DetailsAnswer @answer={{this.answer}} @onUpdateRate={{this.onUpdateRate}} />`,
     );
 
     // then
@@ -58,7 +58,7 @@ module('Integration | Component | certifications/details-answer', function (hook
 
     // when
     const screen = await render(
-      hbs`<Certifications::DetailsAnswer @answer={{this.answer}} @onUpdateRate={{this.onUpdateRate}} />`
+      hbs`<Certifications::DetailsAnswer @answer={{this.answer}} @onUpdateRate={{this.onUpdateRate}} />`,
     );
 
     // then
@@ -83,7 +83,7 @@ module('Integration | Component | certifications/details-answer', function (hook
 
       // when
       const screen = await render(
-        hbs`<Certifications::DetailsAnswer @answer={{this.answer}} @onUpdateRate={{this.onUpdateRate}} />`
+        hbs`<Certifications::DetailsAnswer @answer={{this.answer}} @onUpdateRate={{this.onUpdateRate}} />`,
       );
 
       // then
@@ -102,7 +102,7 @@ module('Integration | Component | certifications/details-answer', function (hook
       onUpdateRate: () => {},
     });
     const screen = await render(
-      hbs`<Certifications::DetailsAnswer @answer={{this.answer}} @onUpdateRate={{this.onUpdateRate}} />`
+      hbs`<Certifications::DetailsAnswer @answer={{this.answer}} @onUpdateRate={{this.onUpdateRate}} />`,
     );
 
     // when
@@ -126,7 +126,7 @@ module('Integration | Component | certifications/details-answer', function (hook
       },
     });
     const screen = await render(
-      hbs`<Certifications::DetailsAnswer @answer={{this.answer}} @onUpdateRate={{this.onUpdateRate}} />`
+      hbs`<Certifications::DetailsAnswer @answer={{this.answer}} @onUpdateRate={{this.onUpdateRate}} />`,
     );
 
     // when
@@ -142,7 +142,7 @@ module('Integration | Component | certifications/details-answer', function (hook
       onUpdateRate: () => resolve(),
     });
     const screen = await render(
-      hbs`<Certifications::DetailsAnswer @answer={{this.answer}} @onUpdateRate={{this.onUpdateRate}} />`
+      hbs`<Certifications::DetailsAnswer @answer={{this.answer}} @onUpdateRate={{this.onUpdateRate}} />`,
     );
 
     // when

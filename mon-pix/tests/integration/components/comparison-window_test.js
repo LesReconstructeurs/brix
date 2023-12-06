@@ -1,8 +1,10 @@
 import EmberObject from '@ember/object';
 import { module, test } from 'qunit';
 import setupIntlRenderingTest from '../../helpers/setup-intl-rendering';
-import { find, render } from '@ember/test-helpers';
-import hbs from 'htmlbars-inline-precompile';
+// eslint-disable-next-line no-restricted-imports
+import { find } from '@ember/test-helpers';
+import { render } from '@1024pix/ember-testing-library';
+import { hbs } from 'ember-cli-htmlbars';
 
 module('Integration | Component | comparison-window', function (hooks) {
   setupIntlRenderingTest(hooks);
@@ -33,25 +35,23 @@ module('Integration | Component | comparison-window', function (hooks) {
 
     test('should display challenge illustration and alt', async function (assert) {
       // given
-      challenge.set('illustrationUrl', '/images/brix-logo.svg');
+      challenge.set('illustrationUrl', '/images/pix-logo.svg');
       challenge.set('illustrationAlt', 'texte alternatif');
 
       // when
       await render(
-        hbs`<ComparisonWindow @answer={{this.answer}} @closeComparisonWindow={{this.closeComparisonWindow}} />`
+        hbs`<ComparisonWindow @answer={{this.answer}} @closeComparisonWindow={{this.closeComparisonWindow}} />`,
       );
 
       // then
       assert.ok(find('.challenge-illustration__loaded-image').src.includes(challenge.illustrationUrl));
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(find('.challenge-illustration__loaded-image').alt, challenge.illustrationAlt);
+      assert.strictEqual(find('.challenge-illustration__loaded-image').alt, challenge.illustrationAlt);
     });
 
     test('should render challenge instruction', async function (assert) {
       // when
       await render(
-        hbs`<ComparisonWindow @answer={{this.answer}} @closeComparisonWindow={{this.closeComparisonWindow}} />`
+        hbs`<ComparisonWindow @answer={{this.answer}} @closeComparisonWindow={{this.closeComparisonWindow}} />`,
       );
 
       // then
@@ -61,7 +61,7 @@ module('Integration | Component | comparison-window', function (hooks) {
     test('should render a closed feedback panel', async function (assert) {
       //when
       await render(
-        hbs`<ComparisonWindow @answer={{this.answer}} @closeComparisonWindow={{this.closeComparisonWindow}} />`
+        hbs`<ComparisonWindow @answer={{this.answer}} @closeComparisonWindow={{this.closeComparisonWindow}} />`,
       );
 
       //then
@@ -75,7 +75,7 @@ module('Integration | Component | comparison-window', function (hooks) {
 
       // when
       await render(
-        hbs`<ComparisonWindow @answer={{this.answer}} @closeComparisonWindow={{this.closeComparisonWindow}} />`
+        hbs`<ComparisonWindow @answer={{this.answer}} @closeComparisonWindow={{this.closeComparisonWindow}} />`,
       );
 
       // then
@@ -91,7 +91,7 @@ module('Integration | Component | comparison-window', function (hooks) {
 
       // when
       await render(
-        hbs`<ComparisonWindow @answer={{this.answer}} @closeComparisonWindow={{this.closeComparisonWindow}} />`
+        hbs`<ComparisonWindow @answer={{this.answer}} @closeComparisonWindow={{this.closeComparisonWindow}} />`,
       );
 
       // then
@@ -108,7 +108,7 @@ module('Integration | Component | comparison-window', function (hooks) {
 
         // when
         await render(
-          hbs`<ComparisonWindow @answer={{this.answer}} @closeComparisonWindow={{this.closeComparisonWindow}} />`
+          hbs`<ComparisonWindow @answer={{this.answer}} @closeComparisonWindow={{this.closeComparisonWindow}} />`,
         );
 
         // then
@@ -128,7 +128,7 @@ module('Integration | Component | comparison-window', function (hooks) {
 
         // when
         await render(
-          hbs`<ComparisonWindow @answer={{this.answer}} @closeComparisonWindow={{this.closeComparisonWindow}} />`
+          hbs`<ComparisonWindow @answer={{this.answer}} @closeComparisonWindow={{this.closeComparisonWindow}} />`,
         );
 
         // then
@@ -145,7 +145,7 @@ module('Integration | Component | comparison-window', function (hooks) {
 
         // when
         await render(
-          hbs`<ComparisonWindow @answer={{this.answer}} @closeComparisonWindow={{this.closeComparisonWindow}} />`
+          hbs`<ComparisonWindow @answer={{this.answer}} @closeComparisonWindow={{this.closeComparisonWindow}} />`,
         );
 
         // then
@@ -159,16 +159,14 @@ module('Integration | Component | comparison-window', function (hooks) {
       test('should not render corrected answers when challenge has no type', async function (assert) {
         // when
         await render(
-          hbs`<ComparisonWindow @answer={{this.answer}} @closeComparisonWindow={{this.closeComparisonWindow}} />`
+          hbs`<ComparisonWindow @answer={{this.answer}} @closeComparisonWindow={{this.closeComparisonWindow}} />`,
         );
         // then
         assert.dom('div[data-test-id="comparison-window__corrected-answers--qroc"]').doesNotExist();
       });
 
       module('when challenge type is QROC', function () {
-        // TODO: Fix this the next time the file is edited.
-        // eslint-disable-next-line qunit/no-async-module-callbacks
-        module('and challenge is not autoReply', async function () {
+        module('and challenge is not autoReply', function () {
           test('should display answers', async function (assert) {
             // given
             challenge = EmberObject.create({ type: 'QROC', autoReply: false });
@@ -176,7 +174,7 @@ module('Integration | Component | comparison-window', function (hooks) {
 
             // when
             await render(
-              hbs`<ComparisonWindow @answer={{this.answer}} @closeComparisonWindow={{this.closeComparisonWindow}} />`
+              hbs`<ComparisonWindow @answer={{this.answer}} @closeComparisonWindow={{this.closeComparisonWindow}} />`,
             );
 
             // then
@@ -184,9 +182,7 @@ module('Integration | Component | comparison-window', function (hooks) {
           });
         });
 
-        // TODO: Fix this the next time the file is edited.
-        // eslint-disable-next-line qunit/no-async-module-callbacks
-        module('and challenge is autoReply', async function () {
+        module('and challenge is autoReply', function () {
           test('should hide answers when correction has no solutionToDisplay', async function (assert) {
             // given
             challenge = EmberObject.create({ type: 'QROC', autoReply: true });
@@ -194,7 +190,7 @@ module('Integration | Component | comparison-window', function (hooks) {
 
             // when
             await render(
-              hbs`<ComparisonWindow @answer={{this.answer}} @closeComparisonWindow={{this.closeComparisonWindow}} />`
+              hbs`<ComparisonWindow @answer={{this.answer}} @closeComparisonWindow={{this.closeComparisonWindow}} />`,
             );
 
             // then
@@ -210,7 +206,7 @@ module('Integration | Component | comparison-window', function (hooks) {
 
             // when
             await render(
-              hbs`<ComparisonWindow @answer={{this.answer}} @closeComparisonWindow={{this.closeComparisonWindow}} />`
+              hbs`<ComparisonWindow @answer={{this.answer}} @closeComparisonWindow={{this.closeComparisonWindow}} />`,
             );
 
             // then
@@ -226,7 +222,7 @@ module('Integration | Component | comparison-window', function (hooks) {
         answer.set('challenge', challenge);
         // when
         await render(
-          hbs`<ComparisonWindow @answer={{this.answer}} @closeComparisonWindow={{this.closeComparisonWindow}} />`
+          hbs`<ComparisonWindow @answer={{this.answer}} @closeComparisonWindow={{this.closeComparisonWindow}} />`,
         );
         // then
         assert.dom('div[data-test-id="comparison-window__corrected-answers--qrocm"]').exists();
@@ -238,7 +234,7 @@ module('Integration | Component | comparison-window', function (hooks) {
         answer.set('challenge', challenge);
         // when
         await render(
-          hbs`<ComparisonWindow @answer={{this.answer}} @closeComparisonWindow={{this.closeComparisonWindow}} />`
+          hbs`<ComparisonWindow @answer={{this.answer}} @closeComparisonWindow={{this.closeComparisonWindow}} />`,
         );
         // then
         assert.dom('.qcm-solution-panel').exists();

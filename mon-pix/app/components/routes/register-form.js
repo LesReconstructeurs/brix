@@ -1,5 +1,5 @@
 import { action } from '@ember/object';
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 import Component from '@glimmer/component';
 import { tracked } from '@glimmer/tracking';
 import { standardizeNumberInTwoDigitFormat } from 'mon-pix/utils/standardize-number';
@@ -59,6 +59,7 @@ class YearOfBirth {
   @tracked status = 'default';
   @tracked message = null;
 }
+
 class FormValidation {
   lastName = new LastName();
   firstName = new FirstName();
@@ -171,17 +172,13 @@ export default class RegisterForm extends Component {
             const message = this._showErrorMessageByShortCode(error.meta);
             return (this.errorMessage = message);
           }
+          if (error.status === '500') {
+            return (this.errorMessage = this.intl.t(ENV.APP.API_ERROR_MESSAGES.INTERNAL_SERVER_ERROR.I18N_KEY));
+          }
           const defaultMessage = this.intl.t(ENV.APP.API_ERROR_MESSAGES.INTERNAL_SERVER_ERROR.I18N_KEY);
           return (this.errorMessage = error.detail ? error.detail : defaultMessage);
         });
-      }
-    );
-  }
-
-  _showErrorMessageByShortCode(meta) {
-    const defaultMessage = this.intl.t(ENV.APP.API_ERROR_MESSAGES.INTERNAL_SERVER_ERROR.I18N_KEY);
-    return (
-      this.intl.t(getRegisterErrorsMessageByShortCode(meta), { value: meta.value, htlmSafe: true }) || defaultMessage
+      },
     );
   }
 
@@ -198,6 +195,7 @@ export default class RegisterForm extends Component {
     try {
       this.dependentUser.password = this.password;
       this.dependentUser.withUsername = this.loginWithUsername;
+
       if (this.loginWithUsername) {
         this.dependentUser.username = this.username;
         this.dependentUser.email = undefined;
@@ -205,25 +203,36 @@ export default class RegisterForm extends Component {
         this.dependentUser.email = this.email;
         this.dependentUser.username = undefined;
       }
+
       await this.dependentUser.save();
-    } catch (error) {
+
+      const userLogin = this.loginWithUsername ? this.dependentUser.username : this.dependentUser.email;
+      await this._authenticate(userLogin, this.dependentUser.password);
+    } catch (responseError) {
+      responseError.errors.forEach((error) => {
+        let defaultMessage = this.intl.t(ENV.APP.API_ERROR_MESSAGES.INTERNAL_SERVER_ERROR.I18N_KEY);
+        if (error.status === '422') {
+          return this._displayErrorsRelatedToInputs();
+        }
+
+        if (error.status === '500' || error.status === '400' || error.status === '404' || error.status === '409') {
+          if (error.status === '409') {
+            defaultMessage = this._showErrorMessageByShortCode(error.meta);
+          }
+        }
+        this.displayRegisterErrorMessage = true;
+        this.registerErrorMessage = defaultMessage;
+      });
+    } finally {
+      this.dependentUser.password = null;
       this.isLoading = false;
-      return this._updateInputsStatus();
     }
-
-    if (this.loginWithUsername) {
-      await this._authenticate(this.dependentUser.username, this.dependentUser.password);
-    } else {
-      await this._authenticate(this.dependentUser.email, this.dependentUser.password);
-    }
-
-    this.dependentUser.password = null;
-    this.isLoading = false;
   }
 
   @action
   onToggle(data) {
     this.loginWithUsername = data;
+    this.displayRegisterErrorMessage = false;
   }
 
   @action
@@ -277,6 +286,7 @@ export default class RegisterForm extends Component {
     this.matchingStudentFound = false;
     this.loginWithUsername = true;
     this.validation = new FormValidation();
+    this.errorMessage = null;
   }
 
   _executeFieldValidation(key, value, isValid) {
@@ -288,9 +298,8 @@ export default class RegisterForm extends Component {
     this.validation[key].message = message;
   }
 
-  _updateInputsStatus() {
+  _displayErrorsRelatedToInputs() {
     const errors = this.dependentUser.errors;
-
     if (errors) {
       errors.forEach(({ attribute, message }) => {
         this.validation[attribute].status = 'error';
@@ -334,5 +343,12 @@ export default class RegisterForm extends Component {
   _authenticate(login, password) {
     const scope = 'mon-pix';
     return this.session.authenticate('authenticator:oauth2', { login, password, scope });
+  }
+
+  _showErrorMessageByShortCode(meta) {
+    const defaultMessage = this.intl.t(ENV.APP.API_ERROR_MESSAGES.INTERNAL_SERVER_ERROR.I18N_KEY);
+    return (
+      this.intl.t(getRegisterErrorsMessageByShortCode(meta), { value: meta.value, htlmSafe: true }) || defaultMessage
+    );
   }
 }

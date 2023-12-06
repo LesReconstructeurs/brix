@@ -1,18 +1,23 @@
-const moment = require('moment');
-const { UserNotAuthorizedToGetCampaignResultsError, CampaignTypeError } = require('../errors');
-const CampaignProfilesCollectionExport = require('../../infrastructure/serializers/csv/campaign-profiles-collection-export');
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc.js';
+import timezone from 'dayjs/plugin/timezone.js';
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
+import { UserNotAuthorizedToGetCampaignResultsError, CampaignTypeError } from '../errors.js';
+import { CampaignProfilesCollectionExport } from '../../infrastructure/serializers/csv/campaign-profiles-collection-export.js';
 
 async function _checkCreatorHasAccessToCampaignOrganization(userId, organizationId, userRepository) {
   const user = await userRepository.getWithMemberships(userId);
 
   if (!user.hasAccessToOrganization(organizationId)) {
     throw new UserNotAuthorizedToGetCampaignResultsError(
-      `User does not have an access to the organization ${organizationId}`
+      `User does not have an access to the organization ${organizationId}`,
     );
   }
 }
 
-module.exports = async function startWritingCampaignProfilesCollectionResultsToStream({
+const startWritingCampaignProfilesCollectionResultsToStream = async function ({
   userId,
   campaignId,
   writableStream,
@@ -44,7 +49,7 @@ module.exports = async function startWritingCampaignProfilesCollectionResultsToS
     organization,
     campaign,
     allPixCompetences,
-    translate
+    translate,
   );
 
   // No return/await here, we need the writing to continue in the background
@@ -64,8 +69,10 @@ module.exports = async function startWritingCampaignProfilesCollectionResultsToS
   const fileName = translate('campaign-export.common.file-name', {
     name: campaign.name,
     id: campaign.id,
-    date: moment.utc().format('YYYY-MM-DD-hhmm'),
+    date: dayjs().tz('Europe/Berlin').format('YYYY-MM-DD-HHmm'),
   });
 
   return { fileName };
 };
+
+export { startWritingCampaignProfilesCollectionResultsToStream };

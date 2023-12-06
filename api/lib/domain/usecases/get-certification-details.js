@@ -1,6 +1,7 @@
-const CertificationDetails = require('../read-models/CertificationDetails');
+import { CertificationDetails } from '../read-models/CertificationDetails.js';
+import { CertificationVersion } from '../models/CertificationVersion.js';
 
-module.exports = async function getCertificationDetails({
+const getCertificationDetails = async function ({
   certificationCourseId,
   competenceMarkRepository,
   certificationAssessmentRepository,
@@ -19,15 +20,17 @@ module.exports = async function getCertificationDetails({
     return _computeCertificationDetailsOnTheFly(
       certificationAssessment,
       placementProfileService,
-      scoringCertificationService
+      scoringCertificationService,
     );
   }
 };
 
+export { getCertificationDetails };
+
 async function _computeCertificationDetailsOnTheFly(
   certificationAssessment,
   placementProfileService,
-  scoringCertificationService
+  scoringCertificationService,
 ) {
   const certificationAssessmentScore = await scoringCertificationService.calculateCertificationAssessmentScore({
     certificationAssessment,
@@ -36,7 +39,7 @@ async function _computeCertificationDetailsOnTheFly(
   const placementProfile = await placementProfileService.getPlacementProfile({
     userId: certificationAssessment.userId,
     limitDate: certificationAssessment.createdAt,
-    isV2Certification: certificationAssessment.isV2Certification,
+    version: CertificationVersion.V2,
   });
 
   return CertificationDetails.fromCertificationAssessmentScore({
@@ -49,12 +52,12 @@ async function _computeCertificationDetailsOnTheFly(
 async function _retrievePersistedCertificationDetails(
   competenceMarks,
   certificationAssessment,
-  placementProfileService
+  placementProfileService,
 ) {
   const placementProfile = await placementProfileService.getPlacementProfile({
     userId: certificationAssessment.userId,
     limitDate: certificationAssessment.createdAt,
-    isV2Certification: certificationAssessment.isV2Certification,
+    version: CertificationVersion.V2,
   });
 
   return CertificationDetails.from({

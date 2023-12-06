@@ -3,10 +3,13 @@
 
   &__container {
     display: flex;
-  }
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
 
-  &__content {
-    width: 50%;
+    li:not(:last-child) {
+      margin-bottom: .3em;
+    }
   }
 
   &:not(:first-of-type) {
@@ -32,12 +35,16 @@
     gap: 16px;
 
     &-separator {
-      background-color: $pix-neutral-22;
       width: 1px;
+      background-color: $pix-neutral-22;
     }
 
     &-spacer {
       flex-grow: 1;
     }
   }
+}
+
+.bold {
+  font-weight: bold;
 }

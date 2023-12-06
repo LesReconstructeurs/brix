@@ -1,12 +1,12 @@
-const {
+import {
   databaseBuilder,
   expect,
   generateValidRequestAuthorizationHeader,
   learningContentBuilder,
   mockLearningContent,
-} = require('../../../test-helper');
+} from '../../../test-helper.js';
 
-const createServer = require('../../../../server');
+import { createServer } from '../../../../server.js';
 
 describe('Acceptance | API | Campaign Stats Controller', function () {
   let server;
@@ -18,7 +18,7 @@ describe('Acceptance | API | Campaign Stats Controller', function () {
   describe('GET /api/campaigns/{id}/stats/participations-by-stage', function () {
     it('should return the campaign by id', async function () {
       // given
-      const learningContentObjects = learningContentBuilder.buildLearningContent.fromAreas([
+      const learningContentObjects = learningContentBuilder.fromAreas([
         {
           id: 'recArea1',
           title_i18n: {
@@ -72,8 +72,15 @@ describe('Acceptance | API | Campaign Stats Controller', function () {
       expect(response.statusCode).to.equal(200);
       expect(response.result.data.id).to.equal(campaign.id.toString());
       expect(response.result.data.attributes.data).to.deep.equal([
-        { id: stage1.id, value: 0, title: stage1.prescriberTitle, description: stage1.prescriberDescription },
-        { id: stage2.id, value: 0, title: null, description: null },
+        {
+          id: stage1.id,
+          value: 0,
+          title: stage1.prescriberTitle,
+          description: stage1.prescriberDescription,
+          'reached-stage': 1,
+          'total-stage': 2,
+        },
+        { id: stage2.id, value: 0, title: null, description: null, 'reached-stage': 2, 'total-stage': 2 },
       ]);
     });
 

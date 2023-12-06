@@ -1,7 +1,7 @@
-const { expect, domainBuilder } = require('../../../../test-helper');
-const CertificationCandidate = require('../../../../../lib/domain/models/CertificationCandidate');
-const serializer = require('../../../../../lib/infrastructure/serializers/jsonapi/certification-candidate-serializer');
-const _ = require('lodash');
+import { expect, domainBuilder } from '../../../../test-helper.js';
+import { CertificationCandidate } from '../../../../../lib/domain/models/CertificationCandidate.js';
+import * as serializer from '../../../../../lib/infrastructure/serializers/jsonapi/certification-candidate-serializer.js';
+import _ from 'lodash';
 
 describe('Unit | Serializer | JSONAPI | certification-candidate-serializer', function () {
   let certificationCandidate;
@@ -10,13 +10,11 @@ describe('Unit | Serializer | JSONAPI | certification-candidate-serializer', fun
     certificationCandidate = domainBuilder.buildCertificationCandidate({
       organizationLearnerId: 1,
       billingMode: 'PAID',
-      complementaryCertifications: [
-        domainBuilder.buildComplementaryCertification({
-          id: 2,
-          label: 'Pix+Patisserie',
-          key: 'PATISSERIE',
-        }),
-      ],
+      complementaryCertification: domainBuilder.buildComplementaryCertification({
+        id: 2,
+        label: 'Pix+Patisserie',
+        key: 'PATISSERIE',
+      }),
     });
   });
 
@@ -30,7 +28,7 @@ describe('Unit | Serializer | JSONAPI | certification-candidate-serializer', fun
           attributes: {
             'first-name': certificationCandidate.firstName,
             'last-name': certificationCandidate.lastName,
-            'billing-mode': 'Payante',
+            'billing-mode': 'PAID',
             'prepayment-code': null,
             'birth-city': certificationCandidate.birthCity,
             'birth-province-code': certificationCandidate.birthProvinceCode,
@@ -45,13 +43,11 @@ describe('Unit | Serializer | JSONAPI | certification-candidate-serializer', fun
             'is-linked': !_.isNil(certificationCandidate.userId),
             'organization-learner-id': 1,
             sex: certificationCandidate.sex,
-            'complementary-certifications': [
-              {
-                id: 2,
-                label: 'Pix+Patisserie',
-                key: 'PATISSERIE',
-              },
-            ],
+            'complementary-certification': {
+              id: 2,
+              label: 'Pix+Patisserie',
+              key: 'PATISSERIE',
+            },
           },
         },
       };
@@ -100,15 +96,15 @@ describe('Unit | Serializer | JSONAPI | certification-candidate-serializer', fun
       expect(deserializedCertificationCandidate.birthCity).to.equal(certificationCandidate.birthCity);
       expect(deserializedCertificationCandidate.birthCountry).to.equal(certificationCandidate.birthCountry);
       expect(deserializedCertificationCandidate.extraTimePercentage).to.equal(
-        certificationCandidate.extraTimePercentage
+        certificationCandidate.extraTimePercentage,
       );
       expect(deserializedCertificationCandidate.externalId).to.equal(certificationCandidate.externalId);
       expect(deserializedCertificationCandidate.email).to.equal(certificationCandidate.email);
       expect(deserializedCertificationCandidate.resultRecipientEmail).to.equal(
-        certificationCandidate.resultRecipientEmail
+        certificationCandidate.resultRecipientEmail,
       );
       expect(deserializedCertificationCandidate.organizationLearnerId).to.equal(
-        certificationCandidate.organizationLearnerId
+        certificationCandidate.organizationLearnerId,
       );
     });
   });

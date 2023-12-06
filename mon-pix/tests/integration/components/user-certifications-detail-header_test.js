@@ -1,7 +1,7 @@
 import { module, test } from 'qunit';
 import { render as renderScreen } from '@1024pix/ember-testing-library';
 import { click } from '@ember/test-helpers';
-import hbs from 'htmlbars-inline-precompile';
+import { hbs } from 'ember-cli-htmlbars';
 import setupIntlRenderingTest from '../../helpers/setup-intl-rendering';
 import Service from '@ember/service';
 import sinon from 'sinon';
@@ -33,7 +33,7 @@ module('Integration | Component | user certifications detail header', function (
       this.set('certification', certification);
 
       // when
-      screen = await renderScreen(hbs`{{user-certifications-detail-header certification=this.certification}}`);
+      screen = await renderScreen(hbs`<UserCertificationsDetailHeader @certification={{this.certification}} />`);
     });
 
     test('should show the certification published date', function (assert) {
@@ -81,7 +81,7 @@ module('Integration | Component | user certifications detail header', function (
       this.set('certification', certification);
 
       // when
-      const screen = await renderScreen(hbs`{{user-certifications-detail-header certification=this.certification}}`);
+      const screen = await renderScreen(hbs`<UserCertificationsDetailHeader @certification={{this.certification}} />`);
 
       // then
       assert.notOk(screen.queryByText('Né(e) le 22 janvier 2000 à Paris'));
@@ -90,13 +90,13 @@ module('Integration | Component | user certifications detail header', function (
 
   module('when domain is french', function (hooks) {
     hooks.beforeEach(function () {
-      class UrlServiceStub extends Service {
-        get isFrenchDomainExtension() {
+      class CurrentDomainServiceStub extends Service {
+        get isFranceDomain() {
           return true;
         }
       }
 
-      this.owner.register('service:url', UrlServiceStub);
+      this.owner.register('service:currentDomain', CurrentDomainServiceStub);
     });
 
     module('when certification is delivered after 2022-01-01', function () {
@@ -120,13 +120,15 @@ module('Integration | Component | user certifications detail header', function (
         this.set('certification', certification);
 
         // when
-        const screen = await renderScreen(hbs`{{user-certifications-detail-header certification=this.certification}}`);
+        const screen = await renderScreen(
+          hbs`<UserCertificationsDetailHeader @certification={{this.certification}} />`,
+        );
 
         // then
         assert.ok(
           screen.getByText(
-            'Le certificat Pix est reconnu comme professionnalisant par France compétences à compter d’un score minimal de 120 pix'
-          )
+            'Le certificat Pix est reconnu comme professionnalisant par France compétences à compter d’un score minimal de 120 pix',
+          ),
         );
       });
     });
@@ -152,13 +154,15 @@ module('Integration | Component | user certifications detail header', function (
         this.set('certification', certification);
 
         // when
-        const screen = await renderScreen(hbs`{{user-certifications-detail-header certification=this.certification}}`);
+        const screen = await renderScreen(
+          hbs`<UserCertificationsDetailHeader @certification={{this.certification}} />`,
+        );
 
         // then
         assert.notOk(
           screen.queryByText(
-            'Le certificat Pix est reconnu comme professionnalisant par France compétences à compter d’un score minimal de 120 pix'
-          )
+            'Le certificat Pix est reconnu comme professionnalisant par France compétences à compter d’un score minimal de 120 pix',
+          ),
         );
       });
     });
@@ -191,15 +195,14 @@ module('Integration | Component | user certifications detail header', function (
       });
       this.set('certification', certification);
 
-      const screen = await renderScreen(hbs`{{user-certifications-detail-header certification=this.certification}}`);
+      const screen = await renderScreen(hbs`<UserCertificationsDetailHeader @certification={{this.certification}} />`);
 
       // when
       await click(screen.getByRole('button', { name: 'Télécharger mon attestation' }));
 
       // then
       sinon.assert.calledWith(fileSaverSaveStub, {
-        url: '/api/attestation/1234?isFrenchDomainExtension=true',
-        fileName: 'attestation_pix.pdf',
+        url: '/api/attestation/1234?isFrenchDomainExtension=true&lang=fr',
         token: undefined,
       });
       assert.ok(true);
@@ -209,13 +212,14 @@ module('Integration | Component | user certifications detail header', function (
   module('when domain is not french', function () {
     test('should not display the professionalizing warning', async function (assert) {
       // given
-      class UrlServiceStub extends Service {
-        get isFrenchDomainExtension() {
+      class CurrentDomainServiceStub extends Service {
+        get isFranceDomain() {
           return false;
         }
       }
 
-      this.owner.register('service:url', UrlServiceStub);
+      this.owner.register('service:currentDomain', CurrentDomainServiceStub);
+
       const store = this.owner.lookup('service:store');
       const certification = store.createRecord('certification', {
         id: 1,
@@ -234,13 +238,13 @@ module('Integration | Component | user certifications detail header', function (
       this.set('certification', certification);
 
       // when
-      const screen = await renderScreen(hbs`{{user-certifications-detail-header certification=this.certification}}`);
+      const screen = await renderScreen(hbs`<UserCertificationsDetailHeader @certification={{this.certification}} />`);
 
       // then
       assert.notOk(
         screen.queryByText(
-          'Le certificat Pix est reconnu comme professionnalisant par France compétences à compter d’un score minimal de 120 pix'
-        )
+          'Le certificat Pix est reconnu comme professionnalisant par France compétences à compter d’un score minimal de 120 pix',
+        ),
       );
     });
 
@@ -272,15 +276,14 @@ module('Integration | Component | user certifications detail header', function (
       });
       this.set('certification', certification);
 
-      const screen = await renderScreen(hbs`{{user-certifications-detail-header certification=this.certification}}`);
+      const screen = await renderScreen(hbs`<UserCertificationsDetailHeader @certification={{this.certification}} />`);
 
       // when
       await click(screen.getByRole('button', { name: 'Télécharger mon attestation' }));
 
       // then
       sinon.assert.calledWith(fileSaverSaveStub, {
-        url: '/api/attestation/1234?isFrenchDomainExtension=false',
-        fileName: 'attestation_pix.pdf',
+        url: '/api/attestation/1234?isFrenchDomainExtension=false&lang=fr',
         token: undefined,
       });
       assert.ok(true);
@@ -318,7 +321,7 @@ module('Integration | Component | user certifications detail header', function (
       });
       this.set('certification', certification);
 
-      const screen = await renderScreen(hbs`{{user-certifications-detail-header certification=this.certification}}`);
+      const screen = await renderScreen(hbs`<UserCertificationsDetailHeader @certification={{this.certification}} />`);
 
       // when
       await click(screen.getByRole('button', { name: 'Télécharger mon attestation' }));

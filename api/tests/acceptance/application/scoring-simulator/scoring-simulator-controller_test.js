@@ -1,13 +1,16 @@
-const { expect } = require('chai');
-const createServer = require('../../../../server');
-const {
-  databaseBuilder,
-  generateValidRequestAuthorizationHeader,
-  mockLearningContent,
-} = require('../../../test-helper');
-const {
-  ROLES: { SUPER_ADMIN },
-} = require('../../../../lib/domain/constants').PIX_ADMIN;
+import chai from 'chai';
+
+const { expect } = chai;
+
+import { createServer } from '../../../../server.js';
+
+import { databaseBuilder, generateValidRequestAuthorizationHeader, mockLearningContent } from '../../../test-helper.js';
+
+import { PIX_ADMIN } from '../../../../lib/domain/constants.js';
+
+const { ROLES } = PIX_ADMIN;
+
+const isoDateFormat = /^\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d\.\d\d\d.*$/;
 
 describe('Acceptance | Controller | scoring-simulator-controller', function () {
   let server;
@@ -17,7 +20,7 @@ describe('Acceptance | Controller | scoring-simulator-controller', function () {
     server = await createServer();
 
     const { id: adminId } = databaseBuilder.factory.buildUser.withRole({
-      role: SUPER_ADMIN,
+      role: ROLES.SUPER_ADMIN,
     });
     adminAuthorization = generateValidRequestAuthorizationHeader(adminId);
     await databaseBuilder.commit();
@@ -60,12 +63,12 @@ describe('Acceptance | Controller | scoring-simulator-controller', function () {
         { id: 'skill6', status: 'périmé', tubeId: 'recTube2', competenceId: 'rec2', level: 6, pixValue: 100000 },
       ],
       challenges: [
-        { id: 'challenge1', skillId: 'skill1', status: 'validé', alpha: 0.16, delta: -2, locales: ['fr'] },
-        { id: 'challenge2', skillId: 'skill2', status: 'validé', alpha: 3, delta: 6, locales: ['fr'] },
-        { id: 'challenge3', skillId: 'skill3', status: 'validé', alpha: 1.587, delta: 8.5, locales: ['fr'] },
-        { id: 'challenge4', skillId: 'skill4', status: 'validé', alpha: 2.86789, delta: 0.145, locales: ['fr'] },
-        { id: 'challenge5', skillId: 'skill5', status: 'validé', alpha: 3, delta: 1, locales: ['fr'] },
-        { id: 'challenge6', skillId: 'skill5', status: 'validé', alpha: 1.7, delta: -1, locales: ['fr'] },
+        { id: 'challenge1', skillId: 'skill1', status: 'validé', alpha: 0.16, delta: -2, locales: ['fr-fr'] },
+        { id: 'challenge2', skillId: 'skill2', status: 'validé', alpha: 3, delta: 6, locales: ['fr-fr'] },
+        { id: 'challenge3', skillId: 'skill3', status: 'validé', alpha: 1.587, delta: 8.5, locales: ['fr-fr'] },
+        { id: 'challenge4', skillId: 'skill4', status: 'validé', alpha: 2.86789, delta: 0.145, locales: ['fr-fr'] },
+        { id: 'challenge5', skillId: 'skill5', status: 'validé', alpha: 3, delta: 1, locales: ['fr-fr'] },
+        { id: 'challenge6', skillId: 'skill5', status: 'validé', alpha: 1.7, delta: -1, locales: ['fr-fr'] },
       ],
     };
 
@@ -88,22 +91,24 @@ describe('Acceptance | Controller | scoring-simulator-controller', function () {
       // given
       options.headers.authorization = adminAuthorization;
       options.payload = {
-        simulations: [
-          {
-            answers: [
-              { challengeId: 'challenge3', result: 'ok' },
-              { challengeId: 'challenge2', result: 'ok' },
-              { challengeId: 'challenge5', result: 'ok' },
-            ],
-          },
-          {
-            id: 'simulationWithError',
-            answers: [
-              { challengeId: 'challenge2', result: 'ok' },
-              { challengeId: 'challenge1', result: 'ok' },
-            ],
-          },
-        ],
+        dataset: {
+          simulations: [
+            {
+              answers: [
+                { challengeId: 'challenge3', result: 'ok' },
+                { challengeId: 'challenge2', result: 'ok' },
+                { challengeId: 'challenge5', result: 'ok' },
+              ],
+            },
+            {
+              id: 'simulationWithError',
+              answers: [
+                { challengeId: 'challenge2', result: 'ok' },
+                { challengeId: 'challenge1', result: 'ok' },
+              ],
+            },
+          ],
+        },
       };
 
       // when
@@ -111,22 +116,32 @@ describe('Acceptance | Controller | scoring-simulator-controller', function () {
 
       // then
       expect(response).to.have.property('statusCode', 200);
-      expect(response.result).to.deep.equal({
-        results: [
-          {
-            id: undefined,
-            error: undefined,
-            estimatedLevel: undefined,
-            pixScore: 11111,
-          },
-          {
-            id: 'simulationWithError',
-            error: 'Answer for skill skill1 was already given or inferred',
-            estimatedLevel: undefined,
-            pixScore: undefined,
-          },
-        ],
-      });
+      expect(response.result.results).to.exactlyContain([
+        {
+          id: undefined,
+          estimatedLevel: undefined,
+          pixScore: 11111,
+          error: undefined,
+          pixScoreByCompetence: [
+            {
+              competenceId: 'rec1',
+              pixScore: 11,
+            },
+            {
+              competenceId: 'rec2',
+              pixScore: 11100,
+            },
+          ],
+        },
+        {
+          id: 'simulationWithError',
+          estimatedLevel: undefined,
+          pixScore: undefined,
+          pixScoreByCompetence: [],
+          error: 'Answer for skill skill1 was already given or inferred',
+        },
+      ]);
+      expect(response.result.date).to.match(isoDateFormat);
     });
 
     describe('when there is no connected user', function () {
@@ -149,7 +164,9 @@ describe('Acceptance | Controller | scoring-simulator-controller', function () {
         await databaseBuilder.commit();
         options.headers.authorization = generateValidRequestAuthorizationHeader(userId);
         options.payload = {
-          simulations: [{ answers: [{ challengeId: 'test', result: 'ok' }] }],
+          dataset: {
+            simulations: [{ answers: [{ challengeId: 'test', result: 'ok' }] }],
+          },
         };
 
         // when
@@ -167,7 +184,7 @@ describe('Acceptance | Controller | scoring-simulator-controller', function () {
         options.payload = {
           wrongField: [
             {
-              answers: [],
+              simulations: [],
             },
           ],
         };
@@ -197,39 +214,48 @@ describe('Acceptance | Controller | scoring-simulator-controller', function () {
       // given
       options.headers.authorization = adminAuthorization;
       options.payload = {
-        simulations: [
-          {
-            id: 'simulation1',
-            estimatedLevel: 2.5769829347,
-            answers: [
-              {
-                challengeId: 'challenge3',
-                result: 'ok',
+        context: {
+          id: 'superContext',
+        },
+        dataset: {
+          id: 'awesomeDataset',
+          simulations: [
+            {
+              id: 'simulation1',
+              user: {
+                id: '101',
+                estimatedLevel: 2.5769829347,
               },
-              {
-                challengeId: 'challenge2',
-                result: 'ok',
-              },
-              {
-                challengeId: 'challenge5',
-                result: 'ok',
-              },
-            ],
-          },
-          {
-            id: 'simulation2',
-            answers: [
-              {
-                challengeId: 'challenge2',
-                result: 'ok',
-              },
-              {
-                challengeId: 'challenge1',
-                result: 'ok',
-              },
-            ],
-          },
-        ],
+              answers: [
+                {
+                  challengeId: 'challenge3',
+                  result: 'ok',
+                },
+                {
+                  challengeId: 'challenge2',
+                  result: 'ok',
+                },
+                {
+                  challengeId: 'challenge5',
+                  result: 'ok',
+                },
+              ],
+            },
+            {
+              id: 'simulation2',
+              answers: [
+                {
+                  challengeId: 'challenge2',
+                  result: 'ok',
+                },
+                {
+                  challengeId: 'challenge1',
+                  result: 'ok',
+                },
+              ],
+            },
+          ],
+        },
       };
 
       // when
@@ -237,22 +263,28 @@ describe('Acceptance | Controller | scoring-simulator-controller', function () {
 
       // then
       expect(response).to.have.property('statusCode', 200);
-      expect(response.result).to.deep.equal({
-        results: [
-          {
-            id: 'simulation1',
-            estimatedLevel: 2.5769829347,
-            pixScore: 11110,
-            error: undefined,
-          },
-          {
-            id: 'simulation2',
-            error: 'Simulation should have an estimated level',
-            estimatedLevel: undefined,
-            pixScore: undefined,
-          },
-        ],
-      });
+      expect(response.result).to.have.property('contextId', 'superContext');
+      expect(response.result).to.have.property('datasetId', 'awesomeDataset');
+      expect(response.result.results).to.exactlyContain([
+        {
+          id: 'simulation1',
+          estimatedLevel: 2.5769829347,
+          pixScore: 11110,
+          pixScoreByCompetence: [
+            { competenceId: 'rec1', pixScore: 10 },
+            { competenceId: 'rec2', pixScore: 11100 },
+          ],
+          error: undefined,
+        },
+        {
+          id: 'simulation2',
+          error: 'Simulation should have an estimated level',
+          estimatedLevel: undefined,
+          pixScore: undefined,
+          pixScoreByCompetence: [],
+        },
+      ]);
+      expect(response.result.date).to.match(isoDateFormat);
     });
 
     describe('when there is no connected user', function () {
@@ -275,11 +307,13 @@ describe('Acceptance | Controller | scoring-simulator-controller', function () {
         options.headers.authorization = generateValidRequestAuthorizationHeader(userId);
         await databaseBuilder.commit();
         options.payload = {
-          simulations: [
-            {
-              estimatedLevel: 1,
-            },
-          ],
+          dataset: {
+            simulations: [
+              {
+                estimatedLevel: 1,
+              },
+            ],
+          },
         };
 
         // when
@@ -297,7 +331,7 @@ describe('Acceptance | Controller | scoring-simulator-controller', function () {
         options.payload = {
           wrongField: [
             {
-              answers: [],
+              simulations: [],
             },
           ],
         };

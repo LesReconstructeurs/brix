@@ -8,7 +8,7 @@ module('Unit | Component | form-textfield-date', function (hooks) {
   let component;
 
   hooks.beforeEach(function () {
-    component = createGlimmerComponent('component:form-textfield-date');
+    component = createGlimmerComponent('form-textfield-date');
   });
 
   module('When validationStatus gets "default", Component computed property: ', function () {
@@ -26,9 +26,7 @@ module('Unit | Component | form-textfield-date', function (hooks) {
           const propertyValue = component[property];
 
           // Then
-          // TODO: Fix this the next time the file is edited.
-          // eslint-disable-next-line qunit/no-assert-equal
-          assert.equal(propertyValue, expectedValue);
+          assert.strictEqual(propertyValue, expectedValue);
         });
       });
     });
@@ -49,9 +47,7 @@ module('Unit | Component | form-textfield-date', function (hooks) {
           const propertyValue = component[property];
 
           // Then
-          // TODO: Fix this the next time the file is edited.
-          // eslint-disable-next-line qunit/no-assert-equal
-          assert.equal(propertyValue, expectedValue);
+          assert.strictEqual(propertyValue, expectedValue);
         });
       });
     });
@@ -72,9 +68,7 @@ module('Unit | Component | form-textfield-date', function (hooks) {
           const propertyValue = component[property];
 
           // Then
-          // TODO: Fix this the next time the file is edited.
-          // eslint-disable-next-line qunit/no-assert-equal
-          assert.equal(propertyValue, expectedValue);
+          assert.strictEqual(propertyValue, expectedValue);
         });
       });
     });

@@ -1,6 +1,6 @@
-const { expect } = require('../../../test-helper');
-const poleEmploiService = require('../../../../lib/domain/services/pole-emploi-service');
-const settings = require('../../../../lib/config');
+import { expect } from '../../../test-helper.js';
+import * as poleEmploiService from '../../../../lib/domain/services/pole-emploi-service.js';
+import { config as settings } from '../../../../lib/config.js';
 
 describe('Unit | Service | Pole Emploi Service', function () {
   describe('#generateLink', function () {
@@ -28,7 +28,7 @@ describe('Unit | Service | Pole Emploi Service', function () {
 
       // then
       expect(generatedLink).to.equal(
-        'https://url-externe/pole-emploi/envois?curseur=eyJpZEVudm9pIjo0NTYsImRhdGVFbnZvaSI6IjIwMjEtMDUtMDFUMDA6MDA6MDAuMDAwWiJ9'
+        'https://url-externe/pole-emploi/envois?curseur=eyJpZEVudm9pIjo0NTYsImRhdGVFbnZvaSI6IjIwMjEtMDUtMDFUMDA6MDA6MDAuMDAwWiJ9',
       );
     });
 
@@ -50,7 +50,7 @@ describe('Unit | Service | Pole Emploi Service', function () {
 
           // then
           expect(generatedLink).to.equal(
-            'https://url-externe/pole-emploi/envois?curseur=eyJpZEVudm9pIjo0NTYsImRhdGVFbnZvaSI6IjIwMjEtMDUtMDFUMDA6MDA6MDAuMDAwWiJ9&enErreur=false'
+            'https://url-externe/pole-emploi/envois?curseur=eyJpZEVudm9pIjo0NTYsImRhdGVFbnZvaSI6IjIwMjEtMDUtMDFUMDA6MDA6MDAuMDAwWiJ9&enErreur=false',
           );
         });
       });
@@ -71,7 +71,7 @@ describe('Unit | Service | Pole Emploi Service', function () {
 
           // then
           expect(generatedLink).to.equal(
-            'https://url-externe/pole-emploi/envois?curseur=eyJpZEVudm9pIjo0NTYsImRhdGVFbnZvaSI6IjIwMjEtMDUtMDFUMDA6MDA6MDAuMDAwWiJ9&enErreur=true'
+            'https://url-externe/pole-emploi/envois?curseur=eyJpZEVudm9pIjo0NTYsImRhdGVFbnZvaSI6IjIwMjEtMDUtMDFUMDA6MDA6MDAuMDAwWiJ9&enErreur=true',
           );
         });
       });

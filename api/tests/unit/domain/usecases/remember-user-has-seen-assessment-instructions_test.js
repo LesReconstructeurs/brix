@@ -1,10 +1,10 @@
-const { expect, sinon } = require('../../../test-helper');
-const rememberUserHasSeenAssessmentInstructions = require('../../../../lib/domain/usecases/remember-user-has-seen-assessment-instructions');
-const userRepository = require('../../../../lib/infrastructure/repositories/user-repository');
+import { expect, sinon } from '../../../test-helper.js';
+import { rememberUserHasSeenAssessmentInstructions } from '../../../../lib/domain/usecases/remember-user-has-seen-assessment-instructions.js';
 
 describe('Unit | UseCase | remember-user-has-seen-assessment-instructions', function () {
+  let userRepository;
   beforeEach(function () {
-    sinon.stub(userRepository, 'updateHasSeenAssessmentInstructionsToTrue');
+    userRepository = { updateHasSeenAssessmentInstructionsToTrue: sinon.stub() };
   });
 
   it('should update has seen assessment instructions', async function () {

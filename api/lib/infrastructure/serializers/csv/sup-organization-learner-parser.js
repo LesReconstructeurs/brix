@@ -1,8 +1,7 @@
-const SupOrganizationLearnerSet = require('../../../domain/models/SupOrganizationLearnerSet');
-const { CsvImportError } = require('../../../domain/errors');
-
-const { CsvOrganizationLearnerParser } = require('./csv-learner-parser');
-const SupOrganizationLearnerColumns = require('./sup-organization-learner-columns');
+import { SupOrganizationLearnerSet } from '../../../domain/models/SupOrganizationLearnerSet.js';
+import { CsvImportError } from '../../../domain/errors.js';
+import { CsvOrganizationLearnerParser } from './csv-learner-parser.js';
+import { SupOrganizationLearnerImportHeader } from './sup-organization-learner-import-header.js';
 
 const ERRORS = {
   STUDENT_NUMBER_UNIQUE: 'STUDENT_NUMBER_UNIQUE',
@@ -13,15 +12,15 @@ class SupOrganizationLearnerParser extends CsvOrganizationLearnerParser {
   constructor(input, organizationId, i18n) {
     const LearnerSet = new SupOrganizationLearnerSet(i18n);
 
-    const columns = new SupOrganizationLearnerColumns(i18n).columns;
+    const columns = new SupOrganizationLearnerImportHeader(i18n).columns;
 
     super(input, organizationId, columns, LearnerSet);
   }
 
   _handleError(err, index) {
-    const column = this._columns.find((column) => column.name === err.key);
+    const column = this._columns.find((column) => column.property === err.key);
     const line = index + 2;
-    const field = column.label;
+    const field = column.name;
     if (err.why === 'uniqueness') {
       throw new CsvImportError(ERRORS.STUDENT_NUMBER_UNIQUE, { line, field });
     }
@@ -32,4 +31,4 @@ class SupOrganizationLearnerParser extends CsvOrganizationLearnerParser {
   }
 }
 
-module.exports = SupOrganizationLearnerParser;
+export { SupOrganizationLearnerParser };

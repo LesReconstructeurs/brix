@@ -1,62 +1,90 @@
 <li class="session-supervising-candidate-in-list">
-  {{#if this.isCheckboxToBeDisplayed}}
-    <PixInput
-      @id={{concat "candidate-checkbox-" @candidate.id}}
-      class="session-supervising-candidate-in-list__checkbox"
-      type="checkbox"
-      checked={{@candidate.authorizedToStart}}
-      @ariaLabel="{{@candidate.lastName}} {{@candidate.firstName}}"
-      {{on "click" (fn this.toggleCandidate @candidate)}}
-    />
-  {{/if}}
   <div class="session-supervising-candidate-in-list__candidate-data">
     <div class="session-supervising-candidate-in-list__full-name">
-      {{#if @candidate.hasStarted}}
-        {{@candidate.lastName}}
-        {{@candidate.firstName}}
-      {{else}}
-        <label for={{concat "candidate-checkbox-" @candidate.id}}>
-          {{@candidate.lastName}}
-          {{@candidate.firstName}}
-        </label>
-      {{/if}}
+      {{@candidate.lastName}}
+      {{@candidate.firstName}}
     </div>
     <div class="session-supervising-candidate-in-list__details">
       {{dayjs-format @candidate.birthdate "DD/MM/YYYY"}}
-      {{#if @candidate.extraTimePercentage}}
-        ·
-        {{t "pages.session-supervising.candidate-in-list.extra-time"}}
-        :
-        {{@candidate.extraTimePercentage}}%
+      {{#if this.shouldDisplayEnrolledComplementaryCertification}}
+        <p class="session-supervising-candidate-in-list-details__enrolment">
+          <span class="session-supervising-candidate-in-list-details-enrolment__icon"><FaIcon @icon="award" /></span>
+          {{t
+            "pages.session-supervising.candidate-in-list.complementary-certification-enrolment"
+            complementaryCertification=@candidate.enrolledComplementaryCertificationLabel
+          }}
+        </p>
+      {{/if}}
+
+      {{#if this.shouldDisplayNonEligibilityWarning}}
+        <PixMessage
+          @type="warning"
+          @withIcon={{true}}
+          class="session-supervising-candidate-in-list-details__eligibility"
+        >
+          {{t "pages.session-supervising.candidate-in-list.complementary-certification-non-eligibility-warning"}}
+        </PixMessage>
+      {{/if}}
+      {{#if @candidate.hasStarted}}
+        <p class="session-supervising-candidate-in-list-details-time">
+          <FaIcon @icon="clock" @prefix="far" class="session-supervising-candidate-in-list-details-time__clock" />
+          <div class="session-supervising-candidate-in-list-details-time__text">
+            <span class="session-supervising-candidate-in-list-details-time__text__startdatetime">
+              {{t "pages.session-supervising.candidate-in-list.start-date-time"}}
+              <time>{{this.candidateStartTime}}</time>
+            </span>
+            <span class="session-supervising-candidate-in-list-details-time__text__end-date-time">
+              {{t "pages.session-supervising.candidate-in-list.end-date-time"}}
+              <time>{{this.candidateTheoricalEndDateTime}}</time>
+            </span>
+            {{#if @candidate.extraTimePercentage}}
+              <span class="session-supervising-candidate-in-list-details-time__text__extra-time-percentage">
+                {{t
+                  "pages.session-supervising.candidate-in-list.extratime"
+                  extraTimePercentage=(format-percentage @candidate.extraTimePercentage)
+                }}
+              </span>
+            {{/if}}
+          </div>
+        </p>
+      {{/if}}
+
+    </div>
+    {{#if this.isConfirmButtonToBeDisplayed}}
+      <PixButton
+        aria-label={{this.authorizationButtonAriaLabel}}
+        @triggerAction={{fn this.toggleCandidate @candidate}}
+        @backgroundColor={{this.authorizationButtonBackgroundColor}}
+        @isBorderVisible={{@candidate.authorizedToStart}}
+        class="session-supervising-candidate-in-list__confirm-button"
+      >
+        {{this.authorizationButtonLabel}}
+      </PixButton>
+    {{/if}}
+    <div class="session-supervising-candidate-in-list__status-container">
+      {{#if @candidate.hasStarted}}
+        {{#if @candidate.isAuthorizedToResume}}
+          <span
+            class="session-supervising-candidate-in-list__status session-supervising-candidate-in-list__status--authorized-to-resume"
+          >
+            {{t "common.forms.certification-labels.candidate-status.authorized-to-resume"}}
+          </span>
+        {{else}}
+          <span
+            class="session-supervising-candidate-in-list__status session-supervising-candidate-in-list__status--started"
+          >
+            {{t "common.forms.certification-labels.candidate-status.ongoing"}}
+          </span>
+        {{/if}}
+      {{/if}}
+      {{#if @candidate.hasCompleted}}
+        <span
+          class="session-supervising-candidate-in-list__status session-supervising-candidate-in-list__status--completed"
+        >
+          {{t "common.forms.certification-labels.candidate-status.finished"}}
+        </span>
       {{/if}}
     </div>
-    {{#if @candidate.hasStarted}}
-      {{#if @candidate.isAuthorizedToResume}}
-        <span
-          class="session-supervising-candidate-in-list__status session-supervising-candidate-in-list__status--authorized-to-resume"
-        >
-          {{t "pages.session-supervising.candidate-in-list.authorized-to-resume"}}
-        </span>
-      {{else}}
-        <span
-          class="session-supervising-candidate-in-list__status session-supervising-candidate-in-list__status--started"
-        >
-          {{t "pages.session-supervising.candidate-in-list.ongoing"}}
-        </span>
-      {{/if}}
-      <span class="session-supervising-candidate-in-list__start-time">{{t
-          "pages.session-supervising.candidate-in-list.start"
-        }}
-        :
-        <time>{{this.candidateStartTime}}</time></span>
-    {{/if}}
-    {{#if @candidate.hasCompleted}}
-      <span
-        class="session-supervising-candidate-in-list__status session-supervising-candidate-in-list__status--completed"
-      >
-        {{t "pages.session-supervising.candidate-in-list.finished"}}
-      </span>
-    {{/if}}
   </div>
   {{#if this.optionsMenuShouldBeDisplayed}}
     <div class="session-supervising-candidate-in-list__menu">

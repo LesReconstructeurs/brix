@@ -1,6 +1,6 @@
-const Validation = require('./Validation');
-const Validator = require('./Validator');
-const AnswerStatus = require('./AnswerStatus');
+import { Validation } from './Validation.js';
+import { Validator } from './Validator.js';
+import { AnswerStatus } from './AnswerStatus.js';
 
 class ValidatorAlwaysOK extends Validator {
   assess() {
@@ -11,4 +11,4 @@ class ValidatorAlwaysOK extends Validator {
   }
 }
 
-module.exports = ValidatorAlwaysOK;
+export { ValidatorAlwaysOK };

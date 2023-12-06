@@ -1,12 +1,10 @@
-const { checkEventTypes } = require('./check-event-types');
-const SessionFinalized = require('./SessionFinalized');
-const CertificationIssueReportResolutionAttempt = require('../models/CertificationIssueReportResolutionAttempt');
-const AutoJuryDone = require('./AutoJuryDone');
-const CertificationJuryDone = require('./CertificationJuryDone');
-const bluebird = require('bluebird');
-const {
-  CertificationIssueReportResolutionStrategies,
-} = require('../models/CertificationIssueReportResolutionStrategies');
+import { checkEventTypes } from './check-event-types.js';
+import { SessionFinalized } from './SessionFinalized.js';
+import { CertificationIssueReportResolutionAttempt } from '../models/CertificationIssueReportResolutionAttempt.js';
+import { AutoJuryDone } from './AutoJuryDone.js';
+import { CertificationJuryDone } from './CertificationJuryDone.js';
+import bluebird from 'bluebird';
+import { CertificationIssueReportResolutionStrategies } from '../models/CertificationIssueReportResolutionStrategies.js';
 
 const eventTypes = [SessionFinalized];
 
@@ -105,7 +103,7 @@ async function _autoResolveCertificationIssueReport({
   logger,
 }) {
   const certificationIssueReports = await certificationIssueReportRepository.findByCertificationCourseId(
-    certificationCourse.getId()
+    certificationCourse.getId(),
   );
   if (certificationIssueReports.length === 0) {
     return null;
@@ -129,4 +127,4 @@ async function _autoResolveCertificationIssueReport({
 }
 
 handleAutoJury.eventTypes = eventTypes;
-module.exports = handleAutoJury;
+export { handleAutoJury };

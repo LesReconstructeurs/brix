@@ -1,7 +1,7 @@
 import { module, test } from 'qunit';
 import setupIntlRenderingTest from '../../../helpers/setup-intl-rendering';
 import { render } from '@1024pix/ember-testing-library';
-import hbs from 'htmlbars-inline-precompile';
+import { hbs } from 'ember-cli-htmlbars';
 
 module('Integration | Component | Ui::LastParticipationDateTooltip', function (hooks) {
   setupIntlRenderingTest(hooks);
@@ -13,8 +13,8 @@ module('Integration | Component | Ui::LastParticipationDateTooltip', function (h
     assert
       .dom(
         screen.getByLabelText(
-          this.intl.t('pages.participants-list.latest-participation-information-tooltip.aria-label')
-        )
+          this.intl.t('pages.participants-list.latest-participation-information-tooltip.aria-label'),
+        ),
       )
       .exists();
   });
@@ -24,7 +24,7 @@ module('Integration | Component | Ui::LastParticipationDateTooltip', function (h
     this.participant = { campaignName: 'Campagne annuelle' };
 
     // when
-    await render(hbs`<Ui::LastParticipationDateTooltip @campaignName={{this.participant.campaignName}}/>`);
+    await render(hbs`<Ui::LastParticipationDateTooltip @campaignName={{this.participant.campaignName}} />`);
 
     // then
     assert.contains('Campagne :');
@@ -36,7 +36,7 @@ module('Integration | Component | Ui::LastParticipationDateTooltip', function (h
     this.participant = { campaignType: 'ASSESSMENT' };
 
     // when
-    await render(hbs`<Ui::LastParticipationDateTooltip @campaignType={{this.participant.campaignType}}/>`);
+    await render(hbs`<Ui::LastParticipationDateTooltip @campaignType={{this.participant.campaignType}} />`);
 
     // then
     assert.contains('Type :');
@@ -48,7 +48,7 @@ module('Integration | Component | Ui::LastParticipationDateTooltip', function (h
     this.participant = { campaignType: 'PROFILES_COLLECTION' };
 
     // when
-    await render(hbs`<Ui::LastParticipationDateTooltip @campaignType={{this.participant.campaignType}}/>`);
+    await render(hbs`<Ui::LastParticipationDateTooltip @campaignType={{this.participant.campaignType}} />`);
 
     // then
     assert.contains('Type :');
@@ -61,7 +61,7 @@ module('Integration | Component | Ui::LastParticipationDateTooltip', function (h
 
     // when
     await render(
-      hbs`<Ui::LastParticipationDateTooltip @participationStatus={{this.participant.participationStatus}}/>`
+      hbs`<Ui::LastParticipationDateTooltip @participationStatus={{this.participant.participationStatus}} />`,
     );
 
     // then
@@ -75,7 +75,7 @@ module('Integration | Component | Ui::LastParticipationDateTooltip', function (h
 
     // when
     await render(
-      hbs`<Ui::LastParticipationDateTooltip @participationStatus={{this.participant.participationStatus}}/>`
+      hbs`<Ui::LastParticipationDateTooltip @participationStatus={{this.participant.participationStatus}} />`,
     );
 
     // then
@@ -89,7 +89,7 @@ module('Integration | Component | Ui::LastParticipationDateTooltip', function (h
 
     // when
     await render(
-      hbs`<Ui::LastParticipationDateTooltip @participationStatus={{this.participant.participationStatus}}/>`
+      hbs`<Ui::LastParticipationDateTooltip @participationStatus={{this.participant.participationStatus}} />`,
     );
 
     // then

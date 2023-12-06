@@ -1,7 +1,7 @@
 import { module, test } from 'qunit';
 import setupIntlRenderingTest from '../../helpers/setup-intl-rendering';
-import { render } from '@ember/test-helpers';
-import hbs from 'htmlbars-inline-precompile';
+import { render } from '@1024pix/ember-testing-library';
+import { hbs } from 'ember-cli-htmlbars';
 
 module('Integration | Component | QCU proposals', function (hooks) {
   setupIntlRenderingTest(hooks);
@@ -31,10 +31,15 @@ module('Integration | Component | QCU proposals', function (hooks) {
       this.set('answerChanged', answerChangedHandler);
 
       // when
-      await render(hbs`{{qcu-proposals answers=this.answers proposals=this.proposals answerChanged='answerChanged'}}`);
+      const screen = await render(
+        hbs`<QcuProposals @answers={{this.answers}} @proposals={{this.proposals}} @answerChanged={{this.answerChanged}} />`,
+      );
 
       // then
-      assert.dom('.proposal-text').exists({ count: 3 });
+      assert.strictEqual(screen.getAllByRole('radio').length, 3);
+      assert.ok(screen.getByLabelText('prop 1'));
+      assert.ok(screen.getByLabelText('prop 2'));
+      assert.ok(screen.getByLabelText('prop 3'));
     });
   });
 });

@@ -1,8 +1,7 @@
-FROM node:16.14.0 as dev
+FROM node:16.20.1 as dev
 
 
 EXPOSE 3000
-RUN npm install -g npm@8.13.2
 
 USER node
 COPY --chown=node:node . /code 

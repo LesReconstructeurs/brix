@@ -3,7 +3,7 @@ import setupIntlRenderingTest from '../../../helpers/setup-intl-rendering';
 import { render } from '@ember/test-helpers';
 import { render as renderScreen } from '@1024pix/ember-testing-library';
 import Service from '@ember/service';
-import hbs from 'htmlbars-inline-precompile';
+import { hbs } from 'ember-cli-htmlbars';
 
 module('Integration | Component | SupOrganizationParticipant::HeaderActions', function (hooks) {
   setupIntlRenderingTest(hooks);
@@ -15,7 +15,7 @@ module('Integration | Component | SupOrganizationParticipant::HeaderActions', fu
 
       // when
       const screen = await renderScreen(
-        hbs`<SupOrganizationParticipant::HeaderActions @participantCount={{this.participantCount}} />`
+        hbs`<SupOrganizationParticipant::HeaderActions @participantCount={{this.participantCount}} />`,
       );
 
       // then
@@ -28,7 +28,7 @@ module('Integration | Component | SupOrganizationParticipant::HeaderActions', fu
 
       // when
       const screen = await renderScreen(
-        hbs`<SupOrganizationParticipant::HeaderActions @participantCount={{this.participantCount}} />`
+        hbs`<SupOrganizationParticipant::HeaderActions @participantCount={{this.participantCount}} />`,
       );
 
       // then
@@ -50,7 +50,7 @@ module('Integration | Component | SupOrganizationParticipant::HeaderActions', fu
 
     test('it should display download template button', async function (assert) {
       // when
-      await render(hbs`<SupOrganizationParticipant::HeaderActions/>`);
+      await render(hbs`<SupOrganizationParticipant::HeaderActions />`);
 
       // then
       assert.contains('Télécharger le modèle');
@@ -58,7 +58,7 @@ module('Integration | Component | SupOrganizationParticipant::HeaderActions', fu
 
     test('it displays the import button', async function (assert) {
       // when
-      await render(hbs`<SupOrganizationParticipant::HeaderActions/>`);
+      await render(hbs`<SupOrganizationParticipant::HeaderActions />`);
 
       // then
       assert.contains('Importer');
@@ -75,7 +75,7 @@ module('Integration | Component | SupOrganizationParticipant::HeaderActions', fu
 
     test('it should not display download template button', async function (assert) {
       // when
-      await render(hbs`<SupOrganizationParticipant::HeaderActions/>`);
+      await render(hbs`<SupOrganizationParticipant::HeaderActions />`);
 
       // then
       assert.notContains('Télécharger le modèle');
@@ -83,7 +83,7 @@ module('Integration | Component | SupOrganizationParticipant::HeaderActions', fu
 
     test('it should not display import button', async function (assert) {
       // when
-      await render(hbs`<SupOrganizationParticipant::HeaderActions/>`);
+      await render(hbs`<SupOrganizationParticipant::HeaderActions />`);
 
       // then
       assert.notContains('Importer (.csv)');

@@ -1,9 +1,8 @@
-FROM node:16.14.0 as dev
+FROM node:16.20.1 as dev
 
 WORKDIR /code
 COPY . .
 
-RUN npm install -g npm@8.13.2
 RUN npm ci
 RUN npm install -g ember-cli 
 
@@ -14,6 +13,6 @@ ENV BUILD_ENV=dev
 
 RUN npx ember build --env $BUILD_ENV
 
-FROM nginx:1.21.6 as production
+FROM nginx:1.25.1 as production
 
 COPY --from=builder /code/dist/ /usr/share/nginx/html/

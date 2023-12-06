@@ -1,12 +1,17 @@
 const TABLE_NAME = 'complementary-certification-badges';
-const { noop } = require('lodash');
+import lodash from 'lodash';
+
+const { noop } = lodash;
+
+import { badges } from '../constants.js';
+
 const {
   PIX_EMPLOI_CLEA_V1,
   PIX_EMPLOI_CLEA_V2,
   PIX_EMPLOI_CLEA_V3,
 
   PIX_DROIT_EXPERT_CERTIF,
-  PIX_DROIT_MAITRE_CERTIF,
+  PIX_DROIT_AVANCE_CERTIF,
 
   PIX_EDU_FORMATION_INITIALE_1ER_DEGRE_INITIE,
   PIX_EDU_FORMATION_INITIALE_2ND_DEGRE_INITIE,
@@ -20,7 +25,7 @@ const {
   PIX_EDU_FORMATION_CONTINUE_2ND_DEGRE_CONFIRME,
   PIX_EDU_FORMATION_CONTINUE_2ND_DEGRE_AVANCE,
   PIX_EDU_FORMATION_CONTINUE_2ND_DEGRE_EXPERT,
-} = require('../constants').badges.keys;
+} = badges.keys;
 
 const DROIT = 'Pix+ Droit';
 const CLEA = 'CléA Numérique';
@@ -34,7 +39,7 @@ const data = [
     complementaryCourseKey: CLEA,
   },
   {
-    keys: [PIX_DROIT_MAITRE_CERTIF],
+    keys: [PIX_DROIT_AVANCE_CERTIF],
     level: 1,
     complementaryCourseKey: DROIT,
   },
@@ -73,7 +78,7 @@ const data = [
   { keys: [PIX_EDU_FORMATION_CONTINUE_2ND_DEGRE_EXPERT], level: 5, complementaryCourseKey: EDU_2 },
 ];
 
-exports.up = async function (knex) {
+const up = async function (knex) {
   await _insertComplementaryCertifications();
 
   await knex(TABLE_NAME).del();
@@ -116,7 +121,7 @@ exports.up = async function (knex) {
         PIX_EMPLOI_CLEA_V2,
         PIX_EMPLOI_CLEA_V3,
         PIX_DROIT_EXPERT_CERTIF,
-        PIX_DROIT_MAITRE_CERTIF,
+        PIX_DROIT_AVANCE_CERTIF,
         PIX_EDU_FORMATION_INITIALE_1ER_DEGRE_INITIE,
         PIX_EDU_FORMATION_INITIALE_2ND_DEGRE_INITIE,
         PIX_EDU_FORMATION_INITIALE_1ER_DEGRE_CONFIRME,
@@ -131,6 +136,8 @@ exports.up = async function (knex) {
   }
 };
 
-exports.down = async function () {
+const down = async function () {
   noop;
 };
+
+export { up, down };

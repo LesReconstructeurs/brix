@@ -1,17 +1,8 @@
 {{! template-lint-disable no-unknown-arguments-for-builtin-components }}
 
 <div class="login-form">
-  {{#if this.isErrorMessagePresent}}
-    <div id="login-error-message" class="login-form__error-message error-message">{{t
-        "pages.login-or-register.login-form.error"
-      }}</div>
-  {{/if}}
-
-  {{#if this.hasUpdateUserError}}
-    <div
-      id="update-form-error-message"
-      class="login-form__error-message error-message"
-    >{{this.updateErrorMessage}}</div>
+  {{#if this.errorMessage}}
+    <div id="update-form-error-message" class="login-form__error-message error-message">{{this.errorMessage}}</div>
   {{/if}}
 
   <form {{on "submit" this.authenticate}}>
@@ -39,13 +30,9 @@
     </div>
 
     <div class="login-button-container pix-form__actions">
-      {{#if this.isLoading}}
-        <button type="button" disabled class="button"><span class="loader-in-button">&nbsp;</span></button>
-      {{else}}
-        <PixButton id="submit-connexion" @type="submit">
-          {{t "pages.login-or-register.login-form.button"}}
-        </PixButton>
-      {{/if}}
+      <PixButton id="submit-connexion" @type="submit" @isLoading={{this.isLoading}}>
+        {{t "pages.login-or-register.login-form.button"}}
+      </PixButton>
     </div>
 
   </form>

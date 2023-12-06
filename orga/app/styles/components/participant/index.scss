@@ -1,2 +1,10 @@
-@import "no-participant-panel";
-@import "tabs";
+@import 'no-participant-panel';
+@import 'profile';
+@import 'tabs';
+
+.participant {
+  &__link {
+    margin-top: $pix-spacing-xs;
+    color: $pix-primary;
+  }
+}

@@ -1,10 +1,10 @@
-const Bookshelf = require('../bookshelf');
+import { Bookshelf } from '../bookshelf.js';
 
-require('./Tag');
+import './Tag.js';
 
 const modelName = 'Organization';
 
-module.exports = Bookshelf.model(
+const BookshelfOrganization = Bookshelf.model(
   modelName,
   {
     tableName: 'organizations',
@@ -16,5 +16,7 @@ module.exports = Bookshelf.model(
   },
   {
     modelName,
-  }
+  },
 );
+
+export { BookshelfOrganization };

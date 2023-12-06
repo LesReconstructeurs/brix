@@ -1,16 +1,16 @@
-const CampaignParticipationResult = require('../../domain/models/CampaignParticipationResult');
-const campaignParticipationRepository = require('./campaign-participation-repository');
-const campaignRepository = require('./campaign-repository');
-const competenceRepository = require('./competence-repository');
-const assessmentRepository = require('./assessment-repository');
-const knowledgeElementRepository = require('./knowledge-element-repository');
+import { CampaignParticipationResult } from '../../domain/models/CampaignParticipationResult.js';
+import * as campaignParticipationRepository from './campaign-participation-repository.js';
+import * as campaignRepository from './campaign-repository.js';
+import * as competenceRepository from './competence-repository.js';
+import * as areaRepository from './area-repository.js';
+import * as assessmentRepository from './assessment-repository.js';
+import * as knowledgeElementRepository from './knowledge-element-repository.js';
 
 const campaignParticipationResultRepository = {
   async getByParticipationId(campaignParticipationId) {
     const campaignParticipation = await campaignParticipationRepository.get(campaignParticipationId);
 
-    const [stages, skillIds, competences, assessment, snapshots] = await Promise.all([
-      campaignRepository.findStages({ campaignId: campaignParticipation.campaignId }),
+    const [skillIds, competences, assessment, snapshots] = await Promise.all([
       campaignRepository.findSkillIds({ campaignId: campaignParticipation.campaignId }),
       competenceRepository.list(),
       assessmentRepository.get(campaignParticipation.lastAssessment.id),
@@ -18,16 +18,17 @@ const campaignParticipationResultRepository = {
         [campaignParticipation.userId]: campaignParticipation.sharedAt,
       }),
     ]);
+    const allAreas = await areaRepository.list();
 
     return CampaignParticipationResult.buildFrom({
       campaignParticipationId,
       assessment,
       competences,
-      stages,
       skillIds,
       knowledgeElements: snapshots[campaignParticipation.userId],
+      allAreas,
     });
   },
 };
 
-module.exports = campaignParticipationResultRepository;
+export { campaignParticipationResultRepository };

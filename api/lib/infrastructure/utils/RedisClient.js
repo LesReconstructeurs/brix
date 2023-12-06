@@ -1,17 +1,15 @@
-const redis = require('redis');
-const Redlock = require('redlock');
-const { promisify } = require('util');
-const logger = require('../logger');
+import Redis from 'ioredis';
+import Redlock from 'redlock';
 
-const REDIS_CLIENT_OPTIONS = {};
+import { logger } from '../logger.js';
 
-module.exports = class RedisClient {
+class RedisClient {
   constructor(redisUrl, { name, prefix } = {}) {
     this._clientName = name;
 
     this._prefix = prefix ?? '';
 
-    this._client = redis.createClient(redisUrl, REDIS_CLIENT_OPTIONS);
+    this._client = new Redis(redisUrl);
 
     this._client.on('connect', () => logger.info({ redisClient: this._clientName }, 'Connected to server'));
     this._client.on('end', () => logger.info({ redisClient: this._clientName }, 'Disconnected from server'));
@@ -21,19 +19,19 @@ module.exports = class RedisClient {
       [this._client],
       // As said in the doc, setting retryCount to 0 and treating a failure as the resource being "locked"
       // is a good practice
-      { retryCount: 0 }
+      { retryCount: 0 },
     );
 
-    this.ttl = promisify(this._wrapWithPrefix(this._client.ttl)).bind(this._client);
-    this.get = promisify(this._wrapWithPrefix(this._client.get)).bind(this._client);
-    this.set = promisify(this._wrapWithPrefix(this._client.set)).bind(this._client);
-    this.del = promisify(this._wrapWithPrefix(this._client.del)).bind(this._client);
-    this.expire = promisify(this._wrapWithPrefix(this._client.expire)).bind(this._client);
-    this.lpush = promisify(this._wrapWithPrefix(this._client.lpush)).bind(this._client);
-    this.lrem = promisify(this._wrapWithPrefix(this._client.lrem)).bind(this._client);
-    this.lrange = promisify(this._wrapWithPrefix(this._client.lrange)).bind(this._client);
-    this.ping = promisify(this._client.ping).bind(this._client);
-    this.flushall = promisify(this._client.flushall).bind(this._client);
+    this.ttl = this._wrapWithPrefix(this._client.ttl).bind(this._client);
+    this.get = this._wrapWithPrefix(this._client.get).bind(this._client);
+    this.set = this._wrapWithPrefix(this._client.set).bind(this._client);
+    this.del = this._wrapWithPrefix(this._client.del).bind(this._client);
+    this.expire = this._wrapWithPrefix(this._client.expire).bind(this._client);
+    this.lpush = this._wrapWithPrefix(this._client.lpush).bind(this._client);
+    this.lrem = this._wrapWithPrefix(this._client.lrem).bind(this._client);
+    this.lrange = this._wrapWithPrefix(this._client.lrange).bind(this._client);
+    this.ping = this._client.ping.bind(this._client);
+    this.flushall = this._client.flushall.bind(this._client);
     this.lockDisposer = this._clientWithLock.disposer.bind(this._clientWithLock);
   }
 
@@ -46,13 +44,13 @@ module.exports = class RedisClient {
 
   subscribe(channel) {
     this._client.subscribe(channel, () =>
-      logger.info({ redisClient: this._clientName }, `Subscribed to channel '${channel}'`)
+      logger.info({ redisClient: this._clientName }, `Subscribed to channel '${channel}'`),
     );
   }
 
   publish(channel, message) {
     this._client.publish(channel, message, () =>
-      logger.info({ redisClient: this._clientName }, `Published on channel '${channel}'`)
+      logger.info({ redisClient: this._clientName }, `Published on channel '${channel}'`),
     );
   }
 
@@ -61,6 +59,11 @@ module.exports = class RedisClient {
   }
 
   async quit() {
+    if (this._client.status == 'end') {
+      return;
+    }
     await this._client.quit();
   }
-};
+}
+
+export { RedisClient };

@@ -1,4 +1,4 @@
-const {
+import {
   expect,
   databaseBuilder,
   knex,
@@ -6,10 +6,11 @@ const {
   learningContentBuilder,
   insertUserWithRoleSuperAdmin,
   generateValidRequestAuthorizationHeader,
-} = require('../../../test-helper');
-const settings = require('../../../../lib/config');
-const createServer = require('../../../../server');
-const Assessment = require('../../../../lib/domain/models/Assessment');
+} from '../../../test-helper.js';
+
+import { config as settings } from '../../../../lib/config.js';
+import { createServer } from '../../../../server.js';
+import { Assessment } from '../../../../lib/domain/models/Assessment.js';
 
 const lastChallengeAnswer = 'last challenge answer';
 const lastChallengeId = 'lastChallengeId';
@@ -18,12 +19,11 @@ const learningContent = [
     areas: [
       {
         id: 'recArea1',
-        titleFrFr: 'area1_Title',
         color: 'someColor',
         competences: [
           {
             id: 'competenceId',
-            nameFrFr: 'Mener une recherche et une veille d’information',
+            name_i18n: { fr: 'Mener une recherche et une veille d’information' },
             index: '1.1',
             tubes: [
               {
@@ -56,7 +56,7 @@ describe('Acceptance | API | assessment-controller-auto-validate-next-challenge'
     settings.featureToggles.isAlwaysOkValidateNextChallengeEndpointEnabled = true;
 
     server = await createServer();
-    const learningContentObjects = learningContentBuilder.buildLearningContent(learningContent);
+    const learningContentObjects = learningContentBuilder(learningContent);
     mockLearningContent(learningContentObjects);
   });
 

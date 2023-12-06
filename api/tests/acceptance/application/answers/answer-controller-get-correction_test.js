@@ -1,11 +1,72 @@
-const {
+import {
   expect,
   generateValidRequestAuthorizationHeader,
   databaseBuilder,
   mockLearningContent,
-} = require('../../../test-helper');
-const createServer = require('../../../../server');
-const { FRENCH_FRANCE } = require('../../../../lib/domain/constants').LOCALE;
+} from '../../../test-helper.js';
+
+import { createServer } from '../../../../server.js';
+import { LOCALE } from '../../../../lib/domain/constants.js';
+const { FRENCH_FRANCE } = LOCALE;
+const solution =
+  'l1:\n- chien\n- chat\n- cochon\nl2:\n- pigeon\n- poulet\n- veau\nl3:\n- canard\n- couincouin\nl4:\n- mouton';
+
+const learningContent = {
+  challenges: [
+    {
+      id: 'q_first_challenge',
+      status: 'validé',
+      competenceId: 'competence_id',
+      solution: 'fromage',
+      solutionToDisplay: 'camembert',
+      skillId: 'q_first_acquis',
+      type: 'QCM',
+    },
+    {
+      id: 'q_second_challenge',
+      status: 'validé',
+      competenceId: 'competence_id',
+      solution: solution,
+      solutionToDisplay: 'Des animaux rigolos',
+      skillId: 'q_first_acquis',
+      type: 'QROCM-dep',
+    },
+  ],
+  tutorials: [
+    {
+      id: 'english-tutorial-id',
+      locale: 'en-us',
+      duration: '00:00:54',
+      format: 'video',
+      link: 'https://tuto.com',
+      source: 'tuto.com',
+      title: 'tuto1',
+    },
+    {
+      id: 'french-tutorial-id',
+      locale: 'fr-fr',
+      duration: '00:03:31',
+      format: 'vidéo',
+      link: 'http://www.example.com/this-is-an-example.html',
+      source: 'Source Example, Example',
+      title: 'Communiquer',
+    },
+  ],
+  skills: [
+    {
+      id: 'q_first_acquis',
+      name: '@web3',
+      hint_i18n: {
+        fr: 'Animaux ?',
+        en: 'Animals ?',
+      },
+      hintStatus: 'Validé',
+      competenceId: 'recABCD',
+      tutorialIds: ['english-tutorial-id', 'french-tutorial-id'],
+      learningMoreTutorialIds: [],
+    },
+  ],
+};
 
 describe('Acceptance | Controller | answer-controller-get-correction', function () {
   let server;
@@ -18,7 +79,6 @@ describe('Acceptance | Controller | answer-controller-get-correction', function 
     let assessment = null;
     let answer = null;
     let userId;
-
     beforeEach(async function () {
       userId = databaseBuilder.factory.buildUser({ id: 111 }).id;
       assessment = databaseBuilder.factory.buildAssessment({
@@ -26,74 +86,23 @@ describe('Acceptance | Controller | answer-controller-get-correction', function 
         state: 'completed',
         userId,
       });
-
       answer = databaseBuilder.factory.buildAnswer({
         value: 'any good answer',
         result: 'ok',
         challengeId: 'q_first_challenge',
         assessmentId: assessment.id,
       });
-
       databaseBuilder.factory.buildUserSavedTutorial({
         id: 10001,
         userId,
         tutorialId: 'french-tutorial-id',
       });
-
       databaseBuilder.factory.buildTutorialEvaluation({
         id: 10002,
         userId,
         tutorialId: 'french-tutorial-id',
       });
-
       await databaseBuilder.commit();
-
-      const learningContent = {
-        challenges: [
-          {
-            id: 'q_first_challenge',
-            status: 'validé',
-            competenceId: 'competence_id',
-            solution: 'fromage',
-            solutionToDisplay: 'camembert',
-            skillId: 'q_first_acquis',
-          },
-        ],
-        tutorials: [
-          {
-            id: 'english-tutorial-id',
-            locale: 'en-us',
-            duration: '00:00:54',
-            format: 'video',
-            link: 'https://tuto.com',
-            source: 'tuto.com',
-            title: 'tuto1',
-          },
-          {
-            id: 'french-tutorial-id',
-            locale: 'fr-fr',
-            duration: '00:03:31',
-            format: 'vidéo',
-            link: 'http://www.example.com/this-is-an-example.html',
-            source: 'Source Example, Example',
-            title: 'Communiquer',
-          },
-        ],
-        skills: [
-          {
-            id: 'q_first_acquis',
-            name: '@web3',
-            hint_i18n: {
-              fr: 'Geolocaliser ?',
-              en: 'Geolocate ?',
-            },
-            hintStatus: 'Validé',
-            competenceId: 'recABCD',
-            tutorialIds: ['english-tutorial-id', 'french-tutorial-id'],
-            learningMoreTutorialIds: [],
-          },
-        ],
-      };
       mockLearningContent(learningContent);
     });
 
@@ -116,7 +125,7 @@ describe('Acceptance | Controller | answer-controller-get-correction', function 
             attributes: {
               solution: 'fromage',
               'solution-to-display': 'camembert',
-              hint: 'Geolocaliser ?',
+              hint: 'Animaux ?',
             },
             relationships: {
               tutorials: {

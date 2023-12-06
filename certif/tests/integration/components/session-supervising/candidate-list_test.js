@@ -3,7 +3,7 @@ import setupIntlRenderingTest from '../../../helpers/setup-intl-rendering';
 import { fillIn, click } from '@ember/test-helpers';
 import { render as renderScreen } from '@1024pix/ember-testing-library';
 
-import hbs from 'htmlbars-inline-precompile';
+import { hbs } from 'ember-cli-htmlbars';
 
 module('Integration | Component | SessionSupervising::CandidateList', function (hooks) {
   setupIntlRenderingTest(hooks);
@@ -30,7 +30,7 @@ module('Integration | Component | SessionSupervising::CandidateList', function (
           firstName: 'Star',
           lastName: 'Lord',
           birthdate: '1983-06-28',
-          extraTimePercentage: '12',
+          extraTimePercentage: 12,
           authorizedToStart: false,
           assessmentStatus: null,
         }),
@@ -38,7 +38,7 @@ module('Integration | Component | SessionSupervising::CandidateList', function (
 
       // when
       const screen = await renderScreen(
-        hbs`<SessionSupervising::CandidateList @candidates={{this.certificationCandidates}}  />`
+        hbs`<SessionSupervising::CandidateList @candidates={{this.certificationCandidates}}  />`,
       );
 
       // then
@@ -58,7 +58,7 @@ module('Integration | Component | SessionSupervising::CandidateList', function (
 
       // when
       const screen = await renderScreen(
-        hbs`<SessionSupervising::CandidateList @candidates={{this.certificationCandidates}}  />`
+        hbs`<SessionSupervising::CandidateList @candidates={{this.certificationCandidates}}  />`,
       );
 
       // then
@@ -79,7 +79,7 @@ module('Integration | Component | SessionSupervising::CandidateList', function (
           }),
         ];
         const screen = await renderScreen(
-          hbs`<SessionSupervising::CandidateList @candidates={{this.certificationCandidates}}  />`
+          hbs`<SessionSupervising::CandidateList @candidates={{this.certificationCandidates}}  />`,
         );
 
         // when
@@ -94,8 +94,8 @@ module('Integration | Component | SessionSupervising::CandidateList', function (
               this.intl.t('pages.session-supervising.candidate-list.authorized-to-start-candidates', {
                 authorizedToStartCandidates: 0,
                 totalCandidates: this.certificationCandidates.length,
-              })
-            )
+              }),
+            ),
           )
           .exists();
       });
@@ -122,7 +122,7 @@ module('Integration | Component | SessionSupervising::CandidateList', function (
             }),
           ];
           const screen = await renderScreen(
-            hbs`<SessionSupervising::CandidateList @candidates={{this.certificationCandidates}}  />`
+            hbs`<SessionSupervising::CandidateList @candidates={{this.certificationCandidates}}  />`,
           );
 
           // when
@@ -144,7 +144,7 @@ module('Integration | Component | SessionSupervising::CandidateList', function (
             }),
           ];
           const screen = await renderScreen(
-            hbs`<SessionSupervising::CandidateList @candidates={{this.certificationCandidates}}  />`
+            hbs`<SessionSupervising::CandidateList @candidates={{this.certificationCandidates}}  />`,
           );
           await fillIn(screen.getByRole('textbox', { name: 'Rechercher un candidat' }), 'Champs rempli');
 
@@ -181,7 +181,7 @@ module('Integration | Component | SessionSupervising::CandidateList', function (
 
         // when
         const screen = await renderScreen(
-          hbs`<SessionSupervising::CandidateList @candidates={{this.certificationCandidates}}  />`
+          hbs`<SessionSupervising::CandidateList @candidates={{this.certificationCandidates}}  />`,
         );
 
         // then
@@ -191,8 +191,8 @@ module('Integration | Component | SessionSupervising::CandidateList', function (
               this.intl.t('pages.session-supervising.candidate-list.authorized-to-start-candidates', {
                 authorizedToStartCandidates: 2,
                 totalCandidates: this.certificationCandidates.length,
-              })
-            )
+              }),
+            ),
           )
           .exists();
       });
@@ -203,7 +203,7 @@ module('Integration | Component | SessionSupervising::CandidateList', function (
     test('it renders a message', async function (assert) {
       // when
       const screen = await renderScreen(
-        hbs`<SessionSupervising::CandidateList @candidates={{this.certificationCandidates}} />`
+        hbs`<SessionSupervising::CandidateList @candidates={{this.certificationCandidates}} />`,
       );
 
       // then
@@ -216,7 +216,7 @@ module('Integration | Component | SessionSupervising::CandidateList', function (
 
       // when
       const screen = await renderScreen(
-        hbs`<SessionSupervising::CandidateList @candidates={{this.certificationCandidates}}  />`
+        hbs`<SessionSupervising::CandidateList @candidates={{this.certificationCandidates}}  />`,
       );
 
       // then

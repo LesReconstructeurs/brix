@@ -1,12 +1,12 @@
-const { expect, domainBuilder } = require('../../../test-helper');
-const Challenge = require('../../../../lib/domain/models/Challenge');
-const Skill = require('../../../../lib/domain/models/Skill');
-const Validator = require('../../../../lib/domain/models/Validator');
-const ValidatorQCM = require('../../../../lib/domain/models/ValidatorQCM');
-const ValidatorQCU = require('../../../../lib/domain/models/ValidatorQCU');
-const ValidatorQROC = require('../../../../lib/domain/models/ValidatorQROC');
-const ValidatorQROCMDep = require('../../../../lib/domain/models/ValidatorQROCMDep');
-const ValidatorQROCMInd = require('../../../../lib/domain/models/ValidatorQROCMInd');
+import { expect, domainBuilder } from '../../../test-helper.js';
+import { Challenge } from '../../../../lib/domain/models/Challenge.js';
+import { Skill } from '../../../../lib/domain/models/Skill.js';
+import { Validator } from '../../../../lib/domain/models/Validator.js';
+import { ValidatorQCM } from '../../../../lib/domain/models/ValidatorQCM.js';
+import { ValidatorQCU } from '../../../../lib/domain/models/ValidatorQCU.js';
+import { ValidatorQROC } from '../../../../lib/domain/models/ValidatorQROC.js';
+import { ValidatorQROCMDep } from '../../../../lib/domain/models/ValidatorQROCMDep.js';
+import { ValidatorQROCMInd } from '../../../../lib/domain/models/ValidatorQROCMInd.js';
 
 describe('Unit | Domain | Models | Challenge', function () {
   describe('#constructor', function () {
@@ -42,6 +42,7 @@ describe('Unit | Domain | Models | Challenge', function () {
         difficulty: -0.23,
         successProbabilityThreshold: 0.85,
         responsive: 'Smartphone',
+        shuffled: false,
       };
 
       const expectedChallengeDataObject = {
@@ -74,6 +75,7 @@ describe('Unit | Domain | Models | Challenge', function () {
         difficulty: -0.23,
         minimumCapability: 2.0828014071841414,
         responsive: 'Smartphone',
+        shuffled: false,
       };
 
       // when

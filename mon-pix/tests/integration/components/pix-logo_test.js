@@ -1,6 +1,6 @@
 import { module, test } from 'qunit';
 import setupIntlRenderingTest from '../../helpers/setup-intl-rendering';
-import hbs from 'htmlbars-inline-precompile';
+import { hbs } from 'ember-cli-htmlbars';
 import { render } from '@1024pix/ember-testing-library';
 
 module('Integration | Component | pix logo', function (hooks) {
@@ -13,7 +13,7 @@ module('Integration | Component | pix logo', function (hooks) {
     // then
     assert.dom(screen.getByRole('link', { name: this.intl.t('navigation.homepage') })).exists();
     assert.ok(
-      screen.getByRole('img', { name: this.intl.t('navigation.homepage') }).hasAttribute('src', '/images/brix-logo.svg')
+      screen.getByRole('img', { name: this.intl.t('navigation.homepage') }).hasAttribute('src', '/images/pix-logo.svg'),
     );
   });
 });

@@ -1,6 +1,6 @@
-const { expect, sinon, domainBuilder, catchErr } = require('../../../test-helper');
-const usecases = require('../../../../lib/domain/usecases');
-const { OrganizationLearnerCannotBeDissociatedError } = require('../../../../lib/domain/errors');
+import { expect, sinon, domainBuilder, catchErr } from '../../../test-helper.js';
+import { usecases } from '../../../../lib/domain/usecases/index.js';
+import { OrganizationLearnerCannotBeDissociatedError } from '../../../../lib/domain/errors.js';
 
 describe('Unit | UseCase | dissociate-user-from-organization-learner', function () {
   const organizationId = 1;
@@ -32,7 +32,7 @@ describe('Unit | UseCase | dissociate-user-from-organization-learner', function 
 
     // then
     expect(organizationLearnerRepositoryStub.dissociateUserFromOrganizationLearner).to.be.have.been.calledWith(
-      organizationLearnerId
+      organizationLearnerId,
     );
   });
 

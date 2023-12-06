@@ -1,7 +1,12 @@
-const randomString = require('randomstring');
-const Membership = require('../models/Membership');
-const mailService = require('../../domain/services/mail-service');
-const { SendingEmailError, SendingEmailToInvalidDomainError } = require('../errors');
+import randomString from 'randomstring';
+import { Membership } from '../models/Membership.js';
+import * as mailService from '../../domain/services/mail-service.js';
+
+import {
+  SendingEmailError,
+  SendingEmailToInvalidDomainError,
+  SendingEmailToInvalidEmailAddressError,
+} from '../errors.js';
 
 const _generateCode = () => {
   return randomString.generate({ length: 10, capitalization: 'uppercase' });
@@ -15,6 +20,7 @@ const createOrUpdateOrganizationInvitation = async ({
   locale,
   tags,
   role,
+  dependencies = { mailService },
 }) => {
   let organizationInvitation = await organizationInvitationRepository.findOnePendingByOrganizationIdAndEmail({
     organizationId,
@@ -33,7 +39,7 @@ const createOrUpdateOrganizationInvitation = async ({
 
   const organization = await organizationRepository.get(organizationId);
 
-  const mailerResponse = await mailService.sendOrganizationInvitationEmail({
+  const mailerResponse = await dependencies.mailService.sendOrganizationInvitationEmail({
     email,
     organizationName: organization.name,
     organizationInvitationId: organizationInvitation.id,
@@ -44,6 +50,10 @@ const createOrUpdateOrganizationInvitation = async ({
   if (mailerResponse?.status === 'FAILURE') {
     if (mailerResponse.hasFailedBecauseDomainWasInvalid()) {
       throw new SendingEmailToInvalidDomainError(email);
+    }
+
+    if (mailerResponse.hasFailedBecauseEmailWasInvalid()) {
+      throw new SendingEmailToInvalidEmailAddressError(email, mailerResponse.errorMessage);
     }
 
     throw new SendingEmailError();
@@ -60,6 +70,7 @@ const createProOrganizationInvitation = async ({
   locale,
   tags,
   name,
+  dependencies = { mailService },
 }) => {
   let organizationInvitation = await organizationInvitationRepository.findOnePendingByOrganizationIdAndEmail({
     organizationId,
@@ -71,7 +82,7 @@ const createProOrganizationInvitation = async ({
     organizationInvitation = await organizationInvitationRepository.create({ organizationId, email, role, code });
   }
 
-  await mailService.sendOrganizationInvitationEmail({
+  await dependencies.mailService.sendOrganizationInvitationEmail({
     email,
     name,
     organizationInvitationId: organizationInvitation.id,
@@ -94,6 +105,7 @@ const createScoOrganizationInvitation = async ({
   email,
   locale,
   tags,
+  dependencies = { mailService },
 }) => {
   let organizationInvitation = await organizationInvitationRepository.findOnePendingByOrganizationIdAndEmail({
     organizationId,
@@ -108,7 +120,7 @@ const createScoOrganizationInvitation = async ({
 
   const organization = await organizationRepository.get(organizationId);
 
-  await mailService.sendScoOrganizationInvitationEmail({
+  await dependencies.mailService.sendScoOrganizationInvitationEmail({
     email,
     organizationName: organization.name,
     firstName,
@@ -124,8 +136,4 @@ const createScoOrganizationInvitation = async ({
   return organizationInvitation;
 };
 
-module.exports = {
-  createOrUpdateOrganizationInvitation,
-  createScoOrganizationInvitation,
-  createProOrganizationInvitation,
-};
+export { createOrUpdateOrganizationInvitation, createScoOrganizationInvitation, createProOrganizationInvitation };

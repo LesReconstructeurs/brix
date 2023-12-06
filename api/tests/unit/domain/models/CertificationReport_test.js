@@ -1,9 +1,9 @@
-const { expect, EMPTY_BLANK_AND_NULL, domainBuilder, catchErr } = require('../../../test-helper');
-const CertificationReport = require('../../../../lib/domain/models/CertificationReport');
-const Assessment = require('../../../../lib/domain/models/Assessment');
-const { InvalidCertificationReportForFinalization } = require('../../../../lib/domain/errors');
-const keys = require('lodash/keys');
-
+import { expect, EMPTY_BLANK_AND_NULL, domainBuilder, catchErr } from '../../../test-helper.js';
+import { CertificationReport } from '../../../../lib/domain/models/CertificationReport.js';
+import { Assessment } from '../../../../lib/domain/models/Assessment.js';
+import { InvalidCertificationReportForFinalization } from '../../../../lib/domain/errors.js';
+import lodash from 'lodash';
+const { keys } = lodash;
 describe('Unit | Domain | Models | CertificationReport', function () {
   describe('#constructor', function () {
     // eslint-disable-next-line mocha/no-setup-in-describe
@@ -62,7 +62,7 @@ describe('Unit | Domain | Models | CertificationReport', function () {
         // then
         expect(error).to.be.instanceOf(InvalidCertificationReportForFinalization);
         expect(error.message).contains(_getFieldName(invalidData));
-      })
+      }),
     );
 
     it('should throw an error if not completed and abortReason is empty', async function () {

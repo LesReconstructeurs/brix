@@ -1,4 +1,4 @@
-import { click, fillIn, currentURL, find } from '@ember/test-helpers';
+import { click, fillIn, currentURL } from '@ember/test-helpers';
 import { visit } from '@1024pix/ember-testing-library';
 import { module, test } from 'qunit';
 import { authenticate } from '../helpers/authentication';
@@ -6,10 +6,16 @@ import { startCampaignByCode, startCampaignByCodeAndExternalId } from '../helper
 import { setupApplicationTest } from 'ember-qunit';
 import { setupMirage } from 'ember-cli-mirage/test-support';
 import { Response } from 'miragejs';
-import { clickByLabel } from '../helpers/click-by-label';
 import setupIntl from '../helpers/setup-intl';
 
 const PROFILES_COLLECTION = 'PROFILES_COLLECTION';
+const PASSWORD_INPUT_LABEL = 'Mot de passe (8 caractères minimum, dont une majuscule, une minuscule et un chiffre)';
+const EMAIL_INPUT_LABEL = 'Adresse e-mail (ex: nom@exemple.fr)';
+const FIRST_NAME_INPUT_LABEL = 'Prénom';
+const LAST_NAME_INPUT_LABEL = 'Nom';
+const DAY_BIRTH_INPUT_LABEL = 'jour de naissance';
+const MONTH_BIRTH_INPUT_LABEL = 'mois de naissance';
+const YEAR_BIRTH_INPUT_LABEL = 'année de naissance';
 
 module('Acceptance | Campaigns | Start Campaigns with type Profiles Collection', function (hooks) {
   setupApplicationTest(hooks);
@@ -26,52 +32,49 @@ module('Acceptance | Campaigns | Start Campaigns with type Profiles Collection',
 
     module('When user is not logged in', function () {
       module('When campaign has external id', function () {
-        module('When participant external id is not set in the url', function (hooks) {
-          hooks.beforeEach(async function () {
-            campaign = server.create('campaign', { type: PROFILES_COLLECTION, idPixLabel: 'email' });
-            const screen = await startCampaignByCode(campaign.code);
-            await fillIn('#firstName', campaignParticipant.firstName);
-            await fillIn('#lastName', campaignParticipant.lastName);
-            await fillIn('#email', campaignParticipant.email);
-            await fillIn('#password', campaignParticipant.password);
-            await click(screen.getByRole('checkbox', { name: this.intl.t('common.cgu.label') }));
-            await clickByLabel(this.intl.t('pages.sign-up.actions.submit'));
-          });
-
+        module('When participant external id is not set in the url', function () {
           test('should redirect to send profile page after completion of external id', async function (assert) {
+            // then
+            campaign = server.create('campaign', { type: PROFILES_COLLECTION, idPixLabel: 'Adresse e-mail' });
+            const screen = await startCampaignByCode(campaign.code);
+            await fillIn(screen.getByRole('textbox', { name: FIRST_NAME_INPUT_LABEL }), campaignParticipant.firstName);
+            await fillIn(screen.getByRole('textbox', { name: LAST_NAME_INPUT_LABEL }), campaignParticipant.lastName);
+            await fillIn(screen.getByRole('textbox', { name: EMAIL_INPUT_LABEL }), campaignParticipant.email);
+            await fillIn(screen.getByLabelText(PASSWORD_INPUT_LABEL), campaignParticipant.password);
+            await click(screen.getByRole('checkbox', { name: this.intl.t('common.cgu.label') }));
+            await click(screen.getByRole('button', { name: "Je m'inscris" }));
+
             // when
-            await fillIn('#id-pix-label', 'monmail@truc.fr');
-            await clickByLabel(this.intl.t('pages.fill-in-participant-external-id.buttons.continue'));
+            await fillIn(screen.getByRole('textbox', { name: 'Adresse e-mail' }), 'monmail@truc.fr');
+            await click(screen.getByRole('button', { name: 'Continuer' }));
 
             // then
-            // TODO: Fix this the next time the file is edited.
-            // eslint-disable-next-line qunit/no-assert-equal
-            assert.equal(currentURL(), `/campagnes/${campaign.code}/collecte/envoi-profil`);
+            assert.strictEqual(currentURL(), `/campagnes/${campaign.code}/collecte/envoi-profil`);
           });
         });
 
         module('When participant external id is set in the url', function () {
-          module('When campaign is not restricted', function (hooks) {
-            hooks.beforeEach(async function () {
+          module('When campaign is not restricted', function () {
+            test('should redirect to send profile page', async function (assert) {
+              // given & when
               campaign = server.create('campaign', {
                 type: PROFILES_COLLECTION,
                 isRestricted: false,
                 idPixLabel: 'toto',
               });
               const screen = await startCampaignByCodeAndExternalId(campaign.code);
-              await fillIn('#firstName', campaignParticipant.firstName);
-              await fillIn('#lastName', campaignParticipant.lastName);
-              await fillIn('#email', campaignParticipant.email);
-              await fillIn('#password', campaignParticipant.password);
+              await fillIn(
+                screen.getByRole('textbox', { name: FIRST_NAME_INPUT_LABEL }),
+                campaignParticipant.firstName,
+              );
+              await fillIn(screen.getByRole('textbox', { name: LAST_NAME_INPUT_LABEL }), campaignParticipant.lastName);
+              await fillIn(screen.getByRole('textbox', { name: EMAIL_INPUT_LABEL }), campaignParticipant.email);
+              await fillIn(screen.getByLabelText(PASSWORD_INPUT_LABEL), campaignParticipant.password);
               await click(screen.getByRole('checkbox', { name: this.intl.t('common.cgu.label') }));
-              await clickByLabel(this.intl.t('pages.sign-up.actions.submit'));
-            });
+              await click(screen.getByRole('button', { name: "Je m'inscris" }));
 
-            test('should redirect to send profile page', async function (assert) {
               // then
-              // TODO: Fix this the next time the file is edited.
-              // eslint-disable-next-line qunit/no-assert-equal
-              assert.equal(currentURL(), `/campagnes/${campaign.code}/collecte/envoi-profil`);
+              assert.strictEqual(currentURL(), `/campagnes/${campaign.code}/collecte/envoi-profil`);
             });
           });
 
@@ -84,78 +87,71 @@ module('Acceptance | Campaigns | Start Campaigns with type Profiles Collection',
                 idPixLabel: 'toto',
                 organizationType: 'SCO',
               });
-              await visit(`/campagnes/${campaign.code}?participantExternalId=a73at01r3`);
-              // TODO: Fix this the next time the file is edited.
-              // eslint-disable-next-line qunit/no-assert-equal
-              assert.equal(currentURL(), `/campagnes/${campaign.code}/presentation`);
-              await clickByLabel("C'est parti !");
+              const screen = await visit(`/campagnes/${campaign.code}?participantExternalId=a73at01r3`);
+              assert.strictEqual(currentURL(), `/campagnes/${campaign.code}/presentation`);
+              await click(screen.getByRole('button', { name: "C'est parti !" }));
 
               // when
-              await click('#login-button');
-
-              await fillIn('#login', campaignParticipant.email);
-              await fillIn('#password', campaignParticipant.password);
-              await click('#submit-connexion');
-
-              await fillIn('#firstName', campaignParticipant.firstName);
-              await fillIn('#lastName', campaignParticipant.lastName);
-              await fillIn('#dayOfBirth', '10');
-              await fillIn('#monthOfBirth', '12');
-              await fillIn('#yearOfBirth', '2000');
-              await clickByLabel(this.intl.t('pages.join.button'));
-              await clickByLabel(this.intl.t('pages.join.sco.associate'));
+              await click(screen.getByRole('button', { name: 'Se connecter' }));
+              await fillIn(
+                screen.getByRole('textbox', { name: 'Adresse e-mail ou identifiant' }),
+                campaignParticipant.email,
+              );
+              await fillIn(screen.getByLabelText('Mot de passe'), campaignParticipant.password);
+              await click(screen.getByRole('button', { name: 'Se connecter' }));
+              await fillIn(
+                screen.getByRole('textbox', { name: FIRST_NAME_INPUT_LABEL }),
+                campaignParticipant.firstName,
+              );
+              await fillIn(screen.getByRole('textbox', { name: LAST_NAME_INPUT_LABEL }), campaignParticipant.lastName);
+              await fillIn(screen.getByRole('textbox', { name: DAY_BIRTH_INPUT_LABEL }), '10');
+              await fillIn(screen.getByRole('textbox', { name: MONTH_BIRTH_INPUT_LABEL }), '12');
+              await fillIn(screen.getByRole('textbox', { name: YEAR_BIRTH_INPUT_LABEL }), '2000');
+              await click(screen.getByRole('button', { name: "C'est parti !" }));
+              await click(screen.getByRole('button', { name: 'Associer' }));
 
               // then
-              // TODO: Fix this the next time the file is edited.
-              // eslint-disable-next-line qunit/no-assert-equal
-              assert.equal(currentURL(), `/campagnes/${campaign.code}/collecte/envoi-profil`);
+              assert.strictEqual(currentURL(), `/campagnes/${campaign.code}/collecte/envoi-profil`);
             });
           });
         });
       });
 
-      module('When campaign does not have external id', function (hooks) {
-        hooks.beforeEach(async function () {
+      module('When campaign does not have external id', function () {
+        test('should redirect to send profile page after signup', async function (assert) {
+          // given & when
           campaign = server.create('campaign', { type: PROFILES_COLLECTION, idPixLabel: null });
           const screen = await startCampaignByCode(campaign.code);
-          await fillIn('#firstName', campaignParticipant.firstName);
-          await fillIn('#lastName', campaignParticipant.lastName);
-          await fillIn('#email', campaignParticipant.email);
-          await fillIn('#password', campaignParticipant.password);
+          await fillIn(screen.getByRole('textbox', { name: FIRST_NAME_INPUT_LABEL }), campaignParticipant.firstName);
+          await fillIn(screen.getByRole('textbox', { name: LAST_NAME_INPUT_LABEL }), campaignParticipant.lastName);
+          await fillIn(screen.getByRole('textbox', { name: EMAIL_INPUT_LABEL }), campaignParticipant.email);
+          await fillIn(screen.getByLabelText(PASSWORD_INPUT_LABEL), campaignParticipant.password);
           await click(screen.getByRole('checkbox', { name: this.intl.t('common.cgu.label') }));
-          await clickByLabel(this.intl.t('pages.sign-up.actions.submit'));
-        });
+          await click(screen.getByRole('button', { name: "Je m'inscris" }));
 
-        test('should redirect to send profile page after signup', async function (assert) {
           // then
-          // TODO: Fix this the next time the file is edited.
-          // eslint-disable-next-line qunit/no-assert-equal
-          assert.equal(currentURL(), `/campagnes/${campaign.code}/collecte/envoi-profil`);
+          assert.strictEqual(currentURL(), `/campagnes/${campaign.code}/collecte/envoi-profil`);
         });
       });
 
-      module(
-        'When campaign does not have external id but a participant external id is set in the url',
-        function (hooks) {
-          hooks.beforeEach(async function () {
-            campaign = server.create('campaign', { type: PROFILES_COLLECTION });
-            const screen = await startCampaignByCodeAndExternalId(campaign.code);
-            await fillIn('#firstName', campaignParticipant.firstName);
-            await fillIn('#lastName', campaignParticipant.lastName);
-            await fillIn('#email', campaignParticipant.email);
-            await fillIn('#password', campaignParticipant.password);
-            await click(screen.getByRole('checkbox', { name: this.intl.t('common.cgu.label') }));
-            await clickByLabel(this.intl.t('pages.sign-up.actions.submit'));
-          });
+      module('When campaign does not have external id but a participant external id is set in the url', function () {
+        test('should redirect to send profile page after signup', async function (assert) {
+          // given
+          campaign = server.create('campaign', { type: PROFILES_COLLECTION });
+          const screen = await startCampaignByCodeAndExternalId(campaign.code);
+          await fillIn(screen.getByRole('textbox', { name: FIRST_NAME_INPUT_LABEL }), campaignParticipant.firstName);
+          await fillIn(screen.getByRole('textbox', { name: LAST_NAME_INPUT_LABEL }), campaignParticipant.lastName);
+          await fillIn(screen.getByRole('textbox', { name: EMAIL_INPUT_LABEL }), campaignParticipant.email);
+          await fillIn(screen.getByLabelText(PASSWORD_INPUT_LABEL), campaignParticipant.password);
+          await click(screen.getByRole('checkbox', { name: this.intl.t('common.cgu.label') }));
 
-          test('should redirect to send profile page after signup', async function (assert) {
-            // then
-            // TODO: Fix this the next time the file is edited.
-            // eslint-disable-next-line qunit/no-assert-equal
-            assert.equal(currentURL(), `/campagnes/${campaign.code}/collecte/envoi-profil`);
-          });
-        }
-      );
+          // when
+          await click(screen.getByRole('button', { name: "Je m'inscris" }));
+
+          // then
+          assert.strictEqual(currentURL(), `/campagnes/${campaign.code}/collecte/envoi-profil`);
+        });
+      });
     });
 
     module('When user is logged in', function (hooks) {
@@ -167,13 +163,11 @@ module('Acceptance | Campaigns | Start Campaigns with type Profiles Collection',
         test('should redirect to landing page', async function (assert) {
           // when
           campaign = server.create('campaign', { type: PROFILES_COLLECTION });
-          await visit(`/campagnes/${campaign.code}`);
-          // TODO: Fix this the next time the file is edited.
-          // eslint-disable-next-line qunit/no-assert-equal
-          assert.equal(currentURL(), `/campagnes/${campaign.code}/presentation`);
-          // TODO: Fix this the next time the file is edited.
-          // eslint-disable-next-line qunit/no-assert-equal
-          assert.equal(find('.campaign-landing-page__start-button').textContent.trim(), "C'est parti !");
+          const screen = await visit(`/campagnes/${campaign.code}`);
+
+          // then
+          assert.strictEqual(currentURL(), `/campagnes/${campaign.code}/presentation`);
+          assert.dom(screen.getByRole('button', { name: "C'est parti !" })).exists();
         });
       });
 
@@ -190,24 +184,23 @@ module('Acceptance | Campaigns | Start Campaigns with type Profiles Collection',
         module('When association is not already done', function () {
           test('should redirect to send profile page', async function (assert) {
             // given
-            await visit(`/campagnes/${campaign.code}`);
-            await clickByLabel("C'est parti !");
-            await fillIn('#firstName', 'Robert');
-            await fillIn('#lastName', 'Smith');
-            await fillIn('#dayOfBirth', '10');
-            await fillIn('#monthOfBirth', '12');
-            await fillIn('#yearOfBirth', '2000');
-            await clickByLabel(this.intl.t('pages.join.button'));
-            await clickByLabel(this.intl.t('pages.join.sco.associate'));
-            await fillIn('#id-pix-label', 'truc');
+            const screen = await visit(`/campagnes/${campaign.code}`);
+            await click(screen.getByRole('button', { name: "C'est parti !" }));
+            await fillIn(screen.getByRole('textbox', { name: FIRST_NAME_INPUT_LABEL }), 'Robert');
+            await fillIn(screen.getByRole('textbox', { name: LAST_NAME_INPUT_LABEL }), 'Smith');
+            await fillIn(screen.getByRole('textbox', { name: DAY_BIRTH_INPUT_LABEL }), '10');
+            await fillIn(screen.getByRole('textbox', { name: MONTH_BIRTH_INPUT_LABEL }), '12');
+            await fillIn(screen.getByRole('textbox', { name: YEAR_BIRTH_INPUT_LABEL }), '2000');
+            await click(screen.getByRole('button', { name: "C'est parti !" }));
+            await click(screen.getByRole('button', { name: 'Associer' }));
+
+            await fillIn(screen.getByRole('textbox', { name: 'nom de naissance de maman' }), 'truc');
 
             // when
-            await clickByLabel(this.intl.t('pages.fill-in-participant-external-id.buttons.continue'));
+            await click(screen.getByRole('button', { name: 'Continuer' }));
 
             //then
-            // TODO: Fix this the next time the file is edited.
-            // eslint-disable-next-line qunit/no-assert-equal
-            assert.equal(currentURL(), `/campagnes/${campaign.code}/collecte/envoi-profil`);
+            assert.strictEqual(currentURL(), `/campagnes/${campaign.code}/collecte/envoi-profil`);
           });
 
           module('When user has already a reconciled account', function (hooks) {
@@ -220,15 +213,15 @@ module('Acceptance | Campaigns | Start Campaigns with type Profiles Collection',
             test('should display error modal when fields are filled in', async function (assert) {
               // given
               const screen = await visit(`/campagnes/${campaign.code}`);
-              await clickByLabel("C'est parti !");
+              await click(screen.getByRole('button', { name: "C'est parti !" }));
 
               // when
-              await fillIn('#firstName', 'Robert');
-              await fillIn('#lastName', 'Smith');
-              await fillIn('#dayOfBirth', '10');
-              await fillIn('#monthOfBirth', '12');
-              await fillIn('#yearOfBirth', '2000');
-              await clickByLabel(this.intl.t('pages.join.button'));
+              await fillIn(screen.getByRole('textbox', { name: FIRST_NAME_INPUT_LABEL }), 'Robert');
+              await fillIn(screen.getByRole('textbox', { name: LAST_NAME_INPUT_LABEL }), 'Smith');
+              await fillIn(screen.getByRole('textbox', { name: DAY_BIRTH_INPUT_LABEL }), '10');
+              await fillIn(screen.getByRole('textbox', { name: MONTH_BIRTH_INPUT_LABEL }), '12');
+              await fillIn(screen.getByRole('textbox', { name: YEAR_BIRTH_INPUT_LABEL }), '2000');
+              await click(screen.getByRole('button', { name: "C'est parti !" }));
 
               //then
               assert.ok(screen.getByRole('dialog', { name: this.intl.t('pages.join.sco.login-information-title') }));
@@ -237,21 +230,19 @@ module('Acceptance | Campaigns | Start Campaigns with type Profiles Collection',
             test('should redirect to connection form when continue button is clicked', async function (assert) {
               // given
               const screen = await visit(`/campagnes/${campaign.code}`);
-              await clickByLabel("C'est parti !");
+              await click(screen.getByRole('button', { name: "C'est parti !" }));
 
               // when
-              await fillIn('#firstName', 'Robert');
-              await fillIn('#lastName', 'Smith');
-              await fillIn('#dayOfBirth', '10');
-              await fillIn('#monthOfBirth', '12');
-              await fillIn('#yearOfBirth', '2000');
-              await clickByLabel(this.intl.t('pages.join.button'));
-              await clickByLabel(this.intl.t('pages.join.sco.continue-with-pix'));
+              await fillIn(screen.getByRole('textbox', { name: FIRST_NAME_INPUT_LABEL }), 'Robert');
+              await fillIn(screen.getByRole('textbox', { name: LAST_NAME_INPUT_LABEL }), 'Smith');
+              await fillIn(screen.getByRole('textbox', { name: DAY_BIRTH_INPUT_LABEL }), '10');
+              await fillIn(screen.getByRole('textbox', { name: MONTH_BIRTH_INPUT_LABEL }), '12');
+              await fillIn(screen.getByRole('textbox', { name: YEAR_BIRTH_INPUT_LABEL }), '2000');
+              await click(screen.getByRole('button', { name: "C'est parti !" }));
+              await click(screen.getByRole('button', { name: 'Continuer avec mon compte Pix' }));
 
               //then
-              // TODO: Fix this the next time the file is edited.
-              // eslint-disable-next-line qunit/no-assert-equal
-              assert.equal(currentURL(), `/campagnes/${campaign.code}/rejoindre/identification`);
+              assert.strictEqual(currentURL(), `/campagnes/${campaign.code}/rejoindre/identification`);
               assert.ok(screen.getByRole('button', { name: 'Se connecter' }));
             });
           });
@@ -259,81 +250,66 @@ module('Acceptance | Campaigns | Start Campaigns with type Profiles Collection',
       });
 
       module('When campaign has external id', function () {
-        module('When participant external id is not set in the url', function (hooks) {
-          hooks.beforeEach(async function () {
+        module('When participant external id is not set in the url', function () {
+          test('should redirect to send profile page when the user fill in his id', async function (assert) {
+            // given
             campaign = server.create('campaign', {
               type: PROFILES_COLLECTION,
               idPixLabel: 'nom de naissance de maman',
             });
-            await startCampaignByCode(campaign.code);
-          });
+            const screen = await startCampaignByCode(campaign.code);
 
-          test('should redirect to send profile page when the user fill in his id', async function (assert) {
             // when
-            await fillIn('#id-pix-label', 'monmail@truc.fr');
-            await clickByLabel(this.intl.t('pages.fill-in-participant-external-id.buttons.continue'));
+            await fillIn(screen.getByRole('textbox', { name: 'nom de naissance de maman' }), 'truc');
+            await click(screen.getByRole('button', { name: 'Continuer' }));
 
             // then
-            // TODO: Fix this the next time the file is edited.
-            // eslint-disable-next-line qunit/no-assert-equal
-            assert.equal(currentURL(), `/campagnes/${campaign.code}/collecte/envoi-profil`);
+            assert.strictEqual(currentURL(), `/campagnes/${campaign.code}/collecte/envoi-profil`);
           });
         });
 
-        module('When participant external id is set in the url', function (hooks) {
-          hooks.beforeEach(async function () {
+        module('When participant external id is set in the url', function () {
+          test('should redirect to send profile page', async function (assert) {
+            // given & when
             campaign = server.create('campaign', {
               type: PROFILES_COLLECTION,
               idPixLabel: 'nom de naissance de maman',
             });
             await startCampaignByCodeAndExternalId(campaign.code);
-          });
 
-          test('should redirect to send profile page', async function (assert) {
             // then
-            // TODO: Fix this the next time the file is edited.
-            // eslint-disable-next-line qunit/no-assert-equal
-            assert.equal(currentURL(), `/campagnes/${campaign.code}/collecte/envoi-profil`);
+            assert.strictEqual(currentURL(), `/campagnes/${campaign.code}/collecte/envoi-profil`);
           });
         });
       });
 
-      module('When campaign does not have external id', function (hooks) {
-        hooks.beforeEach(async function () {
-          campaign = server.create('campaign', { type: PROFILES_COLLECTION, idPixLabel: null });
-          await visit(`campagnes/${campaign.code}`);
-        });
-
+      module('When campaign does not have external id', function () {
         test('should redirect to send profile page after clicking on start button in landing page', async function (assert) {
+          // given
+          campaign = server.create('campaign', { type: PROFILES_COLLECTION, idPixLabel: null });
+          const screen = await visit(`campagnes/${campaign.code}`);
+
           // when
-          await click('.campaign-landing-page__start-button');
+          await click(screen.getByRole('button', { name: "C'est parti !" }));
 
           // then
-          // TODO: Fix this the next time the file is edited.
-          // eslint-disable-next-line qunit/no-assert-equal
-          assert.equal(currentURL(), `/campagnes/${campaign.code}/collecte/envoi-profil`);
+          assert.strictEqual(currentURL(), `/campagnes/${campaign.code}/collecte/envoi-profil`);
         });
       });
 
-      module(
-        'When campaign does not have external id but a participant external id is set in the url',
-        function (hooks) {
-          hooks.beforeEach(async function () {
-            campaign = server.create('campaign', { type: PROFILES_COLLECTION, idPixLabel: null });
-            await visit(`/campagnes/${campaign.code}?participantExternalId=a73at01r3`);
-          });
+      module('When campaign does not have external id but a participant external id is set in the url', function () {
+        test('should redirect to send profile page after clicking on start button in landing page', async function (assert) {
+          // given
+          campaign = server.create('campaign', { type: PROFILES_COLLECTION, idPixLabel: null });
+          const screen = await visit(`/campagnes/${campaign.code}?participantExternalId=a73at01r3`);
 
-          test('should redirect to send profile page after clicking on start button in landing page', async function (assert) {
-            // when
-            await click('.campaign-landing-page__start-button');
+          // when
+          await click(screen.getByRole('button', { name: "C'est parti !" }));
 
-            // then
-            // TODO: Fix this the next time the file is edited.
-            // eslint-disable-next-line qunit/no-assert-equal
-            assert.equal(currentURL(), `/campagnes/${campaign.code}/collecte/envoi-profil`);
-          });
-        }
-      );
+          // then
+          assert.strictEqual(currentURL(), `/campagnes/${campaign.code}/collecte/envoi-profil`);
+        });
+      });
     });
   });
 });

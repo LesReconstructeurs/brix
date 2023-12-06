@@ -1,26 +1,26 @@
-const CampaignAssessmentParticipationResult = require('../../../lib/domain/read-models/CampaignAssessmentParticipationResult');
-const { NotFoundError } = require('../../../lib/domain/errors');
-const { knex } = require('../../../db/knex-database-connection');
-const knowledgeElementRepository = require('./knowledge-element-repository');
-const learningContentRepository = require('./learning-content-repository');
-const CampaignLearningContent = require('../../domain/models/CampaignLearningContent');
+import { CampaignAssessmentParticipationResult } from '../../../lib/domain/read-models/CampaignAssessmentParticipationResult.js';
+import { NotFoundError } from '../../../lib/domain/errors.js';
+import { knex } from '../../../db/knex-database-connection.js';
+import * as knowledgeElementRepository from './knowledge-element-repository.js';
+import * as learningContentRepository from './learning-content-repository.js';
+import { CampaignLearningContent } from '../../domain/models/CampaignLearningContent.js';
 
-module.exports = {
-  async getByCampaignIdAndCampaignParticipationId({ campaignId, campaignParticipationId, locale }) {
-    const learningContent = await learningContentRepository.findByCampaignId(campaignId, locale);
-    const campaignLearningContent = new CampaignLearningContent(learningContent);
-    const result = await _fetchCampaignAssessmentParticipationResultAttributesFromCampaignParticipation(
-      campaignId,
-      campaignParticipationId
-    );
+const getByCampaignIdAndCampaignParticipationId = async function ({ campaignId, campaignParticipationId, locale }) {
+  const learningContent = await learningContentRepository.findByCampaignId(campaignId, locale);
+  const campaignLearningContent = new CampaignLearningContent(learningContent);
+  const result = await _fetchCampaignAssessmentParticipationResultAttributesFromCampaignParticipation(
+    campaignId,
+    campaignParticipationId,
+  );
 
-    return _buildCampaignAssessmentParticipationResults(result, campaignLearningContent);
-  },
+  return _buildCampaignAssessmentParticipationResults(result, campaignLearningContent);
 };
+
+export { getByCampaignIdAndCampaignParticipationId };
 
 async function _fetchCampaignAssessmentParticipationResultAttributesFromCampaignParticipation(
   campaignId,
-  campaignParticipationId
+  campaignParticipationId,
 ) {
   const [campaignAssessmentParticipationResult] = await knex
     .with('campaignAssessmentParticipationResult', (qb) => {
@@ -50,17 +50,17 @@ async function _fetchCampaignAssessmentParticipationResultAttributesFromCampaign
   return campaignAssessmentParticipationResult;
 }
 
-async function _buildCampaignAssessmentParticipationResults(result, learningContent) {
+async function _buildCampaignAssessmentParticipationResults(result, campaignLearningContent) {
   const validatedTargetedKnowledgeElementsCountByCompetenceId =
     await knowledgeElementRepository.countValidatedByCompetencesForOneUserWithinCampaign(
       result.userId,
       result.sharedAt,
-      learningContent
+      campaignLearningContent,
     );
 
   return new CampaignAssessmentParticipationResult({
     ...result,
-    competences: learningContent.competences,
+    campaignLearningContent,
     validatedTargetedKnowledgeElementsCountByCompetenceId,
   });
 }

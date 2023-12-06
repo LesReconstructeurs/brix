@@ -1,6 +1,9 @@
-const _ = require('lodash');
-const Joi = require('joi').extend(require('@joi/date'));
-const { EntityValidationError } = require('../errors');
+import _ from 'lodash';
+import BaseJoi from 'joi';
+import JoiDate from '@joi/date';
+const Joi = BaseJoi.extend(JoiDate);
+import { EntityValidationError } from '../errors.js';
+import { CertificationVersion } from './CertificationVersion.js';
 
 const ABORT_REASONS = ['candidate', 'technical'];
 const cpfImportStatus = {
@@ -26,7 +29,6 @@ class CertificationCourse {
     createdAt,
     completedAt,
     isPublished = false,
-    isV2Certification = false,
     verificationCode,
     assessment,
     challenges,
@@ -37,6 +39,7 @@ class CertificationCourse {
     isCancelled = false,
     abortReason,
     complementaryCertificationCourses = [],
+    version = CertificationVersion.V2,
   } = {}) {
     this._id = id;
     this._firstName = firstName;
@@ -52,7 +55,7 @@ class CertificationCourse {
     this._createdAt = createdAt;
     this._completedAt = completedAt;
     this._isPublished = isPublished;
-    this._isV2Certification = isV2Certification;
+    this._version = version;
     this._verificationCode = verificationCode;
     this._assessment = assessment;
     this._challenges = challenges;
@@ -71,6 +74,7 @@ class CertificationCourse {
     verificationCode,
     maxReachableLevelOnCertificationDate,
     complementaryCertificationCourses,
+    version,
   }) {
     return new CertificationCourse({
       userId: certificationCandidate.userId,
@@ -84,11 +88,11 @@ class CertificationCourse {
       sex: certificationCandidate.sex,
       birthplace: certificationCandidate.birthCity,
       externalId: certificationCandidate.externalId,
-      isV2Certification: true,
       challenges,
       verificationCode,
       maxReachableLevelOnCertificationDate,
       complementaryCertificationCourses,
+      version,
     });
   }
 
@@ -217,6 +221,10 @@ class CertificationCourse {
     return this._sessionId;
   }
 
+  getVersion() {
+    return this._version;
+  }
+
   toDTO() {
     return {
       id: this._id,
@@ -233,7 +241,6 @@ class CertificationCourse {
       createdAt: this._createdAt,
       completedAt: this._completedAt,
       isPublished: this._isPublished,
-      isV2Certification: this._isV2Certification,
       verificationCode: this._verificationCode,
       assessment: this._assessment,
       challenges: this._challenges,
@@ -244,6 +251,7 @@ class CertificationCourse {
       isCancelled: this._isCancelled,
       abortReason: this._abortReason,
       complementaryCertificationCourses: this._complementaryCertificationCourses,
+      version: this._version,
     };
   }
 }
@@ -258,4 +266,4 @@ function _sanitizedString(string) {
 
 CertificationCourse.cpfImportStatus = cpfImportStatus;
 
-module.exports = CertificationCourse;
+export { CertificationCourse, cpfImportStatus };

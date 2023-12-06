@@ -1,9 +1,9 @@
-const dayjs = require('dayjs');
-const { plannerJob } = require('../../../../config').cpf;
-const logger = require('../../../logger');
-const _ = require('lodash');
+import dayjs from 'dayjs';
+import { config } from '../../../../config.js';
 
-module.exports = async function planner({ pgBoss, cpfCertificationResultRepository, jobId }) {
+const { plannerJob } = config.cpf;
+
+const planner = async function ({ job, pgBoss, cpfCertificationResultRepository, logger }) {
   const startDate = dayjs()
     .utc()
     .subtract(plannerJob.minimumReliabilityPeriod + (plannerJob.monthsToProcess - 1), 'months')
@@ -11,20 +11,29 @@ module.exports = async function planner({ pgBoss, cpfCertificationResultReposito
     .toDate();
   const endDate = dayjs().utc().subtract(plannerJob.minimumReliabilityPeriod, 'months').endOf('month').toDate();
 
-  const certificationCourseIds = await cpfCertificationResultRepository.getIdsByTimeRange({ startDate, endDate });
-  const certificationCourseIdChunks = _.chunk(certificationCourseIds, plannerJob.chunkSize);
+  const cpfCertificationResultCount = await cpfCertificationResultRepository.countByTimeRange({ startDate, endDate });
+  const cpfCertificationResultChunksCount = Math.ceil(cpfCertificationResultCount / plannerJob.chunkSize);
+
   logger.info(
-    `CpfExportPlannerJob start from ${startDate} to ${endDate}, plan ${certificationCourseIdChunks.length} job(s) for ${certificationCourseIds.length} certifications`
+    `Start from ${startDate.toLocaleDateString()} to ${endDate.toLocaleDateString()}, plan ${cpfCertificationResultChunksCount} job(s) for ${cpfCertificationResultCount} certifications`,
   );
-  for (const [index, certificationCourseIds] of certificationCourseIdChunks.entries()) {
-    const batchId = `${jobId}#${index}`;
+
+  const newJobs = [];
+  for (let index = 0; index < cpfCertificationResultChunksCount; index++) {
+    const batchId = `${job.id}#${index}`;
     await cpfCertificationResultRepository.markCertificationToExport({
-      certificationCourseIds,
+      startDate,
+      endDate,
+      limit: plannerJob.chunkSize,
+      offset: index * plannerJob.chunkSize,
       batchId,
     });
 
-    pgBoss.send('CpfExportBuilderJob', {
-      jobId: batchId,
-    });
+    newJobs.push(batchId);
+    logger.info(`${batchId} created for (${index + 1}/${cpfCertificationResultChunksCount})`);
   }
+
+  await pgBoss.insert(newJobs.map((batchId) => ({ name: 'CpfExportBuilderJob', data: { batchId } })));
 };
+
+export { planner };

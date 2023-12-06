@@ -1,6 +1,6 @@
 import { module, test } from 'qunit';
 import { setupRenderingTest } from 'ember-qunit';
-import hbs from 'htmlbars-inline-precompile';
+import { hbs } from 'ember-cli-htmlbars';
 import { render, clickByName } from '@1024pix/ember-testing-library';
 import Service from '@ember/service';
 import sinon from 'sinon';
@@ -32,7 +32,7 @@ module('Integration | Component | actions-on-users-role-in-organization', functi
 
       // when
       const screen = await render(
-        hbs`<ActionsOnUsersRoleInOrganization @organizationMembership={{this.organizationMembership}} />`
+        hbs`<ActionsOnUsersRoleInOrganization @organizationMembership={{this.organizationMembership}} />`,
       );
       await clickByName('Modifier le rôle');
 
@@ -74,7 +74,7 @@ module('Integration | Component | actions-on-users-role-in-organization', functi
 
       // when
       const screen = await render(
-        hbs`<ActionsOnUsersRoleInOrganization @organizationMembership={{this.organizationMembership}} />`
+        hbs`<ActionsOnUsersRoleInOrganization @organizationMembership={{this.organizationMembership}} />`,
       );
 
       await clickByName("Désactiver l'agent");
@@ -99,7 +99,7 @@ module('Integration | Component | actions-on-users-role-in-organization', functi
 
       // when
       const screen = await render(
-        hbs`<ActionsOnUsersRoleInOrganization @organizationMembership={{this.organizationMembership}} />`
+        hbs`<ActionsOnUsersRoleInOrganization @organizationMembership={{this.organizationMembership}} />`,
       );
 
       // expect

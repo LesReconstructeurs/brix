@@ -1,5 +1,5 @@
 import { Factory, trait } from 'miragejs';
-import faker from 'faker';
+import { faker } from '@faker-js/faker';
 
 export default Factory.extend({
   format() {
@@ -15,7 +15,7 @@ export default Factory.extend({
   },
 
   title() {
-    return faker.random.word();
+    return faker.lorem.word();
   },
 
   withUserSavedTutorial: trait({

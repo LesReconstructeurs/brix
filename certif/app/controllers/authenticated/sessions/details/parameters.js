@@ -5,7 +5,7 @@ import { alias } from '@ember/object/computed';
 import { computed } from '@ember/object';
 /* eslint-enable ember/no-computed-properties-in-native-classes*/
 import { tracked } from '@glimmer/tracking';
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 
 export default class SessionParametersController extends Controller {
   @alias('model.session') session;
@@ -14,19 +14,17 @@ export default class SessionParametersController extends Controller {
   @tracked accessCodeTooltipText = '';
   @tracked supervisorPasswordTooltipText = '';
   @service currentUser;
+  @service intl;
 
   @computed('certificationCandidates.@each.isLinked')
   get sessionHasStarted() {
     return this.certificationCandidates.isAny('isLinked');
   }
 
-  get supervisorPasswordShouldBeDisplayed() {
-    return this.currentUser.currentAllowedCertificationCenterAccess.isEndTestScreenRemovalEnabled;
-  }
-
   @action
   async showSessionIdTooltip() {
-    this.sessionNumberTooltipText = 'Copié !';
+    await navigator.clipboard.writeText(this.session.id);
+    this.sessionNumberTooltipText = this.intl.t('common.actions.copied');
     await _waitForSeconds(2);
     this.removeSessionNumberTooltip();
   }
@@ -38,7 +36,8 @@ export default class SessionParametersController extends Controller {
 
   @action
   async showAccessCodeTooltip() {
-    this.accessCodeTooltipText = 'Copié !';
+    await navigator.clipboard.writeText(this.session.accessCode);
+    this.accessCodeTooltipText = this.intl.t('common.actions.copied');
     await _waitForSeconds(2);
     this.removeAccessCodeTooltip();
   }
@@ -50,7 +49,8 @@ export default class SessionParametersController extends Controller {
 
   @action
   async showSupervisorPasswordTooltip() {
-    this.supervisorPasswordTooltipText = 'Copié !';
+    await navigator.clipboard.writeText(this.session.supervisorPassword);
+    this.supervisorPasswordTooltipText = this.intl.t('common.actions.copied');
     await _waitForSeconds(2);
     this.removeSupervisorPasswordTooltip();
   }

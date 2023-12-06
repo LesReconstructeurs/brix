@@ -1,10 +1,12 @@
-const querystring = require('querystring');
-const { expect, databaseBuilder, knex } = require('../../../test-helper');
-const tokenService = require('../../../../lib/domain/services/token-service');
-const AuthenticationMethod = require('../../../../lib/domain/models/AuthenticationMethod');
-const { ROLES } = require('../../../../lib/domain/constants').PIX_ADMIN;
+import querystring from 'querystring';
+import { expect, databaseBuilder, knex } from '../../../test-helper.js';
+import { tokenService } from '../../../../lib/domain/services/token-service.js';
+import { NON_OIDC_IDENTITY_PROVIDERS } from '../../../../lib/domain/constants/identity-providers.js';
+import { PIX_ADMIN } from '../../../../lib/domain/constants.js';
 
-const createServer = require('../../../../server');
+const { ROLES } = PIX_ADMIN;
+
+import { createServer } from '../../../../server.js';
 
 describe('Acceptance | Controller | authentication-controller', function () {
   afterEach(async function () {
@@ -174,53 +176,27 @@ describe('Acceptance | Controller | authentication-controller', function () {
     });
 
     context('when scope is pix-certif', function () {
-      context('when certification center has the supervisor access enabled', function () {
-        it('should return http code 200 with accessToken when authentication is ok', async function () {
-          //given
-          databaseBuilder.factory.buildCertificationCenter({ id: 345, isSupervisorAccessEnabled: true });
-          databaseBuilder.factory.buildSession({ id: 121, certificationCenterId: 345 });
-          databaseBuilder.factory.buildCertificationCandidate({ sessionId: 121 });
-          databaseBuilder.factory.buildSupervisorAccess({ userId, sessionId: 121 });
-          await databaseBuilder.commit();
+      it('should return http code 200 with accessToken when authentication is ok', async function () {
+        //given
+        databaseBuilder.factory.buildCertificationCenter({ id: 345 });
+        databaseBuilder.factory.buildSession({ id: 121, certificationCenterId: 345 });
+        databaseBuilder.factory.buildCertificationCandidate({ sessionId: 121 });
+        databaseBuilder.factory.buildSupervisorAccess({ userId, sessionId: 121 });
+        await databaseBuilder.commit();
 
-          const options = _getOptions({ scope: 'pix-certif', username: userEmailAddress, password: userPassword });
+        const options = _getOptions({ scope: 'pix-certif', username: userEmailAddress, password: userPassword });
 
-          await databaseBuilder.commit();
-          // when
-          const response = await server.inject(options);
+        await databaseBuilder.commit();
+        // when
+        const response = await server.inject(options);
 
-          // then
-          expect(response.statusCode).to.equal(200);
+        // then
+        expect(response.statusCode).to.equal(200);
 
-          const result = response.result;
-          expect(result.token_type).to.equal('bearer');
-          expect(result.access_token).to.exist;
-          expect(result.user_id).to.equal(userId);
-        });
-      });
-
-      context('when certification center does not have the supervisor access enabled', function () {
-        it('should return http code 403 ', async function () {
-          //given
-          databaseBuilder.factory.buildUser.withRawPassword({
-            email: 'email@without.mb',
-            rawPassword: userPassword,
-            cgu: true,
-          });
-          databaseBuilder.factory.buildCertificationCenter({ id: 345, isSupervisorAccessEnabled: false });
-          databaseBuilder.factory.buildSession({ id: 121, certificationCenterId: 345 });
-          databaseBuilder.factory.buildCertificationCandidate({ sessionId: 121 });
-          databaseBuilder.factory.buildSupervisorAccess({ userId, sessionId: 121 });
-
-          await databaseBuilder.commit();
-          const options = _getOptions({ scope: 'pix-certif', username: 'email@without.mb', password: userPassword });
-
-          // when
-          const { statusCode } = await server.inject(options);
-
-          // then
-          expect(statusCode).to.equal(403);
-        });
+        const result = response.result;
+        expect(result.token_type).to.equal('bearer');
+        expect(result.access_token).to.exist;
+        expect(result.user_id).to.equal(userId);
       });
     });
 
@@ -299,6 +275,78 @@ describe('Acceptance | Controller | authentication-controller', function () {
           const userLogin = await knex('user-logins').where({ userId }).first();
           expect(userLogin.failureCount).to.equal(0);
           expect(userLogin.temporaryBlockedUntil).to.be.null;
+        });
+      });
+    });
+
+    context('when there is a locale cookie', function () {
+      context('when the user has no locale saved', function () {
+        it('updates the user locale with the locale cookie', async function () {
+          // given
+          const localeFromCookie = 'fr';
+          const email = 'user-without-locale@example.net';
+          const userWithoutLocale = databaseBuilder.factory.buildUser.withRawPassword({
+            email,
+            rawPassword: userPassword,
+            locale: null,
+          });
+          await databaseBuilder.commit();
+
+          // when
+          const response = await server.inject({
+            method: 'POST',
+            url: '/api/token',
+            headers: {
+              'content-type': 'application/x-www-form-urlencoded',
+              cookie: `locale=${localeFromCookie}`,
+            },
+            payload: querystring.stringify({
+              grant_type: 'password',
+              username: userWithoutLocale.email,
+              password: userPassword,
+            }),
+          });
+
+          // then
+          expect(response.statusCode).to.equal(200);
+          const user = await knex('users').where({ id: userWithoutLocale.id }).first();
+          expect(user.locale).to.equal(localeFromCookie);
+        });
+      });
+
+      context('when the user has already a locale saved', function () {
+        it('does not update the user locale', async function () {
+          // given
+          const localeFromCookie = 'fr-BE';
+          const userLocale = 'fr';
+          const email = 'user-with-locale@example.net';
+          const userWithLocale = databaseBuilder.factory.buildUser.withRawPassword({
+            email,
+            rawPassword: userPassword,
+            locale: userLocale,
+          });
+          await databaseBuilder.commit();
+
+          // when
+          const response = await server.inject({
+            method: 'POST',
+            url: '/api/token',
+            headers: {
+              'content-type': 'application/x-www-form-urlencoded',
+              cookie: `locale=${localeFromCookie}`,
+            },
+            payload: querystring.stringify({
+              grant_type: 'password',
+              username: userWithLocale.email,
+              password: userPassword,
+            }),
+          });
+
+          // then
+          expect(response.statusCode).to.equal(200);
+          const user = await knex('users').where({ id: userWithLocale.id }).first();
+          expect(user.locale).to.not.equal(localeFromCookie);
+          expect(user.locale).to.equal(userLocale);
         });
       });
     });
@@ -393,7 +441,7 @@ describe('Acceptance | Controller | authentication-controller', function () {
 
         // then
         const authenticationMethods = await knex('authentication-methods').where({
-          identityProvider: AuthenticationMethod.identityProviders.GAR,
+          identityProvider: NON_OIDC_IDENTITY_PROVIDERS.GAR.code,
           userId: user.id,
           externalIdentifier: 'SAMLJACKSONID',
         });
@@ -499,8 +547,8 @@ describe('Acceptance | Controller | authentication-controller', function () {
   describe('POST /api/application/token', function () {
     let server;
     let options;
-    const OSMOSE_CLIENT_ID = 'graviteeOsmoseClientId';
-    const OSMOSE_CLIENT_SECRET = 'graviteeOsmoseClientSecret';
+    const OSMOSE_CLIENT_ID = 'apimOsmoseClientId';
+    const OSMOSE_CLIENT_SECRET = 'apimOsmoseClientSecret';
     const SCOPE = 'organizations-certifications-result';
 
     beforeEach(async function () {

@@ -1,7 +1,7 @@
-const { expect, mockLearningContent, domainBuilder } = require('../../../test-helper');
-const ScoringSimulation = require('../../../../lib/domain/models/ScoringSimulation');
-const SimulationResult = require('../../../../lib/domain/models/SimulationResult');
-const usecases = require('../../../../lib/domain/usecases/');
+import { expect, mockLearningContent, domainBuilder } from '../../../test-helper.js';
+import { ScoringSimulation } from '../../../../lib/domain/models/ScoringSimulation.js';
+import { ScoringSimulationResult } from '../../../../lib/domain/models/ScoringSimulationResult.js';
+import { usecases } from '../../../../lib/domain/usecases/index.js';
 
 describe('Integration | UseCases | simulateOldScoring', function () {
   beforeEach(function () {
@@ -79,8 +79,18 @@ describe('Integration | UseCases | simulateOldScoring', function () {
 
     // then
     expect(simulationResults).to.have.lengthOf(1);
-    expect(simulationResults[0]).to.be.instanceOf(SimulationResult);
+    expect(simulationResults[0]).to.be.instanceOf(ScoringSimulationResult);
     expect(simulationResults[0]).to.have.property('pixScore', 101);
+    expect(simulationResults[0].pixScoreByCompetence).to.exactlyContain([
+      {
+        competenceId: 'rec1',
+        pixScore: 1,
+      },
+      {
+        competenceId: 'rec2',
+        pixScore: 100,
+      },
+    ]);
   });
 
   describe('when there are many challenges on the same tube', function () {
@@ -105,9 +115,19 @@ describe('Integration | UseCases | simulateOldScoring', function () {
 
       // then
       expect(simulationResults).to.have.lengthOf(1);
-      expect(simulationResults[0]).to.be.instanceOf(SimulationResult);
+      expect(simulationResults[0]).to.be.instanceOf(ScoringSimulationResult);
       expect(simulationResults[0]).to.have.property('id', 'simulation1');
       expect(simulationResults[0]).to.have.property('pixScore', 11111);
+      expect(simulationResults[0].pixScoreByCompetence).to.exactlyContain([
+        {
+          competenceId: 'rec1',
+          pixScore: 11,
+        },
+        {
+          competenceId: 'rec2',
+          pixScore: 11100,
+        },
+      ]);
     });
   });
 
@@ -130,7 +150,7 @@ describe('Integration | UseCases | simulateOldScoring', function () {
 
       // then
       expect(simulationResults).to.have.lengthOf(1);
-      expect(simulationResults[0]).to.be.instanceOf(SimulationResult);
+      expect(simulationResults[0]).to.be.instanceOf(ScoringSimulationResult);
       expect(simulationResults[0]).to.have.property('id', 'simulation1');
       expect(simulationResults[0]).to.have.property('error', 'Answer for skill skill5 was already given or inferred');
     });
@@ -155,7 +175,7 @@ describe('Integration | UseCases | simulateOldScoring', function () {
 
       // then
       expect(simulationResults).to.have.lengthOf(1);
-      expect(simulationResults[0]).to.be.instanceOf(SimulationResult);
+      expect(simulationResults[0]).to.be.instanceOf(ScoringSimulationResult);
       expect(simulationResults[0]).to.have.property('error', 'Answer for skill skill2 was already given or inferred');
     });
   });
@@ -179,7 +199,7 @@ describe('Integration | UseCases | simulateOldScoring', function () {
 
       // then
       expect(simulationResults).to.have.lengthOf(1);
-      expect(simulationResults[0]).to.be.instanceOf(SimulationResult);
+      expect(simulationResults[0]).to.be.instanceOf(ScoringSimulationResult);
       expect(simulationResults[0]).to.have.property('error', 'Answer for skill skill1 was already given or inferred');
     });
   });

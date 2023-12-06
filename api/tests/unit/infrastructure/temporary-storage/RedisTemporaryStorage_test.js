@@ -1,5 +1,5 @@
-const { expect, sinon } = require('../../../test-helper');
-const RedisTemporaryStorage = require('../../../../lib/infrastructure/temporary-storage/RedisTemporaryStorage');
+import { expect, sinon } from '../../../test-helper.js';
+import { RedisTemporaryStorage } from '../../../../lib/infrastructure/temporary-storage/RedisTemporaryStorage.js';
 
 describe('Unit | Infrastructure | temporary-storage | RedisTemporaryStorage', function () {
   const REDIS_URL = 'redis_url';
@@ -89,7 +89,7 @@ describe('Unit | Infrastructure | temporary-storage | RedisTemporaryStorage', fu
         sinon.match.any,
         JSON.stringify(value),
         EXPIRATION_PARAMETER,
-        expirationDelaySeconds
+        expirationDelaySeconds,
       );
     });
   });

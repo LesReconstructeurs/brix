@@ -1,15 +1,16 @@
-const {
+import {
   expect,
   generateValidRequestAuthorizationHeader,
   mockLearningContent,
   learningContentBuilder,
   databaseBuilder,
   knex,
-} = require('../../../test-helper');
-const createServer = require('../../../../server');
-const cache = require('../../../../lib/infrastructure/caches/learning-content-cache');
-const KnowledgeElement = require('../../../../lib/domain/models/KnowledgeElement');
-const nock = require('nock');
+} from '../../../test-helper.js';
+
+import { createServer } from '../../../../server.js';
+import { learningContentCache } from '../../../../lib/infrastructure/caches/learning-content-cache.js';
+import { KnowledgeElement } from '../../../../lib/domain/models/KnowledgeElement.js';
+import nock from 'nock';
 
 describe('Acceptance | Controller | user-tutorial-controller', function () {
   let server;
@@ -87,10 +88,10 @@ describe('Acceptance | Controller | user-tutorial-controller', function () {
         expect(response.result.data.type).to.deep.equal(expectedUserSavedTutorial.data.type);
         expect(response.result.data.id).to.exist;
         expect(response.result.data.attributes['user-id']).to.deep.equal(
-          expectedUserSavedTutorial.data.attributes['user-id']
+          expectedUserSavedTutorial.data.attributes['user-id'],
         );
         expect(response.result.data.attributes['tutorial-id']).to.deep.equal(
-          expectedUserSavedTutorial.data.attributes['tutorial-id']
+          expectedUserSavedTutorial.data.attributes['tutorial-id'],
         );
       });
 
@@ -118,13 +119,13 @@ describe('Acceptance | Controller | user-tutorial-controller', function () {
           expect(response.result.data.type).to.deep.equal(expectedUserSavedTutorial.data.type);
           expect(response.result.data.id).to.exist;
           expect(response.result.data.attributes['user-id']).to.deep.equal(
-            expectedUserSavedTutorial.data.attributes['user-id']
+            expectedUserSavedTutorial.data.attributes['user-id'],
           );
           expect(response.result.data.attributes['tutorial-id']).to.deep.equal(
-            expectedUserSavedTutorial.data.attributes['tutorial-id']
+            expectedUserSavedTutorial.data.attributes['tutorial-id'],
           );
           expect(response.result.data.attributes['skill-id']).to.deep.equal(
-            expectedUserSavedTutorial.data.attributes['skill-id']
+            expectedUserSavedTutorial.data.attributes['skill-id'],
           );
         });
       });
@@ -151,7 +152,7 @@ describe('Acceptance | Controller | user-tutorial-controller', function () {
 
     beforeEach(async function () {
       nock.cleanAll();
-      cache.flushAll();
+      learningContentCache.flushAll();
       options = {
         method: 'GET',
         url: `/api/users/${userId}/tutorials?filter[competences]=recCompetence1&filter[type]=saved`,
@@ -160,7 +161,7 @@ describe('Acceptance | Controller | user-tutorial-controller', function () {
         },
       };
 
-      learningContentObjects = learningContentBuilder.buildLearningContent.fromAreas([
+      learningContentObjects = learningContentBuilder.fromAreas([
         {
           id: 'recArea1',
           title_i18n: {

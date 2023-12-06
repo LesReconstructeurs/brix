@@ -1,7 +1,7 @@
 import Component from '@glimmer/component';
 import { action } from '@ember/object';
 import { tracked } from '@glimmer/tracking';
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 
 export default class UpdateForm extends Component {
   @service notifications;
@@ -54,11 +54,11 @@ export default class UpdateForm extends Component {
   _handleErrors(errorResponse) {
     const errors = errorResponse.errors;
     if (!errors) {
-      return this.notifications.error(this.intl.t('api-error-messages.global'));
+      return this.notifications.sendError(this.intl.t('api-error-messages.global'));
     }
     return errorResponse.errors.forEach((error) => {
       if (error.status !== '422') {
-        return this.notifications.error(this.intl.t('api-error-messages.global'));
+        return this.notifications.sendError(this.intl.t('api-error-messages.global'));
       }
     });
   }

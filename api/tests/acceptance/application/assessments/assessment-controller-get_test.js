@@ -1,7 +1,10 @@
-const { expect, generateValidRequestAuthorizationHeader, databaseBuilder } = require('../../../test-helper');
-const createServer = require('../../../../server');
-const { FRENCH_SPOKEN } = require('../../../../lib/domain/constants').LOCALE;
-const Assessment = require('../../../../lib/domain/models/Assessment');
+import { expect, generateValidRequestAuthorizationHeader, databaseBuilder } from '../../../test-helper.js';
+import { createServer } from '../../../../server.js';
+import { LOCALE } from '../../../../lib/domain/constants.js';
+
+const { FRENCH_SPOKEN } = LOCALE;
+
+import { Assessment } from '../../../../lib/domain/models/Assessment.js';
 
 describe('Acceptance | API | assessment-controller-get', function () {
   let server;
@@ -69,6 +72,7 @@ describe('Acceptance | API | assessment-controller-get', function () {
           'last-question-state': Assessment.statesOfLastQuestion.ASKED,
           'competence-id': 'recCompetenceId',
           method: Assessment.methods.CHOSEN,
+          'mission-id': null,
         },
         relationships: {
           course: {
@@ -194,6 +198,7 @@ describe('Acceptance | API | assessment-controller-get', function () {
           'competence-id': 'recCompetenceId',
           'last-question-state': Assessment.statesOfLastQuestion.ASKED,
           method: Assessment.methods.CHOSEN,
+          'mission-id': null,
         },
         relationships: {
           course: { data: { type: 'courses', id: courseId } },

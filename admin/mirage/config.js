@@ -1,3 +1,6 @@
+import { applyEmberDataSerializers, discoverEmberDataModels } from 'ember-cli-mirage';
+import { Response, createServer } from 'miragejs';
+
 import {
   attachOrganizationsFromExistingTargetProfile,
   attachTargetProfiles,
@@ -7,16 +10,13 @@ import {
   findPaginatedTargetProfileOrganizations,
   findPaginatedFilteredTargetProfileSummaries,
   findTargetProfileBadges,
-  findTargetProfileStages,
+  updateTargetProfileStageCollection,
   outdate,
   updateTargetProfile,
   createBadge,
   markTargetProfileAsSimplifiedAccess,
 } from './handlers/target-profiles';
-
-import { Response } from 'ember-cli-mirage';
 import { createOrganizationMembership } from './handlers/organization-memberships';
-import { getBadge } from './handlers/badges';
 import { createStage } from './handlers/stages';
 import { findPaginatedAndFilteredSessions } from './handlers/find-paginated-and-filtered-sessions';
 import {
@@ -28,11 +28,31 @@ import {
 } from './handlers/organizations';
 import { getPaginatedJuryCertificationSummariesBySessionId } from './handlers/get-jury-certification-summaries-by-session-id';
 import { createAdminMember } from './handlers/admin-members';
-import { findPaginatedTrainingSummaries, createTraining } from './handlers/trainings';
+import {
+  attachTargetProfilesToTraining,
+  createOrUpdateTrainingTrigger,
+  createTraining,
+  findPaginatedTrainingSummaries,
+  getTraining,
+  getTargetProfileSummariesForTraining,
+  updateTraining,
+} from './handlers/trainings';
+import { findFrameworkAreas } from './handlers/frameworks';
 
-export default function () {
-  this.logging = true;
-  this.urlPrefix = 'http://localhost:3000';
+export default function makeServer(config) {
+  const finalConfig = {
+    ...config,
+    models: { ...discoverEmberDataModels(), ...config.models },
+    serializers: applyEmberDataSerializers(config.serializers),
+    routes,
+    logging: true,
+    urlPrefix: 'http://localhost:3000',
+  };
+
+  return createServer(finalConfig);
+}
+
+function routes() {
   this.namespace = 'api';
 
   this.get('feature-toggles', (schema) => {
@@ -89,7 +109,9 @@ export default function () {
   this.post('/admin/sessions/publish-in-batch', () => {
     return new Response(200);
   });
-  this.get('/admin/sessions/:id/generate-results-download-link', { sessionResultsLink: 'http://link-to-results.fr' });
+  this.get('/admin/sessions/:id/generate-results-download-link', {
+    sessionResultsLink: 'http://link-to-results.fr?lang=fr',
+  });
 
   this.get('/admin/users');
   this.get('/admin/users/:id');
@@ -103,10 +125,10 @@ export default function () {
       'last-name': lastName,
       email,
       username,
+      lang,
     } = JSON.parse(request.requestBody).data.attributes;
-
     const user = schema.users.find(userId);
-    return user.update({ firstName, lastName, email, username });
+    return user.update({ firstName, lastName, email, username, lang });
   });
   this.put('/admin/users/:id/unblock', (schema, request) => {
     const userId = request.params.id;
@@ -167,7 +189,7 @@ export default function () {
               title: 'Already existing email error',
             },
           ],
-        }
+        },
       );
     }
 
@@ -267,6 +289,7 @@ export default function () {
 
     return schema.create('organization', organization);
   });
+  this.post('/admin/organizations/import-csv', async () => new Response(204));
   this.get('/admin/organizations/:id');
   this.get('/admin/organizations/:id/memberships', findPaginatedOrganizationMemberships);
   this.get('/admin/organizations/:id/target-profile-summaries', findOrganizationTargetProfileSummaries);
@@ -277,6 +300,7 @@ export default function () {
   this.post('/admin/organizations/:id/archive', archiveOrganization);
 
   this.get('/admin/frameworks');
+  this.get('/admin/frameworks/:id/areas', findFrameworkAreas);
 
   this.post('/admin/target-profiles', createTargetProfile);
   this.get('/admin/target-profiles/:id');
@@ -284,23 +308,27 @@ export default function () {
   this.post('/admin/target-profiles/:id/attach-organizations', attachTargetProfileToOrganizations);
   this.post('/admin/target-profiles/:id/copy-organizations', attachOrganizationsFromExistingTargetProfile);
   this.get('/admin/target-profiles/:id/badges', findTargetProfileBadges);
-  this.get('/admin/target-profiles/:id/stages', findTargetProfileStages);
+  this.patch('/admin/stage-collections/:id', updateTargetProfileStageCollection);
   this.patch('/admin/target-profiles/:id', updateTargetProfile);
   this.put('/admin/target-profiles/:id/outdate', outdate);
   this.post('/admin/target-profiles/:id/badges', createBadge);
   this.put('/admin/target-profiles/:id/simplified-access', markTargetProfileAsSimplifiedAccess);
+  this.get('/admin/target-profiles/:id/training-summaries', findPaginatedTrainingSummaries);
 
   this.get('/admin/target-profile-summaries', findPaginatedFilteredTargetProfileSummaries);
 
-  this.get('/admin/badges/:id', getBadge);
   this.patch('/admin/badges/:id');
 
   this.post('/admin/stages', createStage);
-  this.get('/admin/stages/:id');
   this.patch('/admin/stages/:id');
 
   this.get('/admin/training-summaries', findPaginatedTrainingSummaries);
   this.post('/admin/trainings', createTraining);
+  this.get('/admin/trainings/:id', getTraining);
+  this.patch('/admin/trainings/:id', updateTraining);
+  this.get('/admin/trainings/:id/target-profile-summaries', getTargetProfileSummariesForTraining);
+  this.post('/admin/trainings/:id/attach-target-profiles', attachTargetProfilesToTraining);
+  this.put('/admin/trainings/:id/triggers', createOrUpdateTrainingTrigger);
 
   this.get('/admin/certifications/:id');
   this.get('/admin/certifications/:id/certified-profile', (schema, request) => {
@@ -384,8 +412,12 @@ export default function () {
     return schema.countries.all();
   });
 
-  this.get('/habilitations', (schema) => {
-    return schema.habilitations.all();
+  this.get('admin/complementary-certifications', (schema) => {
+    return schema.complementaryCertifications.all();
+  });
+
+  this.get('admin/complementary-certifications/:id/target-profiles', (schema, request) => {
+    return schema.complementaryCertifications.find(request.params.id);
   });
 
   this.put('/admin/sessions/:id/comment', (schema, request) => {
@@ -403,7 +435,7 @@ export default function () {
   this.post('/admin/certification-courses/:id/cancel', (schema, request) => {
     const certificationId = request.params.id;
     const certificationToUpdate = schema.certifications.find(certificationId);
-    certificationToUpdate.update({ status: 'cancelled' });
+    certificationToUpdate.update({ isCancelled: true });
 
     return new Response(200);
   });
@@ -411,12 +443,12 @@ export default function () {
   this.post('/admin/certification-courses/:id/uncancel', (schema, request) => {
     const certificationId = request.params.id;
     const certificationToUpdate = schema.certifications.find(certificationId);
-    certificationToUpdate.update({ status: 'validated' });
+    certificationToUpdate.update({ isCancelled: false });
 
     return new Response(200);
   });
 
-  this.post('/admin/assessment-results/', () => {
+  this.post('/admin/certification-courses/:id/assessment-results/', () => {
     return new Response(204);
   });
 
@@ -426,6 +458,8 @@ export default function () {
     const tagName = params.data.attributes.name;
     return schema.create('tag', { name: tagName });
   });
+
+  this.post('/admin/campaigns', async () => new Response(204));
 
   this.get('/oidc/identity-providers', () => {
     return {

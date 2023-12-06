@@ -1,7 +1,8 @@
-const _ = require('lodash');
-const { expect, domainBuilder, mockLearningContent } = require('../../../test-helper');
-const Area = require('../../../../lib/domain/models/Area');
-const areaRepository = require('../../../../lib/infrastructure/repositories/area-repository');
+import _ from 'lodash';
+import { expect, domainBuilder, mockLearningContent, catchErr } from '../../../test-helper.js';
+import { Area } from '../../../../lib/domain/models/Area.js';
+import * as areaRepository from '../../../../lib/infrastructure/repositories/area-repository.js';
+import { NotFoundError } from '../../../../lib/domain/errors.js';
 
 describe('Integration | Repository | area-repository', function () {
   describe('#list', function () {
@@ -458,6 +459,149 @@ describe('Integration | Repository | area-repository', function () {
 
       // then
       expect(areas).to.deepEqualArray([area1, area2]);
+    });
+  });
+
+  describe('#get', function () {
+    beforeEach(function () {
+      const learningContentArea0 = {
+        id: 'recArea0',
+        code: 1,
+        name: 'area_name0',
+        title_i18n: {
+          fr: 'area_title0FR',
+          en: 'area_title0EN',
+        },
+        color: 'blue0',
+        frameworkId: 'recFwkId0',
+      };
+      const learningContentArea1 = {
+        id: 'recArea1',
+        code: 4,
+        name: 'area_name1',
+        title_i18n: {
+          fr: 'area_title1FR',
+          en: 'area_title1EN',
+        },
+        color: 'blue1',
+        frameworkId: 'recFwkId1',
+      };
+      mockLearningContent({ areas: [learningContentArea0, learningContentArea1] });
+    });
+
+    it('should return the area', async function () {
+      // when
+      const area = await areaRepository.get({ id: 'recArea1' });
+
+      // then
+      const expectedArea = domainBuilder.buildArea({
+        id: 'recArea1',
+        code: 4,
+        name: 'area_name1',
+        title: 'area_title1FR',
+        color: 'blue1',
+        frameworkId: 'recFwkId1',
+      });
+      expect(area).to.deepEqualInstance(expectedArea);
+    });
+
+    it('should throw a NotFound error', async function () {
+      // when
+      const error = await catchErr(areaRepository.get)({ id: 'jexistepas' });
+
+      // then
+      expect(error).to.be.instanceOf(NotFoundError);
+      expect(error.message).to.equal('Area "jexistepas" not found.');
+    });
+  });
+
+  describe('#findByFrameworkId', function () {
+    beforeEach(function () {
+      const area0 = {
+        id: 'recArea0',
+        code: 'area0code',
+        name: 'area0name',
+        title_i18n: {
+          fr: 'area0titleFr',
+          en: 'area0titleEn',
+        },
+        color: 'area0color',
+        frameworkId: 'framework1',
+      };
+      const area1 = {
+        id: 'recArea1',
+        code: 'area1code',
+        name: 'area1name',
+        title_i18n: {
+          fr: 'area1titleFr',
+          en: 'area1titleEn',
+        },
+        color: 'area1color',
+        frameworkId: 'framework2',
+      };
+      const area2 = {
+        id: 'recArea2',
+        code: 'area2code',
+        name: 'area2name',
+        title_i18n: {
+          fr: 'area2titleFr',
+          en: 'area2titleEn',
+        },
+        color: 'area2color',
+        frameworkId: 'framework1',
+      };
+      const learningContent = {
+        areas: [area0, area1, area2],
+      };
+      mockLearningContent(learningContent);
+    });
+
+    it('should return a list of areas from the proper framework', async function () {
+      // when
+      const areas = await areaRepository.findByFrameworkId({ frameworkId: 'framework1' });
+
+      // then
+      const area0 = domainBuilder.buildArea({
+        id: 'recArea0',
+        code: 'area0code',
+        name: 'area0name',
+        title: 'area0titleFr',
+        color: 'area0color',
+        frameworkId: 'framework1',
+      });
+      const area2 = domainBuilder.buildArea({
+        id: 'recArea2',
+        code: 'area2code',
+        name: 'area2name',
+        title: 'area2titleFr',
+        color: 'area2color',
+        frameworkId: 'framework1',
+      });
+      expect(areas).to.deepEqualArray([area0, area2]);
+    });
+
+    it('should return a list of areas in english', async function () {
+      // when
+      const areas = await areaRepository.findByFrameworkId({ frameworkId: 'framework1', locale: 'en' });
+
+      // then
+      const area0 = domainBuilder.buildArea({
+        id: 'recArea0',
+        code: 'area0code',
+        name: 'area0name',
+        title: 'area0titleEn',
+        color: 'area0color',
+        frameworkId: 'framework1',
+      });
+      const area2 = domainBuilder.buildArea({
+        id: 'recArea2',
+        code: 'area2code',
+        name: 'area2name',
+        title: 'area2titleEn',
+        color: 'area2color',
+        frameworkId: 'framework1',
+      });
+      expect(areas).to.deepEqualArray([area0, area2]);
     });
   });
 });

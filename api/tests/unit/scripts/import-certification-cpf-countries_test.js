@@ -1,9 +1,11 @@
-const { expect, catchErr, sinon } = require('../../test-helper');
-const {
+import { expect, catchErr, sinon } from '../../test-helper.js';
+import {
   buildCountries,
   checkTransformUnicity,
-} = require('../../../scripts/certification/import-certification-cpf-countries');
-const { noop } = require('lodash/noop');
+} from '../../../scripts/certification/import-certification-cpf-countries.js';
+import lodash from 'lodash';
+
+const { noop } = lodash;
 
 describe('Unit | Scripts | import-certification-cpf-countries.js', function () {
   beforeEach(function () {
@@ -196,11 +198,11 @@ describe('Unit | Scripts | import-certification-cpf-countries.js', function () {
         expect(error).to.be.instanceOf(Error);
         // eslint-disable-next-line no-console
         expect(console.error.getCall(0)).to.have.been.calledWithExactly(
-          'CONFLICT: 99140,99141 RÉPUBLIQUE DÉMOCRATIQUE ALLEMANDE,RÉPUBLIQUE DÉMOCRATIQUE ALLEMANDE'
+          'CONFLICT: 99140,99141 RÉPUBLIQUE DÉMOCRATIQUE ALLEMANDE,RÉPUBLIQUE DÉMOCRATIQUE ALLEMANDE',
         );
         // eslint-disable-next-line no-console
         expect(console.error.getCall(1)).to.have.been.calledWithExactly(
-          'CONFLICT: 990000,990001 LA LA LA COMME DANS TOUT LES PAYS,COMME DANS TOUT LES PAYS LA LA LA'
+          'CONFLICT: 990000,990001 LA LA LA COMME DANS TOUT LES PAYS,COMME DANS TOUT LES PAYS LA LA LA',
         );
       });
     });

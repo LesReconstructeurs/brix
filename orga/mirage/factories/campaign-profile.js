@@ -1,17 +1,21 @@
-import { Factory } from 'ember-cli-mirage';
-import faker from 'faker';
+import { Factory } from 'miragejs';
+import { faker } from '@faker-js/faker';
 
 export default Factory.extend({
   firstName() {
-    return faker.name.firstName();
+    return faker.person.firstName();
   },
 
   lastName() {
-    return faker.name.lastName();
+    return faker.person.lastName();
   },
 
   externalId() {
-    return faker.name.title();
+    return faker.person.jobTitle();
+  },
+
+  organizationLearnerId() {
+    return 1;
   },
 
   createdAt() {

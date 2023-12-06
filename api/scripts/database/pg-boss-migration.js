@@ -1,7 +1,8 @@
-require('dotenv').config();
-const PgBoss = require('pg-boss');
-const logger = require('../../lib/infrastructure/logger');
-const { disconnect } = require('../../db/knex-database-connection');
+import dotenv from 'dotenv';
+dotenv.config();
+import PgBoss from 'pg-boss';
+import { logger } from '../../lib/infrastructure/logger.js';
+import { disconnect } from '../../db/knex-database-connection.js';
 
 async function main() {
   console.log('run pgboss migrations');

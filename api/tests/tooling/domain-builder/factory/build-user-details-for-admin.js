@@ -1,6 +1,6 @@
-const UserDetailsForAdmin = require('../../../../lib/domain/models/UserDetailsForAdmin');
+import { UserDetailsForAdmin } from '../../../../lib/domain/models/UserDetailsForAdmin.js';
 
-module.exports = function buildUserDetailsForAdmin({
+const buildUserDetailsForAdmin = function ({
   id = 123,
   firstName = 'Louis',
   lastName = 'Philippe',
@@ -12,7 +12,8 @@ module.exports = function buildUserDetailsForAdmin({
   isAuthenticatedFromGAR = false,
   createdAt,
   updatedAt,
-  lang,
+  lang = 'fr',
+  locale,
   lastTermsOfServiceValidatedAt,
   lastPixOrgaTermsOfServiceValidatedAt,
   lastPixCertifTermsOfServiceValidatedAt,
@@ -36,6 +37,7 @@ module.exports = function buildUserDetailsForAdmin({
     createdAt,
     updatedAt,
     lang,
+    locale,
     lastTermsOfServiceValidatedAt,
     lastPixOrgaTermsOfServiceValidatedAt,
     lastPixCertifTermsOfServiceValidatedAt,
@@ -49,3 +51,5 @@ module.exports = function buildUserDetailsForAdmin({
     hasBeenAnonymisedBy,
   });
 };
+
+export { buildUserDetailsForAdmin };

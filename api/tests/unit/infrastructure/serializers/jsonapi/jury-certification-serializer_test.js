@@ -1,5 +1,5 @@
-const { expect, domainBuilder } = require('../../../../test-helper');
-const serializer = require('../../../../../lib/infrastructure/serializers/jsonapi/jury-certification-serializer');
+import { expect, domainBuilder } from '../../../../test-helper.js';
+import * as serializer from '../../../../../lib/infrastructure/serializers/jsonapi/jury-certification-serializer.js';
 
 describe('Unit | Serializer | JSONAPI | jury-certification-serializer', function () {
   describe('#serialize', function () {
@@ -28,6 +28,7 @@ describe('Unit | Serializer | JSONAPI | jury-certification-serializer', function
         birthINSEECode: '99124',
         birthPostalCode: null,
         status: 'validated',
+        isCancelled: false,
         createdAt: new Date('2020-02-20T10:30:00Z'),
         completedAt: new Date('2020-02-20T11:00:00Z'),
         isPublished: true,
@@ -37,22 +38,16 @@ describe('Unit | Serializer | JSONAPI | jury-certification-serializer', function
         commentForOrganization: 'comment',
         commentForJury: 'ça va',
         competenceMarks,
+        version: 2,
         certificationIssueReports,
-        commonComplementaryCertificationCourseResults: [
+        commonComplementaryCertificationCourseResult:
           domainBuilder.buildComplementaryCertificationCourseResultForJuryCertification({
             id: 12,
             partnerKey: 'BADGE_KEY_1',
             acquired: true,
             label: 'Badge Key 1',
           }),
-          domainBuilder.buildComplementaryCertificationCourseResultForJuryCertification({
-            id: 14,
-            partnerKey: 'BADGE_KEY_2',
-            acquired: true,
-            label: 'Badge Key 2',
-          }),
-        ],
-        complementaryCertificationCourseResultsWithExternal:
+        complementaryCertificationCourseResultWithExternal:
           domainBuilder.buildComplementaryCertificationCourseResultForJuryCertificationWithExternal({
             complementaryCertificationCourseId: 1234,
             pixPartnerKey: 'BADGE_KEY_3',
@@ -99,6 +94,7 @@ describe('Unit | Serializer | JSONAPI | jury-certification-serializer', function
             'created-at': new Date('2020-02-20T10:30:00Z'),
             'completed-at': new Date('2020-02-20T11:00:00Z'),
             status: 'validated',
+            'is-cancelled': false,
             'is-published': true,
             'jury-id': 1,
             'pix-score': 555,
@@ -106,6 +102,7 @@ describe('Unit | Serializer | JSONAPI | jury-certification-serializer', function
             'comment-for-candidate': 'coucou',
             'comment-for-jury': 'ça va',
             'comment-for-organization': 'comment',
+            version: 2,
           },
           relationships: {
             'certification-issue-reports': {
@@ -116,22 +113,16 @@ describe('Unit | Serializer | JSONAPI | jury-certification-serializer', function
                 },
               ],
             },
-            'common-complementary-certification-course-results': {
-              data: [
-                {
-                  id: '12',
-                  type: 'commonComplementaryCertificationCourseResults',
-                },
-                {
-                  id: '14',
-                  type: 'commonComplementaryCertificationCourseResults',
-                },
-              ],
+            'common-complementary-certification-course-result': {
+              data: {
+                id: '12',
+                type: 'commonComplementaryCertificationCourseResults',
+              },
             },
-            'complementary-certification-course-results-with-external': {
+            'complementary-certification-course-result-with-external': {
               data: {
                 id: '1234',
-                type: 'complementaryCertificationCourseResultsWithExternals',
+                type: 'complementaryCertificationCourseResultWithExternals',
               },
             },
           },
@@ -146,15 +137,7 @@ describe('Unit | Serializer | JSONAPI | jury-certification-serializer', function
             },
           },
           {
-            type: 'commonComplementaryCertificationCourseResults',
-            id: '14',
-            attributes: {
-              label: 'Badge Key 2',
-              status: 'Validée',
-            },
-          },
-          {
-            type: 'complementaryCertificationCourseResultsWithExternals',
+            type: 'complementaryCertificationCourseResultWithExternals',
             id: '1234',
             attributes: {
               'allowed-external-levels': [
@@ -189,6 +172,7 @@ describe('Unit | Serializer | JSONAPI | jury-certification-serializer', function
           },
         ],
       };
+
       expect(serializedJuryCertification).to.deep.equal(expectedSerializedCertification);
     });
   });

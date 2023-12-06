@@ -1,21 +1,19 @@
 .challenge-item {
-  border: 3px solid transparent;
+  padding: $pix-spacing-xxs;
 
   &--focused {
     z-index: 1;
-    border: 3px dashed $pix-neutral-70;
     border-radius: 10px;
+    outline: 3px dashed $pix-neutral-70;
+    outline-offset: -3px;
   }
 }
 
 .challenge-response {
-  margin: 6px;
-  font-size: 0.938rem;
-  background-color: $pix-neutral-10;
+  @extend %pix-body-m;
 
-  @include device-is('desktop') {
-    font-size: 1.25rem;
-  }
+  margin: 4px;
+  background-color: $pix-neutral-10;
 
   label {
     font-weight: $font-normal;
@@ -40,31 +38,25 @@
     }
   }
 
-  &__instructions {
-    font-weight: $font-normal;
-    font-size: 1rem;
-  }
-
   &__proposal {
-    margin-top: 10px;
-    margin-bottom: 10px;
-    color: $pix-neutral-80;
-    font-size: 1.25rem;
+    width: auto;
 
     &--paragraph {
-      display: flex;
       width: 100%;
       height: auto;
       resize: vertical;
     }
 
     &--sentence {
-      display: flex;
       width: 100%;
     }
 
     &--selector {
       display: inline-block;
+    }
+
+    &--input {
+      margin: $pix-spacing-xs;
     }
   }
 
@@ -91,7 +83,6 @@
 }
 
 form .challenge-response {
-
   &--locked {
     position: relative;
   }
@@ -104,10 +95,21 @@ form .challenge-response {
     opacity: 0;
   }
 
+  .challenge-response__instructions {
+    @extend %pix-body-s;
+
+    margin-top: 0;
+    color: $pix-neutral-60;
+
+    &:not(:last-child) {
+      margin-bottom: 1rem;
+    }
+  }
+
   .qroc-proposal {
     display: flex;
     flex-wrap: wrap;
-    gap: $spacing-xs;
+    gap: $pix-spacing-xs;
     align-items: center;
 
     .qroc_input-label {
@@ -123,9 +125,7 @@ form .challenge-response {
 }
 
 form .challenge-response.challenge-response--locked {
-
   &:hover {
-
     .challenge-response__locked-overlay {
       opacity: 1;
       transition: 0.9s ease;
@@ -134,7 +134,6 @@ form .challenge-response.challenge-response--locked {
 }
 
 form .challenge-response-locked {
-
   &__icon {
     font-size: 3.125rem;
     opacity: 1;

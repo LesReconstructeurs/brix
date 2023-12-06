@@ -1,7 +1,7 @@
 import Controller from '@ember/controller';
 import { tracked } from '@glimmer/tracking';
 import { action } from '@ember/object';
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 
 export default class ConnectionMethodsController extends Controller {
   @service featureToggles;
@@ -24,13 +24,13 @@ export default class ConnectionMethodsController extends Controller {
 
   get shouldShowPixAuthenticationMethod() {
     return this.model.authenticationMethods.any(
-      (authenticationMethod) => authenticationMethod.identityProvider === 'PIX'
+      (authenticationMethod) => authenticationMethod.identityProvider === 'PIX',
     );
   }
 
   get shouldShowGarAuthenticationMethod() {
     return this.model.authenticationMethods.any(
-      (authenticationMethod) => authenticationMethod.identityProvider === 'GAR'
+      (authenticationMethod) => authenticationMethod.identityProvider === 'GAR',
     );
   }
 

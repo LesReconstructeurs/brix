@@ -1,7 +1,7 @@
-const { sinon, expect, domainBuilder } = require('../../../test-helper');
-const CertificationAssessment = require('../../../../lib/domain/models/CertificationAssessment');
-const neutralizeChallenge = require('../../../../lib/domain/usecases/neutralize-challenge');
-const ChallengeNeutralized = require('../../../../lib/domain/events/ChallengeNeutralized');
+import { sinon, expect, domainBuilder } from '../../../test-helper.js';
+import { CertificationAssessment } from '../../../../lib/domain/models/CertificationAssessment.js';
+import { neutralizeChallenge } from '../../../../lib/domain/usecases/neutralize-challenge.js';
+import { ChallengeNeutralized } from '../../../../lib/domain/events/ChallengeNeutralized.js';
 
 describe('Unit | UseCase | neutralize-challenge', function () {
   it('neutralizes a challenge by its recId', async function () {
@@ -23,7 +23,7 @@ describe('Unit | UseCase | neutralize-challenge', function () {
       createdAt: new Date('2020-01-01'),
       completedAt: new Date('2020-01-01'),
       state: CertificationAssessment.states.STARTED,
-      isV2Certification: true,
+      version: 2,
       certificationChallenges: [
         challengeToBeNeutralized,
         domainBuilder.buildCertificationChallengeWithType({ isNeutralized: false }),
@@ -46,7 +46,7 @@ describe('Unit | UseCase | neutralize-challenge', function () {
 
     // then
     expect(certificationAssessment.neutralizeChallengeByRecId).to.have.been.calledWith(
-      challengeToBeNeutralized.challengeId
+      challengeToBeNeutralized.challengeId,
     );
     expect(certificationAssessmentRepository.save).to.have.been.calledWith(certificationAssessment);
   });
@@ -70,7 +70,7 @@ describe('Unit | UseCase | neutralize-challenge', function () {
       createdAt: new Date('2020-01-01'),
       completedAt: new Date('2020-01-01'),
       state: CertificationAssessment.states.STARTED,
-      isV2Certification: true,
+      version: 2,
       certificationChallenges: [
         challengeToBeNeutralized,
         domainBuilder.buildCertificationChallengeWithType({ isNeutralized: false }),

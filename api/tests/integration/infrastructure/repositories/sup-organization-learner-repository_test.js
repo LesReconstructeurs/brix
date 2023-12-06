@@ -1,6 +1,6 @@
-const { expect, databaseBuilder, knex, domainBuilder } = require('../../../test-helper');
-const supOrganizationLearnerRepository = require('../../../../lib/infrastructure/repositories/sup-organization-learner-repository');
-const OrganizationLearner = require('../../../../lib/domain/models/OrganizationLearner');
+import { expect, databaseBuilder, knex, domainBuilder } from '../../../test-helper.js';
+import * as supOrganizationLearnerRepository from '../../../../lib/infrastructure/repositories/sup-organization-learner-repository.js';
+import { OrganizationLearner } from '../../../../lib/domain/models/OrganizationLearner.js';
 
 describe('Integration | Infrastructure | Repository | sup-organization-learner-repository', function () {
   describe('#findOneByStudentNumber', function () {
@@ -299,7 +299,7 @@ describe('Integration | Infrastructure | Repository | sup-organization-learner-r
 
             expect(result.isDisabled).to.be.false;
           });
-        }
+        },
       );
 
       context('when there is organization learners for an other organizationId and student number', function () {
@@ -429,7 +429,7 @@ describe('Integration | Infrastructure | Repository | sup-organization-learner-r
 
           expect(result.isDisabled).to.be.false;
         });
-      }
+      },
     );
 
     context('when there is organization learners for an other organizationId and student number', function () {
@@ -485,7 +485,7 @@ describe('Integration | Infrastructure | Repository | sup-organization-learner-r
           expect(result.isDisabled).to.be.true;
           expect(result.updatedAt).to.not.deep.equal(new Date('2000-01-01'));
         });
-      }
+      },
     );
 
     context('when there is a problem', function () {

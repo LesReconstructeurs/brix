@@ -1,27 +1,28 @@
-const pick = require('lodash/pick');
+import lodash from 'lodash';
+const { pick } = lodash;
 
-const { catchErr, databaseBuilder, expect, knex } = require('../../../test-helper');
+import { catchErr, databaseBuilder, expect, knex } from '../../../test-helper.js';
 
-const authenticationMethodRepository = require('../../../../lib/infrastructure/repositories/authentication-method-repository');
-const campaignRepository = require('../../../../lib/infrastructure/repositories/campaign-repository');
-const organizationLearnerRepository = require('../../../../lib/infrastructure/repositories/organization-learner-repository');
-const userRepository = require('../../../../lib/infrastructure/repositories/user-repository');
-const userToCreateRepository = require('../../../../lib/infrastructure/repositories/user-to-create-repository');
+import * as authenticationMethodRepository from '../../../../lib/infrastructure/repositories/authentication-method-repository.js';
+import * as campaignRepository from '../../../../lib/infrastructure/repositories/campaign-repository.js';
+import * as organizationLearnerRepository from '../../../../lib/infrastructure/repositories/organization-learner-repository.js';
+import * as userRepository from '../../../../lib/infrastructure/repositories/user-repository.js';
+import * as userToCreateRepository from '../../../../lib/infrastructure/repositories/user-to-create-repository.js';
+import * as encryptionService from '../../../../lib/domain/services/encryption-service.js';
+import * as mailService from '../../../../lib/domain/services/mail-service.js';
+import * as obfuscationService from '../../../../lib/domain/services/obfuscation-service.js';
+import * as userReconciliationService from '../../../../lib/domain/services/user-reconciliation-service.js';
+import * as userService from '../../../../lib/domain/services/user-service.js';
+import { createAndReconcileUserToOrganizationLearner } from '../../../../lib/domain/usecases/create-and-reconcile-user-to-organization-learner.js';
+import * as passwordValidator from '../../../../lib/domain/validators/password-validator.js';
+import * as userValidator from '../../../../lib/domain/validators/user-validator.js';
 
-const encryptionService = require('../../../../lib/domain/services/encryption-service');
-const mailService = require('../../../../lib/domain/services/mail-service');
-const obfuscationService = require('../../../../lib/domain/services/obfuscation-service');
-const userReconciliationService = require('../../../../lib/domain/services/user-reconciliation-service');
-const userService = require('../../../../lib/domain/services/user-service');
-
-const {
+import {
   CampaignCodeError,
   EntityValidationError,
   NotFoundError,
   OrganizationLearnerAlreadyLinkedToUserError,
-} = require('../../../../lib/domain/errors');
-
-const createAndReconcileUserToOrganizationLearner = require('../../../../lib/domain/usecases/create-and-reconcile-user-to-organization-learner');
+} from '../../../../lib/domain/errors.js';
 
 describe('Integration | UseCases | create-and-reconcile-user-to-organization-learner', function () {
   const pickUserAttributes = ['firstName', 'lastName', 'email', 'username', 'cgu'];
@@ -57,7 +58,7 @@ describe('Integration | UseCases | create-and-reconcile-user-to-organization-lea
     });
   });
 
-  context('When no organizationLearner found', function () {
+  context('When no organizationLearner is found', function () {
     beforeEach(async function () {
       campaignCode = databaseBuilder.factory.buildCampaign().code;
       await databaseBuilder.commit();
@@ -90,11 +91,11 @@ describe('Integration | UseCases | create-and-reconcile-user-to-organization-lea
 
       // then
       expect(error).to.be.instanceof(NotFoundError);
-      expect(error.message).to.equal('There are no organization learners found');
+      expect(error.message).to.equal('Found no organization learners matching organization and birthdate');
     });
   });
 
-  context('When one organizationLearner matched on names', function () {
+  context('When an organizationLearner matches on names', function () {
     beforeEach(async function () {
       organizationId = databaseBuilder.factory.buildOrganization().id;
       campaignCode = databaseBuilder.factory.buildCampaign({
@@ -143,6 +144,8 @@ describe('Integration | UseCases | create-and-reconcile-user-to-organization-lea
 
         // then
         expect(error).to.be.instanceOf(OrganizationLearnerAlreadyLinkedToUserError);
+        expect(error.code).to.equal('ACCOUNT_WITH_USERNAME_ALREADY_EXIST_FOR_THE_SAME_ORGANIZATION');
+        expect(error.meta.shortCode).to.equal('S52');
       });
     });
 
@@ -195,6 +198,8 @@ describe('Integration | UseCases | create-and-reconcile-user-to-organization-lea
             obfuscationService,
             userReconciliationService,
             userService,
+            passwordValidator,
+            userValidator,
           });
 
           // then
@@ -268,6 +273,8 @@ describe('Integration | UseCases | create-and-reconcile-user-to-organization-lea
             obfuscationService,
             userReconciliationService,
             userService,
+            passwordValidator,
+            userValidator,
           });
 
           // then
@@ -374,6 +381,8 @@ describe('Integration | UseCases | create-and-reconcile-user-to-organization-lea
             obfuscationService,
             userReconciliationService,
             userService,
+            passwordValidator,
+            userValidator,
           });
 
           // then

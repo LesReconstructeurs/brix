@@ -22,13 +22,14 @@
       @requiredLabel="Champ obligatoire"
       {{on "change" @onThresholdChange}}
     />
-    <TargetProfiles::TubesSelection::Areas
+    <Common::TubesSelection::Areas
       @areas={{this.areas}}
       @selectedTubeIds={{this.selectedTubeIds}}
       @tubeLevels={{this.tubeLevels}}
       @checkTube={{this.checkTube}}
       @uncheckTube={{this.uncheckTube}}
       @setLevelTube={{this.setLevelTube}}
+      @displayDeviceCompatibility={{true}}
     />
   </main>
 </section>

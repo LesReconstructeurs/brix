@@ -1,7 +1,7 @@
-const { expect, HttpTestServer, sinon } = require('../../../test-helper');
-const securityPreHandlers = require('../../../../lib/application/security-pre-handlers');
-const targetProfileController = require('../../../../lib/application/target-profiles/target-profile-controller');
-const moduleUnderTest = require('../../../../lib/application/target-profiles');
+import { expect, HttpTestServer, sinon } from '../../../test-helper.js';
+import { securityPreHandlers } from '../../../../lib/application/security-pre-handlers.js';
+import { targetProfileController } from '../../../../lib/application/target-profiles/target-profile-controller.js';
+import * as moduleUnderTest from '../../../../lib/application/target-profiles/index.js';
 
 describe('Unit | Application | Target Profiles | Routes', function () {
   describe('GET /api/admin/target-profile-summaries', function () {
@@ -48,7 +48,7 @@ describe('Unit | Application | Target Profiles | Routes', function () {
               h
                 .response({ errors: new Error('forbidden') })
                 .code(403)
-                .takeover()
+                .takeover(),
           );
         const httpTestServer = new HttpTestServer();
         await httpTestServer.register(moduleUnderTest);
@@ -92,7 +92,7 @@ describe('Unit | Application | Target Profiles | Routes', function () {
         // when
         const response = await httpTestServer.request(
           method,
-          `${url}?filter[id]=1&filter[name]=azerty&page[size]=10&page[number]=1`
+          `${url}?filter[id]=1&filter[name]=azerty&page[size]=10&page[number]=1`,
         );
 
         // then
@@ -201,7 +201,7 @@ describe('Unit | Application | Target Profiles | Routes', function () {
               h
                 .response({ errors: new Error('forbidden') })
                 .code(403)
-                .takeover()
+                .takeover(),
           );
         const httpTestServer = new HttpTestServer();
         await httpTestServer.register(moduleUnderTest);
@@ -274,7 +274,7 @@ describe('Unit | Application | Target Profiles | Routes', function () {
           // when
           const { statusCode } = await httpTestServer.request(
             method,
-            `${url}?filter[name]=azerty&filter[type]=sco&filter[external-id]=abc&page[size]=10&page[number]=1`
+            `${url}?filter[name]=azerty&filter[type]=sco&filter[external-id]=abc&page[size]=10&page[number]=1`,
           );
 
           // then
@@ -291,7 +291,7 @@ describe('Unit | Application | Target Profiles | Routes', function () {
           // when
           const { statusCode } = await httpTestServer.request(
             method,
-            '/api/admin/target-profiles/azerty/organizations'
+            '/api/admin/target-profiles/azerty/organizations',
           );
 
           // then
@@ -343,77 +343,7 @@ describe('Unit | Application | Target Profiles | Routes', function () {
               h
                 .response({ errors: new Error('forbidden') })
                 .code(403)
-                .takeover()
-          );
-        const httpTestServer = new HttpTestServer();
-        await httpTestServer.register(moduleUnderTest);
-
-        // when
-        const { statusCode } = await httpTestServer.request(method, url);
-
-        // then
-        expect(statusCode).to.equal(403);
-      });
-    });
-  });
-
-  describe('GET /api/admin/target-profiles/{id}/stages', function () {
-    const method = 'GET';
-    const url = '/api/admin/target-profiles/1/stages';
-
-    context('when user has role "SUPER_ADMIN", "SUPPORT" or "METIER"', function () {
-      it('should return a response with an HTTP status code 200', async function () {
-        // given
-        sinon
-          .stub(securityPreHandlers, 'adminMemberHasAtLeastOneAccessOf')
-          .withArgs([
-            securityPreHandlers.checkAdminMemberHasRoleSuperAdmin,
-            securityPreHandlers.checkAdminMemberHasRoleSupport,
-            securityPreHandlers.checkAdminMemberHasRoleMetier,
-          ])
-          .callsFake(() => (request, h) => h.response(true));
-        sinon.stub(targetProfileController, 'findStages').callsFake((request, h) => h.response('ok').code(200));
-        const httpTestServer = new HttpTestServer();
-        await httpTestServer.register(moduleUnderTest);
-
-        // when
-        const { statusCode } = await httpTestServer.request(method, url);
-
-        // then
-        expect(statusCode).to.equal(200);
-      });
-
-      context('when id is not an integer', function () {
-        it('should reject request with HTTP code 400', async function () {
-          // given
-          const httpTestServer = new HttpTestServer();
-          await httpTestServer.register(moduleUnderTest);
-
-          // when
-          const { statusCode } = await httpTestServer.request(method, '/api/admin/target-profiles/azerty/stages');
-
-          // then
-          expect(statusCode).to.equal(400);
-        });
-      });
-    });
-
-    context('when user has role "CERTIF"', function () {
-      it('should return a response with an HTTP status code 403', async function () {
-        // given
-        sinon
-          .stub(securityPreHandlers, 'adminMemberHasAtLeastOneAccessOf')
-          .withArgs([
-            securityPreHandlers.checkAdminMemberHasRoleSuperAdmin,
-            securityPreHandlers.checkAdminMemberHasRoleSupport,
-            securityPreHandlers.checkAdminMemberHasRoleMetier,
-          ])
-          .callsFake(
-            () => (request, h) =>
-              h
-                .response({ errors: new Error('forbidden') })
-                .code(403)
-                .takeover()
+                .takeover(),
           );
         const httpTestServer = new HttpTestServer();
         await httpTestServer.register(moduleUnderTest);
@@ -466,7 +396,7 @@ describe('Unit | Application | Target Profiles | Routes', function () {
           const { statusCode } = await httpTestServer.request(
             method,
             '/api/admin/target-profiles/azerty/attach-organizations',
-            payload
+            payload,
           );
 
           // then
@@ -518,7 +448,7 @@ describe('Unit | Application | Target Profiles | Routes', function () {
               h
                 .response({ errors: new Error('forbidden') })
                 .code(403)
-                .takeover()
+                .takeover(),
           );
         const httpTestServer = new HttpTestServer();
         await httpTestServer.register(moduleUnderTest);
@@ -572,7 +502,7 @@ describe('Unit | Application | Target Profiles | Routes', function () {
           const { statusCode } = await httpTestServer.request(
             method,
             '/api/admin/target-profiles/azerty/copy-organizations',
-            payload
+            payload,
           );
 
           // then
@@ -610,7 +540,7 @@ describe('Unit | Application | Target Profiles | Routes', function () {
               h
                 .response({ errors: new Error('forbidden') })
                 .code(403)
-                .takeover()
+                .takeover(),
           );
         const httpTestServer = new HttpTestServer();
         await httpTestServer.register(moduleUnderTest);
@@ -694,7 +624,7 @@ describe('Unit | Application | Target Profiles | Routes', function () {
               h
                 .response({ errors: new Error('forbidden') })
                 .code(403)
-                .takeover()
+                .takeover(),
           );
         const httpTestServer = new HttpTestServer();
         await httpTestServer.register(moduleUnderTest);
@@ -718,6 +648,8 @@ describe('Unit | Application | Target Profiles | Routes', function () {
           description: 'description changée.',
           comment: 'commentaire changé.',
           category: 'OTHER',
+          'image-url': 'some image',
+          'are-knowledge-elements-resettable': false,
         },
       },
     };
@@ -822,7 +754,7 @@ describe('Unit | Application | Target Profiles | Routes', function () {
               h
                 .response({ errors: new Error('forbidden') })
                 .code(403)
-                .takeover()
+                .takeover(),
           );
         const httpTestServer = new HttpTestServer();
         await httpTestServer.register(moduleUnderTest);
@@ -895,7 +827,7 @@ describe('Unit | Application | Target Profiles | Routes', function () {
               h
                 .response({ errors: new Error('forbidden') })
                 .code(403)
-                .takeover()
+                .takeover(),
           );
         const httpTestServer = new HttpTestServer();
         await httpTestServer.register(moduleUnderTest);
@@ -947,7 +879,7 @@ describe('Unit | Application | Target Profiles | Routes', function () {
           // when
           const { statusCode } = await httpTestServer.request(
             method,
-            '/api/admin/target-profiles/azerty/simplified-access'
+            '/api/admin/target-profiles/azerty/simplified-access',
           );
 
           // then
@@ -971,7 +903,7 @@ describe('Unit | Application | Target Profiles | Routes', function () {
               h
                 .response({ errors: new Error('forbidden') })
                 .code(403)
-                .takeover()
+                .takeover(),
           );
         const httpTestServer = new HttpTestServer();
         await httpTestServer.register(moduleUnderTest);
@@ -1000,6 +932,7 @@ describe('Unit | Application | Target Profiles | Routes', function () {
             'image-url': 'http://some/image.ok',
             'owner-organization-id': null,
             tubes: [{ id: 'recTube1', level: '5' }],
+            'are-knowledge-elements-resettable': false,
           },
         },
       };
@@ -1505,6 +1438,81 @@ describe('Unit | Application | Target Profiles | Routes', function () {
         // then
         expect(response.statusCode).to.equal(403);
         expect(targetProfileController.getLearningContentAsPdf).to.not.have.been.called;
+      });
+    });
+  });
+
+  describe('GET /api/admin/target-profiles/{id}/training-summaries', function () {
+    const method = 'GET';
+    const url = '/api/admin/target-profiles/1/training-summaries';
+
+    context('when user has role "SUPER_ADMIN", "SUPPORT" or "METIER"', function () {
+      it('should return a response with an HTTP status code 200', async function () {
+        // given
+        sinon
+          .stub(securityPreHandlers, 'adminMemberHasAtLeastOneAccessOf')
+          .withArgs([
+            securityPreHandlers.checkAdminMemberHasRoleSuperAdmin,
+            securityPreHandlers.checkAdminMemberHasRoleSupport,
+            securityPreHandlers.checkAdminMemberHasRoleMetier,
+          ])
+          .callsFake(() => (request, h) => h.response(true));
+        sinon
+          .stub(targetProfileController, 'findPaginatedTrainings')
+          .callsFake((request, h) => h.response('ok').code(200));
+        const httpTestServer = new HttpTestServer();
+        await httpTestServer.register(moduleUnderTest);
+
+        // when
+        const { statusCode } = await httpTestServer.request(method, url);
+
+        // then
+        expect(statusCode).to.equal(200);
+      });
+
+      context('when id is not an integer', function () {
+        it('should reject request with HTTP code 400', async function () {
+          // given
+          const httpTestServer = new HttpTestServer();
+          await httpTestServer.register(moduleUnderTest);
+
+          // when
+          const { statusCode } = await httpTestServer.request(
+            method,
+            '/api/admin/target-profiles/azerty/training-summaries',
+          );
+
+          // then
+          expect(statusCode).to.equal(400);
+        });
+      });
+    });
+
+    context('when user has role "CERTIF"', function () {
+      it('should return a response with an HTTP status code 403', async function () {
+        // given
+        sinon
+          .stub(securityPreHandlers, 'adminMemberHasAtLeastOneAccessOf')
+          .withArgs([
+            securityPreHandlers.checkAdminMemberHasRoleSuperAdmin,
+            securityPreHandlers.checkAdminMemberHasRoleSupport,
+            securityPreHandlers.checkAdminMemberHasRoleMetier,
+          ])
+          .callsFake(
+            () => (request, h) =>
+              h
+                .response({ errors: new Error('forbidden') })
+                .code(403)
+                .takeover(),
+          );
+        const httpTestServer = new HttpTestServer();
+        await httpTestServer.register(moduleUnderTest);
+
+        // when
+        const { statusCode } = await httpTestServer.request(method, url);
+
+        // then
+        expect(statusCode).to.equal(403);
       });
     });
   });

@@ -1,5 +1,4 @@
-function certificationCpfCountryBuilder({ databaseBuilder }) {
-
+const certificationCpfCountryBuilder = function ({ databaseBuilder }) {
   databaseBuilder.factory.buildCertificationCpfCountry({
     code: '99401',
     commonName: 'CANADA',
@@ -29,6 +28,6 @@ function certificationCpfCountryBuilder({ databaseBuilder }) {
     commonName: 'TURKS ET CAIQUES (ILES)',
     originalName: 'TURKS ET CAÏQUES (ÎLES)',
   });
-}
+};
 
-module.exports = { certificationCpfCountryBuilder };
+export { certificationCpfCountryBuilder };

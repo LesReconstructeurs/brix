@@ -1,11 +1,15 @@
-const {
+import {
   ApplicationScopeNotAllowedError,
   ApplicationWithInvalidClientIdError,
   ApplicationWithInvalidClientSecretError,
-} = require('../../domain/errors');
+} from '../../domain/errors.js';
 
-const { find } = require('lodash');
-const { graviteeRegisterApplicationsCredentials, jwtConfig } = require('../../config');
+import lodash from 'lodash';
+
+const { find } = lodash;
+
+import { config } from '../../config.js';
+const { apimRegisterApplicationsCredentials, jwtConfig } = config;
 
 function _checkClientId(application, clientId) {
   if (!application || application.clientId !== clientId) {
@@ -25,8 +29,8 @@ function _checkAppScope(application, scope) {
   }
 }
 
-module.exports = async function authenticateApplication({ clientId, clientSecret, scope, tokenService }) {
-  const application = find(graviteeRegisterApplicationsCredentials, { clientId });
+const authenticateApplication = async function ({ clientId, clientSecret, scope, tokenService }) {
+  const application = find(apimRegisterApplicationsCredentials, { clientId });
   _checkClientId(application, clientId);
   _checkClientSecret(application, clientSecret);
   _checkAppScope(application, scope);
@@ -36,6 +40,8 @@ module.exports = async function authenticateApplication({ clientId, clientSecret
     application.source,
     scope,
     jwtConfig[application.source].secret,
-    jwtConfig[application.source].tokenLifespan
+    jwtConfig[application.source].tokenLifespan,
   );
 };
+
+export { authenticateApplication };

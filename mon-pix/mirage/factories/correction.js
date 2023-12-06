@@ -1,12 +1,12 @@
 import { Factory } from 'miragejs';
-import faker from 'faker';
+import { faker } from '@faker-js/faker';
 
 export default Factory.extend({
   solution() {
-    return faker.random.word();
+    return faker.lorem.word();
   },
 
   hint() {
-    return faker.random.word();
+    return faker.lorem.word();
   },
 });

@@ -1,6 +1,6 @@
 import { module, test } from 'qunit';
 import { setupApplicationTest } from 'ember-qunit';
-import setupMirage from 'ember-cli-mirage/test-support/setup-mirage';
+import { setupMirage } from 'ember-cli-mirage/test-support';
 import { authenticateAdminMemberWithRole } from 'pix-admin/tests/helpers/test-init';
 import { clickByName, visit, fillByLabel } from '@1024pix/ember-testing-library';
 import { currentURL, click } from '@ember/test-helpers';
@@ -11,6 +11,14 @@ module('Acceptance | Organizations | Create', function (hooks) {
 
   hooks.beforeEach(async function () {
     await authenticateAdminMemberWithRole({ isSuperAdmin: true })(server);
+  });
+
+  test('it should set organizations menubar item active', async function (assert) {
+    // when
+    const screen = await visit('/organizations/new');
+
+    // then
+    assert.dom(screen.getByRole('link', { name: 'Organisations' })).hasClass('active');
   });
 
   module('when an organization is created', function () {

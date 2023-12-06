@@ -1,4 +1,6 @@
-import { click, currentURL, find, visit } from '@ember/test-helpers';
+// eslint-disable-next-line no-restricted-imports
+import { click, currentURL, find } from '@ember/test-helpers';
+import { visit } from '@1024pix/ember-testing-library';
 import { module, test } from 'qunit';
 import { setupMirage } from 'ember-cli-mirage/test-support';
 import { setupApplicationTest } from 'ember-qunit';
@@ -42,23 +44,21 @@ module('Acceptance | Navbar', function (hooks) {
         assert.ok(
           find('.navbar-desktop-header-container__menu')
             .children[0].children[userNavigation.initialNavigationItem].children[0].getAttribute('class')
-            .includes('active')
+            .includes('active'),
         );
 
         // when
         await click(
           find('.navbar-desktop-header-container__menu').children[0].children[userNavigation.targetedNavigationItem]
-            .children[0]
+            .children[0],
         );
 
         // then
-        // TODO: Fix this the next time the file is edited.
-        // eslint-disable-next-line qunit/no-assert-equal
-        assert.equal(currentURL(), userNavigation.expectedRoute);
+        assert.strictEqual(currentURL(), userNavigation.expectedRoute);
         assert.ok(
           find('.navbar-desktop-header-container__menu')
             .children[0].children[userNavigation.targetedNavigationItem].children[0].getAttribute('class')
-            .includes('active')
+            .includes('active'),
         );
       });
     });

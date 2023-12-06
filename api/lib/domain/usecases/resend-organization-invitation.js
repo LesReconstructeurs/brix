@@ -1,11 +1,10 @@
-const organizationInvitationService = require('../../domain/services/organization-invitation-service');
-
-module.exports = async function resendOrganizationInvitation({
+const resendOrganizationInvitation = async function ({
   organizationId,
   email,
   locale,
   organizationRepository,
   organizationInvitationRepository,
+  organizationInvitationService,
 }) {
   return organizationInvitationService.createOrUpdateOrganizationInvitation({
     organizationRepository,
@@ -15,3 +14,5 @@ module.exports = async function resendOrganizationInvitation({
     locale,
   });
 };
+
+export { resendOrganizationInvitation };

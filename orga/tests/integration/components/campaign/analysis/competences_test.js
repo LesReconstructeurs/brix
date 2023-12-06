@@ -1,7 +1,7 @@
 import { module, test } from 'qunit';
 import setupIntlRenderingTest from '../../../../helpers/setup-intl-rendering';
 import { render } from '@ember/test-helpers';
-import hbs from 'htmlbars-inline-precompile';
+import { hbs } from 'ember-cli-htmlbars';
 
 module('Integration | Component | Campaign::Analysis::Competences', function (hooks) {
   setupIntlRenderingTest(hooks);
@@ -32,12 +32,11 @@ module('Integration | Component | Campaign::Analysis::Competences', function (ho
     this.set('campaignCollectiveResult', campaignCollectiveResult);
 
     // when
-    await render(hbs`<Campaign::Analysis::Competences
-      @campaignCollectiveResult={{this.campaignCollectiveResult}}/>`);
+    await render(hbs`<Campaign::Analysis::Competences @campaignCollectiveResult={{this.campaignCollectiveResult}} />`);
 
     // then
     const firstCompetence = '[aria-label="Compétence"]:first-child';
     assert.dom(firstCompetence).containsText('Competence A');
-    assert.dom(firstCompetence).containsText('33 %');
+    assert.dom(firstCompetence).containsText('33%');
   });
 });

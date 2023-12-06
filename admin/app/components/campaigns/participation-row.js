@@ -1,7 +1,7 @@
 import Component from '@glimmer/component';
 import { action } from '@ember/object';
 import { tracked } from '@glimmer/tracking';
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 
 export default class ParticipationRow extends Component {
   @service notifications;
@@ -23,7 +23,7 @@ export default class ParticipationRow extends Component {
   updateParticipantExternalId() {
     this.isEditionMode = false;
     this.args.participation.participantExternalId = this._checkIfParticipantExternalIdIsNull(
-      this.newParticipantExternalId
+      this.newParticipantExternalId,
     );
     return this.args.updateParticipantExternalId(this.args.participation);
   }

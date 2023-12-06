@@ -1,15 +1,16 @@
 import EmberRouter from '@ember/routing/router';
 import config from 'pix-admin/config/environment';
 
-class Router extends EmberRouter {
+export default class Router extends EmberRouter {
   location = config.locationType;
   rootURL = config.rootURL;
 
-  // eslint-disable-next-line ember/classic-decorator-hooks
-  init() {
-    super.init(...arguments);
-    this.on('routeDidChange', () => {
-      window.scrollTo(0, 0);
+  constructor() {
+    super(...arguments);
+    this.on('routeDidChange', (transition) => {
+      if (transition.from && transition.to.name !== transition.from.name) {
+        window.scrollTo(0, 0);
+      }
     });
   }
 }
@@ -89,11 +90,18 @@ Router.map(function () {
       });
     });
 
+    this.route('complementary-certifications', function () {
+      this.route('list');
+      this.route('complementary-certification', { path: '/:complementary_certification_id' }, function () {
+        this.route('details');
+      });
+    });
+
     this.route('target-profiles', function () {
       this.route('list');
       this.route('new');
       this.route('target-profile', { path: '/:target_profile_id' }, function () {
-        this.route('details', { path: '/' });
+        this.route('details');
         this.route('organizations');
         this.route('insights');
         this.route('badges', function () {
@@ -103,16 +111,22 @@ Router.map(function () {
         this.route('stages', function () {
           this.route('stage', { path: '/:stage_id' });
         });
+        this.route('training-summaries');
       });
     });
 
     this.route('trainings', function () {
       this.route('list');
       this.route('new');
+      this.route('training', { path: '/:training_id' }, function () {
+        this.route('triggers', function () {
+          this.route('edit');
+        });
+        this.route('target-profiles');
+      });
     });
 
+    this.route('administration');
     this.route('tools');
   });
 });
-
-export default Router;

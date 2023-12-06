@@ -1,13 +1,11 @@
-const _ = require('lodash');
-const { expect, sinon, domainBuilder, catchErr } = require('../../../../test-helper');
-const scoringCertificationService = require('../../../../../lib/domain/services/scoring/scoring-certification-service');
-const { states } = require('../../../../../lib/domain/models/CertificationAssessment');
-const placementProfileService = require('../../../../../lib/domain/services/placement-profile-service');
-const UserCompetence = require('../../../../../lib/domain/models/UserCompetence');
-const { CertificationComputeError } = require('../../../../../lib/domain/errors');
+import _ from 'lodash';
+import { expect, sinon, domainBuilder, catchErr } from '../../../../test-helper.js';
+import * as scoringCertificationService from '../../../../../lib/domain/services/scoring/scoring-certification-service.js';
+import { states } from '../../../../../lib/domain/models/CertificationAssessment.js';
+import { CertificationComputeError } from '../../../../../lib/domain/errors.js';
 
 function _buildUserCompetence(competence, pixScore, estimatedLevel) {
-  return new UserCompetence({ ...competence, estimatedLevel, pixScore });
+  return domainBuilder.buildUserCompetence({ ...competence, estimatedLevel, pixScore });
 }
 
 const pixForCompetence1 = 10;
@@ -32,7 +30,7 @@ const correctAnswersForAllChallenges = () =>
       { challengeId: 'challenge_K_for_competence_4', result: 'ok' },
       { challengeId: 'challenge_L_for_competence_4', result: 'ok' },
     ],
-    domainBuilder.buildAnswer
+    domainBuilder.buildAnswer,
   );
 
 const wrongAnswersForAllChallenges = () =>
@@ -51,7 +49,7 @@ const wrongAnswersForAllChallenges = () =>
       { challengeId: 'challenge_K_for_competence_4', result: 'ko' },
       { challengeId: 'challenge_L_for_competence_4', result: 'ko' },
     ],
-    domainBuilder.buildAnswer
+    domainBuilder.buildAnswer,
   );
 
 const answersToHaveOnlyTheLastCompetenceFailed = () =>
@@ -70,7 +68,7 @@ const answersToHaveOnlyTheLastCompetenceFailed = () =>
       { challengeId: 'challenge_K_for_competence_4', result: 'ko' },
       { challengeId: 'challenge_L_for_competence_4', result: 'ko' },
     ],
-    domainBuilder.buildAnswer
+    domainBuilder.buildAnswer,
   );
 
 const answersWithReproducibilityRateLessThan80 = () =>
@@ -89,7 +87,7 @@ const answersWithReproducibilityRateLessThan80 = () =>
       { challengeId: 'challenge_K_for_competence_4', result: 'ko' },
       { challengeId: 'challenge_L_for_competence_4', result: 'ok' },
     ],
-    domainBuilder.buildAnswer
+    domainBuilder.buildAnswer,
   );
 
 const challenges = _.map(
@@ -167,43 +165,43 @@ const challenges = _.map(
       type: 'QCM',
     },
   ],
-  domainBuilder.buildCertificationChallengeWithType
+  domainBuilder.buildCertificationChallengeWithType,
 );
 
 const competence_1 = domainBuilder.buildCompetence({
   id: 'competence_1',
   index: '1.1',
-  area: { code: '1' },
+  areaId: 'area1',
   name: 'Mener une recherche',
 });
 const competence_2 = domainBuilder.buildCompetence({
   id: 'competence_2',
   index: '2.2',
-  area: { code: '2' },
+  areaId: 'area2',
   name: 'Partager',
 });
 const competence_3 = domainBuilder.buildCompetence({
   id: 'competence_3',
   index: '3.3',
-  area: { code: '3' },
+  areaId: 'area3',
   name: 'Adapter',
 });
 const competence_4 = domainBuilder.buildCompetence({
   id: 'competence_4',
   index: '4.4',
-  area: { code: '4' },
+  areaId: 'area4',
   name: 'Résoudre',
 });
 const competence_5 = domainBuilder.buildCompetence({
   id: 'competence_5',
   index: '5.5',
-  area: { code: '5' },
+  areaId: 'area5',
   name: 'Chercher',
 });
 const competence_6 = domainBuilder.buildCompetence({
   id: 'competence_6',
   index: '6.6',
-  area: { code: '6' },
+  areaId: 'area6',
   name: 'Trouver',
 });
 
@@ -218,8 +216,13 @@ describe('Unit | Service | Certification Result Service', function () {
   context('#calculateCertificationAssessmentScore', function () {
     let certificationAssessment, certificationAssessmentData, expectedCertifiedCompetences;
     let competenceWithMarks_1_1, competenceWithMarks_2_2, competenceWithMarks_3_3, competenceWithMarks_4_4;
+    let areaRepository;
 
     beforeEach(function () {
+      areaRepository = {
+        list: sinon.stub(),
+      };
+      areaRepository.list.resolves(['1', '2', '3', '4', '5', '6'].map((code) => ({ id: `area${code}`, code })));
       certificationAssessmentData = {
         id: 1,
         userId: 11,
@@ -227,7 +230,7 @@ describe('Unit | Service | Certification Result Service', function () {
         createdAt: '2020-02-01T00:00:00Z',
         completedAt: '2020-02-01T00:00:00Z',
         state: states.COMPLETED,
-        isV2Certification: true,
+        version: 2,
       };
       competenceWithMarks_1_1 = domainBuilder.buildCompetenceMark({
         level: UNCERTIFIED_LEVEL,
@@ -284,7 +287,7 @@ describe('Unit | Service | Certification Result Service', function () {
             { challengeId: 'challenge_K_for_competence_4', result: 'ok' },
             { challengeId: 'challenge_L_for_competence_4', result: 'ok' },
           ],
-          domainBuilder.buildAnswer
+          domainBuilder.buildAnswer,
         );
 
         const certificationAssessment = {
@@ -292,12 +295,14 @@ describe('Unit | Service | Certification Result Service', function () {
           certificationChallenges: challenges,
         };
 
-        sinon
-          .stub(placementProfileService, 'getPlacementProfile')
+        const placementProfileService = {
+          getPlacementProfile: sinon.stub(),
+        };
+        placementProfileService.getPlacementProfile
           .withArgs({
             userId: certificationAssessment.userId,
             limitDate: certificationAssessment.createdAt,
-            isV2Certification: certificationAssessment.isV2Certification,
+            version: 2,
           })
           .resolves({ userCompetences });
 
@@ -305,6 +310,10 @@ describe('Unit | Service | Certification Result Service', function () {
         const error = await catchErr(scoringCertificationService.calculateCertificationAssessmentScore)({
           certificationAssessment,
           continueOnError: false,
+          dependencies: {
+            areaRepository,
+            placementProfileService,
+          },
         });
 
         // then
@@ -330,7 +339,7 @@ describe('Unit | Service | Certification Result Service', function () {
             { challengeId: 'challenge_J_for_competence_4', result: 'ok' },
             { challengeId: 'challenge_K_for_competence_4', result: 'ok' },
           ],
-          domainBuilder.buildAnswer
+          domainBuilder.buildAnswer,
         );
 
         const certificationAssessment = {
@@ -338,12 +347,14 @@ describe('Unit | Service | Certification Result Service', function () {
           certificationChallenges: challenges,
         };
 
-        sinon
-          .stub(placementProfileService, 'getPlacementProfile')
+        const placementProfileService = {
+          getPlacementProfile: sinon.stub(),
+        };
+        placementProfileService.getPlacementProfile
           .withArgs({
             userId: certificationAssessment.userId,
             limitDate: certificationAssessment.createdAt,
-            isV2Certification: certificationAssessment.isV2Certification,
+            version: 2,
           })
           .resolves({ userCompetences });
 
@@ -351,12 +362,16 @@ describe('Unit | Service | Certification Result Service', function () {
         const error = await catchErr(scoringCertificationService.calculateCertificationAssessmentScore)({
           certificationAssessment,
           continueOnError: false,
+          dependencies: {
+            areaRepository,
+            placementProfileService,
+          },
         });
 
         // then
         expect(error).to.be.instanceOf(CertificationComputeError);
         expect(error.message).to.equal(
-          "L’utilisateur n’a pas répondu à toutes les questions, alors qu'aucune raison d'abandon n'a été fournie."
+          "L’utilisateur n’a pas répondu à toutes les questions, alors qu'aucune raison d'abandon n'a été fournie.",
         );
       });
     });
@@ -378,7 +393,7 @@ describe('Unit | Service | Certification Result Service', function () {
             { challengeId: 'challenge_J_for_competence_4', result: 'ok' },
             { challengeId: 'challenge_K_for_competence_4', result: 'ok' },
           ],
-          domainBuilder.buildAnswer
+          domainBuilder.buildAnswer,
         );
 
         const challenges = _.map(
@@ -438,7 +453,7 @@ describe('Unit | Service | Certification Result Service', function () {
               type: 'QCM',
             },
           ],
-          domainBuilder.buildCertificationChallengeWithType
+          domainBuilder.buildCertificationChallengeWithType,
         );
 
         const certificationAssessment = {
@@ -446,12 +461,14 @@ describe('Unit | Service | Certification Result Service', function () {
           certificationChallenges: challenges,
         };
 
-        sinon
-          .stub(placementProfileService, 'getPlacementProfile')
+        const placementProfileService = {
+          getPlacementProfile: sinon.stub(),
+        };
+        placementProfileService.getPlacementProfile
           .withArgs({
             userId: certificationAssessment.userId,
             limitDate: certificationAssessment.createdAt,
-            isV2Certification: certificationAssessment.isV2Certification,
+            version: 2,
           })
           .resolves({ userCompetences });
 
@@ -459,6 +476,10 @@ describe('Unit | Service | Certification Result Service', function () {
         const error = await catchErr(scoringCertificationService.calculateCertificationAssessmentScore)({
           certificationAssessment,
           continueOnError: false,
+          dependencies: {
+            areaRepository,
+            placementProfileService,
+          },
         });
 
         // then
@@ -469,7 +490,7 @@ describe('Unit | Service | Certification Result Service', function () {
 
     context('Compute certification result for jury (continue on error)', function () {
       const continueOnError = true;
-
+      let placementProfileService;
       beforeEach(function () {
         certificationAssessment = domainBuilder.buildCertificationAssessment({
           ...certificationAssessmentData,
@@ -477,12 +498,14 @@ describe('Unit | Service | Certification Result Service', function () {
           certificationChallenges: challenges,
         });
 
-        sinon
-          .stub(placementProfileService, 'getPlacementProfile')
+        placementProfileService = {
+          getPlacementProfile: sinon.stub(),
+        };
+        placementProfileService.getPlacementProfile
           .withArgs({
             userId: certificationAssessment.userId,
             limitDate: certificationAssessment.createdAt,
-            isV2Certification: certificationAssessment.isV2Certification,
+            version: 2,
           })
           .resolves({ userCompetences });
       });
@@ -492,6 +515,10 @@ describe('Unit | Service | Certification Result Service', function () {
         await scoringCertificationService.calculateCertificationAssessmentScore({
           certificationAssessment,
           continueOnError,
+          dependencies: {
+            areaRepository,
+            placementProfileService,
+          },
         });
 
         // then
@@ -514,6 +541,10 @@ describe('Unit | Service | Certification Result Service', function () {
           const certificationAssessmentScore = await scoringCertificationService.calculateCertificationAssessmentScore({
             certificationAssessment: startedCertificationAssessment,
             continueOnError,
+            dependencies: {
+              areaRepository,
+              placementProfileService,
+            },
           });
 
           // then
@@ -527,6 +558,10 @@ describe('Unit | Service | Certification Result Service', function () {
           const certificationAssessmentScore = await scoringCertificationService.calculateCertificationAssessmentScore({
             certificationAssessment,
             continueOnError,
+            dependencies: {
+              areaRepository,
+              placementProfileService,
+            },
           });
 
           // then
@@ -568,6 +603,10 @@ describe('Unit | Service | Certification Result Service', function () {
           const certificationAssessmentScore = await scoringCertificationService.calculateCertificationAssessmentScore({
             certificationAssessment,
             continueOnError,
+            dependencies: {
+              areaRepository,
+              placementProfileService,
+            },
           });
 
           // then
@@ -602,6 +641,10 @@ describe('Unit | Service | Certification Result Service', function () {
           const certificationAssessmentScore = await scoringCertificationService.calculateCertificationAssessmentScore({
             certificationAssessment,
             continueOnError,
+            dependencies: {
+              areaRepository,
+              placementProfileService,
+            },
           });
 
           // then
@@ -640,6 +683,10 @@ describe('Unit | Service | Certification Result Service', function () {
           const certificationAssessmentScore = await scoringCertificationService.calculateCertificationAssessmentScore({
             certificationAssessment,
             continueOnError,
+            dependencies: {
+              areaRepository,
+              placementProfileService,
+            },
           });
 
           // then
@@ -655,6 +702,10 @@ describe('Unit | Service | Certification Result Service', function () {
           const { percentageCorrectAnswers } = await scoringCertificationService.calculateCertificationAssessmentScore({
             certificationAssessment: certificationAssessmentWithNeutralizedChallenge,
             continueOnError,
+            dependencies: {
+              areaRepository,
+              placementProfileService,
+            },
           });
 
           // then
@@ -662,6 +713,7 @@ describe('Unit | Service | Certification Result Service', function () {
         });
 
         context('when one competence is evaluated with 3 challenges', function () {
+          let placementProfileService;
           context('with one OK, one KO and one QROCM-dep OK', function () {
             it('should return level obtained equal to level positioned minus one', async function () {
               // Given
@@ -674,7 +726,7 @@ describe('Unit | Service | Certification Result Service', function () {
                   { challengeId: 'challenge_B_for_competence_1', result: 'ok' },
                   { challengeId: 'challenge_C_for_competence_1', result: 'ko' },
                 ],
-                domainBuilder.buildAnswer
+                domainBuilder.buildAnswer,
               );
 
               const challenges = _.map(
@@ -695,20 +747,21 @@ describe('Unit | Service | Certification Result Service', function () {
                     associatedSkillName: '@skillChallengeC_1',
                   },
                 ],
-                domainBuilder.buildCertificationChallengeWithType
+                domainBuilder.buildCertificationChallengeWithType,
               );
 
               const userCompetences = [_buildUserCompetence(competence_1, positionedScore, positionedLevel)];
 
               certificationAssessment.certificationAnswersByDate = answers;
               certificationAssessment.certificationChallenges = challenges;
-              placementProfileService.getPlacementProfile.restore();
-              sinon
-                .stub(placementProfileService, 'getPlacementProfile')
+              placementProfileService = {
+                getPlacementProfile: sinon.stub(),
+              };
+              placementProfileService.getPlacementProfile
                 .withArgs({
                   userId: certificationAssessment.userId,
                   limitDate: certificationAssessment.createdAt,
-                  isV2Certification: certificationAssessment.isV2Certification,
+                  version: certificationAssessment.version,
                 })
                 .resolves({ userCompetences });
 
@@ -717,6 +770,10 @@ describe('Unit | Service | Certification Result Service', function () {
                 await scoringCertificationService.calculateCertificationAssessmentScore({
                   certificationAssessment,
                   continueOnError,
+                  dependencies: {
+                    areaRepository,
+                    placementProfileService,
+                  },
                 });
 
               // Then
@@ -730,19 +787,21 @@ describe('Unit | Service | Certification Result Service', function () {
 
     context('Calculate certification result when assessment is completed (stop on error)', function () {
       const continueOnError = false;
-
+      let placementProfileService;
       beforeEach(function () {
         certificationAssessment = domainBuilder.buildCertificationAssessment({
           ...certificationAssessmentData,
           certificationAnswersByDate: wrongAnswersForAllChallenges(),
           certificationChallenges: challenges,
         });
-        sinon
-          .stub(placementProfileService, 'getPlacementProfile')
+        placementProfileService = {
+          getPlacementProfile: sinon.stub(),
+        };
+        placementProfileService.getPlacementProfile
           .withArgs({
             userId: certificationAssessment.userId,
             limitDate: certificationAssessment.createdAt,
-            isV2Certification: certificationAssessment.isV2Certification,
+            version: certificationAssessment.version,
           })
           .resolves({ userCompetences });
       });
@@ -753,6 +812,10 @@ describe('Unit | Service | Certification Result Service', function () {
           const certificationAssessmentScore = await scoringCertificationService.calculateCertificationAssessmentScore({
             certificationAssessment,
             continueOnError,
+            dependencies: {
+              areaRepository,
+              placementProfileService,
+            },
           });
 
           // then
@@ -794,6 +857,10 @@ describe('Unit | Service | Certification Result Service', function () {
           const certificationAssessmentScore = await scoringCertificationService.calculateCertificationAssessmentScore({
             certificationAssessment,
             continueOnError,
+            dependencies: {
+              areaRepository,
+              placementProfileService,
+            },
           });
 
           // then
@@ -826,6 +893,10 @@ describe('Unit | Service | Certification Result Service', function () {
           const certificationAssessmentScore = await scoringCertificationService.calculateCertificationAssessmentScore({
             certificationAssessment,
             continueOnError,
+            dependencies: {
+              areaRepository,
+              placementProfileService,
+            },
           });
 
           // then
@@ -864,6 +935,10 @@ describe('Unit | Service | Certification Result Service', function () {
           const certificationAssessmentScore = await scoringCertificationService.calculateCertificationAssessmentScore({
             certificationAssessment,
             continueOnError,
+            dependencies: {
+              areaRepository,
+              placementProfileService,
+            },
           });
 
           // then
@@ -872,6 +947,7 @@ describe('Unit | Service | Certification Result Service', function () {
       });
 
       context('when only one challenge is asked for a competence', function () {
+        let placementProfileService;
         it('certifies a level below the estimated one if reproducibility rate is < 70%', async function () {
           // given
           const userCompetences = [
@@ -901,19 +977,19 @@ describe('Unit | Service | Certification Result Service', function () {
                 associatedSkillName: '@skillChallengeC_6',
               },
             ],
-            domainBuilder.buildCertificationChallengeWithType
+            domainBuilder.buildCertificationChallengeWithType,
           );
 
-          placementProfileService.getPlacementProfile.restore();
-          sinon
-            .stub(placementProfileService, 'getPlacementProfile')
+          placementProfileService = {
+            getPlacementProfile: sinon.stub(),
+          };
+          placementProfileService.getPlacementProfile
             .withArgs({
               userId: certificationAssessment.userId,
               limitDate: certificationAssessment.createdAt,
-              isV2Certification: certificationAssessment.isV2Certification,
+              version: certificationAssessment.version,
             })
             .resolves({ userCompetences });
-
           certificationAssessment.certificationAnswersByDate = _.map(
             [
               { challengeId: 'challenge_A_for_competence_5', result: 'ok' },
@@ -921,7 +997,7 @@ describe('Unit | Service | Certification Result Service', function () {
               { challengeId: 'challenge_B_for_competence_6', result: 'ok' },
               { challengeId: 'challenge_C_for_competence_6', result: 'ko' },
             ],
-            domainBuilder.buildAnswer
+            domainBuilder.buildAnswer,
           );
 
           const expectedCertifiedCompetences = [
@@ -945,6 +1021,10 @@ describe('Unit | Service | Certification Result Service', function () {
           const certificationAssessmentScore = await scoringCertificationService.calculateCertificationAssessmentScore({
             certificationAssessment,
             continueOnError,
+            dependencies: {
+              areaRepository,
+              placementProfileService,
+            },
           });
 
           // then
@@ -953,6 +1033,7 @@ describe('Unit | Service | Certification Result Service', function () {
       });
 
       context('when challenges contains one QROCM-dep challenge to validate two skills', function () {
+        let placementProfileService;
         beforeEach(function () {
           const userCompetences = [
             _buildUserCompetence(competence_5, 50, 5),
@@ -992,16 +1073,17 @@ describe('Unit | Service | Certification Result Service', function () {
                 type: 'QCM',
               },
             ],
-            domainBuilder.buildCertificationChallengeWithType
+            domainBuilder.buildCertificationChallengeWithType,
           );
 
-          placementProfileService.getPlacementProfile.restore();
-          sinon
-            .stub(placementProfileService, 'getPlacementProfile')
+          placementProfileService = {
+            getPlacementProfile: sinon.stub(),
+          };
+          placementProfileService.getPlacementProfile
             .withArgs({
               userId: certificationAssessment.userId,
               limitDate: certificationAssessment.createdAt,
-              isV2Certification: certificationAssessment.isV2Certification,
+              version: certificationAssessment.version,
             })
             .resolves({ userCompetences });
         });
@@ -1016,7 +1098,7 @@ describe('Unit | Service | Certification Result Service', function () {
               { challengeId: 'challenge_B_for_competence_6', result: 'ok' },
               { challengeId: 'challenge_C_for_competence_6', result: 'ko' },
             ],
-            domainBuilder.buildAnswer
+            domainBuilder.buildAnswer,
           );
 
           const expectedCertifiedCompetences = [
@@ -1040,6 +1122,10 @@ describe('Unit | Service | Certification Result Service', function () {
           const certificationAssessmentScore = await scoringCertificationService.calculateCertificationAssessmentScore({
             certificationAssessment,
             continueOnError,
+            dependencies: {
+              areaRepository,
+              placementProfileService,
+            },
           });
 
           // then
@@ -1056,7 +1142,7 @@ describe('Unit | Service | Certification Result Service', function () {
               { challengeId: 'challenge_B_for_competence_6', result: 'ok' },
               { challengeId: 'challenge_C_for_competence_6', result: 'ok' },
             ],
-            domainBuilder.buildAnswer
+            domainBuilder.buildAnswer,
           );
 
           const expectedCertifiedCompetences = [
@@ -1080,6 +1166,10 @@ describe('Unit | Service | Certification Result Service', function () {
           const certificationAssessmentScore = await scoringCertificationService.calculateCertificationAssessmentScore({
             certificationAssessment,
             continueOnError,
+            dependencies: {
+              areaRepository,
+              placementProfileService,
+            },
           });
 
           // then
@@ -1109,7 +1199,7 @@ describe('Unit | Service | Certification Result Service', function () {
                 associatedSkillName: '@skillChallengeN_6',
               },
             ],
-            domainBuilder.buildCertificationChallengeWithType
+            domainBuilder.buildCertificationChallengeWithType,
           );
           certificationAssessment.certificationChallenges = challenges;
 
@@ -1120,7 +1210,7 @@ describe('Unit | Service | Certification Result Service', function () {
               { challengeId: 'challenge_M_for_competence_5', result: 'ok' },
               { challengeId: 'challenge_N_for_competence_6', result: 'ok' },
             ],
-            domainBuilder.buildAnswer
+            domainBuilder.buildAnswer,
           );
         });
 
@@ -1129,6 +1219,10 @@ describe('Unit | Service | Certification Result Service', function () {
           const certificationAssessmentScore = await scoringCertificationService.calculateCertificationAssessmentScore({
             certificationAssessment,
             continueOnError,
+            dependencies: {
+              areaRepository,
+              placementProfileService,
+            },
           });
 
           // then
@@ -1138,6 +1232,8 @@ describe('Unit | Service | Certification Result Service', function () {
     });
 
     context('non neutralization rate trustability', function () {
+      let placementProfileService;
+
       beforeEach(function () {
         certificationAssessment = domainBuilder.buildCertificationAssessment({
           ...certificationAssessmentData,
@@ -1145,12 +1241,14 @@ describe('Unit | Service | Certification Result Service', function () {
           certificationChallenges: challenges,
         });
         certificationAssessment.certificationAnswersByDate = correctAnswersForAllChallenges();
-        sinon
-          .stub(placementProfileService, 'getPlacementProfile')
+        placementProfileService = {
+          getPlacementProfile: sinon.stub(),
+        };
+        placementProfileService.getPlacementProfile
           .withArgs({
             userId: certificationAssessment.userId,
             limitDate: certificationAssessment.createdAt,
-            isV2Certification: certificationAssessment.isV2Certification,
+            version: certificationAssessment.version,
           })
           .resolves({ userCompetences });
       });
@@ -1168,6 +1266,10 @@ describe('Unit | Service | Certification Result Service', function () {
           const certificationAssessmentScore = await scoringCertificationService.calculateCertificationAssessmentScore({
             certificationAssessment: certificationAssessmentWithNeutralizedChallenge,
             continueOnError: false,
+            dependencies: {
+              areaRepository,
+              placementProfileService,
+            },
           });
 
           // then
@@ -1190,6 +1292,10 @@ describe('Unit | Service | Certification Result Service', function () {
           const certificationAssessmentScore = await scoringCertificationService.calculateCertificationAssessmentScore({
             certificationAssessment: certificationAssessmentWithNeutralizedChallenge,
             continueOnError: false,
+            dependencies: {
+              areaRepository,
+              placementProfileService,
+            },
           });
 
           // then

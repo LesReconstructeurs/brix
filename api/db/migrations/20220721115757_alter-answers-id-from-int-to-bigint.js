@@ -9,7 +9,7 @@ const changeAnswerIdTypeToBigint = async (knex) => {
   });
 };
 
-exports.up = async function (knex) {
+const up = async function (knex) {
   const { rows: answersCheckDataTypeQueryResult } = await knex.raw(`
   SELECT "column_name","data_type"
   FROM "information_schema"."columns"
@@ -28,12 +28,11 @@ exports.up = async function (knex) {
     } else {
       // eslint-disable-next-line no-console
       console.log(
-        'Columns in table answers not migrated to bigint as there is too much data. Run api/scripts/bigint/change-answers-id-type-to-bigint-with-downtime.js.'
+        'Columns in table answers not migrated to bigint as there is too much data. Run api/scripts/bigint/change-answers-id-type-to-bigint-with-downtime.js.',
       );
     }
   }
 };
-
-exports.down = function () {
-  // no need for rollback
-};
+// eslint-disable-next-line no-empty-function
+const down = function () {};
+export { up, down };

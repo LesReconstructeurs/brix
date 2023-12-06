@@ -1,6 +1,8 @@
-import { module, test } from 'qunit';
-import hbs from 'htmlbars-inline-precompile';
 import { clickByName, render } from '@1024pix/ember-testing-library';
+import Service from '@ember/service';
+import { hbs } from 'ember-cli-htmlbars';
+import { module, test } from 'qunit';
+
 import setupIntlRenderingTest from '../../../helpers/setup-intl-rendering';
 
 module('Integration | Component | Auth::LoginOrRegister', function (hooks) {
@@ -39,10 +41,8 @@ module('Integration | Component | Auth::LoginOrRegister', function (hooks) {
 
   test('it toggle the register form by default', async function (assert) {
     // given
-    const registerButton = this.intl.t('pages.login-or-register.register-form.button');
-    const firstNameInputLabelFromRegisterForm = this.intl.t(
-      'pages.login-or-register.register-form.fields.first-name.label'
-    );
+    const registerButton = this.intl.t('pages.login-or-register.register-form.actions.login');
+    const firstNameInputLabelFromRegisterForm = this.intl.t('common.labels.candidate.firstname');
 
     // when
     const screen = await render(hbs`<Auth::LoginOrRegister/>`);
@@ -55,7 +55,7 @@ module('Integration | Component | Auth::LoginOrRegister', function (hooks) {
 
   test('it toggle the login form on click on login button', async function (assert) {
     // given
-    const emailInputLabelFromLoginForm = this.intl.t('pages.login-or-register.login-form.fields.email.label');
+    const emailInputLabelFromLoginForm = this.intl.t('common.forms.login.email');
     const screen = await render(hbs`<Auth::LoginOrRegister/>`);
 
     // when
@@ -67,8 +67,8 @@ module('Integration | Component | Auth::LoginOrRegister', function (hooks) {
 
   test('it toggle the register form on click on register button', async function (assert) {
     // given
-    const emailInputLabelFromRegisterForm = this.intl.t('pages.login-or-register.register-form.fields.email.label');
-    const registerButtonLabel = this.intl.t('pages.login-or-register.register-form.button');
+    const emailInputLabelFromRegisterForm = this.intl.t('common.forms.login.email');
+    const registerButtonLabel = this.intl.t('pages.login-or-register.register-form.actions.login');
 
     const screen = await render(hbs`<Auth::LoginOrRegister/>`);
 
@@ -78,5 +78,48 @@ module('Integration | Component | Auth::LoginOrRegister', function (hooks) {
 
     // then
     assert.dom(screen.getByRole('textbox', { name: emailInputLabelFromRegisterForm })).exists();
+  });
+
+  module('When domain is international tld (.org)', function () {
+    test('does display the language switcher', async function (assert) {
+      class CurrentDomainServiceStub extends Service {
+        get isFranceDomain() {
+          return false;
+        }
+
+        getExtension() {
+          return 'org';
+        }
+      }
+      this.owner.register('service:currentDomain', CurrentDomainServiceStub);
+
+      // when
+      const screen = await render(hbs`<Auth::LoginOrRegister @certificationCenterName='Centre de Certif'/>`);
+
+      // then
+      assert.dom(screen.queryByRole('button', { name: 'Français' })).exists();
+    });
+  });
+
+  module('When domain is french tld (.fr)', function () {
+    test('does not display the language switcher', async function (assert) {
+      // given
+      class CurrentDomainServiceStub extends Service {
+        get isFranceDomain() {
+          return true;
+        }
+
+        getExtension() {
+          return 'fr';
+        }
+      }
+      this.owner.register('service:currentDomain', CurrentDomainServiceStub);
+
+      // when
+      const screen = await render(hbs`<Auth::LoginOrRegister @certificationCenterName='Centre de Certif'/>`);
+
+      // then
+      assert.dom(screen.queryByRole('button', { name: 'Français' })).doesNotExist();
+    });
   });
 });

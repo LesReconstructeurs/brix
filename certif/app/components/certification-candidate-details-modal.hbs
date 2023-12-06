@@ -1,5 +1,5 @@
 <PixModal
-  @title="Détail du candidat"
+  @title={{t "pages.sessions.detail.candidates.detail-modal.title"}}
   @onCloseButtonClick={{@closeModal}}
   class="certification-candidate-details-modal"
   @showModal={{@showModal}}
@@ -7,19 +7,25 @@
   <:content>
     <ul class="certification-candidate-details-modal__list">
       <li class="certification-candidate-details-modal__row">
-        <span class="certification-candidate-details-modal__row__label">Nom</span>
+        <span class="certification-candidate-details-modal__row__label">
+          {{t "common.labels.candidate.birth-name"}}
+        </span>
         <span class="certification-candidate-details-modal__row__value">
           {{if @candidate.lastName @candidate.lastName "-"}}
         </span>
       </li>
       <li class="certification-candidate-details-modal__row">
-        <span class="certification-candidate-details-modal__row__label">Prénom</span>
+        <span class="certification-candidate-details-modal__row__label">
+          {{t "common.labels.candidate.firstname"}}
+        </span>
         <span class="certification-candidate-details-modal__row__value">
           {{if @candidate.firstName @candidate.firstName "-"}}
         </span>
       </li>
       <li class="certification-candidate-details-modal__row">
-        <span class="certification-candidate-details-modal__row__label">Date de naissance</span>
+        <span class="certification-candidate-details-modal__row__label">
+          {{t "common.labels.candidate.birth-date"}}
+        </span>
         {{#if @candidate.birthdate}}
           <span class="certification-candidate-details-modal__row__value">
             {{dayjs-format @candidate.birthdate "DD/MM/YYYY"}}
@@ -31,69 +37,90 @@
         {{/if}}
       </li>
       <li class="certification-candidate-details-modal__row">
-        <span class="certification-candidate-details-modal__row__label">Sexe</span>
+        <span class="certification-candidate-details-modal__row__label">
+          {{t "common.labels.candidate.gender.title"}}
+        </span>
         <span class="certification-candidate-details-modal__row__value">
-          {{if @candidate.sexLabel @candidate.sexLabel "-"}}
+          {{@candidate.genderLabel}}
         </span>
       </li>
       <li class="certification-candidate-details-modal__row">
-        <span class="certification-candidate-details-modal__row__label">Commune de naissance</span>
+        <span class="certification-candidate-details-modal__row__label">
+          {{t "common.labels.candidate.birth-city"}}
+        </span>
         <span class="certification-candidate-details-modal__row__value">
           {{if @candidate.birthCity @candidate.birthCity "-"}}
         </span>
       </li>
       <li class="certification-candidate-details-modal__row">
-        <span class="certification-candidate-details-modal__row__label">Code postal de naissance</span>
+        <span class="certification-candidate-details-modal__row__label">
+          {{t "common.labels.candidate.birth-city-postcode"}}
+        </span>
         <span class="certification-candidate-details-modal__row__value">
           {{if @candidate.birthPostalCode @candidate.birthPostalCode "-"}}
         </span>
       </li>
       <li class="certification-candidate-details-modal__row">
-        <span class="certification-candidate-details-modal__row__label">Code INSEE de naissance</span>
+        <span class="certification-candidate-details-modal__row__label">
+          {{t "common.labels.candidate.birth-city-insee-code"}}
+        </span>
         <span class="certification-candidate-details-modal__row__value">
           {{if @candidate.birthInseeCode @candidate.birthInseeCode "-"}}
         </span>
       </li>
       <li class="certification-candidate-details-modal__row">
-        <span class="certification-candidate-details-modal__row__label">Pays de naissance</span>
+        <span class="certification-candidate-details-modal__row__label">
+          {{t "common.labels.candidate.birth-country"}}
+        </span>
         <span class="certification-candidate-details-modal__row__value">
           {{if @candidate.birthCountry @candidate.birthCountry "-"}}
         </span>
       </li>
       <li class="certification-candidate-details-modal__row">
-        <span class="certification-candidate-details-modal__row__label">E-mail du destinataire des résultats (formateur,
-          enseignant...)</span>
+        <span class="certification-candidate-details-modal__row__label">
+          {{t "common.forms.certification-labels.email-results"}}
+        </span>
         <span class="certification-candidate-details-modal__row__value">
           {{if @candidate.resultRecipientEmail @candidate.resultRecipientEmail "-"}}
         </span>
       </li>
       <li class="certification-candidate-details-modal__row">
-        <span class="certification-candidate-details-modal__row__label">E-mail de convocation</span>
+        <span class="certification-candidate-details-modal__row__label">
+          {{t "common.forms.certification-labels.email-convocation"}}
+        </span>
         <span class="certification-candidate-details-modal__row__value">
           {{if @candidate.email @candidate.email "-"}}
         </span>
       </li>
       <li class="certification-candidate-details-modal__row">
-        <span class="certification-candidate-details-modal__row__label">Identifiant externe</span>
+        <span class="certification-candidate-details-modal__row__label">
+          {{t "common.forms.certification-labels.external-id"}}
+        </span>
         <span class="certification-candidate-details-modal__row__value">
           {{if @candidate.externalId @candidate.externalId "-"}}
         </span>
       </li>
       <li class="certification-candidate-details-modal__row">
-        <span class="certification-candidate-details-modal__row__label">Temps majoré (%)</span>
+        <span class="certification-candidate-details-modal__row__label">
+          {{t "common.forms.certification-labels.extratime-percentage"}}
+        </span>
         <span class="certification-candidate-details-modal__row__value">
           {{if @candidate.extraTimePercentage (format-percentage @candidate.extraTimePercentage) "-"}}
         </span>
       </li>
       {{#if @shouldDisplayPaymentOptions}}
         <li class="certification-candidate-details-modal__row">
-          <span class="certification-candidate-details-modal__row__label">Tarification part Pix</span>
+          <span class="certification-candidate-details-modal__row__label">
+            {{t "common.forms.certification-labels.pricing"}}
+          </span>
           <span class="certification-candidate-details-modal__row__value">
-            {{if @candidate.billingMode @candidate.billingMode "-"}}
+            {{@candidate.billingModeLabel}}
           </span>
         </li>
         <li class="certification-candidate-details-modal__row">
-          <span class="certification-candidate-details-modal__row__label">Code de prépaiement</span>
+          <span class="certification-candidate-details-modal__row__label">
+            {{t "common.forms.certification-labels.prepayment-code"}}
+          </span>
           <span class="certification-candidate-details-modal__row__value">
             {{if @candidate.prepaymentCode @candidate.prepaymentCode "-"}}
           </span>
@@ -101,9 +128,11 @@
       {{/if}}
       {{#if @displayComplementaryCertification}}
         <li class="certification-candidate-details-modal__row">
-          <span class="certification-candidate-details-modal__row__label">Certifications complémentaires</span>
+          <span class="certification-candidate-details-modal__row__label">
+            {{t "common.forms.certification-labels.additional-certification"}}
+          </span>
           <span class="certification-candidate-details-modal__row__value">
-            {{if @candidate.complementaryCertifications @candidate.complementaryCertificationsList "-"}}
+            {{if @candidate.complementaryCertification @candidate.complementaryCertification.label "-"}}
           </span>
         </li>
       {{/if}}
@@ -111,6 +140,9 @@
   </:content>
 
   <:footer>
-    <PixButton @triggerAction={{@closeModal}} aria-label="Fermer la fenêtre de détail du candidat">Fermer</PixButton>
+    <PixButton
+      @triggerAction={{@closeModal}}
+      aria-label="{{t 'pages.sessions.detail.candidates.detail-modal.actions.close-extra-information'}}"
+    >{{t "common.actions.close"}}</PixButton>
   </:footer>
 </PixModal>

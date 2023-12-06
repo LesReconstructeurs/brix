@@ -1,12 +1,15 @@
 import Component from '@glimmer/component';
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
 import EmberObject, { action } from '@ember/object';
 import get from 'lodash/get';
 import toNumber from 'lodash/toNumber';
 
+const TRANSLATE_PREFIX = 'pages.sessions.detail.candidates';
+
 export default class EnrolledCandidates extends Component {
   @service store;
+  @service intl;
   @service notifications;
   @tracked candidatesInStaging = [];
   @tracked newCandidate = {};
@@ -21,11 +24,11 @@ export default class EnrolledCandidates extends Component {
 
     try {
       await certificationCandidate.destroyRecord({ adapterOptions: { sessionId } });
-      this.notifications.success('Le candidat a été supprimé avec succès.');
+      this.notifications.success(this.intl.t(`${TRANSLATE_PREFIX}.add-modal.notifications.success-remove`));
     } catch (err) {
-      let errorText = "Une erreur s'est produite lors de la suppression du candidat";
+      let errorText = this.intl.t(`${TRANSLATE_PREFIX}.add-modal.notifications.error-remove-unknown`);
       if (get(err, 'errors[0].code') === 403) {
-        errorText = 'Ce candidat a déjà rejoint la session. Vous ne pouvez pas le supprimer.';
+        errorText = this.intl.t(`${TRANSLATE_PREFIX}.add-modal.notifications.error-remove-already-in`);
       }
       this.notifications.error(errorText);
     }
@@ -66,6 +69,7 @@ export default class EnrolledCandidates extends Component {
       this.candidatesInStaging.removeObject(candidate);
       this.closeNewCertificationCandidateModal();
     }
+    return success;
   }
 
   @action
@@ -105,7 +109,7 @@ export default class EnrolledCandidates extends Component {
         adapterOptions: { registerToSession: true, sessionId: this.args.sessionId },
       });
       this.args.reloadCertificationCandidate();
-      this.notifications.success('Le candidat a été inscrit avec succès.');
+      this.notifications.success(this.intl.t(`${TRANSLATE_PREFIX}.add-modal.notifications.success-add`));
       return true;
     } catch (err) {
       if (this._hasConflict(err)) {
@@ -144,38 +148,27 @@ export default class EnrolledCandidates extends Component {
   }
 
   _createCertificationCandidateRecord(certificationCandidateData) {
-    return this.store.createRecord('certification-candidate', {
-      firstName: this._trimOrUndefinedIfFalsy(certificationCandidateData.firstName),
-      lastName: this._trimOrUndefinedIfFalsy(certificationCandidateData.lastName),
-      sex: this._trimOrUndefinedIfFalsy(certificationCandidateData.sex),
-      birthdate: certificationCandidateData.birthdate,
-      birthCountry: this._trimOrUndefinedIfFalsy(certificationCandidateData.birthCountry),
-      birthInseeCode: this._trimOrUndefinedIfFalsy(certificationCandidateData.birthInseeCode),
-      birthPostalCode: this._trimOrUndefinedIfFalsy(certificationCandidateData.birthPostalCode),
-      birthCity: this._trimOrUndefinedIfFalsy(certificationCandidateData.birthCity),
-      birthProvinceCode: this._trimOrUndefinedIfFalsy(certificationCandidateData.birthProvinceCode),
-      externalId: this._trimOrUndefinedIfFalsy(certificationCandidateData.externalId),
-      email: this._trimOrUndefinedIfFalsy(certificationCandidateData.email),
-      resultRecipientEmail: this._trimOrUndefinedIfFalsy(certificationCandidateData.resultRecipientEmail),
-      extraTimePercentage: certificationCandidateData.extraTimePercentage,
-      billingMode: certificationCandidateData.billingMode,
-      prepaymentCode: this._trimOrUndefinedIfFalsy(certificationCandidateData.prepaymentCode),
-      complementaryCertifications: certificationCandidateData.complementaryCertifications,
-    });
+    return this.store.createRecord('certification-candidate', certificationCandidateData);
   }
 
   _handleDuplicateError(certificationCandidate) {
-    const errorText = "Ce candidat est déjà dans la liste, vous ne pouvez pas l'ajouter à nouveau.";
+    const errorText = this.intl.t(`${TRANSLATE_PREFIX}.add-modal.notifications.error-add-duplicate`);
     this._handleSavingError(errorText, certificationCandidate);
   }
 
   _handleUnknownSavingError(certificationCandidate) {
-    const errorText = "Une erreur s'est produite lors de l'ajout du candidat.";
+    const errorText = this.intl.t(`${TRANSLATE_PREFIX}.add-modal.notifications.error-add-unknown`);
     this._handleSavingError(errorText, certificationCandidate);
   }
 
-  _handleEntityValidationError(certificationCandidate, err) {
-    const errorText = get(err, 'errors[0].detail');
+  _handleEntityValidationError(certificationCandidate, errorResponse) {
+    let errorText = this.intl.t(`common.api-error-messages.internal-server-error`);
+    const error = errorResponse?.errors?.[0];
+    if (error?.code) {
+      errorText = this.intl.t(`common.api-error-messages.certification-candidate.${error.code}`, {
+        ...error?.meta,
+      });
+    }
     this._handleSavingError(errorText, certificationCandidate);
   }
 
@@ -202,16 +195,12 @@ export default class EnrolledCandidates extends Component {
         ({ lastName, firstName, birthdate }) =>
           lastName.toLowerCase() === currentLastName.toLowerCase() &&
           firstName.toLowerCase() === currentFirstName.toLowerCase() &&
-          birthdate === currentBirthdate
+          birthdate === currentBirthdate,
       ) !== undefined
     );
   }
 
   _fromPercentageStringToDecimal(value) {
     return value ? toNumber(value) / 100 : value;
-  }
-
-  _trimOrUndefinedIfFalsy(str) {
-    return str ? str.trim() : undefined;
   }
 }

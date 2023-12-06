@@ -1,18 +1,17 @@
-const complementaryCertificationController = require('./complementary-certification-controller');
-const securityPreHandlers = require('../security-pre-handlers');
+import { complementaryCertificationController } from './complementary-certification-controller.js';
+import { securityPreHandlers } from '../security-pre-handlers.js';
 
-exports.register = async function (server) {
+const register = async function (server) {
   server.route([
     {
       method: 'GET',
-      path: '/api/habilitations',
+      path: '/api/admin/complementary-certifications',
       config: {
         pre: [
           {
             method: (request, h) =>
               securityPreHandlers.adminMemberHasAtLeastOneAccessOf([
                 securityPreHandlers.checkAdminMemberHasRoleSuperAdmin,
-                securityPreHandlers.checkAdminMemberHasRoleCertif,
                 securityPreHandlers.checkAdminMemberHasRoleSupport,
                 securityPreHandlers.checkAdminMemberHasRoleMetier,
               ])(request, h),
@@ -20,14 +19,38 @@ exports.register = async function (server) {
           },
         ],
         handler: complementaryCertificationController.findComplementaryCertifications,
-        tags: ['api'],
+        tags: ['api', 'admin'],
         notes: [
-          'Cette route est utilisée par Pix Admin',
+          'Cette route est restreinte aux utilisateurs authentifiés avec le rôle Super Admin, Support et Métier',
           'Elle renvoie la liste des certifications complémentaires existantes.',
+        ],
+      },
+    },
+    {
+      method: 'GET',
+      path: '/api/admin/complementary-certifications/{id}/target-profiles',
+      config: {
+        pre: [
+          {
+            method: (request, h) =>
+              securityPreHandlers.adminMemberHasAtLeastOneAccessOf([
+                securityPreHandlers.checkAdminMemberHasRoleSuperAdmin,
+                securityPreHandlers.checkAdminMemberHasRoleSupport,
+                securityPreHandlers.checkAdminMemberHasRoleMetier,
+              ])(request, h),
+            assign: 'hasAuthorizationToAccessAdminScope',
+          },
+        ],
+        handler: complementaryCertificationController.getComplementaryCertificationTargetProfileHistory,
+        tags: ['api', 'admin'],
+        notes: [
+          'Cette route est restreinte aux utilisateurs authentifiés avec le rôle Super Admin, Support et Métier',
+          'Elle renvoie les informations du profil cible courant de la certification complémentaire.',
         ],
       },
     },
   ]);
 };
 
-exports.name = 'complementary-certifications-api';
+const name = 'complementary-certifications-api';
+export { register, name };

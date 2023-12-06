@@ -1,6 +1,6 @@
-import { render } from '@ember/test-helpers';
+import { render } from '@1024pix/ember-testing-library';
 import { module, test } from 'qunit';
-import hbs from 'htmlbars-inline-precompile';
+import { hbs } from 'ember-cli-htmlbars';
 import setupIntlRenderingTest from '../../../helpers/setup-intl-rendering';
 
 module('Integration | Component | Challenge | Item', function (hooks) {
@@ -16,7 +16,7 @@ module('Integration | Component | Challenge | Item', function (hooks) {
         timer: false,
         format: 'phrase',
         proposals: '${myInput}',
-      })
+      }),
     );
     this.set('answer', {});
 

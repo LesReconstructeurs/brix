@@ -1,19 +1,20 @@
 {
+  "current-lang": "en",
   "campaign-export": {
     "assessment": {
       "competence-area": {
-        "items-successfully-completed": "Items of the target profile successfully completed in the competence area {{name}}",
-        "mastery-percentage": "% of items successfully completed in the competence area {{name}}",
-        "total-items": "Number of items of the target profile in the competence area {{name}}"
+        "items-successfully-completed": "Items of the target profile successfully completed in the competence area {name}",
+        "mastery-percentage": "% of items successfully completed in the competence area {name}",
+        "total-items": "Number of items of the target profile in the competence area {name}"
       },
       "is-shared": "Shared (Y/N)",
       "mastery-percentage-target-profile": "% of items successfully completed in the target profile",
       "progress": "% of progression",
       "shared-on": "Shared on",
       "skill": {
-        "items-successfully-completed": "Items of the target profile successfully completed in the competence {{name}}",
-        "mastery-percentage": "% of items successfully completed in the competence {{name}}",
-        "total-items": "Number of items of the target profile in the competence {{name}}"
+        "items-successfully-completed": "Items of the target profile successfully completed in the competence {name}",
+        "mastery-percentage": "% of items successfully completed in the competence {name}",
+        "total-items": "Number of items of the target profile in the competence {name}"
       },
       "started-on": "Started on",
       "status": {
@@ -21,14 +22,15 @@
         "not-tested": "Not tested",
         "ok": "OK"
       },
-      "success-rate": "Success rate (/{{value}})",
+      "success-rate": "Success rate (/{value})",
       "target-profile-name": "Customised test",
-      "thematic-result-name": "{{name}} (Y/N)"
+      "thematic-result-name": "{name} (Y/N)"
     },
     "common": {
+      "campaign-code": "Code",
       "campaign-id": "Campaign ID",
       "campaign-name": "Campaign's name",
-      "file-name": "Results-{{name}}-{{id}}-{{date}}.csv",
+      "file-name": "Results-{name}-{id}-{date}.csv",
       "no": "No",
       "not-available": "NA",
       "organization-name": "Organisation’s name",
@@ -45,23 +47,140 @@
       "is-sent": "Sent (Y/N)",
       "pix-score": "Total pix score",
       "sent-on": "Sent on",
-      "skill-level": "Level reached in the competence {{name}}",
-      "skill-ranking": "Pix score for the competence {{name}}"
+      "skill-level": "Level reached in the competence {name}",
+      "skill-ranking": "Pix score for the competence {name}"
     }
+  },
+  "candidate-list-template": {
+    "title": "Candidates' list",
+    "billing-mode": {
+      "free": "Free",
+      "paid": "Paid",
+      "prepaid": "Prepaid"
+    },
+    "certification": "Additional",
+    "complementary": "certification",
+    "filename": "session-candidate-list",
+    "headers": {
+      "birth-date": "* Date of birth (DD/MM/YYYY format)",
+      "birthcity": "Name of birth city",
+      "birthcity-inseecode": "Insee code",
+      "birthcity-postcode": "Postcode",
+      "birthcountry": "Country",
+      "birthname": "* Last name",
+      "birthplace": "* Place of birth",
+      "birthplace-instructions": "Instructions on how to fill in the place of birth",
+      "birthplace-instructions-abroad": "- Candidate born abroad: fill in the “Country” and “Name of birth city” columns and",
+      "birthplace-instructions-abroad-insee": "       write 99 in the “Insee code” column",
+      "birthplace-instructions-france": "- Candidate born in France: write France in the “Country” column",
+      "birthplace-instructions-france-insee": "    - If Insee code: only fill in the “Insee code” column",
+      "birthplace-instructions-france-postal": "    - If postcode: fill in the “Postcode” and “Name of birth city” columns",
+      "born-abroad": "Candidate born abroad: “Insee code” 99 AND “Name of birth city”",
+      "born-in-france": "Candidate born in France: “Insee code” OR “Postcode” and “Name of birth city”",
+      "candidates": "Candidates",
+      "candidates-list": "Candidates' list",
+      "date": "Date",
+      "email-convocation": "Email for the convocation",
+      "email-results": "Email of the results' recipient (instructor, teacher…)",
+      "externalid": "External user ID",
+      "extra-time": "Extra time ?",
+      "firstname": "* First name",
+      "gender": "* Gender (M or F)",
+      "locale-time": "Local time (start)",
+      "room-name": "Room name",
+      "session-certification": "The certification session",
+      "session-invigilates-by": "Session invigilated by",
+      "session-invigilators": "Signature of the invigilator(s)",
+      "session-number": "Session No.",
+      "site-name": "Location name"
+    },
+    "one-per-candidate": "(no more than one per candidate)",
+    "options": "Possible options:",
+    "prepayment": "Prepayment code",
+    "pricing": "Pricing",
+    "pricing-pix": "Pricing of Pix’s share",
+    "tooltip-line-1": "(Required in particular when purchasing combined credits)",
+    "tooltip-line-2": "It must be comprised of the organisation’s SIRET and of the invoice’s number. Ex: 12345678912345/FACT12345. ",
+    "tooltip-line-3": "If you don’t have an invoice, a prepayment code must be set with Pix.",
+    "tooltips": {
+      "date-format": "Use the DD/MM/YYYY date format",
+      "email-format": "Your email address must contain an “@” and a “.” Exemple: name@exemple.com. \n This field is optional, it is used to facilitate the candidates’ convocation.",
+      "email-results": "If this field isn’t filled in, the results won't be transmitted by email for the affected candidate(s). \n The candidate will see their results displayed directly on their Pix account.",
+      "extra-time": "Field required if the candidate benefits from extra time to complete their certification. \n A whole number included between 1 and 99% expressed in percentage is expected (ex: 33%)",
+      "gender-format": "M=Man F=Woman"
+    },
+    "yes": "Yes",
+    "yes-or-empty": "(\"yes\" or leave blank)"
   },
   "certification-center-invitation-email": {
     "params": {
-      "acceptInvitation": "Accepter l’invitation",
-      "doNotAnswer": "Ceci est un e-mail automatique, merci de ne pas y répondre.",
-      "here": "ici",
-      "moreAbout": "En savoir plus sur",
-      "needHelp": "Besoin d’aide, contactez-nous",
-      "oneTimeLink": "Ce lien est à usage unique",
-      "pixCertifPresentation": "L’espace Pix Certif est un outil dédié à l’organisation des sessions de certification.",
-      "title": "Invitation à rejoindre l’espace",
-      "yourCertificationCenter": "Votre centre de certification"
+      "title": "Invitation to join the Pix Certif space",
+      "acceptInvitation": "Accept the invitation",
+      "doNotAnswer": "This is an automated email message, please do not reply.",
+      "here": "here",
+      "moreAbout": "Find out more about",
+      "needHelp": "Need help, contact us",
+      "oneTimeLink": "This is a one-time use link",
+      "pixCertifPresentation": "The Pix Certif space is a tool dedicated to the organisation of certification sessions.",
+      "yourCertificationCenter": "Your certification centre"
     },
-    "subject": "Invitation à rejoindre Pix Certif"
+    "subject": "Invitation to join Pix Certif"
+  },
+  "certification-confirmation": {
+    "absolute-max-level-indication": "When the 8 levels of the Pix framework will be available, that maximum number will be of 1024 pix.",
+    "file-name": "pix-confirmation-{deliveredAt}.pdf",
+    "from-birthplace": " in { birthplace }",
+    "max-level": "(levels on { maxReachableLevelOnCertificationDate })",
+    "max-reachable-level-indication": "* At the date of the successful completion of this certification, the number of acheivable pix was { maxReachableScore }, corresponding to a level { maxReachableLevelOnCertificationDate }."
+  },
+  "certification-result-email": {
+    "title": "View the results of the certification session n° {sessionId} !",
+    "params": {
+      "doNotReply": "This is an automatic email, please do not reply.",
+      "download": "Download the results",
+      "emailValidFor": "This link is valid for thirty days.",
+      "findOutMore": "Find out more about ",
+      "guidelines": "The reporting transmitted by the certification centre has been taken into account - if need be - by the Pix examining body. You will find guidelines to help you read these results here.",
+      "guidelinesLinkName": "Interpretation of specifiers' results",
+      "overviewText": "Hello, here are the results of the certifications that you have recommended to your audiences",
+      "resultsAvailable": "The results of the Pix certifications that you have recommended to your audiences are available.",
+      "subject": "[Pix] Certification session",
+      "viewResultsInProfile": "The candidates can view their result in their Pix profile."
+    }
+  },
+  "certification-results-csv": {
+    "filenames": {
+      "DIVISION_CERTIFICATION_RESULTS_FILENAME": "{dateWithTime}_results_{division}.csv",
+      "SESSION_CERTIFICATION_RESULTS_FILENAME": "{dateWithTime}_session_results_{sessionId}.csv"
+    },
+    "headers": {
+      "BIRTHDATE": "Date of birth",
+      "BIRTHPLACE": "Place of birth",
+      "CERTIFICATION_CENTER": "Certification centre",
+      "CERTIFICATION_DATE": "Date of Pix certification exam",
+      "CERTIFICATION_LABEL": "Certification {label}",
+      "CERTIFICATION_NUMBER": "Certification number",
+      "EXTERNAL_ID": "External user ID",
+      "FIRSTNAME": "First name",
+      "JURY_COMMENT_FOR_ORGANIZATION": "Examining body’s comment for the organisation",
+      "LASTNAME": "Last name",
+      "PIX_SCORE": "Number of pix",
+      "SESSION_ID": "Session",
+      "SKILL_LABEL": "{skillIndex}",
+      "STATUS": "Status"
+    },
+    "values": {
+      "CERTIFICATION_CANCELLED": "Cancelled",
+      "CERTIFICATION_IN_ERROR": "In error",
+      "CERTIFICATION_REJECTED": "Rejected",
+      "CERTIFICATION_STARTED": "Started",
+      "CERTIFICATION_VALIDATED": "Validated",
+      "COMPLEMENTARY_CERTIFICATION_CANCELLED": "Cancelled",
+      "COMPLEMENTARY_CERTIFICATION_NOT_DONE": "Not taken",
+      "COMPLEMENTARY_CERTIFICATION_REJECTED": "Rejected",
+      "COMPLEMENTARY_CERTIFICATION_VALIDATED": "Validated",
+      "REJECTED_AUTOMATICALLY_COMMENT": "The candidate did not answer correctly to more than 50% of the questions asked, this invalidated his entire certification, and therefore resulted in a score of 0 pix"
+    }
   },
   "csv-import-values": {
     "sup-organization-learner": {
@@ -128,7 +247,6 @@
     },
     "template-name": "import-template"
   },
-  "current-lang": "en",
   "entity-validation-errors": {
     "ACCEPT_CGU": "Please agree to the terms and conditions of use.",
     "ALREADY_REGISTERED_EMAIL": "This email address is already registered, please log in.",
@@ -151,6 +269,7 @@
   },
   "organization-invitation-email": {
     "params": {
+      "title": "You are invited to join Pix Orga",
       "acceptInvitation": "Accept the invitation",
       "doNotAnswer": "This is an automated email message, please do not reply.",
       "here": "here",
@@ -159,13 +278,13 @@
       "oneTimeLink": "This is a single-use link",
       "pixPresentation": "Pix is the online service to assess, develop and certify your digital skills.",
       "subtitle": "With the Pix Orga platform, create and manage testing campaigns and monitor the progress of your participants.",
-      "title": "You are invited to join Pix Orga",
       "yourOrganization": "Your organisation"
     },
     "subject": "Invitation to join Pix Orga"
   },
   "pix-account-creation-email": {
     "params": {
+      "title": "Your Pix account has been created!",
       "askForHelp": "Any questions? We’re here to help, contact us",
       "disclaimer": "If you did not create this account, you can ask its deletion",
       "doNotAnswer": "This is an automated email message, please do not reply.",
@@ -173,13 +292,13 @@
       "helpdeskLinkLabel": "here",
       "moreOn": "More on",
       "pixPresentation": "Pix is the online public service to assess, develop and certify your digital skills.",
-      "subtitle": "You can now start testing your skills.",
-      "title": "Your Pix account has been created!"
+      "subtitle": "You can now start testing your skills."
     },
     "subject": "Your Pix account has been created"
   },
   "reset-password-demand-email": {
     "params": {
+      "title": "Reset your password",
       "clickOnTheButton": "Click on the button below to choose a new password.",
       "contactUs": "contact us here",
       "doNotAnswer": "This is an automated email message, please do not reply. Have questions? We're here to help, ",
@@ -187,7 +306,6 @@
       "moreOn": "More on",
       "pixPresentation": "Pix is the online public service to assess, develop and certify your digital skills.",
       "resetMyPassword": "Reset my password",
-      "title": "Reset your password",
       "weCannotSendYourPassword": "Hello, for security reasons, we cannot send your password by email."
     },
     "subject": "Pix password reset request"
@@ -203,6 +321,6 @@
       "signing": "— The Pix Team",
       "warningMessage": "If this wasn’t you, please reset your password as soon as possible in order to secure your account."
     },
-    "subject": "Your Pix code is {{ code }}"
+    "subject": "Your Pix code is {code}"
   }
 }

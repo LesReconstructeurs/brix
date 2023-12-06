@@ -1,17 +1,12 @@
-const { expect, sinon } = require('../../../test-helper');
-const axios = require('axios');
-const { post, get } = require('../../../../lib/infrastructure/http/http-agent');
-const monitoringTools = require('../../../../lib/infrastructure/monitoring-tools');
+import { expect, sinon } from '../../../test-helper.js';
+import axios from 'axios';
+import { httpAgent } from '../../../../lib/infrastructure/http/http-agent.js';
+import { monitoringTools } from '../../../../lib/infrastructure/monitoring-tools.js';
 
-const config = require('../../../../lib/config');
-const TIMEOUT_MILLISECONDS = config.partner.fetchTimeOut;
+const { post, get } = httpAgent;
 
 describe('Unit | Infrastructure | http | http-agent', function () {
   describe('#post', function () {
-    afterEach(function () {
-      axios.post.restore();
-    });
-
     it('should return the response status and success from the http call when successful', async function () {
       // given
       const url = 'someUrl';
@@ -21,16 +16,17 @@ describe('Unit | Infrastructure | http | http-agent', function () {
         data: Symbol('data'),
         status: 'someStatus',
       };
+      const timeout = 'someTimeout';
       sinon
         .stub(axios, 'post')
         .withArgs(url, payload, {
           headers,
-          timeout: TIMEOUT_MILLISECONDS,
+          timeout,
         })
         .resolves(axiosResponse);
 
       // when
-      const actualResponse = await post({ url, payload, headers });
+      const actualResponse = await post({ url, payload, headers, timeout });
 
       // then
       expect(actualResponse).to.deep.equal({
@@ -55,10 +51,7 @@ describe('Unit | Infrastructure | http | http-agent', function () {
             status: 400,
           },
         };
-        sinon
-          .stub(axios, 'post')
-          .withArgs(url, payload, { headers, timeout: TIMEOUT_MILLISECONDS })
-          .rejects(axiosError);
+        sinon.stub(axios, 'post').withArgs(url, payload, { headers }).rejects(axiosError);
 
         // when
         await post({ url, payload, headers });
@@ -82,13 +75,7 @@ describe('Unit | Infrastructure | http | http-agent', function () {
               status: 'someStatus',
             },
           };
-          sinon
-            .stub(axios, 'post')
-            .withArgs(url, payload, {
-              headers,
-              timeout: TIMEOUT_MILLISECONDS,
-            })
-            .rejects(axiosError);
+          sinon.stub(axios, 'post').withArgs(url, payload, { headers }).rejects(axiosError);
 
           // when
           const actualResponse = await post({ url, payload, headers });
@@ -115,13 +102,7 @@ describe('Unit | Infrastructure | http | http-agent', function () {
               status: 400,
             },
           };
-          sinon
-            .stub(axios, 'post')
-            .withArgs(url, payload, {
-              headers,
-              timeout: TIMEOUT_MILLISECONDS,
-            })
-            .rejects(axiosError);
+          sinon.stub(axios, 'post').withArgs(url, payload, { headers }).rejects(axiosError);
 
           const expectedResponse = {
             isSuccessful: false,
@@ -139,9 +120,6 @@ describe('Unit | Infrastructure | http | http-agent', function () {
     });
   });
   describe('#get', function () {
-    afterEach(function () {
-      axios.get.restore();
-    });
     it('should return the response status and success from the http call when successful', async function () {
       // given
       const url = 'someUrl';
@@ -151,10 +129,7 @@ describe('Unit | Infrastructure | http | http-agent', function () {
         data: Symbol('data'),
         status: 'someStatus',
       };
-      sinon
-        .stub(axios, 'get')
-        .withArgs(url, { data: payload, headers, timeout: TIMEOUT_MILLISECONDS })
-        .resolves(axiosResponse);
+      sinon.stub(axios, 'get').withArgs(url, { data: payload, headers }).resolves(axiosResponse);
 
       // when
       const actualResponse = await get({ url, payload, headers });
@@ -182,10 +157,7 @@ describe('Unit | Infrastructure | http | http-agent', function () {
             status: 400,
           },
         };
-        sinon
-          .stub(axios, 'get')
-          .withArgs(url, { data: payload, headers, timeout: TIMEOUT_MILLISECONDS })
-          .rejects(axiosError);
+        sinon.stub(axios, 'get').withArgs(url, { data: payload, headers }).rejects(axiosError);
 
         // when
         await get({ url, payload, headers });
@@ -209,10 +181,7 @@ describe('Unit | Infrastructure | http | http-agent', function () {
               status: 'someStatus',
             },
           };
-          sinon
-            .stub(axios, 'get')
-            .withArgs(url, { data: payload, headers, timeout: TIMEOUT_MILLISECONDS })
-            .rejects(axiosError);
+          sinon.stub(axios, 'get').withArgs(url, { data: payload, headers }).rejects(axiosError);
 
           // when
           const actualResponse = await get({ url, payload, headers });

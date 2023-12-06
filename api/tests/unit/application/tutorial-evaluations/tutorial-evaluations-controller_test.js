@@ -1,8 +1,7 @@
-const { sinon, expect, hFake } = require('../../../test-helper');
-const tutorialEvaluationsController = require('../../../../lib/application/tutorial-evaluations/tutorial-evaluations-controller');
-const usecases = require('../../../../lib/domain/usecases');
-const TutorialEvaluation = require('../../../../lib/domain/models/TutorialEvaluation');
-const tutorialEvaluationSerializer = require('../../../../lib/infrastructure/serializers/jsonapi/tutorial-evaluation-serializer');
+import { sinon, expect, hFake } from '../../../test-helper.js';
+import { tutorialEvaluationsController } from '../../../../lib/application/tutorial-evaluations/tutorial-evaluations-controller.js';
+import { usecases } from '../../../../lib/domain/usecases/index.js';
+import { TutorialEvaluation } from '../../../../lib/domain/models/TutorialEvaluation.js';
 
 describe('Unit | Controller | Tutorial-evaluations', function () {
   describe('#evaluate', function () {
@@ -11,7 +10,10 @@ describe('Unit | Controller | Tutorial-evaluations', function () {
       const tutorialId = 'tutorialId';
       const userId = 'userId';
       const status = TutorialEvaluation.statuses.LIKED;
-      sinon.stub(tutorialEvaluationSerializer, 'deserialize').returns({
+      const tutorialEvaluationSerializer = {
+        deserialize: sinon.stub(),
+      };
+      tutorialEvaluationSerializer.deserialize.returns({
         status,
       });
       sinon.stub(usecases, 'addTutorialEvaluation').returns({
@@ -31,7 +33,7 @@ describe('Unit | Controller | Tutorial-evaluations', function () {
       };
 
       // when
-      await tutorialEvaluationsController.evaluate(request, hFake);
+      await tutorialEvaluationsController.evaluate(request, hFake, { tutorialEvaluationSerializer });
 
       // then
       const addTutorialEvaluationArgs = usecases.addTutorialEvaluation.firstCall.args[0];

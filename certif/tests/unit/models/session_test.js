@@ -2,28 +2,10 @@ import { module, test } from 'qunit';
 import { setupTest } from 'ember-qunit';
 import config from '../../../config/environment';
 import Service from '@ember/service';
-import { CREATED, FINALIZED } from 'pix-certif/models/session';
+import { CREATED } from 'pix-certif/models/session';
 
 module('Unit | Model | session', function (hooks) {
   setupTest(hooks);
-
-  module('#displayStatus', function () {
-    test('it should return the correct displayName', function (assert) {
-      // given
-      const store = this.owner.lookup('service:store');
-      const model1 = store.createRecord('session', {
-        id: 123,
-        status: CREATED,
-      });
-      const model2 = store.createRecord('session', {
-        id: 1234,
-        status: FINALIZED,
-      });
-
-      assert.strictEqual(model1.displayStatus, 'Créée');
-      assert.strictEqual(model2.displayStatus, 'Finalisée');
-    });
-  });
 
   module('#urlToDownloadSupervisorKitPdf', function () {
     test('it should return the correct urlToDownloadSupervisorKitPdf', function (assert) {
@@ -38,12 +20,17 @@ module('Unit | Model | session', function (hooks) {
         };
       }
 
+      class IntlStub extends Service {
+        locale = ['dk'];
+      }
+
       this.owner.register('service:session', SessionStub);
+      this.owner.register('service:intl', IntlStub);
 
       // when/then
       assert.strictEqual(
         model.urlToDownloadSupervisorKitPdf,
-        `${config.APP.API_HOST}/api/sessions/1/supervisor-kit?accessToken=123`
+        `${config.APP.API_HOST}/api/sessions/1/supervisor-kit?accessToken=123&lang=dk`,
       );
     });
   });
@@ -77,7 +64,7 @@ module('Unit | Model | session', function (hooks) {
       // when/then
       assert.strictEqual(
         model.urlToDownloadAttendanceSheet,
-        `${config.APP.API_HOST}/api/sessions/1/attendance-sheet?accessToken=123`
+        `${config.APP.API_HOST}/api/sessions/1/attendance-sheet?accessToken=123`,
       );
     });
   });
@@ -99,6 +86,34 @@ module('Unit | Model | session', function (hooks) {
 
       // when/then
       assert.strictEqual(model.urlToDownloadSessionIssueReportSheet, config.urlToDownloadSessionIssueReportSheet);
+    });
+  });
+
+  module('#urlToDownloadCandidatesImportTemplate', function () {
+    test('it should return the correct urlToDownloadCandidatesImportTemplate', function (assert) {
+      // given
+      const store = this.owner.lookup('service:store');
+
+      class SessionStub extends Service {
+        data = {
+          authenticated: {
+            access_token: '123',
+          },
+        };
+      }
+      class IntlStub extends Service {
+        locale = ['dk'];
+      }
+
+      const model = store.createRecord('session', { id: 1 });
+      this.owner.register('service:session', SessionStub);
+      this.owner.register('service:intl', IntlStub);
+
+      // when/then
+      assert.strictEqual(
+        model.urlToDownloadCandidatesImportTemplate,
+        `${config.APP.API_HOST}/api/sessions/1/candidates-import-sheet?accessToken=123&lang=dk`,
+      );
     });
   });
 
@@ -130,61 +145,31 @@ module('Unit | Model | session', function (hooks) {
   });
 
   module('#shouldDisplayCleaResultDownloadSection', function () {
-    module('when FT_CLEA_RESULTS_RETRIEVAL_BY_HABILITATED_CERTIFICATION_CENTERS is enabled', function () {
-      module('when session has any acquired Clea result', function () {
-        test('it should return true', function (assert) {
-          // given
-          class FeatureTogglesStub extends Service {
-            featureToggles = { isCleaResultsRetrievalByHabilitatedCertificationCentersEnabled: true };
-          }
-          this.owner.register('service:featureToggles', FeatureTogglesStub);
-          const store = this.owner.lookup('service:store');
-          const model = store.createRecord('session', {
-            id: 123,
-            status: CREATED,
-            publishedAt: '2022-01-01',
-            hasSomeCleaAcquired: true,
-          });
-
-          // when/then
-          assert.true(model.shouldDisplayCleaResultDownloadSection);
-        });
-      });
-
-      module('when session has no acquired Clea result', function () {
-        test('it should return false', function (assert) {
-          // given
-          class FeatureTogglesStub extends Service {
-            featureToggles = { isCleaResultsRetrievalByHabilitatedCertificationCentersEnabled: true };
-          }
-          this.owner.register('service:featureToggles', FeatureTogglesStub);
-          const store = this.owner.lookup('service:store');
-          const model = store.createRecord('session', {
-            id: 123,
-            status: CREATED,
-            publishedAt: '2022-01-01',
-            hasSomeCleaAcquired: false,
-          });
-
-          // when/then
-          assert.false(model.shouldDisplayCleaResultDownloadSection);
-        });
-      });
-    });
-
-    module('when FT_CLEA_RESULTS_RETRIEVAL_BY_HABILITATED_CERTIFICATION_CENTERS is not enabled', function () {
-      test('it should return false', function (assert) {
+    module('when session has any acquired Clea result', function () {
+      test('it should return true', function (assert) {
         // given
-        class FeatureTogglesStub extends Service {
-          featureToggles = { isCleaResultsRetrievalByHabilitatedCertificationCentersEnabled: false };
-        }
-        this.owner.register('service:featureToggles', FeatureTogglesStub);
         const store = this.owner.lookup('service:store');
         const model = store.createRecord('session', {
           id: 123,
           status: CREATED,
           publishedAt: '2022-01-01',
           hasSomeCleaAcquired: true,
+        });
+
+        // when/then
+        assert.true(model.shouldDisplayCleaResultDownloadSection);
+      });
+    });
+
+    module('when session has no acquired Clea result', function () {
+      test('it should return false', function (assert) {
+        // given
+        const store = this.owner.lookup('service:store');
+        const model = store.createRecord('session', {
+          id: 123,
+          status: CREATED,
+          publishedAt: '2022-01-01',
+          hasSomeCleaAcquired: false,
         });
 
         // when/then

@@ -21,12 +21,13 @@
 // components
 @import 'components/ui';
 @import 'components/ui/last-participation-date-tooltip.scss';
+@import 'components/ui/action-bar.scss';
 @import 'components/login-form';
 @import 'components/campaign';
+@import 'components/campaign/cards';
 @import 'components/current-organization';
 @import 'components/edit-student-number-modal';
 @import 'components/dropdown';
-@import 'components/indicator-card';
 @import 'components/join-request-form';
 @import 'components/layout/footer';
 @import 'components/layout/organization-credit-info';
@@ -45,6 +46,8 @@
 @import 'components/login-or-register';
 @import 'components/manage-authentication-method-modal';
 @import 'components/participation-filters';
+@import 'components/learner/header';
+@import 'components/sco-organization-participant/reset-password-modal';
 
 // pages
 @import 'pages/login';
@@ -66,11 +69,9 @@
 @import 'pages/authenticated/campaigns/details/participants/participant/header';
 @import 'pages/authenticated/campaigns/details/participants/participant/results';
 @import 'pages/authenticated/campaigns/participant-profile';
-@import 'pages/authenticated/organization-participants/organization-participant.scss';
-@import 'pages/authenticated/sco-organization-participants/sco-organization-participant.scss';
-@import 'pages/authenticated/sup-organization-participants/sup-organization-participant.scss';
 @import 'pages/authenticated/certifications';
-@import 'pages/authenticated/organization-participants';
+@import 'pages/authenticated/organization-participants/list';
+@import 'pages/authenticated/organization-participants/deletion-modal';
 @import 'pages/authenticated/sup-organization-participants/list';
 @import 'pages/authenticated/sup-organization-participants/import';
 @import 'pages/authenticated/sco-organization-participants/list';
@@ -81,13 +82,14 @@
 @import 'pages/authenticated/team/new';
 @import 'pages/authenticated/terms-of-service';
 
-body, html {
+body,
+html {
   height: 100%;
 }
 
 body {
-  background-color: $pix-neutral-10;
   color: $pix-neutral-110;
+  background-color: $pix-neutral-10;
 }
 
 input:invalid {

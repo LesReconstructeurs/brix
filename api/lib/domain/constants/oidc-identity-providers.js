@@ -1,9 +1,18 @@
-const PoleEmploiOidcAuthenticationService = require('../services/authentication/pole-emploi-oidc-authentication-service');
-const CnavOidcAuthenticationService = require('../services/authentication/cnav-oidc-authentication-service');
-const FwbOidcAuthenticationService = require('../services/authentication/fwb-oidc-authentication-service');
-
-module.exports = {
-  POLE_EMPLOI: new PoleEmploiOidcAuthenticationService(),
-  CNAV: new CnavOidcAuthenticationService(),
-  FWB: new FwbOidcAuthenticationService(),
+const POLE_EMPLOI = {
+  code: 'POLE_EMPLOI',
+  configKey: 'poleEmploi',
 };
+const CNAV = {
+  code: 'CNAV',
+  configKey: 'cnav',
+};
+const FWB = {
+  code: 'FWB',
+  configKey: 'fwb',
+};
+
+function getValidOidcProviderCodes() {
+  return [POLE_EMPLOI.code, CNAV.code, FWB.code];
+}
+
+export { getValidOidcProviderCodes, POLE_EMPLOI, CNAV, FWB };

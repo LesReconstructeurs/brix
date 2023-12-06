@@ -1,8 +1,10 @@
 import EmberObject from '@ember/object';
 import { A } from '@ember/array';
 import { module, test } from 'qunit';
-import { find, render } from '@ember/test-helpers';
-import hbs from 'htmlbars-inline-precompile';
+// eslint-disable-next-line no-restricted-imports
+import { find } from '@ember/test-helpers';
+import { render } from '@1024pix/ember-testing-library';
+import { hbs } from 'ember-cli-htmlbars';
 import setupIntlRenderingTest from '../../helpers/setup-intl-rendering';
 
 module('Integration | Component | user-certifications-detail-competences-list', function (hooks) {
@@ -55,9 +57,7 @@ module('Integration | Component | user-certifications-detail-competences-list', 
 
   test('should have "Compétences certifiées (niveaux sur 5)" as a title', async function (assert) {
     // then
-    // TODO: Fix this the next time the file is edited.
-    // eslint-disable-next-line qunit/no-assert-equal
-    assert.equal(find(`${PARENT_SELECTOR} h2`).innerText, 'Compétences certifiées (niveaux sur 5)');
+    assert.strictEqual(find(`${PARENT_SELECTOR} h2`).innerText, 'Compétences certifiées (niveaux sur 5)');
   });
 
   module('when area has a list of competences', function () {

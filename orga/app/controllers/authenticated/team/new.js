@@ -1,5 +1,5 @@
 import { action } from '@ember/object';
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 import Controller from '@ember/controller';
 import { tracked } from '@glimmer/tracking';
 
@@ -32,11 +32,16 @@ export default class NewController extends Controller {
         emails.length > 1
           ? this.intl.t('pages.team-new.success.multiple-invitations')
           : this.intl.t('pages.team-new.success.invitation', { email: emails[0] });
-      this.notifications.success(message);
+      this.notifications.sendSuccess(message);
     } catch (error) {
       this._handleResponseError(error);
     }
     this.isLoading = false;
+  }
+
+  @action
+  updateEmail(event) {
+    this.model.email = event.target.value;
   }
 
   @action
@@ -51,6 +56,13 @@ export default class NewController extends Controller {
       errorMessages = errors.map((error) => {
         switch (error.status) {
           case '400':
+            if (error.code === ERROR_CODES.SENDING_EMAIL_TO_INVALID_EMAIL_ADDRESS) {
+              return this.intl.t(ERROR_MESSAGES.SENDING_EMAIL_TO_INVALID_EMAIL_ADDRESS, {
+                email: error.meta?.emailAddress,
+                errorMessage: error.meta?.errorMessage,
+              });
+            }
+
             return this.intl.t(ERROR_MESSAGES.STATUS_400);
           case '404':
             return this.intl.t(ERROR_MESSAGES.STATUS_404);
@@ -77,4 +89,8 @@ const ERROR_MESSAGES = {
   STATUS_404: 'pages.team-new.errors.status.404',
   STATUS_412: 'pages.team-new.errors.status.412',
   STATUS_500: 'pages.team-new.errors.status.500',
+  SENDING_EMAIL_TO_INVALID_EMAIL_ADDRESS: 'pages.team-new.errors.sending-email-to-invalid-email-address',
+};
+const ERROR_CODES = {
+  SENDING_EMAIL_TO_INVALID_EMAIL_ADDRESS: 'SENDING_EMAIL_TO_INVALID_EMAIL_ADDRESS',
 };

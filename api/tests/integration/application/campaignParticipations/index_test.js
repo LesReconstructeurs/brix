@@ -1,8 +1,6 @@
-const { expect, sinon, HttpTestServer } = require('../../../test-helper');
-
-const moduleUnderTest = require('../../../../lib/application/campaign-participations');
-
-const campaignParticipationController = require('../../../../lib/application/campaign-participations/campaign-participation-controller');
+import { expect, sinon, HttpTestServer } from '../../../test-helper.js';
+import * as moduleUnderTest from '../../../../lib/application/campaign-participations/index.js';
+import { campaignParticipationController } from '../../../../lib/application/campaign-participations/campaign-participation-controller.js';
 
 describe('Integration | Application | Route | campaignParticipationRouter', function () {
   let httpTestServer;
@@ -109,7 +107,7 @@ describe('Integration | Application | Route | campaignParticipationRouter', func
         // when
         const response = await httpTestServer.request(
           method,
-          '/api/campaigns/FAKE_ID/assessment-participations/1/results'
+          '/api/campaigns/FAKE_ID/assessment-participations/1/results',
         );
 
         // then
@@ -122,7 +120,7 @@ describe('Integration | Application | Route | campaignParticipationRouter', func
         // when
         const response = await httpTestServer.request(
           method,
-          '/api/campaigns/1/assessment-participations/FAKE_ID/results'
+          '/api/campaigns/1/assessment-participations/FAKE_ID/results',
         );
 
         // then

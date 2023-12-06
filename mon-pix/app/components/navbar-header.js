@@ -1,10 +1,10 @@
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 import Component from '@glimmer/component';
 
 export default class NavbarHeader extends Component {
-  @service url;
+  @service currentDomain;
 
   get isFrenchDomainExtension() {
-    return this.url.isFrenchDomainExtension;
+    return this.currentDomain.isFranceDomain;
   }
 }

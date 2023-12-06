@@ -8,7 +8,7 @@ module('Unit | Component | user-account | update-email-with-validation', functio
   module('#showVerificationCode', function () {
     test('should show verification code page', async function (assert) {
       // given
-      const component = createGlimmerComponent('component:user-account/update-email-with-validation');
+      const component = createGlimmerComponent('user-account/update-email-with-validation');
       const newEmail = 'toto@example.net';
       const password = 'pix123';
 
@@ -21,7 +21,7 @@ module('Unit | Component | user-account | update-email-with-validation', functio
 
     test('should save new email trimmed and in lowercase on sendVerificationCode', async function (assert) {
       // given
-      const component = createGlimmerComponent('component:user-account/update-email-with-validation');
+      const component = createGlimmerComponent('user-account/update-email-with-validation');
       const newEmail = '   Toto@Example.net    ';
       const password = 'pix123';
 
@@ -29,14 +29,12 @@ module('Unit | Component | user-account | update-email-with-validation', functio
       component.showVerificationCode({ newEmail, password });
 
       // then
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(component.newEmail, 'Toto@Example.net');
+      assert.strictEqual(component.newEmail, 'Toto@Example.net');
     });
 
     test('should save password on sendVerificationCode', async function (assert) {
       // given
-      const component = createGlimmerComponent('component:user-account/update-email-with-validation');
+      const component = createGlimmerComponent('user-account/update-email-with-validation');
       const newEmail = 'toto@example.net';
       const password = 'pix123';
 
@@ -44,9 +42,7 @@ module('Unit | Component | user-account | update-email-with-validation', functio
       component.showVerificationCode({ newEmail, password });
 
       // then
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(component.password, 'pix123');
+      assert.strictEqual(component.password, 'pix123');
     });
   });
 });

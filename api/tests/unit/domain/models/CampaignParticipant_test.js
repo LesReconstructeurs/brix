@@ -1,10 +1,11 @@
-const CampaignParticipant = require('../../../../lib/domain/models/CampaignParticipant');
-const { expect, domainBuilder, catchErr } = require('../../../test-helper');
-const {
+import { CampaignParticipant } from '../../../../lib/domain/models/CampaignParticipant.js';
+import { expect, domainBuilder, catchErr } from '../../../test-helper.js';
+
+import {
   EntityValidationError,
   ForbiddenAccess,
   AlreadyExistingCampaignParticipationError,
-} = require('../../../../lib/domain/errors');
+} from '../../../../lib/domain/errors.js';
 
 describe('Unit | Domain | Models | CampaignParticipant', function () {
   describe('#start', function () {
@@ -116,7 +117,7 @@ describe('Unit | Domain | Models | CampaignParticipant', function () {
 
           expect(error).to.be.an.instanceof(AlreadyExistingCampaignParticipationError);
           expect(error.message).to.equal(
-            `User ${userIdentity.id} has already a campaign participation with campaign ${campaignToStartParticipation.id}`
+            `User ${userIdentity.id} has already a campaign participation with campaign ${campaignToStartParticipation.id}`,
           );
         });
 
@@ -144,7 +145,7 @@ describe('Unit | Domain | Models | CampaignParticipant', function () {
 
           expect(error).to.be.an.instanceof(AlreadyExistingCampaignParticipationError);
           expect(error.message).to.equal(
-            `User ${userIdentity.id} has already a campaign participation with campaign ${campaignToStartParticipation.id}`
+            `User ${userIdentity.id} has already a campaign participation with campaign ${campaignToStartParticipation.id}`,
           );
         });
       });
@@ -437,7 +438,7 @@ describe('Unit | Domain | Models | CampaignParticipant', function () {
 
         expect(error).to.be.an.instanceof(AlreadyExistingCampaignParticipationError);
         expect(error.message).to.equal(
-          `User ${userIdentity.id} has already a campaign participation with campaign ${campaignToStartParticipation.id}`
+          `User ${userIdentity.id} has already a campaign participation with campaign ${campaignToStartParticipation.id}`,
         );
       });
 
@@ -509,7 +510,7 @@ describe('Unit | Domain | Models | CampaignParticipant', function () {
 
         expect(error).to.be.an.instanceof(AlreadyExistingCampaignParticipationError);
         expect(error.message).to.equal(
-          `User ${userIdentity.id} has already a campaign participation with campaign ${campaignToStartParticipation.id}`
+          `User ${userIdentity.id} has already a campaign participation with campaign ${campaignToStartParticipation.id}`,
         );
       });
     });

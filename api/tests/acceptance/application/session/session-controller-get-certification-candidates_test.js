@@ -1,6 +1,6 @@
-const { expect, databaseBuilder, generateValidRequestAuthorizationHeader } = require('../../../test-helper');
-const createServer = require('../../../../server');
-const _ = require('lodash');
+import { expect, databaseBuilder, generateValidRequestAuthorizationHeader } from '../../../test-helper.js';
+import { createServer } from '../../../../server.js';
+import _ from 'lodash';
 
 describe('Acceptance | Controller | session-controller-get-certification-candidates', function () {
   let server;
@@ -57,7 +57,7 @@ describe('Acceptance | Controller | session-controller-get-certification-candida
         expectedCertificationCandidateAAttributes = {
           'first-name': certificationCandidateA.firstName,
           'last-name': certificationCandidateA.lastName,
-          'billing-mode': '',
+          'billing-mode': null,
           'prepayment-code': null,
           birthdate: certificationCandidateA.birthdate,
           'birth-city': certificationCandidateA.birthCity,
@@ -72,12 +72,12 @@ describe('Acceptance | Controller | session-controller-get-certification-candida
           sex: certificationCandidateA.sex,
           'birth-insee-code': certificationCandidateA.birthINSEECode,
           'birth-postal-code': certificationCandidateA.birthPostalCode,
-          'complementary-certifications': [],
+          'complementary-certification': null,
         };
         expectedCertificationCandidateBAttributes = {
           'first-name': certificationCandidateB.firstName,
           'last-name': certificationCandidateB.lastName,
-          'billing-mode': '',
+          'billing-mode': null,
           'prepayment-code': null,
           birthdate: certificationCandidateB.birthdate,
           'birth-city': certificationCandidateB.birthCity,
@@ -92,7 +92,7 @@ describe('Acceptance | Controller | session-controller-get-certification-candida
           sex: certificationCandidateB.sex,
           'birth-insee-code': certificationCandidateB.birthINSEECode,
           'birth-postal-code': certificationCandidateB.birthPostalCode,
-          'complementary-certifications': [],
+          'complementary-certification': null,
         };
         userId = databaseBuilder.factory.buildUser().id;
         databaseBuilder.factory.buildCertificationCenterMembership({ userId, certificationCenterId });

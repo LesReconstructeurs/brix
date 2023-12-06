@@ -9,8 +9,7 @@ class Training {
     targetProfileIds,
     editorName,
     editorLogoUrl,
-    prerequisiteThreshold,
-    goalThreshold,
+    trainingTriggers,
   } = {}) {
     this.id = id;
     this.title = title;
@@ -21,9 +20,16 @@ class Training {
     this.targetProfileIds = targetProfileIds;
     this.editorName = editorName;
     this.editorLogoUrl = editorLogoUrl;
-    this.prerequisiteThreshold = prerequisiteThreshold;
-    this.goalThreshold = goalThreshold;
+    this.trainingTriggers = trainingTriggers;
+  }
+
+  shouldBeObtained(knowledgeElements, skills) {
+    if (this.trainingTriggers.length === 0) {
+      return false;
+    }
+
+    return this.trainingTriggers.every((trainingTrigger) => trainingTrigger.isFulfilled({ knowledgeElements, skills }));
   }
 }
 
-module.exports = Training;
+export { Training };

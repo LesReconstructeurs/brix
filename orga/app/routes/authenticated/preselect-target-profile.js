@@ -1,4 +1,4 @@
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 import Route from '@ember/routing/route';
 
 export default class PreselectTargetProfileRoute extends Route {
@@ -7,10 +7,10 @@ export default class PreselectTargetProfileRoute extends Route {
 
   async model() {
     const organization = this.currentUser.organization;
-    const areas = await this.store.query('area', {});
+    const frameworks = await this.store.query('framework', {});
     return {
       organization,
-      areas,
+      frameworks,
     };
   }
 }

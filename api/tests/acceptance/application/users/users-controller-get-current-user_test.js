@@ -1,6 +1,5 @@
-const { databaseBuilder, expect, generateValidRequestAuthorizationHeader } = require('../../../test-helper');
-
-const createServer = require('../../../../server');
+import { databaseBuilder, expect, generateValidRequestAuthorizationHeader } from '../../../test-helper.js';
+import { createServer } from '../../../../server.js';
 
 describe('Acceptance | Controller | users-controller-get-current-user', function () {
   let options;
@@ -60,6 +59,7 @@ describe('Acceptance | Controller | users-controller-get-current-user', function
             'has-seen-new-dashboard-info': user.hasSeenNewDashboardInfo,
             'has-seen-focused-challenge-tooltip': user.hasSeenFocusedChallengeTooltip,
             'has-seen-other-challenges-tooltip': user.hasSeenOtherChallengesTooltip,
+            'has-seen-level-seven-info': false,
             'has-assessment-participations': true,
             'code-for-last-profile-to-share': expectedCode,
             'has-recommended-trainings': true,
@@ -67,24 +67,9 @@ describe('Acceptance | Controller | users-controller-get-current-user', function
             'last-data-protection-policy-seen-at': null,
           },
           relationships: {
-            'certification-center-memberships': {
-              links: {
-                related: `/api/users/${user.id}/certification-center-memberships`,
-              },
-            },
-            'pix-score': {
-              links: {
-                related: `/api/users/${user.id}/pixscore`,
-              },
-            },
             profile: {
               links: {
                 related: `/api/users/${user.id}/profile`,
-              },
-            },
-            scorecards: {
-              links: {
-                related: `/api/users/${user.id}/scorecards`,
               },
             },
             'is-certifiable': {

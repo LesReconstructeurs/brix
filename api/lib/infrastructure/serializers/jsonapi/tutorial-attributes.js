@@ -1,7 +1,6 @@
-const tutorialEvaluationAttributes = require('./tutorial-evaluation-attributes');
-const userSavedTutorialAttributes = require('./user-saved-tutorial-attributes');
-
-module.exports = {
+import { tutorialEvaluationAttributes } from './tutorial-evaluation-attributes.js';
+import { userSavedTutorialAttributes } from './user-saved-tutorial-attributes.js';
+const tutorialAttributes = {
   ref: 'id',
   includes: true,
   attributes: [
@@ -18,3 +17,5 @@ module.exports = {
   tutorialEvaluation: tutorialEvaluationAttributes,
   userSavedTutorial: userSavedTutorialAttributes,
 };
+
+export { tutorialAttributes };

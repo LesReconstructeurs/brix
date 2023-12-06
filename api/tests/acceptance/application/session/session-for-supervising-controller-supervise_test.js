@@ -1,11 +1,12 @@
-const {
+import {
   expect,
   databaseBuilder,
   domainBuilder,
   generateValidRequestAuthorizationHeader,
   knex,
-} = require('../../../test-helper');
-const createServer = require('../../../../server');
+} from '../../../test-helper.js';
+
+import { createServer } from '../../../../server.js';
 
 describe('Acceptance | Controller | session-for-supervising-controller-supervise', function () {
   let server;
@@ -21,10 +22,8 @@ describe('Acceptance | Controller | session-for-supervising-controller-supervise
   it('should return a HTTP 204 No Content', async function () {
     // given
 
-    const certificationCenter = databaseBuilder.factory.buildCertificationCenter({ isSupervisorAccessEnabled: true });
+    const certificationCenter = databaseBuilder.factory.buildCertificationCenter({});
     const session = domainBuilder.buildSession({ id: 121, certificationCenterId: certificationCenter.id });
-    session.generateSupervisorPassword();
-    const supervisorPassword = session.supervisorPassword;
     databaseBuilder.factory.buildUser({ id: 3456 });
     databaseBuilder.factory.buildSession(session);
     await databaseBuilder.commit();
@@ -41,7 +40,7 @@ describe('Acceptance | Controller | session-for-supervising-controller-supervise
           type: 'supervisor-authentications',
           attributes: {
             'session-id': '121',
-            'supervisor-password': supervisorPassword,
+            'supervisor-password': session.supervisorPassword,
           },
         },
       },

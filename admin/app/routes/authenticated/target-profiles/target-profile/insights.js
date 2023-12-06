@@ -1,5 +1,5 @@
 import Route from '@ember/routing/route';
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 
 export default class TargetProfileInsightsRoute extends Route {
   @service accessControl;
@@ -10,10 +10,12 @@ export default class TargetProfileInsightsRoute extends Route {
 
   async model() {
     const targetProfile = this.modelFor('authenticated.target-profiles.target-profile');
-    const stages = await targetProfile.hasMany('stages').reload();
+    await targetProfile.reload();
+    const stageCollection = await targetProfile.belongsTo('stageCollection').value();
+
     return {
-      stages,
       targetProfile,
+      stageCollection,
     };
   }
 }

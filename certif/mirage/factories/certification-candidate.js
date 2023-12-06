@@ -1,14 +1,14 @@
-import { Factory } from 'ember-cli-mirage';
-import faker from 'faker';
+import { Factory } from 'miragejs';
+import { faker } from '@faker-js/faker';
 import dayjs from 'dayjs';
 
 export default Factory.extend({
   firstName() {
-    return faker.name.firstName();
+    return faker.person.firstName();
   },
 
   lastName() {
-    return faker.name.lastName();
+    return faker.person.lastName();
   },
 
   birthdate() {
@@ -16,15 +16,15 @@ export default Factory.extend({
   },
 
   birthCity() {
-    return faker.address.city();
+    return faker.location.city();
   },
 
   birthProvinceCode() {
-    return faker.random.alphaNumeric(3);
+    return faker.string.alphanumeric(3);
   },
 
   birthCountry() {
-    return faker.address.country();
+    return faker.location.country();
   },
 
   email() {
@@ -32,11 +32,11 @@ export default Factory.extend({
   },
 
   externalId() {
-    return faker.random.uuid();
+    return faker.string.uuid();
   },
 
   extraTimePercentage() {
-    if (faker.random.boolean()) {
+    if (faker.datatype.boolean()) {
       return 0.3;
     }
 
@@ -44,22 +44,22 @@ export default Factory.extend({
   },
 
   isLinked() {
-    return faker.random.boolean();
+    return faker.datatype.boolean();
   },
 
   sessionId() {
-    return faker.random.number();
+    return faker.number.int();
   },
 
   sex() {
-    return faker.random.arrayElement(['M', 'F']);
+    return faker.helpers.arrayElement(['M', 'F']);
   },
 
   birthInseeCode() {
-    return faker.random.alphaNumeric(5);
+    return faker.string.alphanumeric(5);
   },
 
   birthPostalCode() {
-    return faker.random.alphaNumeric(5);
+    return faker.string.alphanumeric(5);
   },
 });

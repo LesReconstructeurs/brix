@@ -1,15 +1,21 @@
-const Joi = require('joi').extend(require('@joi/date'));
+import BaseJoi from 'joi';
+import JoiDate from '@joi/date';
+const Joi = BaseJoi.extend(JoiDate);
 
-const { sendJsonApiError, PayloadTooLargeError, NotFoundError, BadRequestError } = require('../http-errors');
-const securityPreHandlers = require('../security-pre-handlers');
-const organizationController = require('./organization-controller');
-const identifiersType = require('../../domain/types/identifiers-type');
+import { sendJsonApiError, PayloadTooLargeError, NotFoundError, BadRequestError } from '../http-errors.js';
+import { securityPreHandlers } from '../security-pre-handlers.js';
+import { organizationController } from './organization-controller.js';
+import { identifiersType } from '../../domain/types/identifiers-type.js';
+import { LANG } from '../../domain/constants.js';
+
+const { FRENCH, ENGLISH } = LANG;
 
 const ERRORS = {
   PAYLOAD_TOO_LARGE: 'PAYLOAD_TOO_LARGE',
 };
+const TWENTY_MEGABYTES = 1048576 * 20;
 
-exports.register = async (server) => {
+const register = async function (server) {
   const adminRoutes = [
     {
       method: 'POST',
@@ -32,6 +38,39 @@ exports.register = async (server) => {
           "- **Cette route est restreinte aux utilisateurs authentifiés ayant les droits d'accès**\n" +
             '- SUPER_ADMIN, SUPPORT ou METIER\n' +
             '- Elle permet de créer une nouvelle organisation',
+        ],
+      },
+    },
+    {
+      method: 'POST',
+      path: '/api/admin/organizations/import-csv',
+      config: {
+        pre: [
+          {
+            method: (request, h) =>
+              securityPreHandlers.adminMemberHasAtLeastOneAccessOf([
+                securityPreHandlers.checkAdminMemberHasRoleSuperAdmin,
+              ])(request, h),
+            assign: 'hasAuthorizationToAccessAdminScope',
+          },
+        ],
+        payload: {
+          maxBytes: TWENTY_MEGABYTES,
+          output: 'file',
+          failAction: (request, h) => {
+            return sendJsonApiError(
+              new PayloadTooLargeError('An error occurred, payload is too large', ERRORS.PAYLOAD_TOO_LARGE, {
+                maxSize: '20',
+              }),
+              h,
+            );
+          },
+        },
+        handler: organizationController.createInBatch,
+        tags: ['api', 'organizations'],
+        notes: [
+          "- **Cette route est restreinte aux utilisateurs authentifiés ayant les droits d'accès**\n" +
+            '- Elle permet de créer de nouvelles organisations en masse.',
         ],
       },
     },
@@ -75,35 +114,6 @@ exports.register = async (server) => {
       },
     },
     {
-      method: 'GET',
-      path: '/api/admin/organizations/{id}',
-      config: {
-        pre: [
-          {
-            method: (request, h) =>
-              securityPreHandlers.adminMemberHasAtLeastOneAccessOf([
-                securityPreHandlers.checkAdminMemberHasRoleSuperAdmin,
-                securityPreHandlers.checkAdminMemberHasRoleCertif,
-                securityPreHandlers.checkAdminMemberHasRoleSupport,
-                securityPreHandlers.checkAdminMemberHasRoleMetier,
-              ])(request, h),
-            assign: 'hasAuthorizationToAccessAdminScope',
-          },
-        ],
-        validate: {
-          params: Joi.object({
-            id: identifiersType.organizationId,
-          }),
-        },
-        handler: organizationController.getOrganizationDetails,
-        tags: ['api', 'organizations'],
-        notes: [
-          "- **Cette route est restreinte aux utilisateurs authentifiés ayant les droits d'accès**\n" +
-            '- Elle permet de récupérer toutes les informations d’une organisation',
-        ],
-      },
-    },
-    {
       method: 'POST',
       path: '/api/admin/organizations/{id}/archive',
       config: {
@@ -128,34 +138,6 @@ exports.register = async (server) => {
         notes: [
           "- **Cette route est restreinte aux utilisateurs authentifiés ayant les droits d'accès**\n" +
             "- Elle permet d'archiver une organisation",
-        ],
-      },
-    },
-    {
-      method: 'PATCH',
-      path: '/api/admin/organizations/{id}',
-      config: {
-        pre: [
-          {
-            method: (request, h) =>
-              securityPreHandlers.adminMemberHasAtLeastOneAccessOf([
-                securityPreHandlers.checkAdminMemberHasRoleSuperAdmin,
-                securityPreHandlers.checkAdminMemberHasRoleSupport,
-                securityPreHandlers.checkAdminMemberHasRoleMetier,
-              ])(request, h),
-            assign: 'hasAuthorizationToAccessAdminScope',
-          },
-        ],
-        validate: {
-          params: Joi.object({
-            id: identifiersType.organizationId,
-          }),
-        },
-        handler: organizationController.updateOrganizationInformation,
-        tags: ['api', 'organizations'],
-        notes: [
-          "- **Cette route est restreinte aux utilisateurs authentifiés ayant les droits d'accès**\n" +
-            '- Elle permet de mettre à jour tout ou partie d’une organisation',
         ],
       },
     },
@@ -422,7 +404,7 @@ exports.register = async (server) => {
           failAction: (request, h) => {
             return sendJsonApiError(
               new NotFoundError("L'id d'un des profils cible ou de l'organisation n'est pas valide"),
-              h
+              h,
             );
           },
         },
@@ -725,6 +707,10 @@ exports.register = async (server) => {
           params: Joi.object({
             id: identifiersType.organizationId,
           }),
+          query: Joi.object({
+            division: Joi.string().optional(),
+            lang: Joi.string().optional().valid('fr', 'en'),
+          }),
         },
         handler: organizationController.downloadCertificationResults,
         tags: ['api', 'organizations'],
@@ -751,6 +737,7 @@ exports.register = async (server) => {
           query: Joi.object({
             division: Joi.string().required(),
             isFrenchDomainExtension: Joi.boolean().required(),
+            lang: Joi.string().valid(FRENCH, ENGLISH),
           }),
         },
         handler: organizationController.downloadCertificationAttestationsForDivision,
@@ -782,6 +769,8 @@ exports.register = async (server) => {
             'filter[groups][]': [Joi.string(), Joi.array().items(Joi.string())],
             'filter[search]': Joi.string().empty(''),
             'filter[studentNumber]': Joi.string().empty(''),
+            'sort[participationCount]': Joi.string().empty(''),
+            'sort[lastnameSort]': Joi.string().empty(''),
           }),
         },
         handler: organizationController.findPaginatedFilteredSupParticipants,
@@ -810,9 +799,12 @@ exports.register = async (server) => {
             'page[size]': Joi.number().integer().empty(''),
             'page[number]': Joi.number().integer().empty(''),
             'filter[divisions][]': [Joi.string(), Joi.array().items(Joi.string())],
-            'filter[connexionType][]': [Joi.string(), Joi.array().items(Joi.string())],
+            'filter[connectionTypes][]': [Joi.string(), Joi.array().items(Joi.string())],
             'filter[search]': Joi.string().empty(''),
             'filter[certificability][]': [Joi.string(), Joi.array().items(Joi.string())],
+            'sort[participationCount]': Joi.string().empty(''),
+            'sort[lastnameSort]': Joi.string().empty(''),
+            'sort[divisionSort]': Joi.string().empty(''),
           }),
         },
         handler: organizationController.findPaginatedFilteredScoParticipants,
@@ -864,14 +856,14 @@ exports.register = async (server) => {
           }),
         },
         payload: {
-          maxBytes: 1048576 * 20, // 20MB
+          maxBytes: TWENTY_MEGABYTES,
           output: 'file',
           failAction: (request, h) => {
             return sendJsonApiError(
               new PayloadTooLargeError('An error occurred, payload is too large', ERRORS.PAYLOAD_TOO_LARGE, {
                 maxSize: '20',
               }),
-              h
+              h,
             );
           },
         },
@@ -907,7 +899,7 @@ exports.register = async (server) => {
               new PayloadTooLargeError('An error occurred, payload is too large', ERRORS.PAYLOAD_TOO_LARGE, {
                 maxSize: '10',
               }),
-              h
+              h,
             );
           },
         },
@@ -943,7 +935,7 @@ exports.register = async (server) => {
               new PayloadTooLargeError('An error occurred, payload is too large', ERRORS.PAYLOAD_TOO_LARGE, {
                 maxSize: '10',
               }),
-              h
+              h,
             );
           },
         },
@@ -974,6 +966,8 @@ exports.register = async (server) => {
             'page[number]': Joi.number().integer().empty(''),
             'filter[fullName]': Joi.string().empty(''),
             'filter[certificability][]': [Joi.string(), Joi.array().items(Joi.string())],
+            'sort[participationCount]': Joi.string().empty(''),
+            'sort[lastnameSort]': Joi.string().empty(''),
           }),
         },
         handler: organizationController.getPaginatedParticipantsForAnOrganization,
@@ -1009,4 +1003,5 @@ exports.register = async (server) => {
   ]);
 };
 
-exports.name = 'organization-api';
+const name = 'organization-api';
+export { register, name };

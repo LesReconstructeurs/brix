@@ -1,13 +1,15 @@
-const SharedProfileForCampaign = require('../read-models/SharedProfileForCampaign');
-const { NoCampaignParticipationForUserAndCampaign } = require('../errors');
+import { SharedProfileForCampaign } from '../read-models/SharedProfileForCampaign.js';
+import { NoCampaignParticipationForUserAndCampaign } from '../errors.js';
+import { constants } from '../constants.js';
 
-module.exports = async function getUserProfileSharedForCampaign({
+const getUserProfileSharedForCampaign = async function ({
   userId,
   campaignId,
   campaignParticipationRepository,
   campaignRepository,
   knowledgeElementRepository,
   competenceRepository,
+  areaRepository,
   organizationLearnerRepository,
   locale,
 }) {
@@ -32,14 +34,22 @@ module.exports = async function getUserProfileSharedForCampaign({
       limitDate: campaignParticipation.sharedAt,
     }),
   ]);
-  const competencesWithArea = await competenceRepository.listPixCompetencesOnly({ locale });
+  const competences = await competenceRepository.listPixCompetencesOnly({ locale });
+  const allAreas = await areaRepository.list({ locale });
+  const maxReachableLevel = constants.MAX_REACHABLE_LEVEL;
+  const maxReachablePixScore = constants.MAX_REACHABLE_PIX_SCORE;
 
   return new SharedProfileForCampaign({
     campaignParticipation,
     campaignAllowsRetry,
     isOrganizationLearnerActive,
-    competencesWithArea,
+    competences,
     knowledgeElementsGroupedByCompetenceId,
     userId,
+    allAreas,
+    maxReachableLevel,
+    maxReachablePixScore,
   });
 };
+
+export { getUserProfileSharedForCampaign };

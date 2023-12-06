@@ -1,7 +1,7 @@
 import { module, test } from 'qunit';
 import { fillIn, click } from '@ember/test-helpers';
 import { setupApplicationTest } from 'ember-qunit';
-import setupMirage from 'ember-cli-mirage/test-support/setup-mirage';
+import { setupMirage } from 'ember-cli-mirage/test-support';
 import { visit } from '@1024pix/ember-testing-library';
 import { authenticateAdminMemberWithRole } from 'pix-admin/tests/helpers/test-init';
 
@@ -79,7 +79,7 @@ module('Acceptance | Organizations | Invitations management', function (hooks) {
         this.server.delete(
           `/admin/organizations/${organization.id}/invitations/${organizationInvitation.id}`,
           () => new Response({}),
-          500
+          500,
         );
 
         // when

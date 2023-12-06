@@ -6,7 +6,6 @@ export default class CampaignParticipationResult extends Model {
   @attr('number') totalSkillsCount;
   @attr('number') testedSkillsCount;
   @attr('number') validatedSkillsCount;
-  @attr('number') stageCount;
   @attr('boolean') canRetry;
   @attr('boolean') canImprove;
   @attr('boolean') isDisabled;
@@ -18,10 +17,14 @@ export default class CampaignParticipationResult extends Model {
   // includes
   @hasMany('campaignParticipationBadges') campaignParticipationBadges;
   @hasMany('competenceResult') competenceResults;
-  @belongsTo('reachedStage') reachedStage;
+  @belongsTo('reachedStage', { async: false }) reachedStage;
 
   get cleaBadge() {
     const badgeCleaKey = 'PIX_EMPLOI_CLEA';
     return this.campaignParticipationBadges.find((badge) => badge.key === badgeCleaKey);
+  }
+
+  get hasReachedStage() {
+    return this.reachedStage !== null;
   }
 }

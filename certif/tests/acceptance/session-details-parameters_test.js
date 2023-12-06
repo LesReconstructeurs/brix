@@ -3,7 +3,7 @@ import { click, currentURL } from '@ember/test-helpers';
 import { setupApplicationTest } from 'ember-qunit';
 import { authenticateSession } from '../helpers/test-init';
 import { visit } from '@1024pix/ember-testing-library';
-import { setupIntl, t } from 'ember-intl/test-support';
+import { setupIntl } from 'ember-intl/test-support';
 
 import { CREATED, FINALIZED } from 'pix-certif/models/session';
 
@@ -29,7 +29,6 @@ module('Acceptance | Session Details Parameters', function (hooks) {
         isAccessBlockedLycee: false,
         isAccessBlockedAEFE: false,
         isAccessBlockedAgri: false,
-        isEndTestScreenRemovalEnabled: false,
       });
       certificationPointOfContact = server.create('certification-point-of-contact', {
         firstName: 'Buffy',
@@ -55,6 +54,28 @@ module('Acceptance | Session Details Parameters', function (hooks) {
     });
 
     module('when looking at the session details', function () {
+      test('should display details parameters information', async function (assert) {
+        // given
+        const sessionCreated = server.create('session', { certificationCenterId: allowedCertificationCenterAccess.id });
+
+        // when
+        const screen = await visit(`/sessions/${sessionCreated.id}`);
+
+        // then
+        assert.dom(screen.getByRole('heading', { name: 'Numéro de session', level: 3 })).exists();
+        assert.dom(screen.getByRole('heading', { name: "Code d'accès Candidat", level: 3 })).exists();
+        assert.dom(screen.getByRole('heading', { name: 'Mot de passe de session Surveillant', level: 3 })).exists();
+        assert.dom(screen.getByRole('heading', { name: 'Nom du site', level: 3 })).exists();
+        assert.dom(screen.getByRole('heading', { name: 'Salle', level: 3 })).exists();
+        assert.dom(screen.getByRole('heading', { name: 'Surveillant(s)', level: 3 })).exists();
+
+        assert.dom(screen.getByRole('button', { name: 'Copier le numéro de session' })).exists();
+        assert.dom(screen.getByRole('button', { name: 'Copier le code d’accès à la session' })).exists();
+        assert
+          .dom(screen.getByRole('button', { name: 'Copier le mot de passe de session pour le surveillant' }))
+          .exists();
+      });
+
       module('when the session is not finalized', function () {
         module('when the session is CREATED', function () {
           test('it should not display the finalize button if no candidate has joined the session', async function (assert) {
@@ -64,67 +85,76 @@ module('Acceptance | Session Details Parameters', function (hooks) {
 
             // when
             const screen = await visit(`/sessions/${sessionCreated.id}`);
-            const updateButton = screen.getByRole('link', {
-              name: t('pages.sessions.detail.parameters.session-update', { sessionId: 123 }),
-            });
-            const finalizeButton = screen.queryByRole('button', {
-              name: t('pages.sessions.detail.parameters.finalize'),
-            });
 
             // then
+            const updateButton = screen.getByRole('link', { name: 'Modifier les informations de la session 123' });
+            const finalizeButton = screen.queryByRole('button', { name: 'Finaliser la session' });
             assert.dom(updateButton).exists();
             assert.dom(finalizeButton).doesNotExist();
           });
 
-          test('it should redirect to finalize page on click on finalize button', async function (assert) {
+          test('it should display supervisor password', async function (assert) {
             // given
-            const sessionCreatedAndStarted = server.create('session', { status: CREATED });
-            server.createList('certification-candidate', 2, { isLinked: true, sessionId: sessionCreatedAndStarted.id });
+            const sessionWithSupervisorPassword = server.create('session', {
+              supervisorPassword: 'SOWHAT',
+              status: CREATED,
+            });
 
             // when
-            const screen = await visit(`/sessions/${sessionCreatedAndStarted.id}`);
-            const finalizeButton = screen.getByRole('link', { name: t('pages.sessions.detail.parameters.finalizing') });
-
-            await click(finalizeButton);
+            const screen = await visit(`/sessions/${sessionWithSupervisorPassword.id}`);
 
             // then
-            assert.strictEqual(currentURL(), `/sessions/${sessionCreatedAndStarted.id}/finalisation`);
+            const supervisorPasswordElement = screen.getByText('C-SOWHAT');
+            assert.dom(supervisorPasswordElement).exists();
           });
 
-          module('when the certification center is not in the end test screen removal whitelist', function () {
-            test('it should not display supervisor password', async function (assert) {
+          module('when finalize button is clicked', function () {
+            test('it should redirect to finalize page', async function (assert) {
               // given
-              const sessionWithSupervisorPassword = server.create('session', {
-                supervisorPassword: 'SOWHAT',
-                status: CREATED,
+              const sessionCreatedAndStarted = server.create('session', { status: CREATED });
+              server.createList('certification-candidate', 2, {
+                isLinked: true,
+                sessionId: sessionCreatedAndStarted.id,
               });
 
               // when
-              const screen = await visit(`/sessions/${sessionWithSupervisorPassword.id}`);
+              const screen = await visit(`/sessions/${sessionCreatedAndStarted.id}`);
+              const finalizeButton = screen.getByRole('link', { name: 'Finaliser la session' });
+
+              await click(finalizeButton);
 
               // then
-              const supervisorPasswordElement = screen.queryByText(
-                t('pages.sessions.detail.parameters.session-password')
-              );
-              assert.dom(supervisorPasswordElement).doesNotExist();
+              assert.strictEqual(currentURL(), `/sessions/${sessionCreatedAndStarted.id}/finalisation`);
             });
-          });
 
-          module('when the certification center is in the end test screen removal whitelist', function () {
-            test('it should display supervisor password', async function (assert) {
-              // given
-              allowedCertificationCenterAccess.update({ isEndTestScreenRemovalEnabled: true });
-              const sessionWithSupervisorPassword = server.create('session', {
-                supervisorPassword: 'SOWHAT',
-                status: CREATED,
+            module('when certification reports recovery fails', function () {
+              test('it should return error message', async function (assert) {
+                // given
+                const sessionCreatedAndStarted = server.create('session', { status: CREATED });
+                server.createList('certification-candidate', 2, {
+                  isLinked: true,
+                  sessionId: sessionCreatedAndStarted.id,
+                });
+                this.server.get('/sessions/:id/certification-reports', () => {
+                  return new Response(500, {}, { errors: [{ status: '500' }] });
+                });
+
+                // when
+                const screen = await visit(`/sessions/${sessionCreatedAndStarted.id}`);
+
+                const finalizeButton = screen.getByRole('link', { name: 'Finaliser la session' });
+                await click(finalizeButton);
+
+                // then
+                assert
+                  .dom(
+                    screen.getByText(
+                      'Une erreur interne est survenue, nos équipes sont en train de résoudre le problème. Veuillez réessayer ultérieurement.',
+                    ),
+                  )
+                  .exists();
+                assert.strictEqual(currentURL(), `/sessions/${sessionCreatedAndStarted.id}`);
               });
-
-              // when
-              const screen = await visit(`/sessions/${sessionWithSupervisorPassword.id}`);
-
-              // then
-              const supervisorPasswordElement = screen.getByText('C-SOWHAT');
-              assert.dom(supervisorPasswordElement).exists();
             });
           });
         });
@@ -143,8 +173,10 @@ module('Acceptance | Session Details Parameters', function (hooks) {
           const screen = await visit(`/sessions/${sessionFinalized.id}`);
 
           // then
-          const finalizeText = screen.getByText(t('pages.sessions.detail.parameters.finalization-info'));
-          const finalizeButton = screen.queryByRole('button', { name: t('finalizing') });
+          const finalizeText = screen.getByText(
+            'Les informations de finalisation de la session ont déjà été transmises aux équipes de Pix.',
+          );
+          const finalizeButton = screen.queryByRole('button', { name: 'Finaliser la session' });
 
           assert.dom(finalizeText).exists();
           assert.dom(finalizeButton).doesNotExist();
@@ -159,7 +191,7 @@ module('Acceptance | Session Details Parameters', function (hooks) {
           assert.rejects(
             visit(`/sessions/${sessionFinalized.id}/finalisation`),
             transitionError,
-            'error raised when visiting finalisation route'
+            'error raised when visiting finalisation route',
           );
         });
       });

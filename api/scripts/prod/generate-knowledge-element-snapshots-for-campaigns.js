@@ -1,9 +1,10 @@
-const yargs = require('yargs');
-const bluebird = require('bluebird');
-const { knex, disconnect } = require('../../db/knex-database-connection');
-const knowledgeElementRepository = require('../../lib/infrastructure/repositories/knowledge-element-repository');
-const knowledgeElementSnapshotRepository = require('../../lib/infrastructure/repositories/knowledge-element-snapshot-repository');
-const { AlreadyExistingEntityError } = require('../../lib/domain/errors');
+import yargs from 'yargs';
+import bluebird from 'bluebird';
+import { knex, disconnect } from '../../db/knex-database-connection.js';
+import * as knowledgeElementRepository from '../../lib/infrastructure/repositories/knowledge-element-repository.js';
+import * as knowledgeElementSnapshotRepository from '../../lib/infrastructure/repositories/knowledge-element-snapshot-repository.js';
+import { AlreadyExistingEntityError } from '../../lib/domain/errors.js';
+import * as url from 'url';
 
 const DEFAULT_MAX_SNAPSHOT_COUNT = 5000;
 const DEFAULT_CONCURRENCY = 3;
@@ -46,7 +47,7 @@ async function getEligibleCampaignParticipations(maxSnapshotCount) {
     .leftJoin('knowledge-element-snapshots', function () {
       this.on('knowledge-element-snapshots.userId', 'campaign-participations.userId').andOn(
         'knowledge-element-snapshots.snappedAt',
-        'campaign-participations.sharedAt'
+        'campaign-participations.sharedAt',
       );
     })
     .whereNotNull('campaign-participations.sharedAt')
@@ -60,25 +61,33 @@ async function getEligibleCampaignParticipations(maxSnapshotCount) {
     .limit(maxSnapshotCount);
 }
 
-async function generateKnowledgeElementSnapshots(campaignParticipationData, concurrency) {
+async function generateKnowledgeElementSnapshots(
+  campaignParticipationData,
+  concurrency,
+  dependencies = { knowledgeElementRepository, knowledgeElementSnapshotRepository },
+) {
   return bluebird.map(
     campaignParticipationData,
     async (campaignParticipation) => {
       const { userId, sharedAt } = campaignParticipation;
-      const knowledgeElements = await knowledgeElementRepository.findUniqByUserId({ userId, limitDate: sharedAt });
+      const knowledgeElements = await dependencies.knowledgeElementRepository.findUniqByUserId({
+        userId,
+        limitDate: sharedAt,
+      });
       try {
-        await knowledgeElementSnapshotRepository.save({ userId, snappedAt: sharedAt, knowledgeElements });
+        await dependencies.knowledgeElementSnapshotRepository.save({ userId, snappedAt: sharedAt, knowledgeElements });
       } catch (err) {
         if (!(err instanceof AlreadyExistingEntityError)) {
           throw err;
         }
       }
     },
-    { concurrency }
+    { concurrency },
   );
 }
 
-const isLaunchedFromCommandLine = require.main === module;
+const modulePath = url.fileURLToPath(import.meta.url);
+const isLaunchedFromCommandLine = process.argv[1] === modulePath;
 
 async function main() {
   const commandLineArgs = yargs
@@ -114,7 +123,4 @@ async function main() {
   }
 })();
 
-module.exports = {
-  getEligibleCampaignParticipations,
-  generateKnowledgeElementSnapshots,
-};
+export { getEligibleCampaignParticipations, generateKnowledgeElementSnapshots };

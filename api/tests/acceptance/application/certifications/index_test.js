@@ -1,17 +1,16 @@
-const {
+import {
   expect,
   databaseBuilder,
   generateValidRequestAuthorizationHeader,
   mockLearningContent,
   learningContentBuilder,
   insertUserWithRoleSuperAdmin,
-} = require('../../../test-helper');
-const createServer = require('../../../../server');
-const Assessment = require('../../../../lib/domain/models/Assessment');
-const {
-  generateCertificateVerificationCode,
-} = require('../../../../lib/domain/services/verify-certificate-code-service');
-const CertificationCenterInvitation = require('../../../../lib/domain/models/CertificationCenterInvitation');
+} from '../../../test-helper.js';
+
+import { createServer } from '../../../../server.js';
+import { Assessment } from '../../../../lib/domain/models/Assessment.js';
+import { generateCertificateVerificationCode } from '../../../../lib/domain/services/verify-certificate-code-service.js';
+import { CertificationCenterInvitation } from '../../../../lib/domain/models/CertificationCenterInvitation.js';
 
 describe('Acceptance | API | Certifications', function () {
   let server, options;
@@ -59,12 +58,12 @@ describe('Acceptance | API | Certifications', function () {
         id: 'recvoGdo7z2z7pXWa',
         code: '1',
         name: '1. Information et données',
-        titleFr: 'Information et données',
+        title_i18n: { fr: 'Information et données' },
         color: 'jaffa',
         competences: [
           {
             id: 'recsvLz0W2ShyfD63',
-            name: 'Mener une recherche et une veille d’information',
+            name_i18n: { fr: 'Mener une recherche et une veille d’information' },
             index: '1.1',
             tubes: [
               {
@@ -88,7 +87,7 @@ describe('Acceptance | API | Certifications', function () {
           },
           {
             id: 'recNv8qhaY887jQb2',
-            name: 'Gérer des données',
+            name_i18n: { fr: 'Gérer des données' },
             index: '1.2',
             tubes: [
               {
@@ -112,7 +111,7 @@ describe('Acceptance | API | Certifications', function () {
           },
           {
             id: 'recIkYm646lrGvLNT',
-            name: 'Traiter des données',
+            name_i18n: { fr: 'Traiter des données' },
             index: '1.3',
             tubes: [
               {
@@ -138,7 +137,7 @@ describe('Acceptance | API | Certifications', function () {
       },
     ];
 
-    const learningContentObjects = learningContentBuilder.buildLearningContent.fromAreas(learningContent);
+    const learningContentObjects = learningContentBuilder.fromAreas(learningContent);
     mockLearningContent(learningContentObjects);
 
     return databaseBuilder.commit();
@@ -541,7 +540,7 @@ describe('Acceptance | API | Certifications', function () {
         // given
         options = {
           method: 'GET',
-          url: `/api/attestation/${certificationCourse.id}?isFrenchDomainExtension=true`,
+          url: `/api/attestation/${certificationCourse.id}?isFrenchDomainExtension=true&lang=fr`,
           headers: { authorization: generateValidRequestAuthorizationHeader(userId) },
         };
 

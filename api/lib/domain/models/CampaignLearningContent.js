@@ -1,6 +1,6 @@
-const _ = require('lodash');
+import _ from 'lodash';
 
-module.exports = class CampaignLearningContent {
+class CampaignLearningContent {
   constructor(learningContent) {
     this._learningContent = learningContent;
   }
@@ -54,7 +54,7 @@ module.exports = class CampaignLearningContent {
   getValidatedKnowledgeElementsGroupedByTube(knowledgeElements) {
     return this._filterTargetedKnowledgeElementAndGroupByTube(
       knowledgeElements,
-      (knowledgeElement) => knowledgeElement.isValidated
+      (knowledgeElement) => knowledgeElement.isValidated,
     );
   }
 
@@ -65,7 +65,7 @@ module.exports = class CampaignLearningContent {
   countValidatedTargetedKnowledgeElementsByCompetence(knowledgeElements) {
     const validatedGroupedByCompetence = this._filterTargetedKnowledgeElementAndGroupByCompetence(
       knowledgeElements,
-      (knowledgeElement) => knowledgeElement.isValidated
+      (knowledgeElement) => knowledgeElement.isValidated,
     );
     return _.mapValues(validatedGroupedByCompetence, 'length');
   }
@@ -115,4 +115,11 @@ module.exports = class CampaignLearningContent {
     if (!tubeId) return null;
     return this.findTube(tubeId).competenceId;
   }
-};
+
+  findAreaOfCompetence(competence) {
+    const area = this.findArea(competence.areaId);
+    return area || null;
+  }
+}
+
+export { CampaignLearningContent };

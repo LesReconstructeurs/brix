@@ -1,23 +1,28 @@
-const { expect, sinon, domainBuilder } = require('../../../test-helper');
-const correctionRepository = require('../../../../lib/infrastructure/repositories/correction-repository');
-const challengeDatasource = require('../../../../lib/infrastructure/datasources/learning-content/challenge-datasource');
-const skillDatasource = require('../../../../lib/infrastructure/datasources/learning-content/skill-datasource');
-const tutorialRepository = require('../../../../lib/infrastructure/repositories/tutorial-repository');
-const Correction = require('../../../../lib/domain/models/Correction');
-const ChallengeLearningContentDataObjectFixture = require('../../../tooling/fixtures/infrastructure/challengeLearningContentDataObjectFixture');
-const SkillLearningContentDataObjectFixture = require('../../../tooling/fixtures/infrastructure/skillLearningContentDataObjectFixture');
+import { Answer } from '../../../../lib/domain/models/Answer.js';
+import { expect, sinon, domainBuilder } from '../../../test-helper.js';
+import * as correctionRepository from '../../../../lib/infrastructure/repositories/correction-repository.js';
+import { challengeDatasource } from '../../../../lib/infrastructure/datasources/learning-content/challenge-datasource.js';
+import { skillDatasource } from '../../../../lib/infrastructure/datasources/learning-content/skill-datasource.js';
+import { Correction } from '../../../../lib/domain/models/Correction.js';
+import { ChallengeLearningContentDataObjectFixture } from '../../../tooling/fixtures/infrastructure/challengeLearningContentDataObjectFixture.js';
+import { SkillLearningContentDataObjectFixture } from '../../../tooling/fixtures/infrastructure/skillLearningContentDataObjectFixture.js';
 
 describe('Unit | Repository | correction-repository', function () {
+  let tutorialRepository;
+
   beforeEach(function () {
     sinon.stub(challengeDatasource, 'get');
     sinon.stub(skillDatasource, 'get');
-    sinon.stub(tutorialRepository, 'findByRecordIdsForCurrentUser');
+    tutorialRepository = {
+      findByRecordIdsForCurrentUser: sinon.stub(),
+    };
   });
 
   describe('#getByChallengeId', function () {
     const recordId = 'rec-challengeId';
     const userId = 'userId';
     const locale = 'en';
+    let fromDatasourceObject;
     let expectedHint;
     let expectedTutorials;
     let expectedLearningMoreTutorials;
@@ -28,6 +33,8 @@ describe('Unit | Repository | correction-repository', function () {
     const tutorialEvaluation3 = { id: 'tutorialEvaluationId3', userId, tutorialId: 'recTuto3' };
 
     beforeEach(function () {
+      fromDatasourceObject = sinon.stub();
+
       expectedHint = domainBuilder.buildHint({
         skillName: '@web1',
         value: 'Can we geo-locate a rabbit on the ice floe?',
@@ -98,13 +105,23 @@ describe('Unit | Repository | correction-repository', function () {
           skillId: 'recIdSkill003',
           solution: '1, 5',
           solutionToDisplay: '1',
+          type: 'QCM',
         });
         challengeDatasource.get.resolves(challengeDataObject);
+        const getCorrectionStub = sinon.stub();
 
         // when
-        const result = await correctionRepository.getByChallengeId({ challengeId: recordId, userId, locale });
+        const result = await correctionRepository.getByChallengeId({
+          challengeId: recordId,
+          userId,
+          locale,
+          tutorialRepository,
+          fromDatasourceObject,
+          getCorrection: getCorrectionStub,
+        });
 
         // then
+        expect(getCorrectionStub).not.to.have.been.called;
         expect(result).to.be.an.instanceof(Correction);
         expect(result).to.deep.equal(expectedCorrection);
         expect(challengeDatasource.get).to.have.been.calledWith(recordId);
@@ -120,12 +137,54 @@ describe('Unit | Repository | correction-repository', function () {
           skillId: 'recIdSkill003',
         });
         challengeDatasource.get.resolves(challengeDataObject);
+        const getCorrectionStub = sinon.stub();
 
         // when
-        const result = await correctionRepository.getByChallengeId({ challengeId: recordId, userId, locale });
+        const result = await correctionRepository.getByChallengeId({
+          challengeId: recordId,
+          userId,
+          locale,
+          tutorialRepository,
+          fromDatasourceObject,
+          getCorrection: getCorrectionStub,
+        });
 
         // then
         expect(result.hint).to.deep.equal(expectedHint);
+      });
+
+      context('when challenge type is QROCM-dep', function () {
+        context('when answer is skipped', function () {
+          it('should not call getCorrection service', async function () {
+            // given
+            challengeDataObject = ChallengeLearningContentDataObjectFixture({
+              skillId: 'recIdSkill003',
+              solution: '1, 5',
+              type: 'QROCM-dep',
+            });
+            challengeDatasource.get.resolves(challengeDataObject);
+
+            const answerValue = Answer.FAKE_VALUE_FOR_SKIPPED_QUESTIONS;
+            const solution = Symbol('solution');
+            fromDatasourceObject.withArgs(challengeDataObject).returns(solution);
+            const getCorrectionStub = sinon.stub();
+
+            // when
+            const correction = await correctionRepository.getByChallengeId({
+              challengeId: recordId,
+              answerValue,
+              userId,
+              locale,
+              tutorialRepository,
+              fromDatasourceObject,
+              getCorrection: getCorrectionStub,
+            });
+
+            // then
+            expect(getCorrectionStub).not.to.have.been.called;
+            expect(correction.answersEvaluation).to.deep.equal([]);
+          });
+        });
       });
     });
   });

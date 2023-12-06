@@ -1,16 +1,24 @@
-require('dotenv').config();
-const { performance } = require('perf_hooks');
-const logger = require('../../lib/infrastructure/logger');
-const cache = require('../../lib/infrastructure/caches/learning-content-cache');
-const { knex, disconnect } = require('../../db/knex-database-connection');
-const yargs = require('yargs');
-const bluebird = require('bluebird');
-const { status } = require('../../lib/domain/models/AssessmentResult');
-const readline = require('readline');
+import dotenv from 'dotenv';
+
+dotenv.config();
+import perf_hooks from 'perf_hooks';
+
+const { performance } = perf_hooks;
+
+import { logger } from '../../lib/infrastructure/logger.js';
+import { learningContentCache as cache } from '../../lib/infrastructure/caches/learning-content-cache.js';
+import { knex, disconnect } from '../../db/knex-database-connection.js';
+import yargs from 'yargs';
+import bluebird from 'bluebird';
+import { status } from '../../lib/domain/models/AssessmentResult.js';
+import readline from 'readline';
+import * as url from 'url';
+
 const DEFAULT_COUNT = 20000;
 const DEFAULT_CONCURRENCY = 2;
 
 let progression = 0;
+
 function _logProgression(totalCount) {
   ++progression;
   readline.cursorTo(process.stdout, 0);
@@ -35,12 +43,14 @@ const updatePixCertificationStatus = async ({ count, concurrency }) => {
       }
       _logProgression(count);
     },
-    { concurrency }
+    { concurrency },
   );
   logger.info(`\n\tOK, ${failedGenerations} générations de codes échouées pour cause de code en doublon`);
 };
 
-const isLaunchedFromCommandLine = require.main === module;
+const modulePath = url.fileURLToPath(import.meta.url);
+const isLaunchedFromCommandLine = process.argv[1] === modulePath;
+const __filename = modulePath;
 
 async function main() {
   const startTime = performance.now();
@@ -132,7 +142,7 @@ async function _updatePixCertificationStatus(certificationId) {
         .select(1)
         .from({ 'last-assessment-results': 'assessment-results' })
         .whereRaw('"last-assessment-results"."assessmentId" = assessments.id')
-        .whereRaw('"assessment-results"."createdAt" < "last-assessment-results"."createdAt"')
+        .whereRaw('"assessment-results"."createdAt" < "last-assessment-results"."createdAt"'),
     )
     .first();
   if (!certificationDTO) throw new Error(`Went wrong for certification ${certificationId}`);
@@ -145,4 +155,4 @@ async function _updatePixCertificationStatus(certificationId) {
   });
 }
 
-module.exports = { updatePixCertificationStatus };
+export { updatePixCertificationStatus };

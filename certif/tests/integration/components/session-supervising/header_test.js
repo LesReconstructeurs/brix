@@ -5,7 +5,7 @@ import Service from '@ember/service';
 import sinon from 'sinon';
 import setupIntlRenderingTest from '../../../helpers/setup-intl-rendering';
 
-import hbs from 'htmlbars-inline-precompile';
+import { hbs } from 'ember-cli-htmlbars';
 import { waitForDialogClose } from '../../../helpers/wait-for';
 
 module('Integration | Component | SessionSupervising::Header', function (hooks) {
@@ -69,8 +69,8 @@ module('Integration | Component | SessionSupervising::Header', function (hooks) 
       assert
         .dom(
           screen.getByText(
-            'Attention, assurez-vous que tous les candidats aient terminé leur test avant de quitter la surveillance. Pour reprendre la surveillance de cette session, vous devrez entrer à nouveau son numéro de session et son mot de passe.'
-          )
+            'Attention, assurez-vous que tous les candidats aient terminé leur test avant de quitter la surveillance. Pour reprendre la surveillance de cette session, vous devrez entrer à nouveau son numéro de session et son mot de passe.',
+          ),
         )
         .exists();
     });

@@ -66,15 +66,9 @@ export default function () {
   this.post('/sessions/:id/certification-candidates', function (schema, request) {
     const sessionId = request.params.id;
     const requestBody = JSON.parse(request.requestBody);
-    const translateBillingMode = (billingMode) => {
-      if (billingMode === 'FREE') return 'Gratuite';
-      if (billingMode === 'PAID') return 'Payante';
-      if (billingMode === 'PREPAID') return 'Prépayée';
-    };
     return schema.certificationCandidates.create({
       ...requestBody.data.attributes,
       sessionId,
-      billingMode: translateBillingMode(requestBody.data.attributes['billing-mode']),
     });
   });
 
@@ -128,10 +122,23 @@ export default function () {
               detail: 'Une erreur personnalisée.',
             },
           ],
-        }
+        },
       );
     }
-    if (type === 'validation-error') {
+    if (type === 'internal-error') {
+      return new Response(
+        500,
+        { some: 'header' },
+        {
+          errors: [
+            {
+              status: '500',
+            },
+          ],
+        },
+      );
+    }
+    if (type === 'candidate-birth-postal-code-city-not-valid') {
       return new Response(
         422,
         { some: 'header' },
@@ -139,11 +146,15 @@ export default function () {
           errors: [
             {
               status: '422',
-              title: 'Unprocessable Entity',
-              detail: 'Une erreur personnalisée.',
+              code: 'CANDIDATE_BIRTH_POSTAL_CODE_CITY_NOT_VALID',
+              meta: {
+                line: 2,
+                birthPostalCode: 88000,
+                birthCity: 'Gotham City',
+              },
             },
           ],
-        }
+        },
       );
     }
     if (type === 'forbidden-import') {
@@ -156,9 +167,10 @@ export default function () {
               status: '403',
               title: 'Forbidden',
               detail: 'At least one candidate is already linked to a user',
+              code: 'SESSION_STARTED_CANDIDATE_ALREADY_LINKED_TO_USER',
             },
           ],
-        }
+        },
       );
     }
     if (type.endsWith('add-two-candidates')) {
@@ -170,7 +182,7 @@ export default function () {
     return new Response(204);
   });
 
-  this.put('/sessions/:id/enroll-students-to-session', (schema, request) => {
+  this.put('/sessions/:id/enrol-students-to-session', (schema, request) => {
     const requestBody = JSON.parse(request.requestBody);
     const sessionId = request.params.id;
     const studentListToAdd = requestBody.data.attributes['organization-learner-ids'];
@@ -287,7 +299,7 @@ export default function () {
     return new Response(204);
   });
 
-  this.post('/certification-centers/:id/sessions/import', async (schema, request) => {
+  this.post('/certification-centers/:id/sessions/validate-for-mass-import', async (schema, request) => {
     const { type } = request.requestBody;
     const { id: certificationCenterId } = request.params;
 
@@ -306,10 +318,10 @@ export default function () {
               code: 'INVALID_DOCUMENT',
               status: '422',
               title: 'Unprocessable Entity',
-              detail: 'Une erreur personnalisée.',
+              detail: 'Fichier non valide',
             },
           ],
-        }
+        },
       );
     }
     return new Response(200);
@@ -322,6 +334,7 @@ export default function () {
       firstName: attributes['first-name'],
       lastName: attributes['last-name'],
       email: attributes.email,
+      lang: 'fr',
       password: 'secret',
     };
 

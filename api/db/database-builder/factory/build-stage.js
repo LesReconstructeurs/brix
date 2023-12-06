@@ -1,4 +1,6 @@
-const databaseBuffer = require('../database-buffer');
+import { databaseBuffer } from '../database-buffer.js';
+import _ from 'lodash';
+import { buildTargetProfile } from './build-target-profile.js';
 
 function buildStage({
   id = databaseBuffer.getNextId(),
@@ -6,16 +8,19 @@ function buildStage({
   title = 'Encouragement, il en a bien besoin',
   level = null,
   threshold = 10,
+  isFirstSkill = false,
   targetProfileId,
   prescriberTitle = null,
   prescriberDescription = null,
 } = {}) {
+  targetProfileId = _.isUndefined(targetProfileId) ? buildTargetProfile().id : targetProfileId;
   const values = {
     id,
     message,
     title,
     level,
     threshold,
+    isFirstSkill,
     targetProfileId,
     prescriberTitle,
     prescriberDescription,
@@ -31,6 +36,7 @@ buildStage.withLevel = function ({
   message,
   title,
   level = 3,
+  isFirstSkill,
   targetProfileId,
   prescriberTitle,
   prescriberDescription,
@@ -40,6 +46,7 @@ buildStage.withLevel = function ({
     message,
     title,
     level,
+    isFirstSkill,
     threshold: null,
     targetProfileId,
     prescriberTitle,
@@ -47,4 +54,46 @@ buildStage.withLevel = function ({
   });
 };
 
-module.exports = buildStage;
+buildStage.withLevel.zero = function ({
+  id,
+  message,
+  title,
+  targetProfileId,
+  prescriberTitle,
+  prescriberDescription,
+} = {}) {
+  return buildStage({
+    id,
+    message,
+    title,
+    level: 0,
+    isFirstSkill: false,
+    threshold: null,
+    targetProfileId,
+    prescriberTitle,
+    prescriberDescription,
+  });
+};
+
+buildStage.firstSkill = function ({
+  id,
+  message,
+  title,
+  targetProfileId,
+  prescriberTitle,
+  prescriberDescription,
+} = {}) {
+  return buildStage({
+    id,
+    message,
+    title,
+    level: null,
+    isFirstSkill: true,
+    threshold: null,
+    targetProfileId,
+    prescriberTitle,
+    prescriberDescription,
+  });
+};
+
+export { buildStage };

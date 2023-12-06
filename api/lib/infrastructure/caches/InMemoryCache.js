@@ -1,5 +1,5 @@
-const NodeCache = require('node-cache');
-const Cache = require('./Cache');
+import NodeCache from 'node-cache';
+import { Cache } from './Cache.js';
 
 class InMemoryCache extends Cache {
   constructor() {
@@ -16,7 +16,7 @@ class InMemoryCache extends Cache {
     return this._syncGet(key, () =>
       this._chainPromise(() => {
         return this._syncGet(key, () => this._generateAndSet(key, generator));
-      })
+      }),
     );
   }
 
@@ -54,4 +54,4 @@ class InMemoryCache extends Cache {
   }
 }
 
-module.exports = InMemoryCache;
+export { InMemoryCache };

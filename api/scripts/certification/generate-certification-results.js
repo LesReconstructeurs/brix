@@ -1,8 +1,10 @@
-const { knex, disconnect } = require('../../db/knex-database-connection');
+import { knex, disconnect } from '../../db/knex-database-connection.js';
+
 const ASSESSMENT_COUNT = parseInt(process.env.ASSESSMENT_COUNT) || 100;
-const bluebird = require('bluebird');
-const scoringCertificationService = require('../../lib/domain/services/scoring/scoring-certification-service');
-const certificationAssessmentRepository = require('../../lib/infrastructure/repositories/certification-assessment-repository');
+import bluebird from 'bluebird';
+import * as scoringCertificationService from '../../lib/domain/services/scoring/scoring-certification-service.js';
+import * as certificationAssessmentRepository from '../../lib/infrastructure/repositories/certification-assessment-repository.js';
+import * as url from 'url';
 
 async function _retrieveLastScoredAssessmentIds() {
   const result = await knex.raw(
@@ -13,7 +15,7 @@ async function _retrieveLastScoredAssessmentIds() {
     WHERE cc."completedAt" IS NOT NULL
     ORDER BY cc."updatedAt" DESC LIMIT ??;
   `,
-    ASSESSMENT_COUNT
+    ASSESSMENT_COUNT,
   );
   return result.rows.map((row) => row.id);
 }
@@ -25,7 +27,7 @@ async function _computeScore(assessmentIds) {
       try {
         const certificationAssessment = await certificationAssessmentRepository.get(assessmentId);
         const certificationAssessmentScore = await scoringCertificationService.calculateCertificationAssessmentScore(
-          certificationAssessment
+          certificationAssessment,
         );
         return certificationAssessmentScore;
       } catch (err) {
@@ -34,12 +36,13 @@ async function _computeScore(assessmentIds) {
         return { message };
       }
     },
-    { concurrency: ~~process.env.CONCURRENCY || 10 }
+    { concurrency: ~~process.env.CONCURRENCY || 10 },
   );
   return scores;
 }
 
-const isLaunchedFromCommandLine = require.main === module;
+const modulePath = url.fileURLToPath(import.meta.url);
+const isLaunchedFromCommandLine = process.argv[1] === modulePath;
 
 async function main() {
   console.error(`Récupération de ${ASSESSMENT_COUNT} assessments...`);

@@ -1,20 +1,16 @@
-const Job = require('./ParticipationResultCalculationJob');
+import { ParticipationResultCalculationJob } from './ParticipationResultCalculationJob.js';
+import { usecases } from '../../../domain/usecases/index.js';
 
 class ParticipationResultCalculationJobHandler {
-  constructor({ participantResultsSharedRepository, campaignParticipationRepository }) {
-    this.participantResultsSharedRepository = participantResultsSharedRepository;
-    this.campaignParticipationRepository = campaignParticipationRepository;
-  }
-
   async handle(event) {
     const { campaignParticipationId } = event;
-    const participantResultsShared = await this.participantResultsSharedRepository.get(campaignParticipationId);
-    await this.participantResultsSharedRepository.save(participantResultsShared);
+
+    await usecases.saveComputedCampaignParticipationResult({ campaignParticipationId });
   }
 
   get name() {
-    return Job.name;
+    return ParticipationResultCalculationJob.name;
   }
 }
 
-module.exports = ParticipationResultCalculationJobHandler;
+export { ParticipationResultCalculationJobHandler };

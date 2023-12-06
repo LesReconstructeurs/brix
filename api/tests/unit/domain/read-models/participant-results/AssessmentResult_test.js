@@ -1,26 +1,35 @@
-const { domainBuilder, expect, sinon } = require('../../../../test-helper');
-const constants = require('../../../../../lib/domain/constants');
-const AssessmentResult = require('../../../../../lib/domain/read-models/participant-results/AssessmentResult');
-const KnowledgeElement = require('../../../../../lib/domain/models/KnowledgeElement');
+import { domainBuilder, expect, sinon } from '../../../../test-helper.js';
+import { constants } from '../../../../../lib/domain/constants.js';
+import { AssessmentResult } from '../../../../../lib/domain/read-models/participant-results/AssessmentResult.js';
+import { KnowledgeElement } from '../../../../../lib/domain/models/KnowledgeElement.js';
+import { StageCollection } from '../../../../../lib/domain/models/user-campaign-results/StageCollection.js';
 
 describe('Unit | Domain | Read-Models | ParticipantResult | AssessmentResult', function () {
   it('computes the number of skills, the number of skill tested and the number of skill validated', function () {
     const competences = [
       {
-        id: 'rec1',
-        name: 'C1',
-        index: '1.1',
-        areaName: 'Domaine1',
-        areaColor: 'Couleur1',
-        skillIds: ['skill1', 'skill2'],
+        competence: domainBuilder.buildCompetence({
+          id: 'rec1',
+          name: 'C1',
+          index: '1.1',
+        }),
+        area: domainBuilder.buildArea({
+          name: 'Domaine1',
+          color: 'Couleur1',
+        }),
+        targetedSkillIds: ['skill1', 'skill2'],
       },
       {
-        id: 'rec2',
-        name: 'C2',
-        index: '2.1',
-        areaName: 'Domaine2',
-        areaColor: 'Couleur2',
-        skillIds: ['skill3', 'skill4'],
+        competence: domainBuilder.buildCompetence({
+          id: 'rec2',
+          name: 'C2',
+          index: '2.1',
+        }),
+        area: domainBuilder.buildArea({
+          name: 'Domaine2',
+          color: 'Couleur2',
+        }),
+        targetedSkillIds: ['skill3', 'skill4'],
       },
     ];
 
@@ -41,7 +50,7 @@ describe('Unit | Domain | Read-Models | ParticipantResult | AssessmentResult', f
     const assessmentResult = new AssessmentResult({
       participationResults,
       competences,
-      stages: [],
+      stageCollection: [],
       badgeResultsDTO: [],
       isCampaignMultipleSendings: false,
       isOrganizationLearnerActive: false,
@@ -65,20 +74,28 @@ describe('Unit | Domain | Read-Models | ParticipantResult | AssessmentResult', f
         it('computes the mastery rate using knowledge elements', function () {
           const competences = [
             {
-              id: 'rec1',
-              name: 'C1',
-              index: '1.1',
-              areaName: 'Domaine1',
-              areaColor: 'Couleur1',
-              skillIds: ['skill1', 'skill2', 'skill3'],
+              competence: domainBuilder.buildCompetence({
+                id: 'rec1',
+                name: 'C1',
+                index: '1.1',
+              }),
+              area: domainBuilder.buildArea({
+                name: 'Domaine1',
+                color: 'Couleur1',
+              }),
+              targetedSkillIds: ['skill1', 'skill2', 'skill3'],
             },
             {
-              id: 'rec2',
-              name: 'C2',
-              index: '2.1',
-              areaName: 'Domaine2',
-              areaColor: 'Couleur2',
-              skillIds: ['skill4', 'skill5', 'skill6'],
+              competence: domainBuilder.buildCompetence({
+                id: 'rec2',
+                name: 'C2',
+                index: '2.1',
+              }),
+              area: domainBuilder.buildArea({
+                name: 'Domaine2',
+                color: 'Couleur2',
+              }),
+              targetedSkillIds: ['skill4', 'skill5', 'skill6'],
             },
           ];
 
@@ -100,7 +117,7 @@ describe('Unit | Domain | Read-Models | ParticipantResult | AssessmentResult', f
           const assessmentResult = new AssessmentResult({
             participationResults,
             competences,
-            stages: [],
+            stageCollection: [],
             badgeResultsDTO: [],
             isCampaignMultipleSendings: false,
             isOrganizationLearnerActive: false,
@@ -133,7 +150,7 @@ describe('Unit | Domain | Read-Models | ParticipantResult | AssessmentResult', f
           const assessmentResult = new AssessmentResult({
             participationResults,
             competences,
-            stages: [],
+            stageCollection: [],
             badgeResultsDTO: [],
             isCampaignMultipleSendings: false,
             isOrganizationLearnerActive: false,
@@ -149,12 +166,16 @@ describe('Unit | Domain | Read-Models | ParticipantResult | AssessmentResult', f
       it('return the mastery rate of the participation', function () {
         const competences = [
           {
-            id: 'rec1',
-            name: 'C1',
-            index: '1.1',
-            areaName: 'Domaine1',
-            areaColor: 'Couleur1',
-            skillIds: ['skill1', 'skill2', 'skill2'],
+            competence: domainBuilder.buildCompetence({
+              id: 'rec1',
+              name: 'C1',
+              index: '1.1',
+            }),
+            area: domainBuilder.buildArea({
+              name: 'Domaine1',
+              color: 'Couleur1',
+            }),
+            targetedSkillIds: ['skill1', 'skill2', 'skill2'],
           },
         ];
 
@@ -170,7 +191,7 @@ describe('Unit | Domain | Read-Models | ParticipantResult | AssessmentResult', f
         const assessmentResult = new AssessmentResult({
           participationResults,
           competences,
-          stages: [],
+          stageCollection: [],
           badgeResultsDTO: [],
           isCampaignMultipleSendings: false,
           isOrganizationLearnerActive: false,
@@ -184,14 +205,29 @@ describe('Unit | Domain | Read-Models | ParticipantResult | AssessmentResult', f
   it('computes the result by competences', function () {
     const competences = [
       {
-        id: 'rec1',
-        name: 'C1',
-        index: '1.1',
-        areaName: 'Domaine1',
-        areaColor: 'Couleur1',
-        skillIds: ['skill1', 'skill2', 'skill3'],
+        competence: domainBuilder.buildCompetence({
+          id: 'rec1',
+          name: 'C1',
+          index: '1.1',
+        }),
+        area: domainBuilder.buildArea({
+          name: 'Domaine1',
+          color: 'Couleur1',
+        }),
+        targetedSkillIds: ['skill1', 'skill2', 'skill3'],
       },
-      { id: 'rec2', name: 'C2', index: '2.1', areaName: 'Domaine2', areaColor: 'Couleur2', skillIds: ['skill4'] },
+      {
+        competence: domainBuilder.buildCompetence({
+          id: 'rec2',
+          name: 'C2',
+          index: '2.1',
+        }),
+        area: domainBuilder.buildArea({
+          name: 'Domaine2',
+          color: 'Couleur2',
+        }),
+        targetedSkillIds: ['skill4'],
+      },
     ];
 
     const knowledgeElements = [
@@ -205,30 +241,46 @@ describe('Unit | Domain | Read-Models | ParticipantResult | AssessmentResult', f
     const assessmentResult = new AssessmentResult({
       participationResults,
       competences,
-      stages: [],
+      stageCollection: [],
       badgeResultsDTO: [],
       isCampaignMultipleSendings: false,
       isOrganizationLearnerActive: false,
       isCampaignArchived: false,
     });
 
-    const competenceResults1 = assessmentResult.competenceResults.find(({ id }) => competences[0].id === id);
-    const competenceResults2 = assessmentResult.competenceResults.find(({ id }) => competences[1].id === id);
+    const competenceResults1 = assessmentResult.competenceResults.find(({ id }) => competences[0].competence.id === id);
+    const competenceResults2 = assessmentResult.competenceResults.find(({ id }) => competences[1].competence.id === id);
 
     expect(competenceResults1).to.deep.include({ name: 'C1', masteryPercentage: 33 });
     expect(competenceResults2).to.deep.include({ name: 'C2', masteryPercentage: 100 });
   });
 
   describe('when the target profile has stages', function () {
-    it('gives the reached stage', function () {
+    it('gives the reached stage and competence reached stage', function () {
       const competences = [
         {
-          id: 'rec1',
-          name: 'C1',
-          index: '1.1',
-          areaName: 'Domaine1',
-          areaColor: 'Couleur1',
-          skillIds: ['skill1', 'skill2', 'skill3'],
+          competence: domainBuilder.buildCompetence({
+            id: 'rec1',
+            name: 'C1',
+            index: '1.1',
+          }),
+          area: domainBuilder.buildArea({
+            name: 'Domaine1',
+            color: 'Couleur1',
+          }),
+          targetedSkillIds: ['skill1', 'skill2', 'skill3'],
+        },
+        {
+          competence: domainBuilder.buildCompetence({
+            id: 'rec2',
+            name: 'C2',
+            index: '1.2',
+          }),
+          area: domainBuilder.buildArea({
+            name: 'Domaine2',
+            color: 'Couleur3',
+          }),
+          targetedSkillIds: ['skill4', 'skill5', 'skill6'],
         },
       ];
 
@@ -236,26 +288,71 @@ describe('Unit | Domain | Read-Models | ParticipantResult | AssessmentResult', f
         domainBuilder.buildKnowledgeElement({ skillId: 'skill1', status: KnowledgeElement.StatusType.VALIDATED }),
         domainBuilder.buildKnowledgeElement({ skillId: 'skill2', status: KnowledgeElement.StatusType.INVALIDATED }),
         domainBuilder.buildKnowledgeElement({ skillId: 'skill3', status: KnowledgeElement.StatusType.VALIDATED }),
+        domainBuilder.buildKnowledgeElement({ skillId: 'skill4', status: KnowledgeElement.StatusType.VALIDATED }),
+        domainBuilder.buildKnowledgeElement({ skillId: 'skill5', status: KnowledgeElement.StatusType.VALIDATED }),
+        domainBuilder.buildKnowledgeElement({ skillId: 'skill6', status: KnowledgeElement.StatusType.VALIDATED }),
       ];
-      const participationResults = { knowledgeElements, acquiredBadgeIds: [], masteryRate: '0.65' };
+      const participationResults = { knowledgeElements, acquiredBadgeIds: [], masteryRate: '0.80' };
 
-      const stages = [
-        { id: 1, title: 'Stage1', message: 'message1', threshold: 25 },
-        { id: 2, title: 'Stage2', message: 'message2', threshold: 60 },
-        { id: 3, title: 'Stage3', message: 'message3', threshold: 90 },
-      ];
+      const stageCollection = new StageCollection({
+        campaignId: 1,
+        stages: [
+          {
+            id: 1,
+            title: 'Stage0',
+            message: 'message0',
+            threshold: 0,
+            prescriberDescription: 'yolo',
+            prescriberTitle: 'coucou',
+          },
+          {
+            id: 2,
+            title: 'Stage1',
+            message: 'message1',
+            threshold: 35,
+            prescriberDescription: 'yolo',
+            prescriberTitle: 'coucou',
+          },
+          {
+            id: 3,
+            title: 'Stage2',
+            message: 'message2',
+            threshold: 60,
+            prescriberDescription: 'yolo',
+            prescriberTitle: 'coucou',
+          },
+          {
+            id: 4,
+            title: 'Stage3',
+            message: 'message3',
+            threshold: 90,
+            prescriberDescription: 'yolo',
+            prescriberTitle: 'coucou',
+          },
+        ],
+      });
 
       const assessmentResult = new AssessmentResult({
         participationResults,
-        stages,
+        stageCollection,
         badgeResultsDTO: [],
         competences,
         isCampaignMultipleSendings: false,
         isOrganizationLearnerActive: false,
       });
 
-      expect(assessmentResult.reachedStage).to.deep.include({ id: 2, title: 'Stage2', starCount: 2 });
-      expect(assessmentResult.stageCount).to.equal(3);
+      expect(assessmentResult.reachedStage).to.deep.equal({
+        id: 3,
+        title: 'Stage2',
+        message: 'message2',
+        prescriberDescription: 'yolo',
+        prescriberTitle: 'coucou',
+        totalStage: 4,
+        reachedStage: 3,
+      });
+
+      expect(assessmentResult.competenceResults[0].reachedStage).to.equal(2);
+      expect(assessmentResult.competenceResults[1].reachedStage).to.equal(3);
     });
   });
 
@@ -263,12 +360,16 @@ describe('Unit | Domain | Read-Models | ParticipantResult | AssessmentResult', f
     it('computes results for each badge', function () {
       const competences = [
         {
-          id: 'rec1',
-          name: 'C1',
-          index: '1.1',
-          areaName: 'Domaine1',
-          areaColor: 'Couleur1',
-          skillIds: ['skill1', 'skill2', 'skill3'],
+          competence: domainBuilder.buildCompetence({
+            id: 'rec1',
+            name: 'C1',
+            index: '1.1',
+          }),
+          area: domainBuilder.buildArea({
+            name: 'Domaine1',
+            color: 'Couleur1',
+          }),
+          targetedSkillIds: ['skill1', 'skill2', 'skill3'],
         },
       ];
       const participationResults = { knowledgeElements: [], acquiredBadgeIds: [1] };
@@ -296,7 +397,7 @@ describe('Unit | Domain | Read-Models | ParticipantResult | AssessmentResult', f
 
       const assessmentResult = new AssessmentResult({
         participationResults,
-        stages: [],
+        stageCollection: [],
         badgeResultsDTO,
         competences,
         isCampaignMultipleSendings: false,
@@ -316,12 +417,12 @@ describe('Unit | Domain | Read-Models | ParticipantResult | AssessmentResult', f
       originalConstantValue = constants.MINIMUM_DELAY_IN_DAYS_BEFORE_RETRYING;
       now = new Date('2020-01-05T05:06:07Z');
       clock = sinon.useFakeTimers(now);
-      constants.MINIMUM_DELAY_IN_DAYS_BEFORE_RETRYING = 4;
+      sinon.stub(constants, 'MINIMUM_DELAY_IN_DAYS_BEFORE_RETRYING').value(4);
     });
 
     afterEach(function () {
       clock.restore();
-      constants.MINIMUM_DELAY_IN_DAYS_BEFORE_RETRYING = originalConstantValue;
+      sinon.stub(constants, 'MINIMUM_DELAY_IN_DAYS_BEFORE_RETRYING').value(originalConstantValue);
     });
 
     context('when the campaign does not allow multiple sendings', function () {
@@ -339,7 +440,7 @@ describe('Unit | Domain | Read-Models | ParticipantResult | AssessmentResult', f
         const assessmentResult = new AssessmentResult({
           participationResults,
           competences: [],
-          stages: [],
+          stageCollection: [],
           badgeResultsDTO: [],
           isCampaignMultipleSendings,
           isOrganizationLearnerActive,
@@ -365,7 +466,7 @@ describe('Unit | Domain | Read-Models | ParticipantResult | AssessmentResult', f
         const assessmentResult = new AssessmentResult({
           participationResults,
           competences: [],
-          stages: [],
+          stageCollection: [],
           badgeResultsDTO: [],
           isCampaignMultipleSendings,
           isOrganizationLearnerActive,
@@ -391,7 +492,7 @@ describe('Unit | Domain | Read-Models | ParticipantResult | AssessmentResult', f
         const assessmentResult = new AssessmentResult({
           participationResults,
           competences: [],
-          stages: [],
+          stageCollection: [],
           badgeResultsDTO: [],
           isCampaignMultipleSendings,
           isOrganizationLearnerActive,
@@ -417,7 +518,7 @@ describe('Unit | Domain | Read-Models | ParticipantResult | AssessmentResult', f
         const assessmentResult = new AssessmentResult({
           participationResults,
           competences: [],
-          stages: [],
+          stageCollection: [],
           badgeResultsDTO: [],
           isCampaignMultipleSendings,
           isOrganizationLearnerActive,
@@ -443,7 +544,7 @@ describe('Unit | Domain | Read-Models | ParticipantResult | AssessmentResult', f
         const assessmentResult = new AssessmentResult({
           participationResults,
           competences: [],
-          stages: [],
+          stageCollection: [],
           badgeResultsDTO: [],
           isCampaignMultipleSendings,
           isOrganizationLearnerActive,
@@ -471,7 +572,7 @@ describe('Unit | Domain | Read-Models | ParticipantResult | AssessmentResult', f
           const assessmentResult = new AssessmentResult({
             participationResults,
             competences: [],
-            stages: [],
+            stageCollection: [],
             badgeResultsDTO: [],
             isCampaignMultipleSendings,
             isOrganizationLearnerActive,
@@ -480,7 +581,7 @@ describe('Unit | Domain | Read-Models | ParticipantResult | AssessmentResult', f
 
           expect(assessmentResult.canRetry).to.be.false;
         });
-      }
+      },
     );
 
     context('when the mastery rate equals to 1', function () {
@@ -499,7 +600,7 @@ describe('Unit | Domain | Read-Models | ParticipantResult | AssessmentResult', f
         const assessmentResult = new AssessmentResult({
           participationResults,
           competences: [],
-          stages: [],
+          stageCollection: [],
           badgeResultsDTO: [],
 
           isCampaignMultipleSendings,
@@ -528,7 +629,7 @@ describe('Unit | Domain | Read-Models | ParticipantResult | AssessmentResult', f
           const assessmentResult = new AssessmentResult({
             participationResults,
             competences: [],
-            stages: [],
+            stageCollection: [],
             badgeResultsDTO: [],
             isCampaignMultipleSendings,
             isOrganizationLearnerActive,
@@ -537,7 +638,7 @@ describe('Unit | Domain | Read-Models | ParticipantResult | AssessmentResult', f
 
           expect(assessmentResult.canRetry).to.be.true;
         });
-      }
+      },
     );
 
     context(
@@ -558,7 +659,7 @@ describe('Unit | Domain | Read-Models | ParticipantResult | AssessmentResult', f
           const assessmentResult = new AssessmentResult({
             participationResults,
             competences: [],
-            stages: [],
+            stageCollection: [],
             badgeResultsDTO: [],
             isCampaignMultipleSendings,
             isOrganizationLearnerActive,
@@ -567,7 +668,7 @@ describe('Unit | Domain | Read-Models | ParticipantResult | AssessmentResult', f
 
           expect(assessmentResult.canRetry).to.be.true;
         });
-      }
+      },
     );
   });
 
@@ -579,11 +680,11 @@ describe('Unit | Domain | Read-Models | ParticipantResult | AssessmentResult', f
     let clock;
 
     before(function () {
-      constants.MINIMUM_DELAY_IN_DAYS_BEFORE_IMPROVING = 4;
+      sinon.stub(constants, 'MINIMUM_DELAY_IN_DAYS_BEFORE_IMPROVING').value(4);
     });
 
     after(function () {
-      constants.MINIMUM_DELAY_IN_DAYS_BEFORE_IMPROVING = originalConstantValue;
+      sinon.stub(constants, 'MINIMUM_DELAY_IN_DAYS_BEFORE_IMPROVING').value(originalConstantValue);
     });
 
     beforeEach(function () {
@@ -611,7 +712,7 @@ describe('Unit | Domain | Read-Models | ParticipantResult | AssessmentResult', f
           const assessmentResult = new AssessmentResult({
             participationResults,
             competences: [],
-            stages: [],
+            stageCollection: [],
             badgeResultsDTO: [],
             isCampaignMultipleSendings: false,
             isOrganizationLearnerActive: false,
@@ -619,7 +720,7 @@ describe('Unit | Domain | Read-Models | ParticipantResult | AssessmentResult', f
 
           expect(assessmentResult.canImprove).to.be.false;
         });
-      }
+      },
     );
 
     context('when the knowledge element is validated', function () {
@@ -636,7 +737,7 @@ describe('Unit | Domain | Read-Models | ParticipantResult | AssessmentResult', f
         const assessmentResult = new AssessmentResult({
           participationResults,
           competences: [],
-          stages: [],
+          stageCollection: [],
           badgeResultsDTO: [],
           isCampaignMultipleSendings: false,
           isOrganizationLearnerActive: false,
@@ -661,7 +762,7 @@ describe('Unit | Domain | Read-Models | ParticipantResult | AssessmentResult', f
         const assessmentResult = new AssessmentResult({
           participationResults,
           competences: [],
-          stages: [],
+          stageCollection: [],
           badgeResultsDTO: [],
           isCampaignMultipleSendings: false,
           isOrganizationLearnerActive: false,
@@ -688,7 +789,7 @@ describe('Unit | Domain | Read-Models | ParticipantResult | AssessmentResult', f
           const assessmentResult = new AssessmentResult({
             participationResults,
             competences: [],
-            stages: [],
+            stageCollection: [],
             badgeResultsDTO: [],
             isCampaignMultipleSendings: false,
             isOrganizationLearnerActive: false,
@@ -696,7 +797,7 @@ describe('Unit | Domain | Read-Models | ParticipantResult | AssessmentResult', f
 
           expect(assessmentResult.canImprove).to.be.true;
         });
-      }
+      },
     );
   });
 
@@ -711,7 +812,7 @@ describe('Unit | Domain | Read-Models | ParticipantResult | AssessmentResult', f
         const assessmentResult = new AssessmentResult({
           participationResults,
           competences: [],
-          stages: [],
+          stageCollection: [],
           badgeResultsDTO: [],
           isCampaignMultipleSendings: false,
           isOrganizationLearnerActive: false,
@@ -732,7 +833,7 @@ describe('Unit | Domain | Read-Models | ParticipantResult | AssessmentResult', f
         const assessmentResult = new AssessmentResult({
           participationResults,
           competences: [],
-          stages: [],
+          stageCollection: [],
           badgeResultsDTO: [],
           isCampaignMultipleSendings: false,
           isOrganizationLearnerActive: false,
@@ -753,7 +854,7 @@ describe('Unit | Domain | Read-Models | ParticipantResult | AssessmentResult', f
         const assessmentResult = new AssessmentResult({
           participationResults,
           competences: [],
-          stages: [],
+          stageCollection: [],
           badgeResultsDTO: [],
           isCampaignMultipleSendings: false,
           isOrganizationLearnerActive: false,

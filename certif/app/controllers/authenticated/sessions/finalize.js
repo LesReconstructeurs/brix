@@ -1,5 +1,5 @@
 import Controller from '@ember/controller';
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 import { action } from '@ember/object';
 // eslint-disable-next-line ember/no-computed-properties-in-native-classes
 import { alias } from '@ember/object/computed';
@@ -12,6 +12,7 @@ export default class SessionsFinalizeController extends Controller {
   @service currentUser;
   @service notifications;
   @service router;
+  @service intl;
 
   @alias('model') session;
 
@@ -29,7 +30,7 @@ export default class SessionsFinalizeController extends Controller {
 
   get uncheckedHasSeenEndTestScreenCount() {
     return sumBy(this.session.completedCertificationReports.toArray(), (reports) =>
-      Number(!reports.hasSeenEndTestScreen)
+      Number(!reports.hasSeenEndTestScreen),
     );
   }
 
@@ -68,20 +69,14 @@ export default class SessionsFinalizeController extends Controller {
   async finalizeSession() {
     try {
       await this.session.save({ adapterOptions: { finalization: true } });
-      this.showSuccessNotification('Les informations de la session ont été transmises avec succès.');
-    } catch (err) {
-      if (err.errors?.[0]?.status === '409') {
+      this.showSuccessNotification(this.intl.t('pages.session-finalization.notification.success'));
+    } catch (responseError) {
+      const error = responseError?.errors?.[0];
+      if (error?.code) {
         this.showConfirmModal = false;
-        return this.showErrorNotification(err.errors[0].detail);
-      }
-      if (_isSessionNotStartedError(err)) {
-        this.showErrorNotification(
-          "Cette session n'a pas débuté, vous ne pouvez pas la finaliser. Vous pouvez néanmoins la supprimer."
-        );
+        this.notifications.error(this.intl.t(`common.api-error-messages.${error.code}`));
       } else {
-        err.errors && err.errors[0] && err.errors[0].status === '400'
-          ? this.showErrorNotification('Cette session a déjà été finalisée.')
-          : this.showErrorNotification('Erreur lors de la finalisation de session.');
+        this.notifications.error(this.intl.t(`common.api-error-messages.SESSION_CANNOT_BE_FINALIZED`));
       }
     }
     this.showConfirmModal = false;
@@ -107,14 +102,15 @@ export default class SessionsFinalizeController extends Controller {
   }
 
   @action
-  toggleAllCertificationReportsHasSeenEndTestScreen(someWereChecked) {
-    const newState = !someWereChecked;
+  toggleAllCertificationReportsHasSeenEndTestScreen(allChecked, parentCheckbox) {
+    const newState = !allChecked;
 
     this.session.certificationReports
       .filter((certificationReport) => certificationReport.isCompleted)
       .forEach((certificationReport) => {
         certificationReport.hasSeenEndTestScreen = newState;
       });
+    parentCheckbox.srcElement.checked = newState;
   }
 
   @action
@@ -145,28 +141,18 @@ export default class SessionsFinalizeController extends Controller {
 
   isValid() {
     const invalidCertificationReports = this.session.certificationReports.filter(
-      (certificationReport) => certificationReport.isInvalid
+      (certificationReport) => certificationReport.isInvalid,
     );
 
     if (invalidCertificationReports.length) {
       const select = document.getElementById(
-        `finalization-report-abort-reason__select${invalidCertificationReports.firstObject.id}`
+        `finalization-report-abort-reason__select${invalidCertificationReports.firstObject.id}`,
       );
 
-      this.showErrorNotification(
-        "Une ou plusieurs certification(s) non terminée(s) n'ont pas de motif d'abandon. Veuillez les renseigner.",
-        { autoClear: true }
-      );
+      this.showErrorNotification(this.intl.t('pages.session-finalization.errors.no-abort-reason'));
       select.scrollIntoView();
     }
 
     return invalidCertificationReports.length === 0;
   }
-}
-
-function _isSessionNotStartedError(err) {
-  return (
-    err.errors?.[0]?.detail ===
-    "Cette session n'a pas débuté, vous ne pouvez pas la finaliser. Vous pouvez néanmoins la supprimer."
-  );
 }

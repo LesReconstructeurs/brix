@@ -1,4 +1,4 @@
-const AllowedCertificationCenterAccess = require('../../../../lib/domain/read-models/AllowedCertificationCenterAccess');
+import { AllowedCertificationCenterAccess } from '../../../../lib/domain/read-models/AllowedCertificationCenterAccess.js';
 
 function buildAllowedCertificationCenterAccess({
   id = 123,
@@ -8,7 +8,6 @@ function buildAllowedCertificationCenterAccess({
   isRelatedToManagingStudentsOrganization = false,
   relatedOrganizationTags = [],
   habilitations = [],
-  isSupervisorAccessEnabled = false,
 } = {}) {
   return new AllowedCertificationCenterAccess({
     id,
@@ -18,7 +17,6 @@ function buildAllowedCertificationCenterAccess({
     isRelatedToManagingStudentsOrganization,
     relatedOrganizationTags,
     habilitations,
-    isSupervisorAccessEnabled,
   });
 }
 
@@ -32,4 +30,4 @@ buildAllowedCertificationCenterAccess.notSco = function ({
   });
 };
 
-module.exports = buildAllowedCertificationCenterAccess;
+export { buildAllowedCertificationCenterAccess };

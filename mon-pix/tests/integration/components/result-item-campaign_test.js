@@ -1,8 +1,10 @@
 import EmberObject from '@ember/object';
 import { module, test } from 'qunit';
 import setupIntlRenderingTest from '../../helpers/setup-intl-rendering';
-import { find, render } from '@ember/test-helpers';
-import hbs from 'htmlbars-inline-precompile';
+// eslint-disable-next-line no-restricted-imports
+import { find } from '@ember/test-helpers';
+import { render } from '@1024pix/ember-testing-library';
+import { hbs } from 'ember-cli-htmlbars';
 
 module('Integration | Component | result-item', function (hooks) {
   setupIntlRenderingTest(hooks);
@@ -56,9 +58,8 @@ module('Integration | Component | result-item', function (hooks) {
 
       // then
       const expectedChallengeInstruction = "Un QCM propose plusieurs choix, l'utilisateur peut en choisir plusieurs";
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(find('.result-item__instruction').textContent.trim(), expectedChallengeInstruction);
+
+      assert.strictEqual(find('.result-item__instruction').textContent.trim(), expectedChallengeInstruction);
     });
 
     test('should render a button when QCM', async function (assert) {

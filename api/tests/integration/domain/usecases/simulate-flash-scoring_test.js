@@ -1,10 +1,14 @@
-const { expect, mockLearningContent, domainBuilder } = require('../../../test-helper');
-const ScoringSimulation = require('../../../../lib/domain/models/ScoringSimulation');
-const SimulationResult = require('../../../../lib/domain/models/SimulationResult');
-const usecases = require('../../../../lib/domain/usecases/');
-const AnswerStatus = require('../../../../lib/domain/models/AnswerStatus');
+import { expect, mockLearningContent, domainBuilder } from '../../../test-helper.js';
+import { ScoringSimulationContext } from '../../../../lib/domain/models/ScoringSimulationContext.js';
+import { ScoringSimulation } from '../../../../lib/domain/models/ScoringSimulation.js';
+import { ScoringSimulationResult } from '../../../../lib/domain/models/ScoringSimulationResult.js';
+import { usecases } from '../../../../lib/domain/usecases/index.js';
+import { AnswerStatus } from '../../../../lib/domain/models/AnswerStatus.js';
 
 describe('Integration | UseCases | simulateFlashScoring', function () {
+  const locale = 'fr-fr';
+  const locales = [locale];
+
   beforeEach(function () {
     const learningContent = {
       competences: [
@@ -45,14 +49,15 @@ describe('Integration | UseCases | simulateFlashScoring', function () {
         { id: 'skill7', status: 'actif', tubeId: 'recTube2', competenceId: 'rec2', pixValue: 1000000 },
       ],
       challenges: [
-        { id: 'challenge1', skillId: 'skill1', status: 'validé', alpha: 0.16, delta: -2, locales: ['fr'] },
-        { id: 'challenge2', skillId: 'skill2', status: 'validé', alpha: 3, delta: 6, locales: ['fr'] },
-        { id: 'challenge3', skillId: 'skill3', status: 'validé', alpha: 1.587, delta: 8.5, locales: ['fr'] },
-        { id: 'challenge4', skillId: 'skill4', status: 'validé', alpha: 2.86789, delta: 0.145, locales: ['fr'] },
-        { id: 'challenge5', skillId: 'skill5', status: 'validé', alpha: 3, delta: 1, locales: ['fr'] },
-        { id: 'challenge6', skillId: 'skill6', status: 'validé', alpha: 1.7, delta: -1, locales: ['fr'] },
-        { id: 'challenge7', skillId: 'skill7', status: 'validé', alpha: 2.5, delta: 5, locales: ['fr'] },
-        { id: 'challenge8', skillId: 'skill7', status: 'validé', locales: ['fr'] },
+        { id: 'challenge1', skillId: 'skill1', status: 'validé', alpha: 0.16, delta: -2, locales },
+        { id: 'challenge2', skillId: 'skill2', status: 'validé', alpha: 3, delta: 6, locales },
+        { id: 'challenge3', skillId: 'skill3', status: 'validé', alpha: 1.587, delta: 8.5, locales },
+        { id: 'challenge4', skillId: 'skill4', status: 'validé', alpha: 2.86789, delta: 0.145, locales },
+        { id: 'challenge5', skillId: 'skill5', status: 'validé', alpha: 3, delta: 1, locales },
+        { id: 'challenge6', skillId: 'skill6', status: 'archivé', alpha: 1.7, delta: -1, locales },
+        { id: 'challenge7', skillId: 'skill7', status: 'validé', alpha: 2.5, delta: 5, locales },
+        { id: 'challenge8', skillId: 'skill7', status: 'validé', locales },
+        { id: 'challenge9', skillId: 'skill7', status: 'périmé', alpha: 1.7, delta: -1, locales },
       ],
     };
 
@@ -67,20 +72,21 @@ describe('Integration | UseCases | simulateFlashScoring', function () {
         // given
         const estimatedLevel = 2;
 
-        const simulation = new ScoringSimulation({ id: 'simulation1', estimatedLevel });
+        const simulation = new ScoringSimulation({ id: 'simulation1', user: { estimatedLevel } });
 
         // when
         const simulationResults = await usecases.simulateFlashScoring({
           simulations: [simulation],
-          calculateEstimatedLevel,
+          context: new ScoringSimulationContext({ calculateEstimatedLevel }),
+          locale,
         });
 
         // then
         expect(simulationResults).to.have.lengthOf(1);
-        expect(simulationResults[0]).to.be.instanceOf(SimulationResult);
+        expect(simulationResults[0]).to.be.instanceOf(ScoringSimulationResult);
         expect(simulationResults[0]).to.have.property(
           'error',
-          'Simulation should have answers in order to calculate estimated level'
+          'Simulation should have answers in order to calculate estimated level',
         );
       });
     });
@@ -100,15 +106,20 @@ describe('Integration | UseCases | simulateFlashScoring', function () {
         // when
         const simulationResults = await usecases.simulateFlashScoring({
           simulations: [simulation],
-          calculateEstimatedLevel,
+          context: new ScoringSimulationContext({ calculateEstimatedLevel }),
+          locale,
         });
 
         // then
         expect(simulationResults).to.have.lengthOf(1);
-        expect(simulationResults[0]).to.be.instanceOf(SimulationResult);
+        expect(simulationResults[0]).to.be.instanceOf(ScoringSimulationResult);
         expect(simulationResults[0]).to.have.property('id', 'simulation1');
         expect(simulationResults[0]).to.have.property('estimatedLevel', 5.309899756825917);
         expect(simulationResults[0]).to.have.property('pixScore', 110011);
+        expect(simulationResults[0].pixScoreByCompetence).to.deep.equal([
+          { competenceId: 'rec1', pixScore: 11 },
+          { competenceId: 'rec2', pixScore: 110000 },
+        ]);
       });
     });
 
@@ -128,15 +139,20 @@ describe('Integration | UseCases | simulateFlashScoring', function () {
           // when
           const simulationResults = await usecases.simulateFlashScoring({
             simulations: [simulation],
-            calculateEstimatedLevel,
+            context: new ScoringSimulationContext({ calculateEstimatedLevel }),
+            locale,
           });
 
           // then
           expect(simulationResults).to.have.lengthOf(1);
-          expect(simulationResults[0]).to.be.instanceOf(SimulationResult);
+          expect(simulationResults[0]).to.be.instanceOf(ScoringSimulationResult);
           expect(simulationResults[0]).to.have.property('id', 'simulation1');
           expect(simulationResults[0]).to.have.property('estimatedLevel', 5.309899756825917);
           expect(simulationResults[0]).to.have.property('pixScore', 110011);
+          expect(simulationResults[0].pixScoreByCompetence).to.deep.equal([
+            { competenceId: 'rec1', pixScore: 11 },
+            { competenceId: 'rec2', pixScore: 110000 },
+          ]);
         });
       });
 
@@ -150,22 +166,23 @@ describe('Integration | UseCases | simulateFlashScoring', function () {
             domainBuilder.buildAnswer({ result: AnswerStatus.SKIPPED, challengeId: 'challenge4' }),
           ];
 
-          const simulation = new ScoringSimulation({ id: 'simulation1', answers, estimatedLevel: 1 });
+          const simulation = new ScoringSimulation({ id: 'simulation1', answers, user: { estimatedLevel: 1 } });
 
           // when
           const simulationResults = await usecases.simulateFlashScoring({
             simulations: [simulation],
-            calculateEstimatedLevel,
+            context: new ScoringSimulationContext({ calculateEstimatedLevel }),
+            locale,
           });
 
           // then
           expect(simulationResults).to.have.lengthOf(1);
-          expect(simulationResults[0]).to.be.instanceOf(SimulationResult);
+          expect(simulationResults[0]).to.be.instanceOf(ScoringSimulationResult);
           expect(simulationResults[0]).to.have.property('id', 'simulation1');
           expect(simulationResults[0]).to.have.property('estimatedLevel', 5.309899756825917);
           expect(simulationResults[0]).to.have.property(
             'error',
-            'Calculated estimated level 5.309899756825917 is different from expected given estimated level 1'
+            'Calculated estimated level 5.309899756825917 is different from expected given estimated level 1',
           );
         });
       });
@@ -190,21 +207,25 @@ describe('Integration | UseCases | simulateFlashScoring', function () {
         const simulation = new ScoringSimulation({
           id: 'simulation1',
           answers,
-          estimatedLevel,
-          calculateEstimatedLevel,
+          user: { estimatedLevel },
         });
 
         // when
         const simulationResults = await usecases.simulateFlashScoring({
           simulations: [simulation],
-          calculateEstimatedLevel,
+          context: new ScoringSimulationContext({ calculateEstimatedLevel }),
+          locale,
         });
 
         // then
         expect(simulationResults).to.have.lengthOf(1);
-        expect(simulationResults[0]).to.be.instanceOf(SimulationResult);
+        expect(simulationResults[0]).to.be.instanceOf(ScoringSimulationResult);
         expect(simulationResults[0]).to.have.property('id', 'simulation1');
         expect(simulationResults[0]).to.have.property('pixScore', 110011);
+        expect(simulationResults[0].pixScoreByCompetence).to.deep.equal([
+          { competenceId: 'rec1', pixScore: 11 },
+          { competenceId: 'rec2', pixScore: 110000 },
+        ]);
       });
     });
 
@@ -213,19 +234,21 @@ describe('Integration | UseCases | simulateFlashScoring', function () {
         // given
         const estimatedLevel = 2;
 
-        const simulation = new ScoringSimulation({ id: 'simulation1', estimatedLevel });
+        const simulation = new ScoringSimulation({ id: 'simulation1', user: { estimatedLevel } });
 
         // when
         const simulationResults = await usecases.simulateFlashScoring({
           simulations: [simulation],
-          calculateEstimatedLevel,
+          context: new ScoringSimulationContext({ calculateEstimatedLevel }),
+          locale,
         });
 
         // then
         expect(simulationResults).to.have.lengthOf(1);
-        expect(simulationResults[0]).to.be.instanceOf(SimulationResult);
+        expect(simulationResults[0]).to.be.instanceOf(ScoringSimulationResult);
         expect(simulationResults[0]).to.have.property('id', 'simulation1');
         expect(simulationResults[0]).to.have.property('pixScore', 111000);
+        expect(simulationResults[0].pixScoreByCompetence).to.deep.equal([{ competenceId: 'rec2', pixScore: 111000 }]);
       });
     });
 
@@ -244,12 +267,13 @@ describe('Integration | UseCases | simulateFlashScoring', function () {
         // when
         const simulationResults = await usecases.simulateFlashScoring({
           simulations: [simulation],
-          calculateEstimatedLevel,
+          context: new ScoringSimulationContext({ calculateEstimatedLevel }),
+          locale,
         });
 
         // then
         expect(simulationResults).to.have.lengthOf(1);
-        expect(simulationResults[0]).to.be.instanceOf(SimulationResult);
+        expect(simulationResults[0]).to.be.instanceOf(ScoringSimulationResult);
         expect(simulationResults[0]).to.have.property('error', 'Simulation should have an estimated level');
       });
     });
@@ -263,18 +287,22 @@ describe('Integration | UseCases | simulateFlashScoring', function () {
 
         const estimatedLevel = 2;
 
-        const simulation = new ScoringSimulation({ id: 'simulation1', answers, estimatedLevel });
+        const simulation = new ScoringSimulation({ id: 'simulation1', answers, user: { estimatedLevel } });
 
         // when
-        const simulationResults = await usecases.simulateFlashScoring({ simulations: [simulation] });
+        const simulationResults = await usecases.simulateFlashScoring({
+          simulations: [simulation],
+          context: new ScoringSimulationContext(),
+          locale,
+        });
 
         // then
         expect(simulationResults).to.have.lengthOf(1);
-        expect(simulationResults[0]).to.be.instanceOf(SimulationResult);
+        expect(simulationResults[0]).to.be.instanceOf(ScoringSimulationResult);
         expect(simulationResults[0]).to.have.property('id', 'simulation1');
         expect(simulationResults[0]).to.have.property(
           'error',
-          'Challenge ID unknownChallenge is unknown or not compatible with flash algorithm'
+          'Challenge ID unknownChallenge is unknown or not compatible with flash algorithm',
         );
       });
     });
@@ -286,17 +314,21 @@ describe('Integration | UseCases | simulateFlashScoring', function () {
 
         const estimatedLevel = 2;
 
-        const simulation = new ScoringSimulation({ answers, estimatedLevel });
+        const simulation = new ScoringSimulation({ answers, user: { estimatedLevel } });
 
         // when
-        const simulationResults = await usecases.simulateFlashScoring({ simulations: [simulation] });
+        const simulationResults = await usecases.simulateFlashScoring({
+          simulations: [simulation],
+          context: new ScoringSimulationContext(),
+          locale,
+        });
 
         // then
         expect(simulationResults).to.have.lengthOf(1);
-        expect(simulationResults[0]).to.be.instanceOf(SimulationResult);
+        expect(simulationResults[0]).to.be.instanceOf(ScoringSimulationResult);
         expect(simulationResults[0]).to.have.property(
           'error',
-          'Challenge ID challenge8 is unknown or not compatible with flash algorithm'
+          'Challenge ID challenge8 is unknown or not compatible with flash algorithm',
         );
       });
     });
@@ -308,19 +340,24 @@ describe('Integration | UseCases | simulateFlashScoring', function () {
       const estimatedLevel = 2;
       const successProbabilityThreshold = 0.65;
 
-      const simulation = new ScoringSimulation({ id: 'simulation1', estimatedLevel });
+      const simulation = new ScoringSimulation({ id: 'simulation1', user: { estimatedLevel } });
 
       // when
       const simulationResults = await usecases.simulateFlashScoring({
         simulations: [simulation],
-        successProbabilityThreshold,
+        context: new ScoringSimulationContext({ successProbabilityThreshold }),
+        locale,
       });
 
       // then
       expect(simulationResults).to.have.lengthOf(1);
-      expect(simulationResults[0]).to.be.instanceOf(SimulationResult);
+      expect(simulationResults[0]).to.be.instanceOf(ScoringSimulationResult);
       expect(simulationResults[0]).to.have.property('id', 'simulation1');
       expect(simulationResults[0]).to.have.property('pixScore', 111001);
+      expect(simulationResults[0].pixScoreByCompetence).to.deep.equal([
+        { competenceId: 'rec1', pixScore: 1 },
+        { competenceId: 'rec2', pixScore: 111000 },
+      ]);
     });
   });
 });

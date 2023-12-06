@@ -10,22 +10,20 @@ module('Unit | Component | user-account | email-with-validation-form', function 
     test('should trim on email validation', function (assert) {
       // given
       const emailWithSpaces = '   lea@example.net   ';
-      const component = createGlimmerComponent('component:user-account/email-with-validation-form');
+      const component = createGlimmerComponent('user-account/email-with-validation-form');
 
       // when
       component.validateNewEmail({ target: { value: emailWithSpaces } });
 
       // then
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(component.newEmail, emailWithSpaces.trim());
+      assert.strictEqual(component.newEmail, emailWithSpaces.trim());
     });
   });
 
   module('#onSubmit', function () {
     test('should send new email and password', async function (assert) {
       // given
-      const component = createGlimmerComponent('component:user-account/email-with-validation-form');
+      const component = createGlimmerComponent('user-account/email-with-validation-form');
       const newEmail = 'toto@example.net';
       const password = 'pix123';
       const sendNewEmail = sinon.stub();
@@ -45,7 +43,7 @@ module('Unit | Component | user-account | email-with-validation-form', function 
 
     test('should not send new email and password when form is not valid', async function (assert) {
       // given
-      const component = createGlimmerComponent('component:user-account/email-with-validation-form');
+      const component = createGlimmerComponent('user-account/email-with-validation-form');
       const sendNewEmail = sinon.stub();
       component.store = { createRecord: () => ({ sendNewEmail }) };
       sinon.spy(component.store, 'createRecord');
@@ -61,7 +59,7 @@ module('Unit | Component | user-account | email-with-validation-form', function 
 
     test('should prevent double clicking on submit', async function (assert) {
       // given
-      const component = createGlimmerComponent('component:user-account/email-with-validation-form');
+      const component = createGlimmerComponent('user-account/email-with-validation-form');
       const newEmail = 'toto@example.net';
       const password = 'pix123';
       const sendNewEmail = sinon.stub();

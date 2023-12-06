@@ -1,7 +1,7 @@
-const { expect, databaseBuilder, domainBuilder } = require('../../../test-helper');
-const certificationResultRepository = require('../../../../lib/infrastructure/repositories/certification-result-repository');
-const CertificationResult = require('../../../../lib/domain/models/CertificationResult');
-const ComplementaryCertificationCourseResult = require('../../../../lib/domain/models/ComplementaryCertificationCourseResult');
+import { expect, databaseBuilder, domainBuilder } from '../../../test-helper.js';
+import * as certificationResultRepository from '../../../../lib/infrastructure/repositories/certification-result-repository.js';
+import { CertificationResult } from '../../../../lib/domain/models/CertificationResult.js';
+import { ComplementaryCertificationCourseResult } from '../../../../lib/domain/models/ComplementaryCertificationCourseResult.js';
 
 describe('Integration | Infrastructure | Repository | Certification Result', function () {
   describe('#findBySessionId', function () {
@@ -180,7 +180,7 @@ describe('Integration | Infrastructure | Repository | Certification Result', fun
       // given
       const sessionId = databaseBuilder.factory.buildSession().id;
       const { certificationCourseId, assessmentResultId, competenceMarkId } = await _buildCertificationResultInSession(
-        sessionId
+        sessionId,
       );
       const oneBadgeId = databaseBuilder.factory.buildBadge({ key: 'PARTNER_KEY' }).id;
       const oneComplementaryCertificationId = databaseBuilder.factory.buildComplementaryCertification({
@@ -830,7 +830,7 @@ describe('Integration | Infrastructure | Repository | Certification Result', fun
       expect(certificationResults).to.deepEqualArray(expectedResult);
     });
 
-    it(`should return complementary certifications linked to the candidates`, async function () {
+    it(`should return complementary certification linked to the candidates`, async function () {
       // given
       const sessionId = databaseBuilder.factory.buildSession().id;
       const {

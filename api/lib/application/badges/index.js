@@ -1,9 +1,9 @@
-const Joi = require('joi');
-const securityPreHandlers = require('../security-pre-handlers');
-const badgesController = require('./badges-controller');
-const identifiersType = require('../../domain/types/identifiers-type');
+import Joi from 'joi';
+import { securityPreHandlers } from '../security-pre-handlers.js';
+import { badgesController } from './badges-controller.js';
+import { identifiersType } from '../../domain/types/identifiers-type.js';
 
-exports.register = async function (server) {
+const register = async function (server) {
   server.route([
     {
       method: 'PATCH',
@@ -84,4 +84,5 @@ exports.register = async function (server) {
   ]);
 };
 
-exports.name = 'badges-api';
+const name = 'badges-api';
+export { register, name };

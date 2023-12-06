@@ -1,9 +1,9 @@
-const Cache = require('./Cache');
-const DistributedCache = require('./DistributedCache');
-const InMemoryCache = require('./InMemoryCache');
-const LayeredCache = require('./LayeredCache');
-const RedisCache = require('./RedisCache');
-const settings = require('../../config');
+import { Cache } from './Cache.js';
+import { DistributedCache } from './DistributedCache.js';
+import { InMemoryCache } from './InMemoryCache.js';
+import { LayeredCache } from './LayeredCache.js';
+import { RedisCache } from './RedisCache.js';
+import { config } from '../../config.js';
 
 const LEARNING_CONTENT_CHANNEL = 'Learning content';
 const LEARNING_CONTENT_CACHE_KEY = 'LearningContent';
@@ -11,13 +11,13 @@ const LEARNING_CONTENT_CACHE_KEY = 'LearningContent';
 class LearningContentCache extends Cache {
   constructor() {
     super();
-    if (settings.caching.redisUrl) {
+    if (config.caching.redisUrl) {
       this.distributedCache = new DistributedCache(
         new InMemoryCache(),
-        settings.caching.redisUrl,
-        LEARNING_CONTENT_CHANNEL
+        config.caching.redisUrl,
+        LEARNING_CONTENT_CHANNEL,
       );
-      this.redisCache = new RedisCache(settings.caching.redisUrl);
+      this.redisCache = new RedisCache(config.caching.redisUrl);
 
       this._underlyingCache = new LayeredCache(this.distributedCache, this.redisCache);
     } else {
@@ -38,8 +38,10 @@ class LearningContentCache extends Cache {
   }
 
   quit() {
-    return Promise.all([this._underlyingCache.quit(), this.redisCache.quit(), this.distributedCache.quit()]);
+    return this._underlyingCache.quit();
   }
 }
 
-module.exports = new LearningContentCache();
+const learningContentCache = new LearningContentCache();
+
+export { learningContentCache };

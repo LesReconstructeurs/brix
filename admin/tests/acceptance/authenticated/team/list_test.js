@@ -2,7 +2,7 @@ import { module, test } from 'qunit';
 import { currentURL, click } from '@ember/test-helpers';
 import { visit, clickByName } from '@1024pix/ember-testing-library';
 import { setupApplicationTest } from 'ember-qunit';
-import setupMirage from 'ember-cli-mirage/test-support/setup-mirage';
+import { setupMirage } from 'ember-cli-mirage/test-support';
 import { authenticateAdminMemberWithRole } from 'pix-admin/tests/helpers/test-init';
 
 module('Acceptance | Team | List', function (hooks) {
@@ -29,6 +29,17 @@ module('Acceptance | Team | List', function (hooks) {
 
       // then
       assert.strictEqual(currentURL(), '/organizations/list');
+    });
+
+    test('it should set team menubar item active', async function (assert) {
+      // given
+      await authenticateAdminMemberWithRole({ isSuperAdmin: true })(server);
+
+      // when
+      const screen = await visit(`/equipe`);
+
+      // then
+      assert.dom(screen.getByRole('link', { name: 'Équipe' })).hasClass('active');
     });
 
     test('it should be possible to change the role of an admin member', async function (assert) {
@@ -119,13 +130,13 @@ module('Acceptance | Team | List', function (hooks) {
           errors: [
             {
               code: 'UPDATE_ADMIN_MEMBER_ERROR',
-              detail: 'A problem occured while trying to update an admin member role',
+              detail: 'A problem occurred while trying to update an admin member role',
               status: '422',
               title: 'Unprocessable entity',
             },
           ],
         }),
-        422
+        422,
       );
 
       // when

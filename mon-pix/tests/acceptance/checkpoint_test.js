@@ -1,4 +1,6 @@
-import { find, visit } from '@ember/test-helpers';
+// eslint-disable-next-line no-restricted-imports
+import { find } from '@ember/test-helpers';
+import { visit } from '@1024pix/ember-testing-library';
 import { module, test } from 'qunit';
 import { setupApplicationTest } from 'ember-qunit';
 import { setupMirage } from 'ember-cli-mirage/test-support';
@@ -33,10 +35,10 @@ module('Acceptance | Checkpoint', function (hooks) {
       await visit(`/assessments/${assessment.id}/checkpoint`);
 
       // then
-      assert.dom('.checkpoint-progression-gauge-wrapper').exists();
+      assert.strictEqual(find('.checkpoint__progression-gauge progress').textContent.trim(), '100%');
       assert.dom('.assessment-results__list').exists();
       assert.dom('.result-item').exists({ count: NB_ANSWERS });
-      assert.ok(find('.checkpoint__continue').textContent.includes('Continuer'));
+      assert.strictEqual(find('.checkpoint__continue').textContent.trim(), 'Continuer');
       assert.dom('.checkpoint-no-answer').doesNotExist();
     });
   });
@@ -47,7 +49,7 @@ module('Acceptance | Checkpoint', function (hooks) {
       await visit(`/assessments/${assessment.id}/checkpoint?finalCheckpoint=true`);
 
       // then
-      assert.dom('.checkpoint-progression-gauge-wrapper').doesNotExist();
+      assert.dom('.checkpoint__progression-gauge').doesNotExist();
       assert.dom('.assessment-results__list').doesNotExist();
       assert.dom('.checkpoint-no-answer').exists();
 
@@ -55,8 +57,8 @@ module('Acceptance | Checkpoint', function (hooks) {
       assert.ok(find('.checkpoint__continue').textContent.includes('Voir mes résultats'));
       assert.ok(
         find('.checkpoint-no-answer__info').textContent.includes(
-          'Vous avez déjà répondu à ces questions lors de vos tests précédents : vous pouvez directement accéder à vos résultats.\n\nVous souhaitez améliorer votre score ? En cliquant sur  “Voir mes résultats”, vous aurez la possibilité de retenter le parcours.'
-        )
+          'Vous avez déjà répondu à ces questions lors de vos tests précédents : vous pouvez directement accéder à vos résultats.\n\nVous souhaitez améliorer votre score ? En cliquant sur  “Voir mes résultats”, vous aurez la possibilité de retenter le parcours.',
+        ),
       );
     });
   });

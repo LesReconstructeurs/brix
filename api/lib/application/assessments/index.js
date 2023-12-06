@@ -1,11 +1,13 @@
-const Joi = require('joi');
-const { featureToggles } = require('../../config');
-const assessmentController = require('./assessment-controller');
-const securityPreHandlers = require('../security-pre-handlers');
-const assessmentAuthorization = require('../preHandlers/assessment-authorization');
-const identifiersType = require('../../domain/types/identifiers-type');
+import Joi from 'joi';
+import { config } from '../../config.js';
+import { assessmentController } from './assessment-controller.js';
+import { securityPreHandlers } from '../security-pre-handlers.js';
+import { assessmentAuthorization } from '../preHandlers/assessment-authorization.js';
+import { identifiersType } from '../../domain/types/identifiers-type.js';
 
-exports.register = async (server) => {
+const { featureToggles } = config;
+
+const register = async function (server) {
   const routes = [
     {
       method: 'POST',
@@ -14,6 +16,31 @@ exports.register = async (server) => {
         auth: false,
         handler: assessmentController.save,
         tags: ['api'],
+      },
+    },
+    {
+      method: 'POST',
+      path: '/api/pix1d/assessments',
+      config: {
+        pre: [{ method: securityPreHandlers.checkPix1dActivated }],
+        auth: false,
+        handler: assessmentController.createForPix1d,
+        validate: {
+          payload: Joi.object({
+            missionId: identifiersType.missionId,
+          }),
+        },
+        tags: ['api', 'pix1d', 'assessment'],
+      },
+    },
+    {
+      method: 'POST',
+      path: '/api/pix1d/assessments/preview',
+      config: {
+        pre: [{ method: securityPreHandlers.checkPix1dActivated }],
+        auth: false,
+        handler: assessmentController.createAssessmentPreviewForPix1d,
+        tags: ['api', 'pix1d', 'assessment'],
       },
     },
     {
@@ -33,6 +60,38 @@ exports.register = async (server) => {
     },
     {
       method: 'GET',
+      path: '/api/pix1d/assessments/{id}/current-activity',
+      config: {
+        pre: [{ method: securityPreHandlers.checkPix1dActivated }],
+        auth: false,
+        validate: {
+          params: Joi.object({
+            id: identifiersType.assessmentId,
+          }),
+        },
+        handler: assessmentController.getCurrentActivity,
+        notes: ["- Récupération de l'activité courante"],
+        tags: ['api'],
+      },
+    },
+    {
+      method: 'GET',
+      path: '/api/pix1d/assessments/{id}/next',
+      config: {
+        pre: [{ method: securityPreHandlers.checkPix1dActivated }],
+        auth: false,
+        validate: {
+          params: Joi.object({
+            id: identifiersType.assessmentId,
+          }),
+        },
+        handler: assessmentController.getNextChallengeForPix1d,
+        notes: ["- Récupération de la question suivante pour l'évaluation de mission donnée"],
+        tags: ['api'],
+      },
+    },
+    {
+      method: 'GET',
       path: '/api/assessments/{id}',
       config: {
         auth: false,
@@ -47,6 +106,21 @@ exports.register = async (server) => {
             assign: 'authorizationCheck',
           },
         ],
+        handler: assessmentController.get,
+        tags: ['api'],
+      },
+    },
+    {
+      method: 'GET',
+      path: '/api/pix1d/assessments/{id}',
+      config: {
+        auth: false,
+        validate: {
+          params: Joi.object({
+            id: identifiersType.assessmentId,
+          }),
+        },
+        pre: [{ method: securityPreHandlers.checkPix1dActivated }],
         handler: assessmentController.get,
         tags: ['api'],
       },
@@ -206,4 +280,5 @@ exports.register = async (server) => {
   server.route(routes);
 };
 
-exports.name = 'assessments-api';
+const name = 'assessments-api';
+export { register, name };

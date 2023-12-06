@@ -1,9 +1,9 @@
-const Bookshelf = require('../bookshelf');
+import { Bookshelf } from '../bookshelf.js';
 
 const modelName = 'Stage';
-require('./TargetProfile');
+import './TargetProfile.js';
 
-module.exports = Bookshelf.model(
+const BookshelfStage = Bookshelf.model(
   modelName,
   {
     tableName: 'stages',
@@ -15,5 +15,7 @@ module.exports = Bookshelf.model(
   },
   {
     modelName,
-  }
+  },
 );
+
+export { BookshelfStage };

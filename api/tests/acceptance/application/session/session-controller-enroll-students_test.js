@@ -1,20 +1,15 @@
-const {
-  sinon,
-  expect,
-  databaseBuilder,
-  generateValidRequestAuthorizationHeader,
-  knex,
-} = require('../../../test-helper');
-const createServer = require('../../../../server');
+import { sinon, expect, databaseBuilder, generateValidRequestAuthorizationHeader, knex } from '../../../test-helper.js';
 
-describe('Acceptance | Controller | session-controller-enroll-students-to-session', function () {
+import { createServer } from '../../../../server.js';
+
+describe('Acceptance | Controller | session-controller-enrol-students-to-session', function () {
   let server;
 
   beforeEach(async function () {
     server = await createServer();
   });
 
-  describe('#enrollStudentsToSession', function () {
+  describe('#enrolStudentsToSession', function () {
     let options;
     let payload;
     let userId;
@@ -23,7 +18,7 @@ describe('Acceptance | Controller | session-controller-enroll-students-to-sessio
       userId = databaseBuilder.factory.buildUser().id;
       options = {
         method: 'POST',
-        url: '/api/sessions/1/enroll-students-to-session',
+        url: '/api/sessions/1/enrol-students-to-session',
         headers: { authorization: generateValidRequestAuthorizationHeader(userId) },
       };
       return databaseBuilder.commit();
@@ -33,7 +28,7 @@ describe('Acceptance | Controller | session-controller-enroll-students-to-sessio
       beforeEach(function () {
         options = {
           method: 'PUT',
-          url: '/api/sessions/1/enroll-students-to-session',
+          url: '/api/sessions/1/enrol-students-to-session',
           headers: { authorization: 'invalid.access.token' },
         };
       });
@@ -51,7 +46,7 @@ describe('Acceptance | Controller | session-controller-enroll-students-to-sessio
       beforeEach(function () {
         options = {
           method: 'PUT',
-          url: '/api/sessions/2.1/enroll-students-to-session',
+          url: '/api/sessions/2.1/enrol-students-to-session',
           headers: { authorization: generateValidRequestAuthorizationHeader(userId) },
         };
       });
@@ -111,7 +106,7 @@ describe('Acceptance | Controller | session-controller-enroll-students-to-sessio
         };
         options = {
           method: 'PUT',
-          url: `/api/sessions/${sessionId}/enroll-students-to-session`,
+          url: `/api/sessions/${sessionId}/enrol-students-to-session`,
           headers: { authorization: generateValidRequestAuthorizationHeader(userId) },
           payload,
         };
@@ -127,7 +122,7 @@ describe('Acceptance | Controller | session-controller-enroll-students-to-sessio
           data: [
             {
               attributes: {
-                'billing-mode': '',
+                'billing-mode': null,
                 'prepayment-code': null,
                 'birth-city': organizationLearner.birthCity,
                 birthdate: organizationLearner.birthdate,
@@ -144,7 +139,7 @@ describe('Acceptance | Controller | session-controller-enroll-students-to-sessio
                 'result-recipient-email': null,
                 'organization-learner-id': organizationLearner.id,
                 sex: 'M',
-                'complementary-certifications': [],
+                'complementary-certification': null,
               },
               id: sinon.match.string,
               type: 'certification-candidates',

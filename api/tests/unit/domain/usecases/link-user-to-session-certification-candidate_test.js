@@ -1,17 +1,17 @@
-const { catchErr, expect, sinon, domainBuilder } = require('../../../test-helper');
-const {
-  linkUserToSessionCertificationCandidate,
-} = require('../../../../lib/domain/usecases/link-user-to-session-certification-candidate');
-const {
-  CertificationCandidateAlreadyLinkedToUserError,
+import { catchErr, expect, sinon, domainBuilder } from '../../../test-helper.js';
+import { linkUserToSessionCertificationCandidate } from '../../../../lib/domain/usecases/link-user-to-session-certification-candidate.js';
+
+import {
   CertificationCandidateByPersonalInfoNotFoundError,
   MatchingReconciledStudentNotFoundError,
   CertificationCandidateByPersonalInfoTooManyMatchesError,
   UserAlreadyLinkedToCandidateInSessionError,
   SessionNotAccessible,
-} = require('../../../../lib/domain/errors');
-const UserLinkedToCertificationCandidate = require('../../../../lib/domain/events/UserLinkedToCertificationCandidate');
-const UserAlreadyLinkedToCertificationCandidate = require('../../../../lib/domain/events/UserAlreadyLinkedToCertificationCandidate');
+  UnexpectedUserAccountError,
+} from '../../../../lib/domain/errors.js';
+
+import { UserLinkedToCertificationCandidate } from '../../../../lib/domain/events/UserLinkedToCertificationCandidate.js';
+import { UserAlreadyLinkedToCertificationCandidate } from '../../../../lib/domain/events/UserAlreadyLinkedToCertificationCandidate.js';
 
 describe('Unit | Domain | Use Cases | link-user-to-session-certification-candidate', function () {
   const sessionId = 42;
@@ -112,7 +112,7 @@ describe('Unit | Domain | Use Cases | link-user-to-session-certification-candida
             // then
             expect(err).to.be.instanceOf(CertificationCandidateByPersonalInfoTooManyMatchesError);
           });
-        }
+        },
       );
     });
 
@@ -192,7 +192,7 @@ describe('Unit | Domain | Use Cases | link-user-to-session-certification-candida
               });
 
               // then
-              expect(err).to.be.instanceOf(CertificationCandidateAlreadyLinkedToUserError);
+              expect(err).to.be.instanceOf(UnexpectedUserAccountError);
             });
           });
         });
@@ -287,7 +287,7 @@ describe('Unit | Domain | Use Cases | link-user-to-session-certification-candida
             });
           });
         });
-      }
+      },
     );
 
     context('when the organization behind this session is of type SCO', function () {
@@ -431,7 +431,7 @@ describe('Unit | Domain | Use Cases | link-user-to-session-certification-candida
                 userId,
               });
               expect(
-                organizationLearnerRepository.isOrganizationLearnerIdLinkedToUserAndSCOOrganization
+                organizationLearnerRepository.isOrganizationLearnerIdLinkedToUserAndSCOOrganization,
               ).to.have.been.calledWith({ userId, organizationLearnerId: organizationLearner.id });
               expect(event).to.be.instanceOf(UserLinkedToCertificationCandidate);
             });
@@ -507,7 +507,7 @@ describe('Unit | Domain | Use Cases | link-user-to-session-certification-candida
 
               // then
               expect(
-                organizationLearnerRepository.isOrganizationLearnerIdLinkedToUserAndSCOOrganization
+                organizationLearnerRepository.isOrganizationLearnerIdLinkedToUserAndSCOOrganization,
               ).to.have.been.calledWith({ userId, organizationLearnerId: organizationLearner.id });
               expect(error).to.be.an.instanceof(UserAlreadyLinkedToCandidateInSessionError);
             });

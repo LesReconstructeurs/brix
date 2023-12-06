@@ -1,13 +1,13 @@
-import { Factory, trait } from 'ember-cli-mirage';
-import faker from 'faker';
+import { Factory, trait } from 'miragejs';
+import { faker } from '@faker-js/faker';
 
 export default Factory.extend({
   name() {
-    return faker.company.companyName();
+    return faker.company.name();
   },
 
   code() {
-    return 'ABCDEF' + faker.random.number({ min: 100, max: 999 });
+    return 'ABCDEF' + faker.number.int({ min: 100, max: 999 });
   },
 
   createdAt() {

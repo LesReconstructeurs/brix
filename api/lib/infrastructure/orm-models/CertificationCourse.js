@@ -1,14 +1,14 @@
-const Bookshelf = require('../bookshelf');
+import { Bookshelf } from '../bookshelf.js';
 
-require('./Assessment');
-require('./CertificationChallenge');
-require('./CertificationIssueReport');
-require('./ComplementaryCertificationCourse');
-require('./Session');
+import './Assessment.js';
+import './CertificationChallenge.js';
+import './CertificationIssueReport.js';
+import './ComplementaryCertificationCourse.js';
+import './Session.js';
 
 const modelName = 'CertificationCourse';
 
-module.exports = Bookshelf.model(
+const BookshelfCertificationCourse = Bookshelf.model(
   modelName,
   {
     tableName: 'certification-courses',
@@ -44,5 +44,7 @@ module.exports = Bookshelf.model(
   },
   {
     modelName,
-  }
+  },
 );
+
+export { BookshelfCertificationCourse };

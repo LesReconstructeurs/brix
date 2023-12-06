@@ -1,13 +1,14 @@
-const AnswerStatus = require('../../../../lib/domain/models/AnswerStatus');
-const solutionServiceQcm = require('../../../../lib/domain/services/solution-service-qcm');
-const Validation = require('../../../../lib/domain/models/Validation');
-const ValidatorQCM = require('../../../../lib/domain/models/ValidatorQCM');
-
-const { expect, domainBuilder, sinon } = require('../../../test-helper');
+import { AnswerStatus } from '../../../../lib/domain/models/AnswerStatus.js';
+import { Validation } from '../../../../lib/domain/models/Validation.js';
+import { ValidatorQCM } from '../../../../lib/domain/models/ValidatorQCM.js';
+import { expect, domainBuilder, sinon } from '../../../test-helper.js';
 
 describe('Unit | Domain | Models | ValidatorQCM', function () {
+  let solutionServiceQcmStub;
   beforeEach(function () {
-    sinon.stub(solutionServiceQcm, 'match');
+    solutionServiceQcmStub = {
+      match: sinon.stub(),
+    };
   });
 
   describe('#assess', function () {
@@ -18,11 +19,14 @@ describe('Unit | Domain | Models | ValidatorQCM', function () {
 
     beforeEach(function () {
       // given
-      solutionServiceQcm.match.returns(AnswerStatus.OK);
+      solutionServiceQcmStub.match.returns(AnswerStatus.OK);
       solution = domainBuilder.buildSolution({ type: 'QCM' });
 
       uncorrectedAnswer = domainBuilder.buildAnswer.uncorrected();
-      validator = new ValidatorQCM({ solution: solution });
+      validator = new ValidatorQCM({
+        solution: solution,
+        dependencies: { solutionServiceQCM: solutionServiceQcmStub },
+      });
 
       // when
       validation = validator.assess({ answer: uncorrectedAnswer });
@@ -30,7 +34,7 @@ describe('Unit | Domain | Models | ValidatorQCM', function () {
 
     it('should call solutionServiceQCU', function () {
       // then
-      expect(solutionServiceQcm.match).to.have.been.calledWith(uncorrectedAnswer.value, solution.value);
+      expect(solutionServiceQcmStub.match).to.have.been.calledWith(uncorrectedAnswer.value, solution.value);
     });
     it('should return a validation object with the returned status', function () {
       const expectedValidation = domainBuilder.buildValidation({

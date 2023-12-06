@@ -2,9 +2,16 @@ import { module, test } from 'qunit';
 import EmberObject from '@ember/object';
 import { setupTest } from 'ember-qunit';
 import createGlimmerComponent from 'mon-pix/tests/helpers/create-glimmer-component';
+import ENV from 'mon-pix/config/environment';
 
 module('Unit | Component | Challenge item QROC', function (hooks) {
   setupTest(hooks);
+
+  const originalEmbedAllowedOrigins = ENV.APP.EMBED_ALLOWED_ORIGINS;
+
+  hooks.afterEach(function () {
+    ENV.APP.EMBED_ALLOWED_ORIGINS = originalEmbedAllowedOrigins;
+  });
 
   let component;
   module('#_receiveEmbedMessage', function (hooks) {
@@ -14,8 +21,12 @@ module('Unit | Component | Challenge item QROC', function (hooks) {
         id: 'rec_123',
       });
 
-      component = createGlimmerComponent('component:challenge-item-qroc', { challenge });
-      component.embedOrigins = ['https://epreuves.pix.fr', 'https://1024pix.github.io', 'https://*.review.pix.fr'];
+      component = createGlimmerComponent('challenge-item-qroc', { challenge });
+      ENV.APP.EMBED_ALLOWED_ORIGINS = [
+        'https://epreuves.pix.fr',
+        'https://1024pix.github.io',
+        'https://*.review.pix.fr',
+      ];
     });
 
     module('when the event message is from Pix', function () {

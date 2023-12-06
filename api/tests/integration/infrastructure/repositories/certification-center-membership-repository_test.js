@@ -1,19 +1,17 @@
-const pick = require('lodash/pick');
-const omit = require('lodash/omit');
+import lodash from 'lodash';
+const { omit, pick } = lodash;
 
-const { expect, knex, databaseBuilder, catchErr, sinon, domainBuilder } = require('../../../test-helper');
-
-const BookshelfCertificationCenterMembership = require('../../../../lib/infrastructure/orm-models/CertificationCenterMembership');
-const CertificationCenter = require('../../../../lib/domain/models/CertificationCenter');
-const CertificationCenterMembership = require('../../../../lib/domain/models/CertificationCenterMembership');
-const User = require('../../../../lib/domain/models/User');
-
-const {
+import { expect, knex, databaseBuilder, catchErr, sinon, domainBuilder } from '../../../test-helper.js';
+import { BookshelfCertificationCenterMembership } from '../../../../lib/infrastructure/orm-models/CertificationCenterMembership.js';
+import { CertificationCenter } from '../../../../lib/domain/models/CertificationCenter.js';
+import { CertificationCenterMembership } from '../../../../lib/domain/models/CertificationCenterMembership.js';
+import { User } from '../../../../lib/domain/models/User.js';
+import {
   CertificationCenterMembershipDisableError,
   AlreadyExistingMembershipError,
-} = require('../../../../lib/domain/errors');
+} from '../../../../lib/domain/errors.js';
 
-const certificationCenterMembershipRepository = require('../../../../lib/infrastructure/repositories/certification-center-membership-repository');
+import * as certificationCenterMembershipRepository from '../../../../lib/infrastructure/repositories/certification-center-membership-repository.js';
 
 describe('Integration | Repository | Certification Center Membership', function () {
   describe('#save', function () {
@@ -39,7 +37,7 @@ describe('Integration | Repository | Certification Center Membership', function 
       // then
       const countCertificationCenterMembershipsAfterCreate = await BookshelfCertificationCenterMembership.count();
       expect(countCertificationCenterMembershipsAfterCreate).to.equal(
-        countCertificationCenterMembershipsBeforeCreate + 1
+        countCertificationCenterMembershipsBeforeCreate + 1,
       );
     });
 
@@ -67,7 +65,7 @@ describe('Integration | Repository | Certification Center Membership', function 
         // then
         const countCertificationCenterMembershipsAfterCreate = await BookshelfCertificationCenterMembership.count();
         expect(countCertificationCenterMembershipsAfterCreate).to.equal(
-          countCertificationCenterMembershipsBeforeCreate + 1
+          countCertificationCenterMembershipsBeforeCreate + 1,
         );
       });
     });
@@ -437,7 +435,7 @@ describe('Integration | Repository | Certification Center Membership', function 
     context('when there is a referer', function () {
       it('should return the referer certification center membership', async function () {
         // given
-        const user = databaseBuilder.factory.buildUser();
+        const user = databaseBuilder.factory.buildUser({ locale: 'fr-FR' });
         const certificationCenterId = databaseBuilder.factory.buildCertificationCenter().id;
         const refererCertificationCenterMembership = databaseBuilder.factory.buildCertificationCenterMembership({
           userId: user.id,
@@ -472,6 +470,7 @@ describe('Integration | Repository | Certification Center Membership', function 
           'hasSeenOtherChallengesTooltip',
           'mustValidateTermsOfService',
           'lang',
+          'locale',
           'isAnonymous',
           'memberships',
           'certificationCenterMemberships',

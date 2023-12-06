@@ -1,15 +1,9 @@
-const { expect, knex } = require('../../../test-helper');
-const JobQueue = require('../../../../lib/infrastructure/jobs/JobQueue');
-const Job = require('../../../../lib/infrastructure/jobs/JobPgBoss');
-const PgBoss = require('pg-boss');
+import { expect, knex } from '../../../test-helper.js';
+import { JobQueue } from '../../../../lib/infrastructure/jobs/JobQueue.js';
+import { JobPgBoss as Job } from '../../../../lib/infrastructure/jobs/JobPgBoss.js';
+import PgBoss from 'pg-boss';
 
 describe('Integration | Infrastructure | Jobs | JobQueue', function () {
-  let dependenciesBuilder;
-
-  beforeEach(function () {
-    dependenciesBuilder = { build: (handler) => handler };
-  });
-
   it('executes job when a job is added to the queue', async function () {
     const name = 'JobTest';
     const expectedParams = { jobParam: 1 };
@@ -18,18 +12,18 @@ describe('Integration | Infrastructure | Jobs | JobQueue', function () {
     const pgBoss = new PgBoss(process.env.TEST_DATABASE_URL);
     await pgBoss.start();
 
-    const jobQueue = new JobQueue(pgBoss, dependenciesBuilder);
+    const jobQueue = new JobQueue(pgBoss);
 
     const promise = new Promise((resolve, reject) => {
-      const handler = {
-        handle: (params) => {
+      const handler = class {
+        handle(params) {
           try {
             expect(params).to.deep.equal(expectedParams);
           } catch (err) {
             reject(err);
           }
           resolve();
-        },
+        }
       };
 
       jobQueue.performJob(name, handler);

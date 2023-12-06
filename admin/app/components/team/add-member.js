@@ -1,7 +1,7 @@
 import Component from '@glimmer/component';
 import { action } from '@ember/object';
 import { tracked } from '@glimmer/tracking';
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 import isEmailValid from '../../utils/email-validator';
 
 export default class AddMember extends Component {
@@ -39,7 +39,7 @@ export default class AddMember extends Component {
       this.email = '';
       this.role = 'SUPER_ADMIN';
       this.notifications.success(
-        `L'agent ${adminMember.firstName} ${adminMember.lastName} a dorénavant accès à Pix Admin`
+        `L'agent ${adminMember.firstName} ${adminMember.lastName} a dorénavant accès à Pix Admin`,
       );
     } catch (errorResponse) {
       this.store.deleteRecord(adminMember);

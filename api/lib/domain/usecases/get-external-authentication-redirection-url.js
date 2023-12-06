@@ -1,13 +1,14 @@
-const AuthenticationMethod = require('../models/AuthenticationMethod');
+import { AuthenticationMethod } from '../models/AuthenticationMethod.js';
+import { NON_OIDC_IDENTITY_PROVIDERS } from '../constants/identity-providers.js';
 
-module.exports = async function getExternalAuthenticationRedirectionUrl({
+const getExternalAuthenticationRedirectionUrl = async function ({
   userAttributes,
   userRepository,
   authenticationMethodRepository,
   tokenService,
-  settings,
+  config,
 }) {
-  const { attributeMapping } = settings.saml;
+  const { attributeMapping } = config.saml;
   const externalUser = {
     firstName: userAttributes[attributeMapping.firstName],
     lastName: userAttributes[attributeMapping.lastName],
@@ -29,6 +30,8 @@ module.exports = async function getExternalAuthenticationRedirectionUrl({
   return _getUrlForReconciliationPage({ tokenService, externalUser });
 };
 
+export { getExternalAuthenticationRedirectionUrl };
+
 async function _getUrlWithAccessToken({
   user,
   externalUser,
@@ -45,7 +48,7 @@ async function _getUrlWithAccessToken({
 async function _saveUserFirstAndLastName({ authenticationMethodRepository, user, externalUser }) {
   const authenticationMethod = await authenticationMethodRepository.findOneByUserIdAndIdentityProvider({
     userId: user.id,
-    identityProvider: AuthenticationMethod.identityProviders.GAR,
+    identityProvider: NON_OIDC_IDENTITY_PROVIDERS.GAR.code,
   });
 
   if (

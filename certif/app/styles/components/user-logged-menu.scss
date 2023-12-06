@@ -1,29 +1,42 @@
 .logged-user-summary {
-  letter-spacing: 0.0313rem;
-  text-align: right;
+  display: flex;
+  align-items: center;
+  height: 100%;
+  padding: 0 30px;
+  color: $pix-neutral-60;
+  background-color: transparent;
+  border-width: 0;
+  border-left: 1px solid $pix-neutral-20;
+  cursor: pointer;
 
-  &__link {
-    color: $pix-neutral-60;
-    cursor: pointer;
-    display: flex;
+  &:hover,
+  &:active,
+  &:focus {
+    color: $pix-neutral-70;
     text-decoration: none;
-
-    &:hover,
-    &:active,
-    &:focus {
-      color: $pix-neutral-70;
-    }
   }
 
-  &__name {
+  &:focus {
+    border-radius: $pix-spacing-xxs;
+    outline: none;
+    box-shadow: inset 0 0 0 1.6px $pix-primary;
+  }
+
+  &__text {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 100%;
+    padding-right: $pix-spacing-xs;
+    font-weight: 700;
     font-size: 0.875rem;
-    font-weight: bold;
-    height: 19px;
-    text-transform: capitalize;
+    line-height: 1.1rem;
+    letter-spacing: .0313rem;
+    text-align: right;
   }
 
-  &__certification-center {
-    height: 18px;
+  &__text > *:last-child {
+    font-weight: normal;
   }
 
   &__chevron {
@@ -31,20 +44,20 @@
     margin-left: 18px;
     vertical-align: middle;
 
-    &-up {
+    &--up {
       color: $pix-primary;
     }
   }
 }
 
 .logged-user-menu {
+  top: 60px;
   right: 0;
-  margin-right: 10px;
-  top: 50px;
   min-width: 400px;
+  max-height: 600px;
+  overflow: scroll;
 
   &-item {
-    color: $pix-neutral-60;
     text-decoration: none;
 
     &:hover,
@@ -65,12 +78,8 @@
     &__certification-center-name {
       margin-right: 3px;
       overflow: hidden;
-      text-overflow: ellipsis;
       white-space: nowrap;
-    }
-
-    &__certification-center-externalId {
-      flex: 0;
+      text-overflow: ellipsis;
     }
   }
 }

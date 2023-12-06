@@ -1,48 +1,15 @@
-<PixFilterBanner
-  @title={{t "pages.sup-organization-participants.filter.title"}}
-  class="participant-filter-banner hide-on-mobile"
-  aria-label={{t "pages.sup-organization-participants.filter.aria-label"}}
-  @details={{t "pages.sup-organization-participants.filter.students-count" count=@students.meta.rowCount}}
-  @clearFiltersLabel={{t "pages.sup-organization-participants.filter.actions.clear"}}
-  @onClearFilters={{@onResetFilter}}
->
-  <Ui::SearchInputFilter
-    @field="studentNumber"
-    @value={{@studentNumberFilter}}
-    @placeholder={{t "pages.sup-organization-participants.filter.student-number.label"}}
-    @ariaLabel={{t "pages.sup-organization-participants.filter.student-number.aria-label"}}
-    @triggerFiltering={{@onFilter}}
-  />
-  <Ui::SearchInputFilter
-    @field="search"
-    @value={{@searchFilter}}
-    @placeholder={{t "pages.sup-organization-participants.filter.search.label"}}
-    @ariaLabel={{t "pages.sup-organization-participants.filter.search.aria-label"}}
-    @triggerFiltering={{@onFilter}}
-  />
-  <Ui::MultiSelectFilter
-    @field="groups"
-    @title={{t "pages.sup-organization-participants.table.column.group"}}
-    @onSelect={{@onFilter}}
-    @selectedOption={{@groupsFilter}}
-    @isLoading={{this.isLoadingGroups}}
-    @options={{this.groups}}
-    @placeholder={{t "pages.sup-organization-participants.filter.group.label"}}
-    @ariaLabel={{t "pages.sup-organization-participants.filter.group.aria-label"}}
-    @emptyMessage={{t "pages.sup-organization-participants.filter.group.empty"}}
-  />
+<SupOrganizationParticipant::SupLearnerFilters
+  @studentsCount={{@students.meta.rowCount}}
+  @onFilter={{@onFilter}}
+  @searchFilter={{@searchFilter}}
+  @studentNumberFilter={{@studentNumberFilter}}
+  @certificabilityFilter={{@certificabilityFilter}}
+  @groupsFilter={{@groupsFilter}}
+  @onResetFilter={{@onResetFilter}}
+  @groupsOptions={{this.groups}}
+  @isLoadingGroups={{this.isLoadingGroups}}
+/>
 
-  <Ui::MultiSelectFilter
-    @field="certificability"
-    @title={{t "pages.sup-organization-participants.filter.certificability.label"}}
-    @onSelect={{@onFilter}}
-    @selectedOption={{@certificabilityFilter}}
-    @options={{this.certificabilityOptions}}
-    @placeholder={{t "pages.sup-organization-participants.filter.certificability.label"}}
-    @ariaLabel={{t "pages.sup-organization-participants.filter.certificability.aria-label"}}
-    @emptyMessage=""
-  />
-</PixFilterBanner>
 <div class="panel">
   <table class="table content-text content-text--small">
     <caption class="screen-reader-only">{{t "pages.sup-organization-participants.table.description"}}</caption>
@@ -51,15 +18,37 @@
         <Table::Header @size="wide">
           {{t "pages.sup-organization-participants.table.column.student-number"}}
         </Table::Header>
-        <Table::Header @size="wide">{{t "pages.sup-organization-participants.table.column.last-name"}}</Table::Header>
+        <Table::HeaderSort
+          @display="left"
+          @size="medium"
+          @onSort={{@sortByLastname}}
+          @order={{@lastnameSort}}
+          @ariaLabelDefaultSort={{t "pages.organization-participants.table.column.last-name.ariaLabelDefaultSort"}}
+          @ariaLabelSortUp={{t "pages.organization-participants.table.column.last-name.ariaLabelSortUp"}}
+          @ariaLabelSortDown={{t "pages.organization-participants.table.column.last-name.ariaLabelSortDown"}}
+        >
+          {{t "pages.organization-participants.table.column.last-name.label"}}
+        </Table::HeaderSort>
         <Table::Header @size="wide">{{t "pages.sup-organization-participants.table.column.first-name"}}</Table::Header>
-        <Table::Header @size="medium" @align="center">
+        <Table::Header @size="medium">
           {{t "pages.sup-organization-participants.table.column.date-of-birth"}}
         </Table::Header>
         <Table::Header @size="wide">{{t "pages.sup-organization-participants.table.column.group"}}</Table::Header>
-        <Table::Header @size="medium" @align="right">
-          {{t "pages.sup-organization-participants.table.column.participation-count"}}
-        </Table::Header>
+        <Table::HeaderSort
+          @size="medium"
+          @align="center"
+          @onSort={{@sortByParticipationCount}}
+          @order={{@participationCountOrder}}
+          @ariaLabelDefaultSort={{t
+            "pages.sup-organization-participants.table.column.participation-count.ariaLabelDefaultSort"
+          }}
+          @ariaLabelSortUp={{t "pages.sup-organization-participants.table.column.participation-count.ariaLabelSortUp"}}
+          @ariaLabelSortDown={{t
+            "pages.sup-organization-participants.table.column.participation-count.ariaLabelSortDown"
+          }}
+        >
+          {{t "pages.sup-organization-participants.table.column.participation-count.label"}}
+        </Table::HeaderSort>
         <Table::Header @size="medium" @align="center">
           {{t "pages.sup-organization-participants.table.column.last-participation-date"}}
         </Table::Header>
@@ -72,7 +61,9 @@
             />
           </div>
         </Table::Header>
-        <Table::Header @size="medium" class="hide-on-mobile" />
+        <Table::Header class="hide-on-mobile organization-participant-list-page__actions-header">
+          {{t "common.actions.global"}}
+        </Table::Header>
       </tr>
     </thead>
 
@@ -94,10 +85,10 @@
               </LinkTo>
             </td>
             <td class="ellipsis">{{student.firstName}}</td>
-            <td class="table__column--center">{{dayjs-format student.birthdate "DD/MM/YYYY"}}</td>
+            <td>{{dayjs-format student.birthdate "DD/MM/YYYY"}}</td>
             <td class="ellipsis">{{student.group}}</td>
-            <td class="table__column--right">{{student.participationCount}}</td>
-            <td class="table__column--center">
+            <td class="table__column--center">{{student.participationCount}}</td>
+            <td>
               {{#if student.lastParticipationDate}}
                 <div class="organization-participant-list-page__last-participation">
                   <span>{{dayjs-format student.lastParticipationDate "DD/MM/YYYY" allow-empty=true}}</span>

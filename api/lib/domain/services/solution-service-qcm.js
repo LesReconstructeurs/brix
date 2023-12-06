@@ -1,12 +1,11 @@
-const _ = require('../../infrastructure/utils/lodash-utils');
+import { _ } from '../../infrastructure/utils/lodash-utils.js';
+import { AnswerStatus } from '../models/AnswerStatus.js';
 
-const AnswerStatus = require('../models/AnswerStatus');
-
-module.exports = {
-  match(answer, solution) {
-    if (_.areCSVequivalent(answer, solution)) {
-      return AnswerStatus.OK;
-    }
-    return AnswerStatus.KO;
-  },
+const match = function (answer, solution) {
+  if (_.areCSVequivalent(answer, solution)) {
+    return AnswerStatus.OK;
+  }
+  return AnswerStatus.KO;
 };
+
+export { match };

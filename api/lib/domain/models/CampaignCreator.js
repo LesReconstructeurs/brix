@@ -1,6 +1,6 @@
-const CampaignForCreation = require('./CampaignForCreation');
-const CampaignTypes = require('./CampaignTypes');
-const { UserNotAuthorizedToCreateCampaignError } = require('../errors');
+import { CampaignForCreation } from './CampaignForCreation.js';
+import { CampaignTypes } from './CampaignTypes.js';
+import { UserNotAuthorizedToCreateCampaignError } from '../errors.js';
 
 class CampaignCreator {
   constructor(availableTargetProfileIds) {
@@ -21,9 +21,9 @@ class CampaignCreator {
 function _checkAssessmentCampaignCreationAllowed(targetProfileId, availableTargetProfileIds) {
   if (targetProfileId && !availableTargetProfileIds.includes(targetProfileId)) {
     throw new UserNotAuthorizedToCreateCampaignError(
-      `Organization does not have an access to the profile ${targetProfileId}`
+      `Organization does not have an access to the profile ${targetProfileId}`,
     );
   }
 }
 
-module.exports = CampaignCreator;
+export { CampaignCreator };

@@ -1,13 +1,13 @@
-const organizationInvitationService = require('../services/organization-invitation-service');
-const { OrganizationArchivedError } = require('../errors');
+import { OrganizationArchivedError } from '../errors.js';
 
-module.exports = async function createOrganizationInvitationByAdmin({
+const createOrganizationInvitationByAdmin = async function ({
   organizationId,
   email,
   locale,
   role,
   organizationRepository,
   organizationInvitationRepository,
+  organizationInvitationService,
 }) {
   const organization = await organizationRepository.get(organizationId);
 
@@ -24,3 +24,5 @@ module.exports = async function createOrganizationInvitationByAdmin({
     organizationRepository,
   });
 };
+
+export { createOrganizationInvitationByAdmin };

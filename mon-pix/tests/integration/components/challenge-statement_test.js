@@ -1,8 +1,10 @@
 import { module, test } from 'qunit';
 import setupIntlRenderingTest from '../../helpers/setup-intl-rendering';
 import Service from '@ember/service';
-import { click, find, findAll, render } from '@ember/test-helpers';
-import hbs from 'htmlbars-inline-precompile';
+// eslint-disable-next-line no-restricted-imports
+import { click, find, findAll } from '@ember/test-helpers';
+import { render } from '@1024pix/ember-testing-library';
+import { hbs } from 'ember-cli-htmlbars';
 
 module('Integration | Component | ChallengeStatement', function (hooks) {
   setupIntlRenderingTest(hooks);
@@ -51,9 +53,7 @@ module('Integration | Component | ChallengeStatement', function (hooks) {
       await renderChallengeStatement(this);
 
       // then
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(find('.challenge-statement-instruction__text').textContent.trim(), 'La consigne de mon test');
+      assert.strictEqual(find('.challenge-statement-instruction__text').textContent.trim(), 'La consigne de mon test');
     });
 
     test('should render a tag for focused challenge with tooltip', async function (assert) {
@@ -100,7 +100,7 @@ module('Integration | Component | ChallengeStatement', function (hooks) {
       assert.dom('.challenge-statement-instruction__text').doesNotExist();
     });
 
-    test('should add title "destination (nouvelle fenêtre)" to external links', async function (assert) {
+    test('should add title "destination (Ouverture d\'une nouvelle fenêtre)" to external links', async function (assert) {
       // given
       addAssessmentToContext(this, { id: '267845' });
       addChallengeToContext(this, {
@@ -109,11 +109,17 @@ module('Integration | Component | ChallengeStatement', function (hooks) {
       });
 
       // when
-      await renderChallengeStatement(this);
+      const screen = await render(
+        hbs`<ChallengeStatement @challenge={{this.challenge}} @assessment={{this.assessment}}/>`,
+      );
 
       // then
-      assert.dom('.challenge-statement-instruction__text a[title="lien 1 (nouvelle fenêtre)"]').exists();
-      assert.dom('.challenge-statement-instruction__text a[title="lien 2 (nouvelle fenêtre)"]').exists();
+      assert
+        .dom(screen.getByRole('link', { name: `lien 1 (${this.intl.t('navigation.external-link-title')})` }))
+        .exists();
+      assert
+        .dom(screen.getByRole('link', { name: `lien 2 (${this.intl.t('navigation.external-link-title')})` }))
+        .exists();
     });
 
     test('should display a specific style', async function (assert) {
@@ -167,8 +173,8 @@ module('Integration | Component | ChallengeStatement', function (hooks) {
       // then
       assert.ok(
         find('.challenge-statement__instruction-section > .sr-only').textContent.includes(
-          this.intl.t('pages.challenge.statement.sr-only.embed')
-        )
+          this.intl.t('pages.challenge.statement.sr-only.embed'),
+        ),
       );
     });
 
@@ -187,8 +193,8 @@ module('Integration | Component | ChallengeStatement', function (hooks) {
       // then
       assert.ok(
         find('.challenge-statement__instruction-section > .sr-only').textContent.includes(
-          this.intl.t('pages.challenge.statement.sr-only.alternative-instruction')
-        )
+          this.intl.t('pages.challenge.statement.sr-only.alternative-instruction'),
+        ),
       );
     });
   });
@@ -276,7 +282,7 @@ module('Integration | Component | ChallengeStatement', function (hooks) {
     test('should display challenge illustration (and alt) if it exists', async function (assert) {
       // given
       const challenge = {
-        illustrationUrl: '/images/brix-logo.svg',
+        illustrationUrl: '/images/pix-logo.svg',
         illustrationAlt: 'texte alternatif',
         id: 'rec_challenge',
       };
@@ -288,9 +294,7 @@ module('Integration | Component | ChallengeStatement', function (hooks) {
 
       // then
       assert.ok(find('.challenge-illustration__loaded-image').src.includes(challenge.illustrationUrl));
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(find('.challenge-illustration__loaded-image').alt, challenge.illustrationAlt);
+      assert.strictEqual(find('.challenge-illustration__loaded-image').alt, challenge.illustrationAlt);
     });
 
     test('should not display challenge illustration if it does not exist', async function (assert) {
@@ -346,9 +350,7 @@ module('Integration | Component | ChallengeStatement', function (hooks) {
 
         // then
         assert.dom('.challenge-statement__action-link').exists();
-        // TODO: Fix this the next time the file is edited.
-        // eslint-disable-next-line qunit/no-assert-equal
-        assert.equal(find('.challenge-statement__action-link').href, 'http://challenge.file.url/');
+        assert.strictEqual(find('.challenge-statement__action-link').href, 'http://challenge.file.url/');
       });
     });
 
@@ -397,12 +399,8 @@ module('Integration | Component | ChallengeStatement', function (hooks) {
         await renderChallengeStatement(this);
 
         // then
-        // TODO: Fix this the next time the file is edited.
-        // eslint-disable-next-line qunit/no-assert-equal
-        assert.equal(findAll('.challenge-statement__file-option-label')[0].textContent.trim(), 'fichier .docx');
-        // TODO: Fix this the next time the file is edited.
-        // eslint-disable-next-line qunit/no-assert-equal
-        assert.equal(findAll('.challenge-statement__file-option-label')[1].textContent.trim(), 'fichier .odt');
+        assert.strictEqual(findAll('.challenge-statement__file-option-label')[0].textContent.trim(), 'fichier .docx');
+        assert.strictEqual(findAll('.challenge-statement__file-option-label')[1].textContent.trim(), 'fichier .odt');
       });
 
       test('should select first attachment as default selected radio button', async function (assert) {
@@ -440,11 +438,9 @@ module('Integration | Component | ChallengeStatement', function (hooks) {
         await renderChallengeStatement(this);
 
         // then
-        // TODO: Fix this the next time the file is edited.
-        // eslint-disable-next-line qunit/no-assert-equal
-        assert.equal(
+        assert.strictEqual(
           find('span[data-test-id="challenge-statement__text-content"]').textContent.trim(),
-          'Choisissez le type de fichier que vous voulez utiliser'
+          'Choisissez le type de fichier que vous voulez utiliser',
         );
       });
 

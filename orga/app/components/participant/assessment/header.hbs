@@ -1,17 +1,20 @@
 <header class="navigation">
-  <Ui::PreviousPageButton
-    @route="authenticated.campaigns.campaign.activity"
-    @routeId={{@campaign.id}}
-    @backButtonAriaLabel={{t "common.actions.back"}}
-    aria-label={{t "pages.campaign.name"}}
-  >
-    {{@campaign.name}}
-  </Ui::PreviousPageButton>
+  <Ui::Breadcrumb @links={{this.breadcrumbLinks}} />
+</header>
+
+<header class="page__title">
+  <h1 class="page-title">{{@participation.firstName}} {{@participation.lastName}}</h1>
+  <p class="participant__link">
+    <FaIcon @prefix="far" @icon="user" />
+    <Participant::LinkTo @organizationLearnerId={{@participation.organizationLearnerId}}>
+      {{t "common.actions.link-to-participant"}}
+    </Participant::LinkTo>
+  </p>
 </header>
 
 <section class="panel panel--header">
   <header class="panel-header__headline">
-    <h2 class="panel-header-title">{{@participation.firstName}} {{@participation.lastName}}</h2>
+    <h2 class="panel-header-title">{{@campaign.name}}</h2>
   </header>
 
   <div class="panel-header__body">
@@ -29,7 +32,7 @@
       {{#unless @participation.isShared}}
         <Ui::Information>
           <:title>{{t "pages.assessment-individual-results.progression"}}</:title>
-          <:content>{{t "common.percentage" value=@participation.progression}}</:content>
+          <:content>{{t "common.result.percentage" value=@participation.progression}}</:content>
         </Ui::Information>
       {{/unless}}
       {{#if @participation.isShared}}
@@ -50,32 +53,23 @@
             <Campaign::Badges @badges={{@participation.badges}} />
           </li>
         {{/if}}
-        {{#if @campaign.hasStages}}
-          <li
-            aria-label={{t "pages.assessment-individual-results.stages.label"}}
-            class="panel-header-data__content panel-header-data-content__stages"
-          >
-            <Campaign::StageStars
-              @result={{this.valuePercentage}}
-              @stages={{@campaign.stages}}
-              @withTooltip={{true}}
-              @tooltipPosition="bottom-left"
-            />
-          </li>
-        {{else}}
-          <li
-            aria-label={{t "pages.assessment-individual-results.result"}}
-            class="panel-header-data__content panel-header-data-content__progress-bar"
-          >
-            <Ui::ProgressBar @value={{@participation.masteryRate}} />
-          </li>
+        <li
+          aria-label={{t "pages.assessment-individual-results.result"}}
+          class="panel-header-data__content panel-header-data-content__stages"
+        >
+          {{#unless @campaign.hasStages}}
+            <PixProgressGauge @value={{this.percentage}} @color="blue" />
+          {{/unless}}
 
-          <li
-            class="panel-header-data__content value-text value-text--highlight panel-header-data-content__mastery-percentage"
-          >
-            {{t "common.percentage" value=@participation.masteryRate}}
-          </li>
-        {{/if}}
+          <Ui::MasteryPercentageDisplay
+            @masteryRate={{@participation.masteryRate}}
+            @hasStages={{@campaign.hasStages}}
+            @reachedStage={{@participation.reachedStage}}
+            @totalStage={{@participation.totalStage}}
+            @prescriberTitle={{@participation.prescriberTitle}}
+            @prescriberDescription={{@participation.prescriberDescription}}
+          />
+        </li>
       </ul>
     {{/if}}
   </div>

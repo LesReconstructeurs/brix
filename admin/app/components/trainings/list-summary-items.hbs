@@ -1,11 +1,36 @@
 <div class="content-text content-text--small">
   <div class="table-admin">
     <table>
+      <caption class="sr-only">Liste des contenus formatifs</caption>
       <thead>
         <tr>
-          <th class="table__column table__column--id" id="training-id">ID</th>
-          <th id="training-titre">Titre</th>
+          <th class="table__column table__column--id" id="training-id" scope="col">ID</th>
+          <th id="training-titre" scope="col">Titre</th>
+          <th id="training-recommendable" scope="col" class="col-status">Statut</th>
         </tr>
+        {{#if @triggerFiltering}}
+          <tr>
+            <td class="table__column table__column--id">
+              <input
+                type="text"
+                value={{@id}}
+                oninput={{fn @triggerFiltering "id"}}
+                class="table-admin-input"
+                aria-label="Filtrer les contenus formatifs par un id"
+              />
+            </td>
+            <td>
+              <input
+                type="text"
+                value={{@title}}
+                oninput={{fn @triggerFiltering "title"}}
+                class="table-admin-input"
+                aria-label="Filtrer les contenus formatifs par un titre"
+              />
+            </td>
+            <td></td>
+          </tr>
+        {{/if}}
       </thead>
 
       {{#if @summaries}}
@@ -13,7 +38,14 @@
           {{#each @summaries as |summary|}}
             <tr aria-label="Contenu formatif">
               <td headers="training-id" class="table__column table__column--id">{{summary.id}}</td>
-              <td headers="training-title">{{summary.title}}</td>
+              <td headers="training-title">
+                <LinkTo @route="authenticated.trainings.training" @model={{summary.id}}>
+                  {{summary.title}}
+                </LinkTo>
+              </td>
+              <td headers="training-recommendable">
+                {{if summary.isRecommendable "Déclenchable" "Non déclenchable"}}
+              </td>
             </tr>
           {{/each}}
         </tbody>

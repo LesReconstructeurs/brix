@@ -1,6 +1,6 @@
-const _ = require('lodash');
-const CompetenceMark = require('./CompetenceMark');
-const ComplementaryCertificationCourseResult = require('./ComplementaryCertificationCourseResult');
+import _ from 'lodash';
+import { CompetenceMark } from './CompetenceMark.js';
+import { ComplementaryCertificationCourseResult } from './ComplementaryCertificationCourseResult.js';
 
 const status = {
   REJECTED: 'rejected',
@@ -64,12 +64,12 @@ class CertificationResult {
           ...competenceMarkDTO,
           area_code: competenceMarkDTO.area_code.toString(),
           competence_code: competenceMarkDTO.competence_code.toString(),
-        })
+        }),
     );
     const complementaryCertificationCourseResults = _.compact(
-      certificationResultDTO.complementaryCertificationCourseResults
+      certificationResultDTO.complementaryCertificationCourseResults,
     ).map(
-      (complementaryCertifCourseResult) => new ComplementaryCertificationCourseResult(complementaryCertifCourseResult)
+      (complementaryCertifCourseResult) => new ComplementaryCertificationCourseResult(complementaryCertifCourseResult),
     );
 
     return new CertificationResult({
@@ -123,27 +123,9 @@ class CertificationResult {
         _(this.complementaryCertificationCourseResults)
           .orderBy('id')
           .map(({ label }) => label)
-          .value()
+          .value(),
       ),
     ];
-  }
-
-  getUniqComplementaryCertificationCourseResultHeaders() {
-    return this.getUniqComplementaryCertificationCourseResultLabels().map((label) => `Certification ${label}`);
-  }
-
-  getComplementaryCertificationStatus(sessionComplementaryCertificationsLabel) {
-    let status = 'Non passée';
-    if (this.isCancelled()) {
-      return 'Annulée';
-    }
-    const complementaryCertificationCourseResult = this.complementaryCertificationCourseResults.find(
-      ({ label }) => label === sessionComplementaryCertificationsLabel
-    );
-    if (complementaryCertificationCourseResult) {
-      status = complementaryCertificationCourseResult.acquired ? 'Validée' : 'Rejetée';
-    }
-    return status;
   }
 
   _getCertificationCourseResultByPartnerKeys(partnerKeys) {
@@ -153,4 +135,4 @@ class CertificationResult {
 
 CertificationResult.status = status;
 CertificationResult.emitters = emitters;
-module.exports = CertificationResult;
+export { CertificationResult };

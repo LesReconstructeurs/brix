@@ -1,13 +1,13 @@
-const {
+import {
   databaseBuilder,
   expect,
   generateValidRequestAuthorizationHeader,
   knex,
   generateIdTokenForExternalUser,
-} = require('../../../test-helper');
+} from '../../../test-helper.js';
 
-const createServer = require('../../../../server');
-const AuthenticationMethod = require('../../../../lib/domain/models/AuthenticationMethod');
+import { createServer } from '../../../../server.js';
+import { NON_OIDC_IDENTITY_PROVIDERS } from '../../../../lib/domain/constants/identity-providers.js';
 
 describe('Acceptance | Controller | sco-organization-learners', function () {
   let server;
@@ -408,7 +408,7 @@ describe('Acceptance | Controller | sco-organization-learners', function () {
           expect(response.payload).to.contains('access-token');
           const result = await knex('authentication-methods').where({
             userId: user.id,
-            identityProvider: AuthenticationMethod.identityProviders.GAR,
+            identityProvider: NON_OIDC_IDENTITY_PROVIDERS.GAR.code,
           });
           const garAuthenticationMethod = result[0];
           expect(garAuthenticationMethod.externalIdentifier).to.equal(externalUser.samlId);
@@ -455,7 +455,7 @@ describe('Acceptance | Controller | sco-organization-learners', function () {
           expect(response.payload).to.contains('access-token');
           const result = await knex('authentication-methods').where({
             userId: userWithSamlIdOnly.id,
-            identityProvider: AuthenticationMethod.identityProviders.GAR,
+            identityProvider: NON_OIDC_IDENTITY_PROVIDERS.GAR.code,
           });
           const garAuthenticationMethod = result[0];
           expect(garAuthenticationMethod.externalIdentifier).to.equal(externalUser.samlId);
@@ -665,6 +665,64 @@ describe('Acceptance | Controller | sco-organization-learners', function () {
           email: 'jude.law@example.net',
           'latest-organization-name': 'Super Collège Hollywoodien',
         },
+      });
+    });
+  });
+
+  describe('POST /api/sco-organization-learners/password-reset', function () {
+    context('when successfully update organization learners passwords', function () {
+      it('returns an HTTP status code 200 with generated CSV file', async function () {
+        // given
+        const organizationId = databaseBuilder.factory.buildOrganization({ type: 'SCO', isManagingStudents: true }).id;
+
+        const userId = databaseBuilder.factory.buildUser.withRawPassword().id;
+        databaseBuilder.factory.buildMembership({ organizationId, userId });
+
+        const paul = databaseBuilder.factory.buildUser.withRawPassword({ firstName: 'Paul', username: 'paul' });
+        const jacques = databaseBuilder.factory.buildUser.withRawPassword({
+          firstName: 'Jacques',
+          username: 'jacques',
+        });
+
+        const organizationLearnersId = [
+          databaseBuilder.factory.buildOrganizationLearner({
+            organizationId,
+            userId: paul.id,
+            division: '3A',
+          }).id,
+          databaseBuilder.factory.buildOrganizationLearner({
+            organizationId,
+            userId: jacques.id,
+            division: '3A',
+          }).id,
+        ];
+
+        await databaseBuilder.commit();
+
+        // when
+        const { headers, payload, statusCode } = await server.inject({
+          method: 'POST',
+          url: '/api/sco-organization-learners/password-reset',
+          headers: { authorization: generateValidRequestAuthorizationHeader(userId) },
+          payload: {
+            data: {
+              attributes: {
+                'organization-id': organizationId,
+                'organization-learners-id': organizationLearnersId,
+              },
+            },
+          },
+        });
+
+        // then
+        expect(statusCode).to.equal(200);
+        expect(headers['content-type']).to.equal('text/csv;charset=utf-8');
+        expect(headers['content-disposition']).to.contains('_organization_learners_password_reset.csv');
+
+        // eslint-disable-next-line no-unused-vars
+        const [fileHeaders, firstRow, ...unusedRows] = payload.split('\n').map((row) => row.trim());
+        expect(fileHeaders).to.equal('"Classe";"Nom";"Prénom";"Identifiant";"Mot de passe"');
+        expect(firstRow).to.match(/^"3A";/);
       });
     });
   });

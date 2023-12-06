@@ -1,7 +1,7 @@
 import { module, test } from 'qunit';
 import { setupRenderingTest } from 'ember-qunit';
 import { render } from '@1024pix/ember-testing-library';
-import hbs from 'htmlbars-inline-precompile';
+import { hbs } from 'ember-cli-htmlbars';
 import EmberObject from '@ember/object';
 import Service from '@ember/service';
 
@@ -49,7 +49,7 @@ module('Integration | Component | Campaigns | participations-section', function 
 
     // when
     const screen = await render(
-      hbs`<Campaigns::ParticipationsSection @participations={{this.participations}} @idPixLabel={{this.idPixLabel}} />`
+      hbs`<Campaigns::ParticipationsSection @participations={{this.participations}} @idPixLabel={{this.idPixLabel}} />`,
     );
 
     // then

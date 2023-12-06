@@ -1,7 +1,8 @@
 import { action } from '@ember/object';
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 import Controller from '@ember/controller';
 import { tracked } from '@glimmer/tracking';
+
 export default class ListController extends Controller {
   @service currentUser;
   @service notifications;
@@ -18,11 +19,38 @@ export default class ListController extends Controller {
   @tracked certificability = [];
   @tracked pageNumber = null;
   @tracked pageSize = 50;
+  @tracked participationCountOrder = null;
+  @tracked lastnameSort = 'asc';
+  @tracked divisionSort = null;
 
   @action
   goToLearnerPage(learnerId, event) {
     event.preventDefault();
     this.router.transitionTo('authenticated.sco-organization-participants.sco-organization-participant', learnerId);
+  }
+
+  @action
+  sortByParticipationCount(value) {
+    this.participationCountOrder = value;
+    this.divisionSort = null;
+    this.pageNumber = null;
+    this.lastnameSort = null;
+  }
+
+  @action
+  sortByLastname(value) {
+    this.lastnameSort = value;
+    this.divisionSort = null;
+    this.participationCountOrder = null;
+    this.pageNumber = null;
+  }
+
+  @action
+  sortByDivision(value) {
+    this.divisionSort = value;
+    this.participationCountOrder = null;
+    this.lastnameSort = null;
+    this.pageNumber = null;
   }
 
   @action
@@ -73,7 +101,7 @@ export default class ListController extends Controller {
       if (['422', '412', '413'].includes(error.status)) {
         const message = this.errorMessages.getErrorMessage(error.code, error.meta) || error.detail;
         return this.notifications.sendError(
-          this.intl.t('pages.sco-organization-participants.import.error-wrapper', { message, htmlSafe: true })
+          this.intl.t('pages.sco-organization-participants.import.error-wrapper', { message, htmlSafe: true }),
         );
       }
       return this.notifications.sendError(globalErrorMessage, {

@@ -1,4 +1,4 @@
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 import { action } from '@ember/object';
 
 import Route from '@ember/routing/route';
@@ -11,6 +11,9 @@ export default class ListRoute extends Route {
     certificability: { refreshModel: true },
     pageNumber: { refreshModel: true },
     pageSize: { refreshModel: true },
+    participationCountOrder: { refreshModel: true },
+    lastnameSort: { refreshModel: true },
+    divisionSort: { refreshModel: true },
   };
 
   @service currentUser;
@@ -22,8 +25,13 @@ export default class ListRoute extends Route {
         organizationId: this.currentUser.organization.id,
         search: params.search,
         divisions: params.divisions,
-        connexionType: params.connectionTypes,
+        connectionTypes: params.connectionTypes,
         certificability: params.certificability,
+      },
+      sort: {
+        participationCount: params.participationCountOrder,
+        lastnameSort: params.lastnameSort,
+        divisionSort: params.divisionSort,
       },
       page: {
         number: params.pageNumber,
@@ -40,6 +48,9 @@ export default class ListRoute extends Route {
       controller.certificability = [];
       controller.pageNumber = null;
       controller.pageSize = 50;
+      controller.participationCountOrder = null;
+      controller.lastnameSort = 'asc';
+      controller.divisionSort = null;
     }
   }
 

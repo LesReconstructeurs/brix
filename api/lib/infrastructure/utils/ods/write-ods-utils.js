@@ -1,12 +1,17 @@
-const { loadOdsZip } = require('./common-ods-utils');
-const { DOMParser, XMLSerializer } = require('xmldom');
-const _ = require('lodash');
-const AddedCellOption = require('./added-cell-option');
+import { loadOdsZip } from './common-ods-utils.js';
+
+import xmldom from '@xmldom/xmldom';
+
+const { DOMParser, XMLSerializer } = xmldom;
+
+import _ from 'lodash';
+import { AddedCellOption } from './added-cell-option.js';
 
 const CONTENT_XML_IN_ODS = 'content.xml';
 
 class OdsUtilsBuilder {
-  constructor(stringifiedXml) {
+  constructor({ template: stringifiedXml, translate }) {
+    this.translate = translate;
     this.xmlDom = _buildXmlDomFromXmlString(stringifiedXml);
   }
 
@@ -23,6 +28,20 @@ class OdsUtilsBuilder {
     this.xmlDom = intermediateXmlDom;
 
     return this;
+  }
+
+  headersTranslation({ headersValues, translate }) {
+    const intermediateXmlDom = _.cloneDeep(this.xmlDom);
+    for (const propertyName of headersValues) {
+      const targetXmlDomElement = _getXmlDomElementByText(intermediateXmlDom, propertyName);
+      if (targetXmlDomElement) {
+        _translateNoteBackgroundTitle(targetXmlDomElement, translate);
+        const translatedHeader = translate(`candidate-list-template.${propertyName}`);
+        targetXmlDomElement.textContent = translatedHeader;
+      }
+    }
+
+    this.xmlDom = intermediateXmlDom;
   }
 
   withTooltipOnCell({ xmlDom, tooltipName, tooltipTitle, tooltipContentLines }) {
@@ -48,7 +67,7 @@ class OdsUtilsBuilder {
     if (restrictedList?.length) {
       validator.setAttribute(
         'table:condition',
-        `of:cell-content-is-in-list(${restrictedList.map((val) => `"${val}"`).join(';')})`
+        `of:cell-content-is-in-list(${restrictedList.map((val) => `"${val}"`).join(';')})`,
       );
       validator.setAttribute('table:allow-empty-cell', allowEmptyCell);
     }
@@ -76,9 +95,9 @@ class OdsUtilsBuilder {
     return this;
   }
 
-  withColumnGroup({ groupHeaderLabel, columns, startsAt, headerRowSpan, tableHeaderRow, tableFirstRow }) {
+  withColumnGroup({ groupHeaderLabels, columns, startsAt, headerRowSpan, tableHeaderRow, tableFirstRow }) {
     this.withColumnGroupHeader({
-      headerLabel: groupHeaderLabel,
+      headerLabels: groupHeaderLabels,
       numberOfColumns: columns.length,
       lineNumber: startsAt,
       rowspan: headerRowSpan,
@@ -103,7 +122,7 @@ class OdsUtilsBuilder {
       if (element) {
         element.setAttribute(
           'table:number-columns-spanned',
-          parseInt(element.getAttribute('table:number-columns-spanned')) + increment
+          parseInt(element.getAttribute('table:number-columns-spanned')) + increment,
         );
       }
     }
@@ -111,28 +130,18 @@ class OdsUtilsBuilder {
     return this;
   }
 
-  withColumnGroupHeader({ headerLabel, numberOfColumns, lineNumber, rowspan }) {
-    const headerLabelWords = headerLabel.split(' ');
-
-    let addedCellOption = new AddedCellOption({
-      labels: [headerLabel],
+  withColumnGroupHeader({ headerLabels, numberOfColumns, lineNumber, rowspan }) {
+    const translatedLabel = this.translate('candidate-list-template.headers.birthplace');
+    const addedCellOption = new AddedCellOption({
+      labels: headerLabels,
       rowspan,
       colspan: numberOfColumns,
       positionOffset: 2,
     });
 
-    if (numberOfColumns === 1) {
-      addedCellOption = new AddedCellOption({
-        labels: headerLabelWords,
-        rowspan,
-        colspan: numberOfColumns,
-        positionOffset: 2,
-      });
-    }
-
     this._withCellToEndOfLineWithStyleOfCellLabelled({
       lineNumber,
-      cellToCopyLabel: '* Lieu de naissance',
+      cellToCopyLabel: translatedLabel,
       addedCellOption,
     });
 
@@ -181,7 +190,7 @@ class OdsUtilsBuilder {
   _addColumn(column, tableHeaderRow, tableFirstRow) {
     this._withCellToEndOfLineWithStyleOfCellLabelled({
       lineNumber: tableHeaderRow,
-      cellToCopyLabel: 'Temps majoré ?',
+      cellToCopyLabel: this.translate('candidate-list-template.headers.extra-time'),
       addedCellOption: new AddedCellOption({ labels: column.headerLabel }),
     });
 
@@ -195,7 +204,7 @@ class OdsUtilsBuilder {
   updateXmlRows({ rowMarkerPlaceholder, rowTemplateValues, dataToInject }) {
     const { referenceRowElement, rowsContainerElement } = _getRefRowAndContainerDomElements(
       this.xmlDom,
-      rowMarkerPlaceholder
+      rowMarkerPlaceholder,
     );
 
     const cloneRowElement = _deepCloneDomElement(referenceRowElement);
@@ -235,7 +244,7 @@ function updateXmlRows({ stringifiedXml, rowMarkerPlaceholder, rowTemplateValues
 
   const { referenceRowElement, rowsContainerElement } = _getRefRowAndContainerDomElements(
     parsedXmlDom,
-    rowMarkerPlaceholder
+    rowMarkerPlaceholder,
   );
 
   const cloneRowElement = _deepCloneDomElement(referenceRowElement);
@@ -261,7 +270,7 @@ function incrementRowsColumnSpan({ stringifiedXml, startLine, endLine, increment
     if (element) {
       element.setAttribute(
         'table:number-columns-spanned',
-        parseInt(element.getAttribute('table:number-columns-spanned')) + increment
+        parseInt(element.getAttribute('table:number-columns-spanned')) + increment,
       );
     }
   }
@@ -337,7 +346,7 @@ function addValidatorRestrictedList({
   if (restrictedList?.length) {
     validator.setAttribute(
       'table:condition',
-      `of:cell-content-is-in-list(${restrictedList.map((val) => `"${val}"`).join(';')})`
+      `of:cell-content-is-in-list(${restrictedList.map((val) => `"${val}"`).join(';')})`,
     );
     validator.setAttribute('table:allow-empty-cell', allowEmptyCell);
   }
@@ -400,7 +409,7 @@ function _updateXmlElementWithData(xmlElement, dataToInject, templateValues) {
         targetXmlDomElement.parentNode,
         targetXmlDomElement,
         dataToInject[propertyName],
-        validator
+        validator,
       );
     }
   }
@@ -482,7 +491,16 @@ function _updateXmlDomWithData(parsedXmlDom, dataToInject, templateValues) {
   return parsedXmlDomUpdated;
 }
 
-module.exports = {
+function _translateNoteBackgroundTitle(targetXmlDomElement, translate) {
+  if (targetXmlDomElement.parentNode.nodeName === 'table:help-message') {
+    const title = targetXmlDomElement.parentNode.getAttribute('table:title');
+    if (title) {
+      targetXmlDomElement.parentNode.setAttribute('table:title', translate(`candidate-list-template.${title}`));
+    }
+  }
+}
+
+export {
   makeUpdatedOdsByContentXml,
   updateXmlSparseValues,
   updateXmlRows,

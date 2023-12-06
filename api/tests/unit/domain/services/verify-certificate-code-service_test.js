@@ -1,8 +1,7 @@
-const { expect, sinon, catchErr } = require('../../../test-helper');
-const _ = require('lodash');
-const verifyCertificateCodeService = require('../../../../lib/domain/services/verify-certificate-code-service');
-const certifCourseRepository = require('../../../../lib/infrastructure/repositories/certification-course-repository');
-const { CertificateVerificationCodeGenerationTooManyTrials } = require('../../../../lib/domain/errors');
+import { expect, sinon, catchErr } from '../../../test-helper.js';
+import _ from 'lodash';
+import * as verifyCertificateCodeService from '../../../../lib/domain/services/verify-certificate-code-service.js';
+import { CertificateVerificationCodeGenerationTooManyTrials } from '../../../../lib/domain/errors.js';
 
 describe('Unit | Service | VerifyCertificateCode', function () {
   describe('#generateCertificateVerificationCode', function () {
@@ -11,14 +10,18 @@ describe('Unit | Service | VerifyCertificateCode', function () {
     _.times(100, () =>
       it('should return a certification code containing 8 digits/letters except 0, 1 and vowels', async function () {
         // given
-        sinon.stub(certifCourseRepository, 'isVerificationCodeAvailable').resolves(true);
+        const certificationCourseRepositoryStub = {
+          isVerificationCodeAvailable: sinon.stub().resolves(true),
+        };
 
         // when
-        const result = await verifyCertificateCodeService.generateCertificateVerificationCode();
+        const result = await verifyCertificateCodeService.generateCertificateVerificationCode({
+          dependencies: { certificationCourseRepository: certificationCourseRepositoryStub },
+        });
 
         // then
         expect(result).to.match(/^P-[2346789BCDFGHJKMPQRTVWXY]{8}$/);
-      })
+      }),
     );
 
     context('when a code is not available', function () {
@@ -27,16 +30,16 @@ describe('Unit | Service | VerifyCertificateCode', function () {
         let codeIndex = 0;
         const codes = ['P-FXRSTX', 'P-SXCXND'];
         const fakeGenerateCode = () => codes[codeIndex++];
-
-        sinon
-          .stub(certifCourseRepository, 'isVerificationCodeAvailable')
-          .onCall(0)
-          .resolves(false)
-          .onCall(1)
-          .resolves(true);
+        // given
+        const certificationCourseRepositoryStub = {
+          isVerificationCodeAvailable: sinon.stub().onCall(0).resolves(false).onCall(1).resolves(true),
+        };
 
         // when
-        const result = await verifyCertificateCodeService.generateCertificateVerificationCode(fakeGenerateCode);
+        const result = await verifyCertificateCodeService.generateCertificateVerificationCode({
+          generateCode: fakeGenerateCode,
+          dependencies: { certificationCourseRepository: certificationCourseRepositoryStub },
+        });
 
         // then
         expect(result).to.equal('P-SXCXND');
@@ -44,14 +47,18 @@ describe('Unit | Service | VerifyCertificateCode', function () {
 
       it('should throw when trying too many times', async function () {
         // given
-        sinon.stub(certifCourseRepository, 'isVerificationCodeAvailable').resolves(false);
+        const certificationCourseRepositoryStub = {
+          isVerificationCodeAvailable: sinon.stub().resolves(false),
+        };
 
         // when
-        const error = await catchErr(verifyCertificateCodeService.generateCertificateVerificationCode)();
+        const error = await catchErr(verifyCertificateCodeService.generateCertificateVerificationCode)({
+          dependencies: { certificationCourseRepository: certificationCourseRepositoryStub },
+        });
 
         //then
         expect(error).to.be.instanceof(CertificateVerificationCodeGenerationTooManyTrials);
-        expect(certifCourseRepository.isVerificationCodeAvailable).to.have.been.callCount(1000);
+        expect(certificationCourseRepositoryStub.isVerificationCodeAvailable).to.have.been.callCount(1000);
       });
     });
   });

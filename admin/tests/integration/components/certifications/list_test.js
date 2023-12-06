@@ -1,7 +1,7 @@
 import { module, test } from 'qunit';
 import { setupRenderingTest } from 'ember-qunit';
 import { render } from '@1024pix/ember-testing-library';
-import hbs from 'htmlbars-inline-precompile';
+import { hbs } from 'ember-cli-htmlbars';
 
 module('Integration | Component | certifications/list', function (hooks) {
   setupRenderingTest(hooks);
@@ -31,21 +31,21 @@ module('Integration | Component | certifications/list', function (hooks) {
     assert.dom(numberOfCertificationIssueReportsWithRequiredAction).hasText('2');
   });
 
-  test('should display the complementary certifications if any', async function (assert) {
+  test('should display the complementary certification', async function (assert) {
     // given
     const juryCertificationSummaryProcessed = store.createRecord('jury-certification-summary', {
-      complementaryCertificationTakenLabels: ['CléA Numérique', 'Pix+ Droit Maître'],
+      complementaryCertificationTakenLabel: 'Pix+ Droit Maître',
     });
     this.certifications = [juryCertificationSummaryProcessed];
     this.pagination = {};
 
     // when
     const screen = await render(
-      hbs`<Certifications::List @certifications={{this.certifications}} @pagination={{this.pagination}} />`
+      hbs`<Certifications::List @certifications={{this.certifications}} @pagination={{this.pagination}} />`,
     );
 
     // then
-    assert.dom(screen.getByText('CléA Numérique Pix+ Droit Maître', { exact: false })).exists();
+    assert.dom(screen.getByText('Pix+ Droit Maître', { exact: false })).exists();
   });
 
   module('when displayHasSeenEndTestScreenColumn is true', function () {
@@ -63,7 +63,7 @@ module('Integration | Component | certifications/list', function (hooks) {
   @certifications={{this.certifications}}
   @displayHasSeenEndTestScreenColumn={{true}}
   @pagination={{this.pagination}}
-/>`
+/>`,
       );
 
       // then
@@ -86,7 +86,7 @@ module('Integration | Component | certifications/list', function (hooks) {
   @certifications={{this.certifications}}
   @displayHasSeenEndTestScreenColumn={{false}}
   @pagination={{this.pagination}}
-/>`
+/>`,
       );
 
       // then

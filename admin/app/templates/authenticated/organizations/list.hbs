@@ -7,9 +7,9 @@
         @route="authenticated.organizations.new"
         @backgroundColor="transparent-light"
         @isBorderVisible={{true}}
-        class="pix-button__secondary"
+        @iconBefore="plus"
       >
-        <FaIcon @icon="plus" />Nouvelle organisation
+        Nouvelle organisation
       </PixButton>
     </div>
   {{/if}}
@@ -24,6 +24,7 @@
       @type={{this.type}}
       @externalId={{this.externalId}}
       @triggerFiltering={{this.triggerFiltering}}
+      @showDetachColumn={{false}}
     />
   </section>
 </main>

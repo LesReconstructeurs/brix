@@ -1,5 +1,5 @@
 import Component from '@glimmer/component';
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 import { action } from '@ember/object';
 
 export default class TeamInvitationsListComponent extends Component {
@@ -18,9 +18,9 @@ export default class TeamInvitationsListComponent extends Component {
         adapterOptions: { organizationInvitationId: organizationInvitation.id, organizationId },
       });
 
-      this.notifications.success(this.intl.t('pages.team-invitations.invitation-cancelled-succeed-message'));
+      this.notifications.sendSuccess(this.intl.t('pages.team-invitations.invitation-cancelled-succeed-message'));
     } catch (e) {
-      this.notifications.error(this.intl.t('api-error-messages.global'));
+      this.notifications.sendError(this.intl.t('api-error-messages.global'));
     }
   }
 }

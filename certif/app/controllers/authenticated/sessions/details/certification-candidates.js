@@ -5,10 +5,11 @@ import { alias } from '@ember/object/computed';
 import { computed } from '@ember/object';
 /* eslint-enable ember/no-computed-properties-in-native-classes*/
 import { action } from '@ember/object';
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 
 export default class CertificationCandidatesController extends Controller {
   @service currentUser;
+  @service intl;
 
   @alias('model.session') currentSession;
   @alias('model.certificationCandidates') certificationCandidates;
@@ -16,7 +17,9 @@ export default class CertificationCandidatesController extends Controller {
   @alias('model.countries') countries;
 
   get pageTitle() {
-    return `Candidats | Session ${this.currentSession.id} | Pix Certif`;
+    return `${this.intl.t('pages.sessions.detail.candidates.page-title')} | Session ${
+      this.currentSession.id
+    } | Pix Certif`;
   }
 
   @computed('certificationCandidates', 'certificationCandidates.@each.isLinked')
@@ -41,7 +44,7 @@ export default class CertificationCandidatesController extends Controller {
     await this.reloadCertificationCandidate();
   }
 
-  get shouldDisplayComplementaryCertifications() {
+  get shouldDisplayComplementaryCertificationsHabilitations() {
     return this.currentUser.currentAllowedCertificationCenterAccess.hasHabilitations;
   }
 

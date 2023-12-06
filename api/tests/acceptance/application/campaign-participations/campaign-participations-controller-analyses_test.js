@@ -1,12 +1,13 @@
-const createServer = require('../../../../server');
-const Membership = require('../../../../lib/domain/models/Membership');
-const {
+import { createServer } from '../../../../server.js';
+import { Membership } from '../../../../lib/domain/models/Membership.js';
+
+import {
   expect,
   databaseBuilder,
   mockLearningContent,
   learningContentBuilder,
   generateValidRequestAuthorizationHeader,
-} = require('../../../test-helper');
+} from '../../../test-helper.js';
 
 describe('Acceptance | API | Campaign Participations | Analyses', function () {
   let server, options, userId, organization, campaign, campaignParticipation;
@@ -45,12 +46,12 @@ describe('Acceptance | API | Campaign Participations | Analyses', function () {
           competences: [
             {
               id: 'recCompetence1',
-              name: 'Fabriquer un meuble',
+              name_i18n: { fr: 'Fabriquer un meuble' },
               tubes: [
                 {
                   id: 'recTube1',
-                  practicalTitleFr: 'Monter une étagère',
-                  practicalDescriptionFr: 'Comment monter une étagère',
+                  practicalTitle_i18n: { fr: 'Monter une étagère' },
+                  practicalDescription_i18n: { fr: 'Comment monter une étagère' },
                   skills: [
                     {
                       id: 'recSkillId1',
@@ -82,7 +83,7 @@ describe('Acceptance | API | Campaign Participations | Analyses', function () {
           ],
         },
       ];
-      const learningContentObjects = learningContentBuilder.buildLearningContent.fromAreas(learningContent);
+      const learningContentObjects = learningContentBuilder.fromAreas(learningContent);
       mockLearningContent(learningContentObjects);
     });
 

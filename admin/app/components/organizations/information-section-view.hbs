@@ -1,5 +1,5 @@
 <div class="organization__data">
-  <h1 class="organization__name">{{@organization.name}}</h1>
+  <h2 class="organization__name">{{@organization.name}}</h2>
 
   {{#if @organization.tags}}
     <ul class="organization-tags-list">
@@ -79,6 +79,8 @@
           {{/if}}
         </li>
         <li>Affichage du Net Promoter Score : {{if @organization.showNPS "Oui" "Non"}}</li>
+        <li>Activer l'envoi multiple sur les campagnes d'évaluation :
+          {{if @organization.enableMultipleSendingAssessment "Oui" "Non"}}</li>
       </ul>
       {{#if this.accessControl.hasAccessToOrganizationActionsScope}}
         <div class="form-actions">
@@ -104,7 +106,6 @@
         @isBorderVisible={{true}}
         @href={{this.externalURL}}
         @size="small"
-        class="pix-button__secondary"
         target="_blank"
         rel="noopener noreferrer"
       >Tableau de bord</PixButtonLink>

@@ -1,8 +1,8 @@
-import { Factory } from 'ember-cli-mirage';
-import faker from 'faker';
+import { Factory } from 'miragejs';
+import { faker } from '@faker-js/faker';
 
 export default Factory.extend({
   name() {
-    return faker.random.alphaNumeric();
+    return faker.string.alphanumeric();
   },
 });

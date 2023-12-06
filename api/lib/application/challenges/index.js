@@ -1,9 +1,10 @@
-const Joi = require('joi');
+import Joi from 'joi';
 
-const challengeController = require('./challenge-controller');
-const identifiersType = require('../../domain/types/identifiers-type');
+import { challengeController } from './challenge-controller.js';
+import { identifiersType } from '../../domain/types/identifiers-type.js';
+import { securityPreHandlers } from '../security-pre-handlers.js';
 
-exports.register = async function (server) {
+const register = async function (server) {
   server.route([
     {
       method: 'GET',
@@ -19,7 +20,23 @@ exports.register = async function (server) {
         tags: ['api'],
       },
     },
+    {
+      method: 'GET',
+      path: '/api/pix1d/challenges/{id}',
+      config: {
+        pre: [{ method: securityPreHandlers.checkPix1dActivated }],
+        auth: false,
+        validate: {
+          params: Joi.object({
+            id: identifiersType.challengeId,
+          }),
+        },
+        handler: challengeController.get,
+        tags: ['api'],
+      },
+    },
   ]);
 };
 
-exports.name = 'challenges-api';
+const name = 'challenges-api';
+export { register, name };

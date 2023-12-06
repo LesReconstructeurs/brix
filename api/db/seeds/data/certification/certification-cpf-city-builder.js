@@ -1,4 +1,4 @@
-function certificationCpfCityBuilder({ databaseBuilder }) {
+const certificationCpfCityBuilder = function ({ databaseBuilder }) {
   databaseBuilder.factory.buildCertificationCpfCity({
     name: 'PARIS 1',
     postalCode: '75001',
@@ -88,6 +88,6 @@ function certificationCpfCityBuilder({ databaseBuilder }) {
     postalCode: '97139',
     INSEECode: '97101',
   });
-}
+};
 
-module.exports = { certificationCpfCityBuilder };
+export { certificationCpfCityBuilder };

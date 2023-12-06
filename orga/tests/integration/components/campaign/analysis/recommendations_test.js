@@ -1,7 +1,7 @@
 import { module, test } from 'qunit';
 import { click } from '@ember/test-helpers';
 import { render } from '@1024pix/ember-testing-library';
-import hbs from 'htmlbars-inline-precompile';
+import { hbs } from 'ember-cli-htmlbars';
 import setupIntlRenderingTest from '../../../../helpers/setup-intl-rendering';
 
 module('Integration | Component | Campaign::Analysis::Recommendations', function (hooks) {
@@ -37,9 +37,9 @@ module('Integration | Component | Campaign::Analysis::Recommendations', function
       this.campaignTubeRecommendations = [campaignTubeRecommendation_1, campaignTubeRecommendation_2];
 
       screen = await render(hbs`<Campaign::Analysis::Recommendations
-      @campaignTubeRecommendations={{this.campaignTubeRecommendations}}
-      @displayAnalysis={{true}}
-    />`);
+  @campaignTubeRecommendations={{this.campaignTubeRecommendations}}
+  @displayAnalysis={{true}}
+/>`);
     });
 
     test('it should display the tube analysis list of the campaign', async function (assert) {
@@ -59,14 +59,26 @@ module('Integration | Component | Campaign::Analysis::Recommendations', function
     });
 
     test('it should order by recommendation asc', async function (assert) {
-      await click(screen.getByLabelText('Trier par pertinence'));
+      await click(
+        screen.getByLabelText(
+          "Le tableau n'est actuellement pas trié par pertinence. Cliquez pour trier par ordre croissant.",
+        ),
+      );
 
       assert.dom(screen.getAllByLabelText('Sujet')[0]).containsText('Tube B');
     });
 
     test('it should order by recommendation desc', async function (assert) {
-      await click(screen.getByLabelText('Trier par pertinence'));
-      await click(screen.getByLabelText('Trier par pertinence'));
+      await click(
+        screen.getByLabelText(
+          "Le tableau n'est actuellement pas trié par pertinence. Cliquez pour trier par ordre croissant.",
+        ),
+      );
+      await click(
+        screen.getByLabelText(
+          'Le tableau est trié par pertinence croissante. Cliquez pour trier en ordre décroissant.',
+        ),
+      );
 
       assert.dom(screen.getAllByLabelText('Sujet')[0]).containsText('Tube A');
     });
@@ -81,9 +93,9 @@ module('Integration | Component | Campaign::Analysis::Recommendations', function
       this.campaignTubeRecommendations = [];
 
       await render(hbs`<Campaign::Analysis::Recommendations
-        @campaignTubeRecommendations={{this.campaignTubeRecommendations}}
-        @displayAnalysis={{false}}
-      />`);
+  @campaignTubeRecommendations={{this.campaignTubeRecommendations}}
+  @displayAnalysis={{false}}
+/>`);
       assert.contains('En attente de résultats');
     });
   });

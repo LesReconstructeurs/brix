@@ -1,44 +1,223 @@
 {
+  "current-lang": "fr",
   "common": {
     "actions": {
+      "add": "Ajouter",
+      "back": "Retour",
       "cancel": "Annuler",
+      "choose": "Choisissez",
       "close": "Fermer",
+      "confirm": "Confirmer",
+      "continue": "Continuer",
+      "copied": "Copié !",
       "delete": "Supprimer",
+      "exit": "Quitter",
       "quit": "Quitter",
-      "update": "Modifier"
+      "update": "Modifier",
+      "validate": "Valider"
     },
     "api-error-messages": {
+      "CANDIDATE_NOT_FOUND": "Une erreur est survenue, le candidat {firstName} {lastName} n'a pas été trouvé.",
+      "INVALID_DOCUMENT": "La version du document est inconnue.<br />Veuillez télécharger à nouveau le modèle de liste des candidats et l'importer à nouveau.",
+      "SESSION_ALREADY_FINALIZED": "La session a déjà été finalisée.",
+      "SESSION_CANNOT_BE_FINALIZED": "Erreur lors de la finalisation de session.",
+      "SESSION_DOES_NOT_EXIST_OR_ACCESS_RESTRICTED": "La session n'existe pas ou son accès est restreint.",
+      "SESSION_STARTED_CANDIDATE_ALREADY_LINKED_TO_USER": "La session a débuté, vous ne pouvez plus importer une liste de candidats.<br />Si vous souhaitez modifier la liste, vous pouvez inscrire un candidat directement dans le tableau ci-dessous.",
+      "SESSION_WITHOUT_STARTED_CERTIFICATION": "Cette session n'a pas débuté, vous ne pouvez pas la finaliser. Vous pouvez néanmoins la supprimer.",
+      "SESSION_WITH_ABORT_REASON_ON_COMPLETED_CERTIFICATION_COURSE": "Le champ “Raison de l’abandon” a été renseigné pour un candidat qui a terminé son test de certification entre temps. La session ne peut donc pas être finalisée. Merci de rafraîchir la page avant de finaliser.",
+      "authorize-resume-error": "Une erreur est survenue, {firstName} {lastName} n'a pas pu être autorisé à reprendre son test.",
       "bad-request-error": "Les données que vous avez soumises ne sont pas au bon format.",
+      "certification-candidate": {
+        "CANDIDATE_BILLING_MODE_MUST_BE_A_STRING": "Le champ \"Tarification part Pix\" est invalide",
+        "CANDIDATE_BILLING_MODE_NOT_VALID": "Le champ \"Tarification part Pix\" ne peut contenir qu'une des valeurs suivantes: Gratuite, Payante ou Prépayée",
+        "CANDIDATE_BILLING_MODE_REQUIRED": "Le champ \"Tarification part Pix\" est obligatoire",
+        "CANDIDATE_BIRTHDATE_FORMAT_NOT_VALID": "Le champ \"Date de naissance\" doit être au format JJ/MM/AAAA",
+        "CANDIDATE_BIRTHDATE_MUST_BE_GREATER": "Le champ \"Date de naissance\" doit être supérieur à 01/01/1900",
+        "CANDIDATE_BIRTHDATE_REQUIRED": "Le champ \"Date de naissance\" est obligatoire",
+        "CANDIDATE_BIRTH_CITY_REQUIRED": "Le champ \"Nom de la commune\" est obligatoire",
+        "CANDIDATE_BIRTH_COUNTRY_NOT_FOUND": "Le pays \"{birthCountry}\" n'a pas été trouvé",
+        "CANDIDATE_BIRTH_COUNTRY_REQUIRED": "Le champ \"Pays\" est obligatoire",
+        "CANDIDATE_BIRTH_INFORMATION_REQUIRED": "Renseigner les données de naissance du candidat",
+        "CANDIDATE_BIRTH_INSEE_CODE_NOT_VALID": "Le code INSEE \"{birthINSEECode}\" est invalide",
+        "CANDIDATE_BIRTH_INSEE_CODE_OR_BIRTH_POSTAL_CODE_AND_BIRTH_CITY_REQUIRED": "Renseigner soit un code INSEE soit un code postal et un nom de commune de naissance",
+        "CANDIDATE_BIRTH_POSTAL_CODE_CITY_NOT_VALID": "Le code postal \"{birthPostalCode}\" ne correspond pas à la ville \"{birthCity}\"",
+        "CANDIDATE_BIRTH_POSTAL_CODE_NOT_FOUND": "Le code postal \"{birthPostalCode}\" est invalide",
+        "CANDIDATE_BIRTH_POSTAL_CODE_REQUIRED": "Le champ \"Code postal\" est obligatoire",
+        "CANDIDATE_EMAIL_NOT_VALID": "L'e-mail de convocation \"{email}\" est invalide",
+        "CANDIDATE_EXTERNAL_ID_MUST_BE_A_STRING": "Le champ \"Identifiant externe\" est invalide",
+        "CANDIDATE_EXTRA_TIME_OUT_OF_RANGE": "Le champ \"Temps majoré\" est invalide (exemple de format accepté: 30%)",
+        "CANDIDATE_FIRST_NAME_MUST_BE_A_STRING": "Le champ \"Prénom\" est invalide",
+        "CANDIDATE_FIRST_NAME_REQUIRED": "Le champ \"Prénom\" est obligatoire",
+        "CANDIDATE_FOREIGN_BIRTH_CITY_REQUIRED": "Candidat né à l'étranger, le champ \"Commune de naissance\" est obligatoire",
+        "CANDIDATE_FOREIGN_INSEE_CODE_NOT_VALID": "La valeur du code INSEE doit être \"99\" pour un pays étranger",
+        "CANDIDATE_FOREIGN_POSTAL_CODE_MUST_BE_EMPTY": "Candidat né à l'étranger, le champ \"Code postal\" doit rester vide",
+        "CANDIDATE_LAST_NAME_MUST_BE_A_STRING": "Le champ \"Nom de naissance\" est invalide",
+        "CANDIDATE_LAST_NAME_REQUIRED": "Le champ \"Nom de naissance\" est obligatoire",
+        "CANDIDATE_MAX_ONE_COMPLEMENTARY_CERTIFICATION": "Vous ne pouvez pas inscrire un candidat à plus d'une certification complémentaire",
+        "CANDIDATE_PREPAYMENT_CODE_MUST_BE_EMPTY": "Le champ \"Code de prépaiement\" doit rester vide puisque l’option \"Prépayée\" n'a pas été sélectionnée pour ce candidat",
+        "CANDIDATE_PREPAYMENT_CODE_REQUIRED": "Le champ \"Code de prépaiement\" est obligatoire puisque l’option \"Prépayée\" a été sélectionnée pour ce candidat",
+        "CANDIDATE_RESULT_RECIPIENT_EMAIL_NOT_VALID": "L'e-mail du destinataire des résultats (formateur, enseignant…) \"{email}\" est invalide",
+        "CANDIDATE_SESSION_ID_NOT_A_NUMBER": "Le champ \"Numéro de session\" est invalide",
+        "CANDIDATE_SESSION_ID_REQUIRED": "Le champ \"Numéro de session\" est obligatoire",
+        "CANDIDATE_SEX_NOT_VALID": "Le champ \"Sexe\" accepte les valeurs \"M\" pour un homme ou \"F\" pour une femme",
+        "CANDIDATE_SEX_REQUIRED": "Le champ \"Sexe\" est obligatoire"
+      },
+      "gateway-timeout-error": "Le service subit des ralentissements. Veuillez réessayer ultérieurement.",
       "internal-server-error": "Une erreur interne est survenue, nos équipes sont en train de résoudre le problème. Veuillez réessayer ultérieurement.",
-      "login-unauthorized-error": "L'adresse e-mail ou l'identifiant et/ou le mot de passe saisis sont incorrects.",
-      "login-user-temporary-blocked-error": "Vous avez effectué trop de tentatives de connexion. Réessayez plus tard ou cliquez sur <a href=\"{url}\">mot de passe oublié</a> pour le réinitialiser.",
-      "login-user-blocked-error": "Votre compte est bloqué car vous avez effectué trop de tentatives de connexion. Pour le débloquer, <a href=\"{url}\">contactez-nous</a>.",
-      "gateway-timeout-error": "Le service subit des ralentissements. Veuillez réessayer ultérieurement."
+      "login-unauthorized-error": "L'adresse e-mail et/ou le mot de passe saisis sont incorrects.",
+      "login-user-blocked-error": "Votre compte est bloqué car vous avez effectué trop de tentatives de connexion. Pour le débloquer, '<'a href=\"{url}\"'>'contactez-nous'</a>'.",
+      "login-user-temporary-blocked-error": "Vous avez effectué trop de tentatives de connexion. Réessayez plus tard ou cliquez sur '<'a href=\"{url}\"'>'mot de passe oublié'</a>' pour le réinitialiser."
     },
-    "form": {
-      "mandatory-all-fields": "Tous les champs sont obligatoires."
+    "form-errors": {
+      "default": "Le service est momentanément indisponible. Veuillez réessayer ultérieurement.",
+      "email": {
+        "already-exists": "Cette adresse e-mail est déjà enregistrée, connectez-vous.",
+        "format": "Le champ adresse e-mail n’est pas valide."
+      },
+      "firstname": {
+        "mandatory": "Le champ prénom est obligatoire."
+      },
+      "lastname": {
+        "mandatory": "Le champ nom est obligatoire."
+      },
+      "mandatory-all-fields": "Tous les champs sont obligatoires.",
+      "password": {
+        "format": "Votre mot de passe doit contenir 8 caractères au minimum et comporter au moins une majuscule, une minuscule et un chiffre.",
+        "mandatory": "Le champ mot de passe est obligatoire."
+      }
+    },
+    "forms": {
+      "certification-labels": {
+        "additional-certification": "Certification complémentaire",
+        "candidate-status": {
+          "authorized-to-resume": "Autorisé à reprendre",
+          "finished": "Terminé",
+          "ongoing": "En cours",
+          "start": "Début"
+        },
+        "email-convocation": "E-mail de convocation",
+        "email-results": "E-mail du destinataire des résultats (formateur, enseignant...)",
+        "external-id": "Identifiant externe",
+        "extratime": "Temps majoré",
+        "extratime-percentage": "Temps majoré (%)",
+        "prepayment-code": "Code de prépaiement",
+        "pricing": "Tarification part Pix"
+      },
+      "login": {
+        "choose-language-aria-label": "Sélectionnez une langue",
+        "email": "Adresse e-mail",
+        "forgot-password": "Mot de passe oublié ?",
+        "password": "Mot de passe"
+      },
+      "mandatory-fields": "Les champs marqués de '<abbr title=\"obligatoire\" class=\"mandatory-mark\">'*'</abbr>' sont obligatoires.",
+      "required": "Obligatoire",
+      "session-labels": {
+        "center-name": "Nom du site",
+        "date": "Date",
+        "date-start": "Date de début",
+        "invigilator": "Surveillant(s)",
+        "observations": "Observations",
+        "room": "Salle",
+        "room-name": "Nom de la salle",
+        "session-number": "N° de session",
+        "status": "Statut",
+        "time": "Heure",
+        "time-start": "Heure de début (heure locale)"
+      }
+    },
+    "labels": {
+      "billing-mode": {
+        "free": "Gratuite",
+        "paid": "Payante",
+        "prepaid": "Prépayée"
+      },
+      "candidate": {
+        "birth-city": "Commune de naissance",
+        "birth-city-insee-code": "Code INSEE de naissance",
+        "birth-city-postcode": "Code postal de naissance",
+        "birth-country": "Pays de naissance",
+        "birth-date": "Date de naissance",
+        "birth-geographical-code": "Code géographique de naissance",
+        "birth-name": "Nom de naissance",
+        "firstname": "Prénom",
+        "gender": {
+          "title": "Sexe",
+          "man": "Homme",
+          "woman": "Femme"
+        },
+        "insee-code": "Code INSEE",
+        "lastname": "Nom",
+        "none": "Aucune",
+        "postcode": "Code postal"
+      },
+      "line": "Ligne {line} : "
+    },
+    "sessions": {
+      "actions": {
+        "return-to": "Retour à la session"
+      },
+      "candidates": "Candidats",
+      "invigilator": "Surveillant"
     }
   },
-  "current-lang": "fr",
   "navigation": {
+    "external-link-title": "Ouverture dans une nouvelle fenêtre",
     "footer": {
       "a11y": "Accessibilité : partiellement conforme",
-      "legal-notice": "Mentions légales",
-      "current-year": "© {currentYear} Pix"
+      "current-year": "© {currentYear} Pix",
+      "legal-notice": "Mentions légales"
+    },
+    "main": {
+      "documentation": "Documentation",
+      "sessions": "Sessions",
+      "sessions-label": "Sessions de certification",
+      "supervisor": "Espace surveillant",
+      "team": "Équipe"
+    },
+    "user-logged-menu": {
+      "button-extra-information": "Ouvrir le menu utilisateur",
+      "logout": "Se déconnecter",
+      "page-title": "Déconnexion"
     }
   },
   "pages": {
+    "banner": {
+      "information": "Important : depuis le 30 juin une nouvelle fonctionnalité est disponible pour vous permettre de créer ou éditer plusieurs sessions à la fois. L'ancienne méthode de création individuelle de session reste disponible. '<br>' Consultez '<a href=\"https://cloud.pix.fr/s/m4pDYQAAMo5ZE9P\" class=\"link\" target=\"_blank\" rel=\"noreferrer\">'ici'</a>' le guide d'utilisation de la gestion massive des sessions."
+    },
+    "candidates": {
+      "add": {
+        "actions": {
+          "select": {
+            "label": "Sélectionner le candidat {firstName} {lastName}"
+          },
+          "select-all": {
+            "label": "Sélectionner tous les candidats de la liste"
+          },
+          "selected": {
+            "label": "Candidat {firstName} {lastName} sélectionné"
+          }
+        }
+      }
+    },
     "login": {
       "title": "Connectez-vous",
+      "accessible-to": "L'accès à Pix Certif est limité aux centres de certification Pix.",
+      "actions": {
+        "login": {
+          "label": "Je me connecte"
+        }
+      },
       "errors": {
-        "should-change-password": "Vous avez actuellement un mot de passe temporaire. Cliquez sur <a href=\"{url}\">mot de passe oublié</a> pour le réinitialiser.",
+        "invitation-already-accepted": "Cette invitation a déjà été acceptée.<br/>Connectez-vous ou contactez l’administrateur de votre espace Pix Certif.",
         "invitation-was-cancelled": "Cette invitation n’est plus valide.<br/>Contactez l’administrateur de votre espace Pix Certif.",
-        "invitation-already-accepted": "Cette invitation a déjà été acceptée.<br/>Connectez-vous ou contactez l’administrateur de votre espace Pix Certif."
+        "should-change-password": "Vous avez actuellement un mot de passe temporaire. Cliquez sur '<'a href=\"{url}\"'>'mot de passe oublié'</a>' pour le réinitialiser."
       }
     },
     "login-or-register": {
       "title": "Vous êtes invité(e) à rejoindre le centre de certification {certificationCenterName}",
       "login-form": {
+        "title": "J'ai déjà un compte",
+        "button": "Se connecter",
         "errors": {
           "status": {
             "403": "L'accès à Pix Certif est limité aux membres invités. Chaque espace est géré par un administrateur Pix Certif propre à l'organisation qui l'utilise. Contactez-le pour qu'il vous y invite.",
@@ -47,28 +226,15 @@
             "412": "Cette invitation a déjà été acceptée"
           }
         },
-        "title": "J'ai déjà un compte",
-        "fields": {
-          "email": {
-            "label": "Adresse e-mail",
-            "error": "Le champ adresse e-mail n’est pas valide."
-          },
-          "password": {
-            "label": "Mot de passe",
-            "error": "Le champ mot de passe est obligatoire.",
-            "forgot-password": "Mot de passe oublié ?"
-          }
-        },
-        "login": "Je me connecte",
-        "button": "Se connecter"
+        "login": "Je me connecte"
       },
       "register-form": {
         "title": "Je m’inscris",
-        "button": "S'inscrire",
+        "actions": {
+          "login": "S'inscrire",
+          "login-button": "Je m'inscris"
+        },
         "fields": {
-          "button": {
-            "label": "Je m'inscris"
-          },
           "cgu": {
             "accept": "J'accepte les",
             "and": "et la",
@@ -76,155 +242,625 @@
             "data-protection-policy": "politique de confidentialité",
             "error": "Vous devez accepter les conditions d’utilisation de Pix et la politique de confidentialité pour créer un compte.",
             "terms-of-use": "conditions d'utilisation de Pix"
-          },
-          "email": {
-            "error": "Le champ adresse e-mail n’est pas valide.",
-            "label": "Adresse e-mail"
-          },
-          "first-name": {
-            "error": "Le champ prénom est obligatoire.",
-            "label": "Prénom"
-          },
-          "last-name": {
-            "error": "Le champ nom est obligatoire.",
-            "label": "Nom"
-          },
-          "password": {
-            "error": "Votre mot de passe doit contenir 8 caractères au minimum et comporter au moins une majuscule, une minuscule et un chiffre.",
-            "label": "Mot de passe"
           }
-        },
-        "errors": {
-          "default": "Le service est momentanément indisponible. Veuillez réessayer ultérieurement.",
-          "email-already-exists": "Cette adresse e-mail est déjà enregistrée, connectez-vous."
         }
       }
     },
-    "sessions": {
-      "enrolled-candidates": {
-        "without-details-description": "Liste des candidats inscrits à la session, triée par nom de naissance, avec la possibilité de supprimer un candidat dans la dernière colonne.",
-        "with-details-description": "Liste des candidats inscrits à la session, triée par nom de naissance, avec un lien pour voir les détails du candidat et la possibilité de supprimer un candidat dans la dernière colonne."
+    "sco": {
+      "banner": {
+        "information": "La certification Pix se déroulera du 14 novembre 2022 au 17 mars 2023 pour les lycées et du 6 mars au 16 juin 2023 pour les collèges. Pensez à consulter la",
+        "url-label": "documentation pour voir les nouveautés."
       },
-      "finalize": {
-        "finished-test-list-description": "Liste des candidats qui ont fini leur test de certification, triée par nom de naissance, avec un lien pour ajouter un ou plusieurs signalements le cas échéant et une liste déroulante permettant de sélectionner la raison de l’abandon.",
-        "unfinished-test-list-description": "Liste des candidats qui n’ont pas fini leur test de certification, triée par nom de naissance, avec un lien pour ajouter un ou plusieurs signalements le cas échéant et une liste déroulante permettant de sélectionner la raison de l’abandon."
+      "enrol-candidates-in-session": {
+        "title": "Inscrire des candidats",
+        "certification-candidates-sco": {
+          "actions": {
+            "enrol-candidates": "Inscrire des candidats"
+          },
+          "information": "Inscrivez des élèves et c'est partix !"
+        },
+        "information": "Si certain(e)s élèves n’apparaissent pas dans cette liste, merci de ré-importer le fichier élèves dans Pix Orga.'<br>' Si malgré tout des élèves ne sont pas visibles, merci de contacter",
+        "link-label": "support.pix.fr",
+        "list": {
+          "action-bar": {
+            "candidate-already-enrolled": "candidat(s) déjà inscrit(s) à la session",
+            "candidate-selected": "candidat(s) sélectionné(s)",
+            "no-candidate-selected": "Aucun candidat sélectionné"
+          },
+          "table": {
+            "birthdate": "Date de naissance",
+            "division": "Classe",
+            "filter": {
+              "title": "Filtrer",
+              "extra-information": "Filtrer la liste des élèves en cochant la ou les classes souhaitées",
+              "placeholder": "Chercher une classe ..."
+            },
+            "first-name": "Prénom",
+            "last-name": "Nom"
+          }
+        },
+        "page-title": "Inscription des candidats"
       },
-      "list": {
-        "header": {
-          "title": "Sessions de certification",
-          "session-creation": "Créer une session",
-          "session-import-template": "Template d'import de sessions",
-          "session-import-template-dl-error": "Une erreur s'est produite pendant le téléchargement",
-          "session-import-template-label": "Télécharger le template d'import en masse",
-          "session-import-upload": "Importer en masse"
+      "restricted-access": {
+        "title": "Ouverture de votre espace PixCertif le"
+      }
+    },
+    "session-finalization": {
+      "title": "Finaliser la session {sessionId}",
+      "actions": {
+        "finalise": "Finaliser"
+      },
+      "add-issue-modal": {
+        "title": "Signalement du candidat :",
+        "actions": {
+          "add-reporting": "Ajouter le signalement",
+          "cancel": "Annuler",
+          "describe": "Décrivez l'incident rencontré",
+          "enter-question-number": "Numéro de question :",
+          "select-category": "Veuillez selectionner une catégorie",
+          "select-category-label": "Sélectionner la catégorie",
+          "select-subcategory": "Sélectionnez une sous-catégorie :",
+          "select-subcategory-label": "Sélectionner la sous-catégorie",
+          "specify": "Précisez",
+          "transmit-report": "Merci de transmettre le procès-verbal de fraude rempli pendant la session de certification en utilisant '<span><a class=\"link\" href=\"https://form-eu.123formbuilder.com/41052/form\" target=\"_blank\" rel=\"noreferrer\">'ce formulaire'</a></span>'"
         },
-        "delete-modal": {
-          "title": "Supprimer la session",
-          "label": "Souhaitez-vous supprimer la session <span>{sessionId}</span> ?",
-          "enrolled-candidates": "<span>{enrolledCandidatesCount} {enrolledCandidatesCount, plural,one {candidat} other {candidats}}</span> {enrolledCandidatesCount, plural,one {est inscrit} other {sont inscrits}} à cette session",
-          "disclaimer": "Attention, cette action est irréversible."
+        "category-labels": {
+          "candidate-informations-changes": "Modification infos candidat",
+          "fraud": "Suspicion de fraude",
+          "in-challenge": "Problème technique sur une question",
+          "non-blocking-candidate-issue": "Incident lié au candidat non bloquant",
+          "non-blocking-technical-issue": "Incident technique non bloquant",
+          "signature-issue": "Était présent(e) mais a oublié de signer, ou a signé sur la mauvaise ligne"
         },
-        "session-summary": {
-          "session-number": "N° de session",
-          "center-name": "Nom du site",
-          "room": "Salle",
-          "date": "Date",
-          "time": "Heure",
-          "supervisor": "Surveillant(s)",
-          "enrolled-candidates": "Candidats inscrits",
-          "effective-candidates": "Certifications passées",
-          "status": "Statut",
-          "actions": "Actions",
-          "certification-session": "Session de certification",
-          "delete-session": "Supprimer la session {sessionSummaryId}",
-          "tooltip-label": "Au moins un candidat a rejoint la session, vous ne pouvez pas la supprimer.",
-          "empty-table": "Aucune session trouvée",
-          "session-and-id": "Session {sessionId}"
+        "errors": {
+          "add-reporting": "Une erreur s'est produite lors de l'ajout du signalement. Merci de réessayer.",
+          "technical-issue": "Incident technique"
+        },
+        "non-blocking-issues": {
+          "candidate-examples": "a quitté temporairement, sous surveillance, la salle d’examen, est arrivé en retard, a rencontré des difficultés pour se connecter à la session, a dû se reconnecter à la session, avait oublié son mot de passe...",
+          "candidate-information": "Signalement à titre informatif, le problème rencontré n'a pas empêché le candidat de continuer à répondre aux questions. ",
+          "technical-examples": "L’ordinateur s’est éteint, lenteur significative du réseau et/ou de l’appareil etc.",
+          "technical-information": "Signalement à titre informatif, le problème rencontré n'a pas empêché le candidat de continuer à répondre aux questions. En cas d’incident sur une question focus, merci de vous reporter à la catégorie E10."
+        },
+        "subcategory-labels": {
+          "accessibility-issue": "Problème avec l’accessibilité de la question (ex : daltonisme)",
+          "embed-not-working": "Le simulateur/l'application ne s'affiche pas",
+          "extra-time-exceeded": "Le candidat bénéficie d'un temps majoré et n'a pas pu répondre à la question dans le temps imparti",
+          "extra-time-percentage": "Ajout/modification du temps majoré",
+          "file-not-opening": "Le fichier à télécharger ne se télécharge pas ou ne s'ouvre pas",
+          "image-not-displaying": "L'image ne s'affiche pas",
+          "name-or-birthdate": "Modification des prénom/nom/date de naissance",
+          "skip-on-oops": "Un problème technique lié à la plateforme Pix a empêché le candidat de répondre à la question",
+          "software-not-working": "Le logiciel installé sur l'ordinateur n'a pas fonctionné",
+          "unintentional-focus-out": "Le candidat a été contraint de cliquer en dehors du cadre autorisé pour une question en mode focus",
+          "website-blocked": "Le site est bloqué par les restrictions réseau de l'établissement (réseaux sociaux par ex.)",
+          "website-unavailable": "Le site à visiter est indisponible/en maintenance/inaccessible"
+        },
+        "subcategory-to-textarea-labels": {
+          "extra-time-percentage": "Précisez le temps majoré",
+          "name-or-birthdate": "Renseignez les informations correctes"
         }
       },
-      "detail": {
-        "panel-clea": {
-          "title": "Des candidats ont obtenu le certificat CléA numérique",
-          "description": "Pour générer les certificats CléA numérique, téléchargez la liste des candidats, complétez-la, enregistrez-la au format .xlsx puis importez-la sur la ",
-          "link-text": "plateforme du CléA numérique.",
-          "download-button": "Télécharger la liste des candidats",
-          "error-message": "Une erreur est survenue lors du téléchargement du fichier. Veuillez réessayer ou contacter certif@pix.fr en indiquant le numéro de la session concernée."
+      "complementary-information": {
+        "title": "Informations complémentaires (facultatif)",
+        "candidates-joining-issue": {
+          "label": "Un ou plusieurs candidats étaient présents en session de certification mais n'ont pas pu rejoindre la session.",
+          "link": "Vous trouverez '<a class=\"link\" href=\"https://cloud.pix.fr/s/zf3fGimWwPQCeWF/download/Probl%C3%A8mes%20d%27acc%C3%A8s%20en%20session.pdf\" target=\"_blank\" rel=\"noreferrer noopener\">'ici un document pour vous aider à résoudre ce type de problème de connexion pour les prochaines sessions (PDF, 131ko).'</a>'"
         },
-        "parameters": {
-          "copy-access-code-number": "Copier le code du numéro de session",
-          "copy-session-number": "Copier le code du numéro de session",
-          "copy-session-password-supervisor": "Copier le mot de passe de session pour le surveillant",
-          "finalization-info": "Les informations de finalisation de la session ont déjà été transmises aux équipes de Pix",
-          "finalizing": "Finaliser la session",
-          "observations": "Observations",
-          "session-access-code": "Code d'accès",
-          "session-candidate": "Candidat",
-          "session-password": "Mot de passe de session",
-          "session-update": "Modifier les informations de la session {sessionId}"
+        "description": "Vous pouvez indiquer, le cas échéant, les événements survenus lors de la session. Il n'est pas nécessaire de renseigner les candidats absents.",
+        "incident": "Malgré un incident survenu pendant la session, les candidats ont pu terminer leur test de certification. Un temps supplémentaire a été accordé à un ou plusieurs candidats."
+      },
+      "confirm-finalisation-modal": {
+        "title": "Finalisation de la session",
+        "actions": {
+          "confirm": "Confirmer la finalisation"
+        },
+        "end-of-test-screen": "La case \"Écran de fin du test vu\" n'est pas cochée pour {candidatesCount, plural,one {1 candidat} other {# candidats}}",
+        "information": "il ne vous sera plus possible de modifier ces informations par la suite. Un délai de traitement est nécessaire avant la mise à disposition des résultats par Pix (ce délai de traitement pouvant varier d'une session à l'autre).",
+        "warning": "Attention :"
+      },
+      "errors": {
+        "no-abort-reason": "Une ou plusieurs certification(s) non terminée(s) n'ont pas de motif d'abandon. Veuillez les renseigner."
+      },
+      "issue-reports-modal": {
+        "title": "Signalement du candidat :",
+        "actions": {
+          "add-reporting": "Ajouter un signalement",
+          "delete-reporting": "Supprimer le signalement"
+        },
+        "errors": {
+          "delete-reporting": "Une erreur s'est produite lors de la suppression du signalement. Merci de réessayer"
+        },
+        "subtitle": "Mes signalements"
+      },
+      "notification": {
+        "success": "Les informations de la session ont été transmises avec succès."
+      },
+      "reporting": {
+        "title": "Signalements : Reporter, pour chaque candidat, les signalements renseignés sur le PV d'incident",
+        "completed-reports-information": {
+          "description": "Certification(s) terminée(s)",
+          "extra-information": "Liste des candidats qui ont fini leur test de certification, triée par nom de naissance, avec un lien pour ajouter un ou plusieurs signalements le cas échéant.",
+          "table": {
+            "labels": {
+              "screen": "Écran de fin du test vu"
+            }
+          }
+        },
+        "description": "Pour que le signalement soit pris en compte, il est nécessaire d’utiliser la catégorie de signalement appropriée (exemples : C1, C2, etc).",
+        "table": {
+          "labels": {
+            "certification-number": "N° de certification",
+            "end-of-test-screen": "Écran de fin du test vu",
+            "end-of-test-screen-for-candidate": "Sélectionner l'écran de fin du test vu pour le candidat {firstName} {lastName}",
+            "reporting": "Signalement"
+          },
+          "reporting-count": "{reportingsCount, plural,one {1 signalement} other {# signalements}}"
+        },
+        "uncompleted-reports-information": {
+          "description": "Ces candidats n'ont pas fini leur test de certification ou le surveillant a mis fin à leur test",
+          "extra-information": "Liste des candidats qui n’ont pas fini leur test de certification, triée par nom de naissance, avec un lien pour ajouter un ou plusieurs signalements le cas échéant et une liste déroulante permettant de sélectionner la raison de l’abandon.",
+          "table": {
+            "labels": {
+              "abandonment": "Abandon : Manque de temps ou départ prématuré",
+              "abandonment-reason": "Raison de l'abandon",
+              "technical-problem": "Problème technique"
+            },
+            "tooltip": {
+              "abandonment": {
+                "enough-time-description": "Le candidat n'a pas eu le temps de répondre à toutes ses questions",
+                "left-deliberately-description": "Le candidat est parti volontairement avant la fin du test"
+              },
+              "extra-information": "Description de la raison de l'abandon",
+              "technical-problem-description": "Le candidat a rencontré un problème technique l'empêchant de poursuivre son test jusqu’à la fin"
+            }
+          }
         }
       }
     },
     "session-supervising": {
-      "header": {
-        "session-id": "Session {sessionId}",
-        "center-name": "Site",
-        "center-name-full": "Nom du site",
-        "room": "Salle",
-        "supervisor": "Surveillant",
-        "multiple-supervisor": "Surveillant(s)",
-        "access-code": "Code d'accès (candidats)"
-      },
-      "candidate-list": {
-        "authorized-to-start-candidates": "{authorizedToStartCandidates}/{totalCandidates} {authorizedToStartCandidates, plural,one {candidat sélectionné} other {candidats sélectionnés}}"
-      },
+      "title": "Surveiller la session n° {sessionId}",
       "candidate-in-list": {
-        "extra-time": "Temps majoré",
-        "ongoing": "En cours",
-        "authorized-to-resume": "Autorisé à reprendre",
-        "finished": "Terminé",
-        "display-candidate-options": "Afficher les options du candidat",
+        "actions": {
+          "cancel-confirmation": {
+            "extra-information": "Annuler la confirmation de présence de l'élève {candidate}",
+            "label": "Annuler la confirmation"
+          },
+          "confirm": {
+            "extra-information": "Confirmer la présence de l'élève {candidate}",
+            "label": "Confirmer la présence"
+          }
+        },
         "candidate-options": "Options du candidat",
-        "start": "Début",
+        "complementary-certification-enrolment": "Inscription à {complementaryCertification}",
+        "complementary-certification-non-eligibility-warning": "Candidat pas ou plus éligible à la certification complémentaire. Il passe la certification Pix.",
+        "default-modal-title": "Information",
+        "display-candidate-options": "Afficher les options du candidat",
+        "end-date-time": "Fin théorique : ",
+        "extratime": "+ temps majoré {extraTimePercentage}",
+        "resume-test-modal": {
+          "actions": {
+            "confirm": "Je confirme l'autorisation"
+          },
+          "allow-test-resume": "Autoriser la reprise du test",
+          "cancel-label": "Annuler et fermer la fenêtre de confirmation",
+          "description": "Si le candidat a fermé la fenêtre de son test de certification (par erreur, ou à cause d'un problème technique) et est toujours présent dans la salle de test, vous pouvez lui permettre de reprendre son test à l'endroit où il l'avait quitté.",
+          "error": "Une erreur est survenue, {firstName} {lastName} n'a a pu être autorisé à reprendre son test.",
+          "instruction-with-name": "Autoriser {firstName} {lastName} à reprendre son test ?",
+          "success": "Succès ! {firstName} {lastName} peut reprendre son test de certification."
+        },
+        "start-date-time": "Début : ",
         "test-end-modal": {
           "description": "Attention : cette action entraîne la fin de son test de certification et est irréversible.",
-          "instruction-with-name": "Terminer le test de {firstName} {lastName} ?",
           "end-assessment": "Terminer le test",
-          "cancel-label": "Annuler et fermer la fenêtre de confirmation",
-          "success": "Succès ! Le test de {firstName} {lastName} est terminé.",
-          "error": "Une erreur est survenue, le test de {firstName} {lastName} n'a pas pu être terminé."
+          "error": "Une erreur est survenue, le test de {firstName} {lastName} n'a pas pu être terminé.",
+          "instruction-with-name": "Terminer le test de {firstName} {lastName} ?",
+          "success": "Succès ! Le test de {firstName} {lastName} est terminé."
+        }
+      },
+      "candidate-list": {
+        "authorized-to-start-candidates": "{authorizedToStartCandidates}/{totalCandidates} {authorizedToStartCandidates, plural,one {candidat sélectionné} other {candidats sélectionnés}}",
+        "clear-field": "Vider le champ",
+        "indicate-candidates-attendance": "Confirmez la présence de chaque candidat pour l'autoriser à commencer son test de certification.",
+        "no-candidate": "Aucun candidat inscrit à cette session",
+        "search-candidate": "Rechercher un candidat"
+      },
+      "header": {
+        "access-code": "Code d'accès (candidats)",
+        "actions": {
+          "confirmation": "Quitter la surveillance",
+          "exit-extra-information": "Quitter la surveillance de la session {sessionId}"
         },
-        "resume-test-modal": {
-          "allow-test-resume": "Autoriser la reprise du test",
-          "description": "Si le candidat a fermé la fenêtre de son test de certification (par erreur, ou à cause d'un problème technique) et est toujours présent dans la salle de test, vous pouvez lui permettre de reprendre son test à l'endroit où il l'avait quitté.",
-          "instruction-with-name": "Autoriser {firstName} {lastName} à reprendre son test ?",
-          "confirm": "Je confirme l'autorisation",
-          "cancel-label": "Annuler et fermer la fenêtre de confirmation",
-          "success": "Succès ! {firstName} {lastName} peut reprendre son test de certification.",
-          "error": "Une erreur est survenue, {firstName} {lastName} n'a a pu être autorisé à reprendre son test."
+        "information": "Attention, assurez-vous que tous les candidats aient terminé leur test avant de quitter la surveillance. Pour reprendre la surveillance de cette session, vous devrez entrer à nouveau son numéro de session et son mot de passe.",
+        "session-id": "Session {sessionId}"
+      },
+      "login": {
+        "title": "Connexion à l'espace surveillant",
+        "form": {
+          "title": "Espace Surveillant",
+          "actions": {
+            "invigilate": "Surveiller la session",
+            "switch-account": "Changer de compte"
+          },
+          "description": "Le mot de passe de la session à surveiller vous a été communiqué par un administrateur Pix Certif",
+          "errors": {
+            "incorrect-data": "Le numéro de session et/ou le mot de passe saisis sont incorrects.",
+            "mandatory-fields": "Les champs \"Numéro de la session\" et \"Mot de passe de session\" sont obligatoires."
+          },
+          "example": "Exemple : C-12345",
+          "session-number": "Numéro de la session",
+          "session-password": {
+            "aria-label": "Afficher le mot de passe",
+            "label": "Mot de passe de la session"
+          },
+          "sub-title": "Surveiller une session"
+        }
+      }
+    },
+    "session-supervising-error": {
+      "title": "Une erreur est survenue",
+      "description": "Pour accéder à cette session, cliquez sur le bouton \"Surveiller une session\" et renseignez les informations de la session",
+      "page-title": "Erreur d'accès à la surveillance de session"
+    },
+    "sessions": {
+      "actions": {
+        "return": "Revenir à la liste des sessions"
+      },
+      "detail": {
+        "title": "Session {sessionId}",
+        "candidates": {
+          "add-modal": {
+            "title": "Inscrire un candidat",
+            "actions": {
+              "close-extra-information": "Fermer la modale d'ajout de candidat",
+              "enrol-the-candidate": "Inscrire le candidat"
+            },
+            "complementary-certification-none": "Aucune",
+            "info-panel": "Si le champ n’est pas renseigné, les résultats ne seront pas transmis par mail pour le/les candidats concernés.<br />Le candidat verra ses résultats affichés directement sur son compte Pix.",
+            "notifications": {
+              "error-add-duplicate": "Ce candidat est déjà dans la liste, vous ne pouvez pas l'ajouter à nouveau.",
+              "error-add-unknown": "Une erreur s'est produite lors de l'ajout du candidat.",
+              "error-remove-already-in": "Ce candidat a déjà rejoint la session. Vous ne pouvez pas le supprimer.",
+              "error-remove-unknown": "Une erreur s'est produite lors de la suppression du candidat.",
+              "success-add": "Le candidat a été inscrit avec succès.",
+              "success-remove": "Le candidat a été supprimé avec succès."
+            },
+            "prepayment-information": "Information du code de prépaiement",
+            "prepayment-tooltip": "(Requis notamment dans le cas d'un achat de crédits combinés)<br />Doit être composé du SIRET de l’organisation et du numéro de facture. Ex : 12345678912345/FACT12345'.<br/>Si vous ne possédez pas de facture, un code de prépaiement doit être établi avec Pix."
+          },
+          "detail-modal": {
+            "title": "Détail du candidat",
+            "actions": {
+              "close-extra-information": "Fermer la fenêtre de détail du candidat"
+            }
+          },
+          "list": {
+            "title": "Liste des candidats",
+            "actions": {
+              "delete": {
+                "extra-information": "Supprimer le candidat",
+                "tooltip": "Ce candidat a déjà rejoint la session. Vous ne pouvez pas le supprimer."
+              },
+              "details": {
+                "extra-information": "Voir le détail du candidat",
+                "label": "Voir le détail"
+              },
+              "inscription": {
+                "label": "Inscrire un candidat"
+              },
+              "inscription-multiple": {
+                "label": "Inscrire des candidats"
+              }
+            },
+            "empty": "En attente de candidats",
+            "with-details-description": "Liste des candidats inscrits à la session, triée par nom de naissance, avec un lien pour voir les détails du candidat et la possibilité de supprimer un candidat dans la dernière colonne.",
+            "without-details-description": "Liste des candidats inscrits à la session, triée par nom de naissance, avec la possibilité de supprimer un candidat dans la dernière colonne."
+          },
+          "page-title": "Candidats",
+          "panel-actions": {
+            "title": "Inscrire des candidats",
+            "actions": {
+              "download": {
+                "description": "Pour inscrire des candidats à la session, renseignez leurs informations (Nom, Prénom, …) dans ce document. <br />Lors du premier téléchargement, le modèle de liste des candidats est vide. Il contiendra ensuite les informations des candidats inscrits à la session.",
+                "extra-information": "Télécharger le modèle de liste des candidats",
+                "label": "Télécharger (.ods)"
+              },
+              "upload": {
+                "description": "Sélectionnez la liste des candidats préalablement remplie.<br /><strong>Attention, tout nouvel import efface la liste des candidats existante.</strong>",
+                "extra-information": "Importer la liste des candidats",
+                "label": "Importer (.ods)"
+              }
+            },
+            "warning": "La session a débuté, vous ne pouvez plus importer une liste de candidats.<br /> Si vous souhaitez modifier la liste, vous pouvez inscrire un candidat directement dans le tableau ci-dessous."
+          }
+        },
+        "downloads": {
+          "attendance-sheet": {
+            "extra-information": "Télécharger la feuille d'émargement",
+            "label": "Feuille d'émargement"
+          },
+          "incident-report": {
+            "extra-information": "Télécharger le PV d'incident",
+            "label": "PV d'incident"
+          },
+          "invigilator-kit": {
+            "extra-information": "Télécharger le kit surveillant",
+            "label": "Kit surveillant"
+          },
+          "label": "Téléchargements :"
+        },
+        "page-title": "Détails",
+        "panel-clea": {
+          "title": "Des candidats ont obtenu le certificat CléA numérique",
+          "description": "Pour générer les certificats CléA numérique, téléchargez la liste des candidats, complétez-la, enregistrez-la au format .xlsx puis importez-la sur la ",
+          "download-button": "Télécharger la liste des candidats",
+          "error-message": "Une erreur est survenue lors du téléchargement du fichier. Veuillez réessayer ou contacter certif@pix.fr en indiquant le numéro de la session concernée.",
+          "link-text": "plateforme du CléA numérique."
+        },
+        "parameters": {
+          "access-code": {
+            "candidate": "Candidat",
+            "copy-code": "Copier le code d’accès à la session",
+            "label": "Code d'accès"
+          },
+          "actions": {
+            "finalizing": "Finaliser la session",
+            "update": "Modifier les informations de la session {sessionId}"
+          },
+          "finalization-info": "Les informations de finalisation de la session ont déjà été transmises aux équipes de Pix.",
+          "password": {
+            "copy-password": "Copier le mot de passe de session pour le surveillant",
+            "label": "Mot de passe de session"
+          },
+          "session": {
+            "copy-number": "Copier le numéro de session",
+            "label": "Numéro de session"
+          }
+        },
+        "tabs": {
+          "details": "Détails"
+        }
+      },
+      "import": {
+        "title": "Créer/éditer plusieurs sessions",
+        "breadcrumb": {
+          "extra-information": "Fil d'Arianne",
+          "import": "Import du modèle",
+          "summary": "Récapitulatif"
+        },
+        "candidates-list": {
+          "import-fail-prefix": "Aucun candidat n’a été importé. <br/>",
+          "import-success": "La liste des candidats a été importée avec succès.",
+          "try-again-or-contact": "Veuillez réessayer ou nous contacter via le formulaire du centre d'aide.",
+          "unknown-document-version": "La version du document est inconnue."
+        },
+        "step-one": {
+          "actions": {
+            "cancel": {
+              "label": "Annuler l'import"
+            },
+            "session-import-template": {
+              "extra-information": "Télécharger le modèle vierge",
+              "label": "Télécharger (.csv)"
+            },
+            "session-import-upload": {
+              "extra-information": "Importer le modèle complété",
+              "label": "Importer (.csv)"
+            }
+          },
+          "errors": {
+            "CSV_DATA_REQUIRED": "Le modèle importé n'a pas été rempli, merci de le compléter avant de l'importer à nouveau",
+            "CSV_HEADERS_NOT_VALID": "Le modèle a été altéré, merci de le télécharger à nouveau",
+            "download": "Une erreur s'est produite pendant le téléchargement",
+            "forbidden": "La création et l'édition de plusieurs sessions à la fois n'est pas disponible pour votre centre de certification. Veuillez utiliser la création et l'édition individuelle de session."
+          },
+          "instructions": {
+            "title": "Comment ça marche ?",
+            "creation": {
+              "title": "Pour créer des sessions ?",
+              "list": "Vous pouvez créer des sessions :",
+              "list-with-candidates": "<strong>Avec candidats</strong>, complétez le modèle dans son intégralité,",
+              "list-without-candidates": "<strong>Sans candidat</strong>, complétez uniquement les informations des sessions."
+            },
+            "edition": {
+              "title": "Pour éditer la liste des candidats de sessions déjà créées ?",
+              "replace": "<strong>Pour remplacer</strong> une liste pré-existante dans le fichier modèle,",
+              "subscription": "<strong>Pour inscrire</strong> des candidats dans une session vide.",
+              "warning": "Attention à renseigner le numéro de session sans les autres informations de sessions (ex: date, heure, etc.) pour éviter les doublons lors de la création."
+            }
+          }
+        },
+        "step-two": {
+          "actions": {
+            "confirm": {
+              "label": "Finaliser la création/édition"
+            },
+            "confirm-with-warning": {
+              "label": "Finaliser quand même la création/édition"
+            },
+            "import-again": {
+              "extra-information": "Revenir à l'étape précédente pour importer le fichier à nouveau",
+              "label": "Importer à nouveau"
+            }
+          },
+          "blocking-errors": {
+            "title": "{blockingErrorReportsCount} {blockingErrorReportsCount, plural,one {erreur bloquante} other {erreurs bloquantes}}",
+            "errors": {
+              "CANDIDATE_BILLING_MODE_NOT_VALID": "Donnée du champ \"Tarification part Pix\" invalide (formats acceptés \"Gratuite\", \"Payante\" ou \"Prépayée\")",
+              "CANDIDATE_BILLING_MODE_REQUIRED": "Champ obligatoire \"Tarification part Pix\" manquant",
+              "CANDIDATE_BIRTHDATE_FORMAT_NOT_VALID": "Donnée du champ \"Date de naissance\" invalide (format accepté JJ/MM/AAAA)",
+              "CANDIDATE_BIRTHDATE_MUST_BE_GREATER": "Champ \"Date de naissance\" doit être supérieur à 01/01/1900",
+              "CANDIDATE_BIRTHDATE_REQUIRED": "Champ obligatoire \"Date de naissance\" manquant",
+              "CANDIDATE_BIRTH_CITY_REQUIRED": "Champ obligatoire \"Nom de la commune\" manquant",
+              "CANDIDATE_BIRTH_COUNTRY_NOT_FOUND": "Donnée du champ \"Pays de naissance\" n'existe pas",
+              "CANDIDATE_BIRTH_COUNTRY_REQUIRED": "Champ obligatoire \"Pays de naissance\" manquant",
+              "CANDIDATE_BIRTH_INFORMATION_REQUIRED": "Renseigner les données de naissance du candidat",
+              "CANDIDATE_BIRTH_INSEE_CODE_NOT_VALID": "Donnée du champ \"Code INSEE\" invalide",
+              "CANDIDATE_BIRTH_INSEE_CODE_OR_BIRTH_POSTAL_CODE_AND_BIRTH_CITY_REQUIRED": "Renseigner soit un code INSEE, soit un code postal et un nom de commune de naissance",
+              "CANDIDATE_BIRTH_POSTAL_CODE_CITY_NOT_VALID": "Le code postal et le nom de la commune ne correspondent pas",
+              "CANDIDATE_BIRTH_POSTAL_CODE_NOT_FOUND": "Donnée du champ \"Code postal\" n'existe pas",
+              "CANDIDATE_BIRTH_POSTAL_CODE_REQUIRED": "Champ obligatoire \"Code postal\" manquant",
+              "CANDIDATE_EMAIL_NOT_VALID": "Donnée du champ \"E-mail de convocation\" invalide",
+              "CANDIDATE_EXTRA_TIME_INTEGER": "Donnée du champ \"Temps majoré\" invalide (exemple de format accepté: 30%)",
+              "CANDIDATE_EXTRA_TIME_OUT_OF_RANGE": "Donnée du champ \"Temps majoré\" invalide (exemple de format accepté: 30%)",
+              "CANDIDATE_FIRST_NAME_REQUIRED": "Champ obligatoire \"Prénom\" manquant",
+              "CANDIDATE_FOREIGN_BIRTH_CITY_REQUIRED": "Candidat né à l'étranger, champ obligatoire \"Nom de la commune\" manquant",
+              "CANDIDATE_FOREIGN_INSEE_CODE_NOT_VALID": "Candidat né à l'étranger, inscrire 99 dans le champ \"Code INSEE\"",
+              "CANDIDATE_FOREIGN_POSTAL_CODE_MUST_BE_EMPTY": "Candidat né à l'étranger, le champ \"Code postal\" doit rester vide",
+              "CANDIDATE_LAST_NAME_REQUIRED": "Champ obligatoire \"Nom de naissance\" manquant",
+              "CANDIDATE_MAX_ONE_COMPLEMENTARY_CERTIFICATION": "Inscription possible qu'à une seule certification complémentaire par candidat",
+              "CANDIDATE_NOT_ALLOWED_FOR_STARTED_SESSION": "Édition des candidats impossible, le numéro de session correspond à une session déjà démarrée",
+              "CANDIDATE_PREPAYMENT_CODE_MUST_BE_EMPTY": "Champ \"Code de prépaiement\" doit rester vide (dans le cas de tarification part Pix gratuite ou payante)",
+              "CANDIDATE_PREPAYMENT_CODE_REQUIRED": "Champ obligatoire \"Code de prépaiement\" manquant (doit être renseigné en cas de tarification part Pix prépayée)",
+              "CANDIDATE_RESULT_RECIPIENT_EMAIL_NOT_VALID": "Donnée du champ \"E-mail du destinataire des résultats (formateur, enseignant…)\" invalide",
+              "CANDIDATE_SEX_NOT_VALID": "Donnée du champ \"Sexe\" invalide (format accepté \"M\"/\"F\")",
+              "CANDIDATE_SEX_REQUIRED": "Champ obligatoire \"Sexe\" manquant",
+              "INFORMATION_NOT_ALLOWED_WITH_SESSION_ID": "Numéro de session fourni, veuillez supprimer les informations de session associées",
+              "SESSION_ADDRESS_REQUIRED": "Champ obligatoire \"Nom du site\" manquant",
+              "SESSION_DATE_NOT_VALID": "Donnée du champ \"Date de session\" invalide (format accepté JJ/MM/AAAA)",
+              "SESSION_DATE_REQUIRED": "Champ obligatoire \"Date de session\" manquant",
+              "SESSION_EXAMINER_REQUIRED": "Champ obligatoire \"Surveillant(s)\" manquant",
+              "SESSION_ID_NOT_EXISTING": "Numéro de session inexistant",
+              "SESSION_ID_NOT_VALID": "Donnée du champ \"Numéro de session\" invalide",
+              "SESSION_ROOM_REQUIRED": "Champ obligatoire \"Nom de la salle\" manquant",
+              "SESSION_SCHEDULED_IN_THE_PAST": "Date et/ou heure indiquées antérieures à la date du jour",
+              "SESSION_TIME_NOT_VALID": "Donnée du champ \"Heure de début\" invalide (format accepté HH:MM)",
+              "SESSION_TIME_REQUIRED": "Champ obligatoire \"Heure de début\" manquant",
+              "SESSION_WITH_DATE_AND_TIME_ALREADY_EXISTS": "Une session a déjà été créée avec ces informations. Pour ajouter des candidats à une session, indiquer uniquement le numéro de session sans les informations de session"
+            },
+            "information": "Veuillez corriger toutes les erreurs bloquantes avant de re-importer le fichier .csv :",
+            "line": "Ligne"
+          },
+          "candidates-count": "{candidatesCount} {candidatesCount, plural,one {candidat} other {candidats}}",
+          "non-blocking-errors": {
+            "title": "{nonBlockingErrorReportsCount} {nonBlockingErrorReportsCount, plural,one {point d’attention non bloquant} other {points d’attention non bloquants}}",
+            "errors": {
+              "DUPLICATE_CANDIDATE_IN_SESSION": "Le candidat est inscrit plusieurs fois à la même session, une seule inscription sera prise en compte.",
+              "EMPTY_SESSION": "La session ne contient pas de candidat"
+            },
+            "information": "Nous avons détecté {nonBlockingErrorReportsCount, plural,one {un point d’attention non bloquant} other {des points d’attention non bloquants}} lors de l’import, consultez-{nonBlockingErrorReportsCount, plural,one {le} other {les}} avant de procéder à la création ou l’édition de vos sessions :",
+            "line": "Ligne"
+          },
+          "sessions-and-empty-sessions-count": "{sessionsCount} {sessionsCount, plural,one {session} other {sessions}} dont {sessionsWithoutCandidatesCount} {sessionsWithoutCandidatesCount, plural,one {session} other {sessions}} sans candidat"
+        },
+        "success": "Succès ! {sessionsCount} {sessionsCount, plural, one {session} other {sessions}} dont {sessionsWithoutCandidatesCount} {sessionsWithoutCandidatesCount, plural, one {session} other {sessions}} sans candidat {sessionsCount, plural, one {créée} other {créées}} et {candidatesCount} {candidatesCount, plural, one {candidat créé ou édité} other {candidats créés ou édités}}"
+      },
+      "list": {
+        "title": "Sessions de certification",
+        "actions": {
+          "creation": {
+            "label": "Créer une session"
+          },
+          "delete-session": {
+            "disabled": "Au moins un candidat a rejoint la session, vous ne pouvez pas la supprimer.",
+            "label": "Supprimer la session {sessionSummaryId}"
+          },
+          "multiple-creation": {
+            "label": "Créer plusieurs sessions"
+          },
+          "multiple-creation-edition": {
+            "label": "Créer/éditer plusieurs sessions"
+          }
+        },
+        "delete-modal": {
+          "title": "Supprimer la session",
+          "actions": {
+            "cancel": {
+              "extra-information": "Annuler la suppression de la session"
+            },
+            "confirm": {
+              "extra-information": "Supprimer la session"
+            }
+          },
+          "content": "Souhaitez-vous supprimer la session <span>{sessionId}</span> ?",
+          "enrolled-candidates": "<span>{enrolledCandidatesCount} {enrolledCandidatesCount, plural,one {candidat} other {candidats}}</span> {enrolledCandidatesCount, plural,one {est inscrit} other {sont inscrits}} à cette session",
+          "errors": {
+            "session-does-not-exists": "La session que vous tentez de supprimer n'existe pas.",
+            "session-has-started": "La session a déjà commencé.",
+            "unknown": "Une erreur s'est produite lors de la suppression de la session."
+          },
+          "success": "La session a été supprimée avec succès.",
+          "warning": "Attention, cette action est irréversible."
+        },
+        "empty": {
+          "title": "Créer ma première session de certification"
+        },
+        "status": {
+          "created": "Créée",
+          "finalized": "Finalisée",
+          "processed": "Résultats transmis par Pix"
+        },
+        "table": {
+          "empty": "Aucune session trouvée",
+          "header": {
+            "actions": "Actions",
+            "effective-candidates": "Certifications passées",
+            "enrolled-candidates": "Candidats inscrits"
+          },
+          "row": {
+            "label": "Session de certification",
+            "session-and-id": "Session {sessionId}"
+          }
+        }
+      },
+      "new": {
+        "title": "Création d’une session de certification",
+        "actions": {
+          "cancel-extra-information": "Annuler la création de session et retourner vers la page précédente",
+          "create-session": "Créer la session"
+        },
+        "address": "Nom du site",
+        "date": "Date de début",
+        "description": "Observations",
+        "errors": {
+          "SESSION_ADDRESS_REQUIRED": "Veuillez indiquer un nom de site.",
+          "SESSION_DATE_REQUIRED": "Veuillez indiquer une date de début.",
+          "SESSION_EXAMINER_REQUIRED": "Veuillez indiquer le nom et prénom du ou des surveillants.",
+          "SESSION_ROOM_REQUIRED": "Veuillez indiquer un nom de salle.",
+          "SESSION_TIME_REQUIRED": "Veuillez indiquer une heure de début en heure locale."
+        },
+        "examiner": "Surveillant(s)",
+        "extra-information": "Planification d’une session | Pix Certif",
+        "room": "Nom de la salle",
+        "time": "Heure de début (heure locale)"
+      },
+      "update": {
+        "title": "Modification d'une session de certification",
+        "actions": {
+          "cancel-extra-information": "Annuler la modification de la session et retourner vers la page précédente",
+          "edit-session": "Modifier la session"
         }
       }
     },
     "team": {
       "title": "Équipe",
-      "last-name": "Nom",
-      "first-name": "Prénom",
-      "referer": "Référent",
-      "pix-referer": "Référent Pix",
-      "update-referer-button": "Changer de référent",
-      "pix-referer-tooltip": "Le référent Pix est le contact privilégié des équipes de Pix. Il est le responsable du bon déroulement des sessions de certification.",
       "no-referer-section": {
         "title": "Aucun référent Pix désigné",
         "description": "Le référent Pix est le contact privilégié des équipes de Pix. Il est le responsable du bon déroulement des sessions de certification.",
         "select-referer-button": "Désigner un référent"
       },
-      "select-referer-modal" : {
+      "pix-referer": "Référent Pix",
+      "pix-referer-tooltip": "Le référent Pix est le contact privilégié des équipes de Pix. Il est le responsable du bon déroulement des sessions de certification.",
+      "referer": "Référent",
+      "select-referer-modal": {
         "title": "Sélection du référent Pix",
-        "label": "Sélectionner le référent Pix",
+        "actions": {
+          "cancel-extra-information": "Annuler la sélection de référent",
+          "validate": "Valider",
+          "validate-extra-information": "Valider la sélection de référent"
+        },
+        "description": "Le Groupement d’intérêt public, sis 21-23 rue des Ardennes 75019 Paris PIX met en œuvre en tant que responsable de traitement un traitement de données à caractère personnel portant sur votre adresse email professionnel de référent Pix.<br />La finalité de ce traitement est la communication des informations nécessaires aux attributions du référent Pix au sein du centre de certification agréé. Le traitement de cette données repose sur l’exécution de la convention d’agrément de votre centre de certification.<br />Les données sont conservées pendant la durée de la convention d’agrément en vigueur entre le GIP Pix et le centre habilité auquel vous êtes rattaché.<br />Vous disposez de droits personnels, droits d'accès, de rectification et d’effacement des données, le droit de limitation ou d’opposition au traitement pour motif légitime et le droit d’introduire une réclamation auprès d’une autorité de contrôle ainsi que le droit de définir des directives relatives à la conservation, à l'effacement et à la communication de vos données à caractère personnel en cas de décès que vous pouvez exercer par courriel auprès de notre DPD en adressant votre demande à l’adresse électronique suivante : dpd@pix.fr .<br />Vous disposez de la possibilité d’introduire une réclamation auprès de Commission nationale Informatique et libertés « CNIL » à l’adresse suivante : 3 Place de Fontenoy – TSA 80715 – 75334 Paris Cedex 07.",
         "empty-option": "--Sélectionner--",
-        "cancel": "Annuler",
-        "validate": "Valider",
-        "description" : "Le Groupement d’intérêt public, sis 21-23 rue des Ardennes 75019 Paris PIX met en œuvre en tant que responsable de traitement un traitement de données à caractère personnel portant sur votre adresse email professionnel de référent Pix.<br />La finalité de ce traitement est la communication des informations nécessaires aux attributions du référent Pix au sein du centre de certification agréé. Le traitement de cette données repose sur l’exécution de la convention d’agrément de votre centre de certification.<br />Les données sont conservées pendant la durée de la convention d’agrément en vigueur entre le GIP Pix et le centre habilité auquel vous êtes rattaché.<br />Vous disposez de droits personnels, droits d'accès, de rectification et d’effacement des données, le droit de limitation ou d’opposition au traitement pour motif légitime et le droit d’introduire une réclamation auprès d’une autorité de contrôle ainsi que le droit de définir des directives relatives à la conservation, à l'effacement et à la communication de vos données à caractère personnel en cas de décès que vous pouvez exercer par courriel auprès de notre DPD en adressant votre demande à l’adresse électronique suivante : dpd@pix.fr .<br />Vous disposez de la possibilité d’introduire une réclamation auprès de Commission nationale Informatique et libertés « CNIL » à l’adresse suivante : 3 Place de Fontenoy – TSA 80715 – 75334 Paris Cedex 07."
-      }
+        "label": "Sélectionner le référent Pix"
+      },
+      "update-referer-button": "Changer de référent"
+    },
+    "terms-of-service": {
+      "title": "Conditions générales d'utilisation de la plateforme Pix Certif",
+      "actions": {
+        "accept": "J’accepte les conditions d’utilisation"
+      },
+      "page-title": "Conditions générales"
     }
   }
 }

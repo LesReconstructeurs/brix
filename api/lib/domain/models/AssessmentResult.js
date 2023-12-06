@@ -1,10 +1,9 @@
-const Assessment = require('./Assessment');
+import { Assessment } from './Assessment.js';
 
 const status = {
   REJECTED: 'rejected',
   VALIDATED: 'validated',
   ERROR: 'error',
-  CANCELLED: 'cancelled',
 };
 
 class AssessmentResult {
@@ -96,4 +95,4 @@ class AssessmentResult {
 }
 
 AssessmentResult.status = status;
-module.exports = AssessmentResult;
+export { AssessmentResult, status };

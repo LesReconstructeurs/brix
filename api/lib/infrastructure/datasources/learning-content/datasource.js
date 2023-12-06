@@ -1,7 +1,7 @@
-const _ = require('lodash');
-const lcms = require('../../lcms');
-const LearningContentResourceNotFound = require('./LearningContentResourceNotFound');
-const cache = require('../../caches/learning-content-cache');
+import _ from 'lodash';
+import { lcms } from '../../lcms.js';
+import { LearningContentResourceNotFound } from './LearningContentResourceNotFound.js';
+import { learningContentCache } from '../../caches/learning-content-cache.js';
 
 const _DatasourcePrototype = {
   async get(id) {
@@ -36,7 +36,7 @@ const _DatasourcePrototype = {
 
   async _getLearningContent() {
     const generator = () => lcms.getLatestRelease();
-    const learningContent = await cache.get(generator);
+    const learningContent = await learningContentCache.get(generator);
     return learningContent;
   },
 
@@ -46,21 +46,21 @@ const _DatasourcePrototype = {
     const updatedRecords = _.reject(currentRecords, { id }).concat([newEntry]);
     const newLearningContent = _.cloneDeep(currentLearningContent);
     newLearningContent[this.modelName] = updatedRecords;
-    await cache.set(newLearningContent);
+    await learningContentCache.set(newLearningContent);
     return newEntry;
   },
 };
 
-module.exports = {
-  extend(props) {
-    const result = Object.assign({}, _DatasourcePrototype, props);
-    _.bindAll(result, _.functions(result));
-    return result;
-  },
-
-  async refreshLearningContentCacheRecords() {
-    const learningContent = await lcms.getLatestRelease();
-    await cache.set(learningContent);
-    return learningContent;
-  },
+const extend = function (props) {
+  const result = Object.assign({}, _DatasourcePrototype, props);
+  _.bindAll(result, _.functions(result));
+  return result;
 };
+
+const refreshLearningContentCacheRecords = async function () {
+  const learningContent = await lcms.getLatestRelease();
+  await learningContentCache.set(learningContent);
+  return learningContent;
+};
+
+export { extend, refreshLearningContentCacheRecords };

@@ -1,14 +1,29 @@
 {{page-title "Nouveau contenu formatif"}}
 <header class="page-header">
   <div class="page-title">
-    Contenus Formatifs
+    <LinkTo @route="authenticated.trainings.list">Tous les contenus formatifs</LinkTo>
     <FaIcon @icon="chevron-right" />
-    Création du contenu
+    <h1>Création du contenu</h1>
+  </div>
+  <div class="page-actions">
+    <a
+      class="page-actions__link"
+      href="https://1024pix.atlassian.net/wiki/spaces/PROD/pages/3753476097/Cr+er+un+contenu+formatif+Mode+d+emploi"
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label="Consulter la documentation de création de contenus formatifs"
+    >
+      <FaIcon @icon="arrow-up-right-from-square" />
+      <span>Consulter la documentation</span>
+    </a>
   </div>
 </header>
 
 <main class="page-body">
   <section class="page-section">
-    <Trainings::CreateTrainingForm @onSubmit={{this.createOrUpdateTraining}} @onCancel={{this.goBackToTrainingList}} />
+    <Trainings::CreateOrUpdateTrainingForm
+      @onSubmit={{this.createOrUpdateTraining}}
+      @onCancel={{this.goBackToTrainingList}}
+    />
   </section>
 </main>

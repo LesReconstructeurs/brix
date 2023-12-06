@@ -2,13 +2,11 @@ import { helper } from '@ember/component/helper';
 
 export function formatPercentage([value, ..._]) {
   if (value) {
-    return `${truncateDecimalPlaces(value)} %`;
+    const percentageValue = Math.round(value * 100);
+
+    return `${percentageValue} %`;
   }
   return '';
-}
-
-function truncateDecimalPlaces(value) {
-  return Math.trunc(value * 100);
 }
 
 export default helper(formatPercentage);

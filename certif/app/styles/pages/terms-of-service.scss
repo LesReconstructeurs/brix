@@ -1,64 +1,77 @@
 .terms-of-service-page {
   display: flex;
   flex-direction: column;
+  align-items: center;
   width: 100%;
   min-height: 100%;
   min-height: 100vh;
   background: $pix-primary-certif-gradient;
-  align-items: center;
 }
 
 .terms-of-service-form {
-  margin: auto;
-  max-width: 800px;
-  padding: 35px 0;
   justify-content: center;
+  max-width: 800px;
+  margin: auto;
+  padding: 35px 0;
   background-color: white;
   border-radius: 10px;
 
-  &__logo {
-    margin-bottom: 20px;
+  &__header {
+    display: flex;
+    flex-direction: column;
 
-    & img {
-      display: flex;
+    &--logo {
       margin: auto;
+      padding-bottom: 20px;
     }
-  }
 
-  &__title {
-    margin-bottom: 30px;
-    text-align: center;
-    color: $pix-neutral-80;
-    font-family: $font-roboto;
-    font-size: 18px;
-    font-weight: 300;
+    &--title {
+      margin: 0 10px 30px;
+      color: $pix-neutral-80;
+      text-align: center;
+    }
   }
 
   &__line {
     width: 100%;
     height: 1px;
     margin-bottom: 30px;
-    border: none;
     background-color: $pix-neutral-20;
+    border: none;
   }
 
   &__text {
     height: 400px;
     margin: 0 60px 20px;
     padding: 0 35px;
-    overflow-y: scroll;
     overflow-x: hidden;
+    overflow-y: scroll;
     font-family: $font-open-sans;
+
+    p,
+    li {
+      margin-bottom: $pix-spacing-s;
+    }
+
+    ul {
+      list-style: inside;
+    }
+
+    h2,
+    h3 {
+      margin-bottom: $pix-spacing-m;
+    }
   }
 
   &__actions {
     display: flex;
-    flex-direction: row;
-    justify-content: flex-end;
+    flex-direction: column;
+    gap: 10px;
     margin: 0 100px;
-  }
 
-  &__submit {
-    margin-left: 10px;
+    @include device-is('tablet') {
+      flex-direction: row;
+      justify-content: flex-end;
+    }
   }
 }

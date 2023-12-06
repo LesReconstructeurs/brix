@@ -2,6 +2,7 @@ import { module, test } from 'qunit';
 import { setupTest } from 'ember-qunit';
 import { run } from '@ember/runloop';
 import Service from '@ember/service';
+import sinon from 'sinon';
 
 module('Unit | Controller | authenticated', function (hooks) {
   setupTest(hooks);
@@ -15,7 +16,7 @@ module('Unit | Controller | authenticated', function (hooks) {
           id: 123,
           name: 'Sunnydale',
           type: 'NOT_SCO',
-        })
+        }),
       );
       class CurrentUserStub extends Service {
         currentAllowedCertificationCenterAccess = currentAllowedCertificationCenterAccess;
@@ -27,9 +28,7 @@ module('Unit | Controller | authenticated', function (hooks) {
       const documentationLink = controller.documentationLink;
 
       // then
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(documentationLink, 'http://cloud.pix.fr/s/fLSG4mYCcX7GDRF');
+      assert.strictEqual(documentationLink, 'http://cloud.pix.fr/s/fLSG4mYCcX7GDRF');
     });
 
     test('should return the dedicated link for SCO isManagingStudents certification center', function (assert) {
@@ -41,7 +40,7 @@ module('Unit | Controller | authenticated', function (hooks) {
           name: 'Sunnydale',
           type: 'SCO',
           isRelatedToManagingStudentsOrganization: true,
-        })
+        }),
       );
       class CurrentUserStub extends Service {
         currentAllowedCertificationCenterAccess = currentAllowedCertificationCenterAccess;
@@ -53,9 +52,7 @@ module('Unit | Controller | authenticated', function (hooks) {
       const documentationLink = controller.documentationLink;
 
       // then
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(documentationLink, 'http://cloud.pix.fr/s/GqwW6dFDDrHezfS');
+      assert.strictEqual(documentationLink, 'http://cloud.pix.fr/s/GqwW6dFDDrHezfS');
     });
   });
 
@@ -72,7 +69,7 @@ module('Unit | Controller | authenticated', function (hooks) {
           isAccessBlockedLycee: false,
           isAccessBlockedAEFE: false,
           isAccessBlockedAgri: false,
-        })
+        }),
       );
       class CurrentUserStub extends Service {
         currentAllowedCertificationCenterAccess = currentAllowedCertificationCenterAccess;
@@ -105,7 +102,7 @@ module('Unit | Controller | authenticated', function (hooks) {
           isAccessBlockedLycee: false,
           isAccessBlockedAEFE: false,
           isAccessBlockedAgri: false,
-        })
+        }),
       );
       class CurrentUserStub extends Service {
         currentAllowedCertificationCenterAccess = currentAllowedCertificationCenterAccess;
@@ -138,7 +135,7 @@ module('Unit | Controller | authenticated', function (hooks) {
           isAccessBlockedLycee: false,
           isAccessBlockedAEFE: false,
           isAccessBlockedAgri: false,
-        })
+        }),
       );
       class CurrentUserStub extends Service {
         currentAllowedCertificationCenterAccess = currentAllowedCertificationCenterAccess;
@@ -171,7 +168,7 @@ module('Unit | Controller | authenticated', function (hooks) {
           isAccessBlockedLycee: false,
           isAccessBlockedAEFE: false,
           isAccessBlockedAgri: false,
-        })
+        }),
       );
       class CurrentUserStub extends Service {
         currentAllowedCertificationCenterAccess = currentAllowedCertificationCenterAccess;
@@ -192,6 +189,195 @@ module('Unit | Controller | authenticated', function (hooks) {
     });
   });
 
+  module('#get showMassImportBanner', function () {
+    module('when isMassiveSessionManagementEnabled is on', function () {
+      test('should return false when certif center is SCO IsManagingStudents', function (assert) {
+        // given
+        const store = this.owner.lookup('service:store');
+        const currentAllowedCertificationCenterAccess = run(() =>
+          store.createRecord('allowed-certification-center-access', {
+            id: 123,
+            name: 'Sunnydale',
+            type: 'SCO',
+            isAccessBlockedCollege: false,
+            isAccessBlockedLycee: false,
+            isAccessBlockedAEFE: false,
+            isAccessBlockedAgri: false,
+            isRelatedToManagingStudentsOrganization: true,
+          }),
+        );
+        class CurrentUserStub extends Service {
+          currentAllowedCertificationCenterAccess = currentAllowedCertificationCenterAccess;
+        }
+        class FeatureTogglesStub extends Service {
+          featureToggles = { isMassiveSessionManagementEnabled: true };
+        }
+        class CurrentDomainStub extends Service {
+          getExtension = sinon.stub().returns('fr');
+        }
+        class IntlStub extends Service {
+          t = sinon.stub().returns('fr');
+        }
+
+        this.owner.register('service:current-domain', CurrentDomainStub);
+        this.owner.register('service:featureToggles', FeatureTogglesStub);
+        this.owner.register('service:intl', IntlStub);
+        this.owner.register('service:current-user', CurrentUserStub);
+        const controller = this.owner.lookup('controller:authenticated');
+
+        // when
+        const showMassImportBanner = controller.showMassImportBanner;
+
+        // then
+        assert.false(showMassImportBanner);
+      });
+
+      module('when top level domain is org', function () {
+        module('when current language is french', function () {
+          test('should render import template button', async function (assert) {
+            // given
+            const store = this.owner.lookup('service:store');
+            const currentAllowedCertificationCenterAccess = store.createRecord('allowed-certification-center-access', {
+              type: 'SUP',
+            });
+
+            class CurrentUserStub extends Service {
+              currentAllowedCertificationCenterAccess = currentAllowedCertificationCenterAccess;
+            }
+            class FeatureTogglesStub extends Service {
+              featureToggles = { isMassiveSessionManagementEnabled: true };
+            }
+            class CurrentDomainStub extends Service {
+              getExtension = sinon.stub().returns('org');
+            }
+            class IntlStub extends Service {
+              t = sinon.stub().returns('fr');
+            }
+
+            this.owner.register('service:current-domain', CurrentDomainStub);
+            this.owner.register('service:featureToggles', FeatureTogglesStub);
+            this.owner.register('service:intl', IntlStub);
+            this.owner.register('service:current-user', CurrentUserStub);
+            const controller = this.owner.lookup('controller:authenticated');
+
+            // when
+            const showMassImportBanner = controller.showMassImportBanner;
+
+            // then
+            assert.true(showMassImportBanner);
+          });
+        });
+
+        module('when current language is english', function () {
+          test('should not render import template button', async function (assert) {
+            // given
+            const store = this.owner.lookup('service:store');
+            const currentAllowedCertificationCenterAccess = store.createRecord('allowed-certification-center-access', {
+              type: 'SUP',
+            });
+
+            class CurrentUserStub extends Service {
+              currentAllowedCertificationCenterAccess = currentAllowedCertificationCenterAccess;
+            }
+            class FeatureTogglesStub extends Service {
+              featureToggles = { isMassiveSessionManagementEnabled: true };
+            }
+            class CurrentDomainStub extends Service {
+              getExtension = sinon.stub().returns('org');
+            }
+            class IntlStub extends Service {
+              t = sinon.stub().returns('en');
+            }
+
+            this.owner.register('service:current-domain', CurrentDomainStub);
+            this.owner.register('service:featureToggles', FeatureTogglesStub);
+            this.owner.register('service:intl', IntlStub);
+            this.owner.register('service:current-user', CurrentUserStub);
+            const controller = this.owner.lookup('controller:authenticated');
+
+            // when
+            const showMassImportBanner = controller.showMassImportBanner;
+
+            // then
+            assert.false(showMassImportBanner);
+          });
+        });
+      });
+
+      module('when top level domain is fr', function () {
+        test('should render import template button', async function (assert) {
+          // given
+          const store = this.owner.lookup('service:store');
+          const currentAllowedCertificationCenterAccess = store.createRecord('allowed-certification-center-access', {
+            type: 'SUP',
+          });
+
+          class CurrentUserStub extends Service {
+            currentAllowedCertificationCenterAccess = currentAllowedCertificationCenterAccess;
+          }
+          class FeatureTogglesStub extends Service {
+            featureToggles = { isMassiveSessionManagementEnabled: true };
+          }
+          class CurrentDomainStub extends Service {
+            getExtension = sinon.stub().returns('fr');
+          }
+
+          class IntlStub extends Service {
+            t = sinon.stub().returns('en');
+          }
+
+          this.owner.register('service:current-domain', CurrentDomainStub);
+          this.owner.register('service:featureToggles', FeatureTogglesStub);
+          this.owner.register('service:current-user', CurrentUserStub);
+          this.owner.register('service:intl', IntlStub);
+          const controller = this.owner.lookup('controller:authenticated');
+
+          // when
+          const showMassImportBanner = controller.showMassImportBanner;
+
+          // then
+          assert.true(showMassImportBanner);
+        });
+      });
+    });
+
+    module('when isMassiveSessionManagementEnabled is off', function () {
+      test('should not render import template button', async function (assert) {
+        // given
+        const store = this.owner.lookup('service:store');
+        const currentAllowedCertificationCenterAccess = store.createRecord('allowed-certification-center-access', {
+          type: 'SUP',
+        });
+
+        class CurrentUserStub extends Service {
+          currentAllowedCertificationCenterAccess = currentAllowedCertificationCenterAccess;
+        }
+        class FeatureTogglesStub extends Service {
+          featureToggles = { isMassiveSessionManagementEnabled: false };
+        }
+        class CurrentDomainStub extends Service {
+          getExtension = sinon.stub().returns('fr');
+        }
+
+        class IntlStub extends Service {
+          t = sinon.stub().returns('en');
+        }
+
+        this.owner.register('service:current-domain', CurrentDomainStub);
+        this.owner.register('service:featureToggles', FeatureTogglesStub);
+        this.owner.register('service:current-user', CurrentUserStub);
+        this.owner.register('service:intl', IntlStub);
+        const controller = this.owner.lookup('controller:authenticated');
+
+        // when
+        const showMassImportBanner = controller.showMassImportBanner;
+
+        // then
+        assert.false(showMassImportBanner);
+      });
+    });
+  });
+
   module('#get showLinkToSessions', function () {
     test('should return false when certif center is blocked', function (assert) {
       // given
@@ -203,7 +389,7 @@ module('Unit | Controller | authenticated', function (hooks) {
           isAccessBlockedLycee: false,
           isAccessBlockedAEFE: false,
           isAccessBlockedAgri: false,
-        })
+        }),
       );
       class CurrentUserStub extends Service {
         currentAllowedCertificationCenterAccess = currentAllowedCertificationCenterAccess;
@@ -228,7 +414,7 @@ module('Unit | Controller | authenticated', function (hooks) {
           isAccessBlockedLycee: false,
           isAccessBlockedAEFE: false,
           isAccessBlockedAgri: false,
-        })
+        }),
       );
       class CurrentUserStub extends Service {
         currentAllowedCertificationCenterAccess = currentAllowedCertificationCenterAccess;
@@ -241,49 +427,6 @@ module('Unit | Controller | authenticated', function (hooks) {
 
       // then
       assert.true(showLinkToSessions);
-    });
-  });
-
-  module('#get isEndTestScreenRemovalEnabled', function () {
-    test('should return true when current allowed certification center has end test screen removal enabled', function (assert) {
-      // given
-      const store = this.owner.lookup('service:store');
-      const currentAllowedCertificationCenterAccess = store.createRecord('allowed-certification-center-access', {
-        id: 123,
-        isEndTestScreenRemovalEnabled: true,
-      });
-      class CurrentUserStub extends Service {
-        currentAllowedCertificationCenterAccess = currentAllowedCertificationCenterAccess;
-      }
-      this.owner.register('service:current-user', CurrentUserStub);
-
-      const controller = this.owner.lookup('controller:authenticated');
-
-      // when
-      const isEndTestScreenRemovalEnabled = controller.isEndTestScreenRemovalEnabled;
-
-      // then
-      assert.true(isEndTestScreenRemovalEnabled);
-    });
-
-    test('should return true when current allowed certification center has end test screen removal disabled', function (assert) {
-      const store = this.owner.lookup('service:store');
-      const currentAllowedCertificationCenterAccess = store.createRecord('allowed-certification-center-access', {
-        id: 123,
-        isEndTestScreenRemovalEnabled: false,
-      });
-      class CurrentUserStub extends Service {
-        currentAllowedCertificationCenterAccess = currentAllowedCertificationCenterAccess;
-      }
-      this.owner.register('service:current-user', CurrentUserStub);
-
-      const controller = this.owner.lookup('controller:authenticated');
-
-      // when
-      const isEndTestScreenRemovalEnabled = controller.isEndTestScreenRemovalEnabled;
-
-      // then
-      assert.false(isEndTestScreenRemovalEnabled);
     });
   });
 });

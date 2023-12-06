@@ -55,11 +55,11 @@ module('Acceptance | Organization Participant List', function (hooks) {
         server.create('organization-participant', { organizationId, firstName: 'Jean', lastName: 'Charles' });
 
         await authenticateSession(user.id);
-        const { getByPlaceholderText } = await visit('/participants');
+        const { getByLabelText } = await visit('/participants');
 
         // when
-        const select = getByPlaceholderText(
-          this.intl.t('pages.organization-participants.filters.type.certificability.label')
+        const select = getByLabelText(
+          this.intl.t('pages.organization-participants.filters.type.certificability.label'),
         );
         await click(select);
         await clickByText(this.intl.t('pages.sco-organization-participants.table.column.is-certifiable.eligible'));

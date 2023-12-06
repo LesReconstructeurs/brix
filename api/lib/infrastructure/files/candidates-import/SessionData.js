@@ -1,6 +1,6 @@
-const moment = require('moment');
+import moment from 'moment';
 
-module.exports = class SessionData {
+class SessionData {
   constructor({
     id,
     accessCode,
@@ -34,11 +34,12 @@ module.exports = class SessionData {
     this.certificationCenterId = certificationCenterId;
     this.assignedCertificationOfficerId = assignedCertificationOfficerId;
     this.startTime = moment(time, 'HH:mm').format('HH:mm');
-    this.endTime = moment(time, 'HH:mm').add(moment.duration(2, 'hours')).format('HH:mm');
     this.date = moment(date, 'YYYY-MM-DD').format('DD/MM/YYYY');
   }
 
   static fromSession(session) {
     return new SessionData(session);
   }
-};
+}
+
+export { SessionData };

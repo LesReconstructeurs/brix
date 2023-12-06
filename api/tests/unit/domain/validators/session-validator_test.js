@@ -1,7 +1,7 @@
-const { expect, domainBuilder, catchErr } = require('../../../test-helper');
-const { statuses } = require('../../../../lib/domain/models/Session');
-const { EntityValidationError } = require('../../../../lib/domain/errors');
-const sessionValidator = require('../../../../lib/domain/validators/session-validator');
+import { expect, domainBuilder, catchErr } from '../../../test-helper.js';
+import { statuses } from '../../../../lib/domain/models/Session.js';
+import { EntityValidationError } from '../../../../lib/domain/errors.js';
+import * as sessionValidator from '../../../../lib/domain/validators/session-validator.js';
 
 const MISSING_VALUE = '';
 
@@ -158,6 +158,103 @@ describe('Unit | Domain | Validators | session-validator', function () {
     });
   });
 
+  describe('#validateForMassSessionImport', function () {
+    context('when validation is successful', function () {
+      it('should not throw any error', function () {
+        expect(sessionValidator.validateForMassSessionImport(session, 1)).to.not.throw;
+      });
+    });
+
+    context('when session data validation fails', function () {
+      context('on address attribute', function () {
+        it('should reject with error when address is missing', function () {
+          // given
+          session.address = MISSING_VALUE;
+
+          // when
+          const report = sessionValidator.validateForMassSessionImport(session, 1);
+
+          // then
+          expect(report).to.deep.equal(['SESSION_ADDRESS_REQUIRED']);
+        });
+      });
+
+      context('on room attribute', function () {
+        it('should reject with error when room is missing', async function () {
+          // given
+          session.room = MISSING_VALUE;
+
+          // when
+          const report = sessionValidator.validateForMassSessionImport(session, 1);
+
+          // then
+          expect(report).to.deep.equal(['SESSION_ROOM_REQUIRED']);
+        });
+      });
+
+      context('on date attribute', function () {
+        it('should reject with error when date is missing', function () {
+          // given
+          session.date = MISSING_VALUE;
+
+          // when
+          const report = sessionValidator.validateForMassSessionImport(session, 1);
+
+          // then
+          expect(report).to.deep.equal(['SESSION_DATE_REQUIRED']);
+        });
+
+        it('should reject with error when date is not valid', function () {
+          // given
+          session.date = '2021-02';
+
+          // when
+          const report = sessionValidator.validateForMassSessionImport(session, 1);
+
+          // then
+          expect(report).to.deep.equal(['SESSION_DATE_NOT_VALID']);
+        });
+      });
+
+      context('on time attribute', function () {
+        it('should reject with error when time is an empty string', function () {
+          // given
+          session.time = '';
+
+          // when
+          const report = sessionValidator.validateForMassSessionImport(session, 1);
+
+          // then
+          expect(report).to.deep.equal(['SESSION_TIME_REQUIRED']);
+        });
+
+        it('should reject with error when time has a format different than HH:MM', function () {
+          // given
+          session.time = '14:23:30';
+
+          // when
+          const report = sessionValidator.validateForMassSessionImport(session, 1);
+
+          // then
+          expect(report).to.deep.equal(['SESSION_TIME_NOT_VALID']);
+        });
+      });
+
+      context('on examiner attribute', function () {
+        it('should reject with error when examiner is missing', function () {
+          // given
+          session.examiner = MISSING_VALUE;
+
+          // when
+          const report = sessionValidator.validateForMassSessionImport(session, 1);
+
+          // then
+          expect(report).to.deep.equal(['SESSION_EXAMINER_REQUIRED']);
+        });
+      });
+    });
+  });
+
   describe('#validateFilters', function () {
     context('return value', function () {
       it('should return the filters in a normalized form', function () {
@@ -220,7 +317,7 @@ describe('Unit | Domain | Validators | session-validator', function () {
             const certificationCenterName = '   Coucou le dév qui lit ce message !   ';
             expect(sessionValidator.validateAndNormalizeFilters({ certificationCenterName })).to.not.throw;
             expect(
-              sessionValidator.validateAndNormalizeFilters({ certificationCenterName }).certificationCenterName
+              sessionValidator.validateAndNormalizeFilters({ certificationCenterName }).certificationCenterName,
             ).to.equal(certificationCenterName.trim());
           });
         });

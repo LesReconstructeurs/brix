@@ -1,10 +1,11 @@
-import { currentURL, visit } from '@ember/test-helpers';
+import Service from '@ember/service';
+import { currentURL, click } from '@ember/test-helpers';
+import { visit } from '@1024pix/ember-testing-library';
 import { module, test } from 'qunit';
+import sinon from 'sinon';
 import { authenticate } from '../helpers/authentication';
 import { setupApplicationTest } from 'ember-qunit';
 import { setupMirage } from 'ember-cli-mirage/test-support';
-import { contains } from '../helpers/contains';
-import { clickByLabel } from '../helpers/click-by-label';
 import setupIntl from '../helpers/setup-intl';
 
 module('Acceptance | User account page', function (hooks) {
@@ -18,9 +19,7 @@ module('Acceptance | User account page', function (hooks) {
       await visit('/mon-compte');
 
       // then
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(currentURL(), '/connexion');
+      assert.strictEqual(currentURL(), '/connexion');
     });
   });
 
@@ -38,59 +37,100 @@ module('Acceptance | User account page', function (hooks) {
       await visit('/mon-compte');
 
       // then
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(currentURL(), '/mon-compte/informations-personnelles');
+      assert.strictEqual(currentURL(), '/mon-compte/informations-personnelles');
     });
 
     module('My account menu', function () {
       test('should display my account menu', async function (assert) {
         // when
-        await visit('/mon-compte');
+        const screen = await visit('/mon-compte');
 
         // then
-        assert.ok(contains(this.intl.t('pages.user-account.personal-information.menu-link-title')));
-        assert.ok(contains(this.intl.t('pages.user-account.connexion-methods.menu-link-title')));
-        assert.ok(contains(this.intl.t('pages.user-account.language.menu-link-title')));
+        assert.ok(
+          screen.getByRole('link', { name: this.intl.t('pages.user-account.personal-information.menu-link-title') }),
+        );
+        assert.ok(
+          screen.getByRole('link', { name: this.intl.t('pages.user-account.connexion-methods.menu-link-title') }),
+        );
+        assert.ok(screen.getByRole('link', { name: this.intl.t('pages.user-account.language.menu-link-title') }));
       });
 
       test('should display personal information on click on "Informations personnelles"', async function (assert) {
         // given
-        await visit('/mon-compte');
+        const screen = await visit('/mon-compte');
 
         // when
-        await clickByLabel(this.intl.t('pages.user-account.personal-information.menu-link-title'));
+        await click(
+          screen.getByRole('link', { name: this.intl.t('pages.user-account.personal-information.menu-link-title') }),
+        );
 
         // then
-        // TODO: Fix this the next time the file is edited.
-        // eslint-disable-next-line qunit/no-assert-equal
-        assert.equal(currentURL(), '/mon-compte/informations-personnelles');
+        assert.strictEqual(currentURL(), '/mon-compte/informations-personnelles');
       });
 
       test('should display connection methods on click on "Méthodes de connexion"', async function (assert) {
         // given
-        await visit('/mon-compte');
+        const screen = await visit('/mon-compte');
 
         // when
-        await clickByLabel(this.intl.t('pages.user-account.connexion-methods.menu-link-title'));
+        await click(
+          screen.getByRole('link', { name: this.intl.t('pages.user-account.connexion-methods.menu-link-title') }),
+        );
 
         // then
-        // TODO: Fix this the next time the file is edited.
-        // eslint-disable-next-line qunit/no-assert-equal
-        assert.equal(currentURL(), '/mon-compte/methodes-de-connexion');
+        assert.strictEqual(currentURL(), '/mon-compte/methodes-de-connexion');
       });
 
-      test('should display language on click on "Choisir ma langue"', async function (assert) {
-        // given
-        await visit('/mon-compte');
+      module('When not in France domain', () => {
+        test('displays language switcher on click on "Choisir ma langue"', async function (assert) {
+          // given
+          class CurrentDomainStubService extends Service {
+            get isFranceDomain() {
+              return false;
+            }
 
-        // when
-        await clickByLabel(this.intl.t('pages.user-account.language.menu-link-title'));
+            getExtension = sinon.stub().returns('org');
+          }
 
-        // then
-        // TODO: Fix this the next time the file is edited.
-        // eslint-disable-next-line qunit/no-assert-equal
-        assert.equal(currentURL(), '/mon-compte/langue');
+          this.owner.register('service:currentDomain', CurrentDomainStubService);
+
+          const screen = await visit('/mon-compte');
+
+          // when
+          await click(screen.getByRole('link', { name: this.intl.t('pages.user-account.language.menu-link-title') }));
+
+          // then
+          const languageSwitcherGeneric = screen.getByRole('generic', {
+            name: this.intl.t('pages.inscription.choose-language-aria-label'),
+          });
+
+          assert.strictEqual(currentURL(), '/mon-compte/langue');
+          assert.dom(languageSwitcherGeneric).exists();
+        });
+      });
+
+      module('When in France domain', () => {
+        test('does not display language menu link', async function (assert) {
+          // given
+          class CurrentDomainStubService extends Service {
+            get isFranceDomain() {
+              return true;
+            }
+
+            getExtension = sinon.stub().returns('fr');
+          }
+
+          this.owner.register('service:currentDomain', CurrentDomainStubService);
+
+          const screen = await visit('/mon-compte');
+
+          // when / then
+          const languageMenuLink = screen.queryByRole('link', {
+            name: this.intl.t('pages.user-account.language.menu-link-title'),
+          });
+
+          assert.dom(languageMenuLink).doesNotExist();
+        });
       });
     });
   });

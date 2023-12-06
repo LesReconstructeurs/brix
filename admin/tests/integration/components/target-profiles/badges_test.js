@@ -3,7 +3,7 @@ import { setupRenderingTest } from 'ember-qunit';
 import { find } from '@ember/test-helpers';
 import { clickByName, render } from '@1024pix/ember-testing-library';
 import EmberObject from '@ember/object';
-import hbs from 'htmlbars-inline-precompile';
+import { hbs } from 'ember-cli-htmlbars';
 import sinon from 'sinon';
 
 module('Integration | Component | TargetProfiles::Badges', function (hooks) {
@@ -94,8 +94,8 @@ module('Integration | Component | TargetProfiles::Badges', function (hooks) {
       assert
         .dom(
           screen.getByText(
-            "Êtes-vous sûr de vouloir supprimer ce résultat thématique ? (Uniquement si le RT n'a pas encore été assigné)"
-          )
+            "Êtes-vous sûr de vouloir supprimer ce résultat thématique ? (Uniquement si le RT n'a pas encore été assigné)",
+          ),
         )
         .exists();
     });
@@ -117,8 +117,8 @@ module('Integration | Component | TargetProfiles::Badges', function (hooks) {
       assert
         .dom(
           screen.queryByText(
-            "Êtes-vous sûr de vouloir supprimer ce résultat thématique ? (Uniquement si le RT n'a pas encore été assigné)"
-          )
+            "Êtes-vous sûr de vouloir supprimer ce résultat thématique ? (Uniquement si le RT n'a pas encore été assigné)",
+          ),
         )
         .doesNotExist();
     });

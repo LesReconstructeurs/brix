@@ -1,8 +1,8 @@
-const { sinon, expect, domainBuilder } = require('../../../test-helper');
-const { UserNotAuthorizedToAccessEntityError } = require('../../../../lib/domain/errors');
-const KnowledgeElement = require('../../../../lib/domain/models/KnowledgeElement');
-const Scorecard = require('../../../../lib/domain/models/Scorecard');
-const findTutorials = require('../../../../lib/domain/usecases/find-tutorials');
+import { sinon, expect, domainBuilder } from '../../../test-helper.js';
+import { UserNotAuthorizedToAccessEntityError } from '../../../../lib/domain/errors.js';
+import { KnowledgeElement } from '../../../../lib/domain/models/KnowledgeElement.js';
+import { Scorecard } from '../../../../lib/domain/models/Scorecard.js';
+import { findTutorials } from '../../../../lib/domain/usecases/find-tutorials.js';
 
 describe('Unit | UseCase | find-tutorials', function () {
   let authenticatedUserId;
@@ -26,10 +26,6 @@ describe('Unit | UseCase | find-tutorials', function () {
     tubeRepository = { findByNames: sinon.stub() };
     tutorialRepository = { findByRecordIdsForCurrentUser: sinon.stub() };
     locale = 'lang-country';
-  });
-
-  afterEach(function () {
-    sinon.restore();
   });
 
   context('When user is authenticated', function () {
@@ -243,7 +239,7 @@ describe('Unit | UseCase | find-tutorials', function () {
             //then
             expect(result).to.deep.equal(expectedTutorialList);
           });
-        }
+        },
       );
 
       context('when there is no invalidated knowledge element', function () {

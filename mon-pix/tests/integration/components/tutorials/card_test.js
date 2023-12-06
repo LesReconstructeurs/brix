@@ -1,6 +1,8 @@
 import { module, test } from 'qunit';
-import { find, render } from '@ember/test-helpers';
-import hbs from 'htmlbars-inline-precompile';
+// eslint-disable-next-line no-restricted-imports
+import { find } from '@ember/test-helpers';
+import { render } from '@1024pix/ember-testing-library';
+import { hbs } from 'ember-cli-htmlbars';
 import Service from '@ember/service';
 import setupIntlRenderingTest from '../../../helpers/setup-intl-rendering';
 
@@ -26,7 +28,7 @@ module('Integration | Component | Tutorials | Card', function (hooks) {
           duration: '60',
           userSavedTutorial: store.createRecord('user-saved-tutorial', {}),
           tutorialEvaluation: store.createRecord('tutorial-evaluation', { status: 'LIKED' }),
-        })
+        }),
       );
 
       // when
@@ -35,8 +37,8 @@ module('Integration | Component | Tutorials | Card', function (hooks) {
       // then
       assert.dom('.tutorial-card').exists();
       assert.dom('.tutorial-card__content').exists();
-      assert.ok(find('.tutorial-card-content__link').textContent.includes('Mon super tutoriel'));
-      assert.strictEqual(find('.tutorial-card-content__link').href, 'https://exemple.net/');
+      assert.ok(find('.tutorial-card-content__title a').textContent.includes('Mon super tutoriel'));
+      assert.strictEqual(find('.tutorial-card-content__title a').href, 'https://exemple.net/');
       assert.ok(find('.tutorial-card-content__details').textContent.includes('mon-tuto'));
       assert.ok(find('.tutorial-card-content__details').textContent.includes('vidéo'));
       assert.ok(find('.tutorial-card-content__details').textContent.includes('une minute'));
@@ -66,7 +68,7 @@ module('Integration | Component | Tutorials | Card', function (hooks) {
           duration: '60',
           userSavedTutorial: store.createRecord('user-saved-tutorial', {}),
           tutorialEvaluation: store.createRecord('tutorial-evaluation', { status: 'LIKED' }),
-        })
+        }),
       );
 
       // when
@@ -75,8 +77,8 @@ module('Integration | Component | Tutorials | Card', function (hooks) {
       // then
       assert.dom('.tutorial-card').exists();
       assert.dom('.tutorial-card__content').exists();
-      assert.ok(find('.tutorial-card-content__link').textContent.includes('Mon super tutoriel'));
-      assert.strictEqual(find('.tutorial-card-content__link').href, 'https://exemple.net/');
+      assert.ok(find('.tutorial-card-content__title a').textContent.includes('Mon super tutoriel'));
+      assert.strictEqual(find('.tutorial-card-content__title a').href, 'https://exemple.net/');
       assert.ok(find('.tutorial-card-content__details').textContent.includes('mon-tuto'));
       assert.ok(find('.tutorial-card-content__details').textContent.includes('vidéo'));
       assert.ok(find('.tutorial-card-content__details').textContent.includes('une minute'));

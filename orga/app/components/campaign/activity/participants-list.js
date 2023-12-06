@@ -1,5 +1,5 @@
 import Component from '@glimmer/component';
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 import { action } from '@ember/object';
 import { tracked } from '@glimmer/tracking';
 
@@ -32,5 +32,12 @@ export default class ParticipantsList extends Component {
   closeModal() {
     this.participationToDelete = null;
     this.isModalOpen = false;
+  }
+
+  @action
+  deleteCampaignParticipation() {
+    this.isModalOpen = false;
+    this.args.deleteCampaignParticipation(this.args.campaign.id, this.participationToDelete);
+    this.participationToDelete = null;
   }
 }

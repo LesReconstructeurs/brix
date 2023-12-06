@@ -1,15 +1,17 @@
 import Controller from '@ember/controller';
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 import { action } from '@ember/object';
 import { tracked } from '@glimmer/tracking';
 
 export default class AuthenticatedCertificationsController extends Controller {
+  @service currentDomain;
   @service fileSaver;
   @service session;
   @service currentUser;
   @service notifications;
   @service intl;
-  @service url;
+
+  @tracked selectedLanguage = this.intl.primaryLocale;
 
   @tracked selectedDivision = '';
 
@@ -29,14 +31,14 @@ export default class AuthenticatedCertificationsController extends Controller {
     try {
       if (_isDivisionInvalid(this.selectedDivision, this.model.options)) {
         throw new Error(
-          this.intl.t('pages.certifications.errors.invalid-division', { selectedDivision: this.selectedDivision })
+          this.intl.t('pages.certifications.errors.invalid-division', { selectedDivision: this.selectedDivision }),
         );
       }
 
       const organizationId = this.currentUser.organization.id;
       const url = `/api/organizations/${organizationId}/certification-results?division=${encodeURIComponent(
-        this.selectedDivision
-      )}`;
+        this.selectedDivision,
+      )}&lang=${this.selectedLanguage}`;
 
       let token = '';
 
@@ -49,10 +51,10 @@ export default class AuthenticatedCertificationsController extends Controller {
       if (_isErrorNotFound(error)) {
         this.notifications.info(
           this.intl.t('pages.certifications.errors.no-results', { selectedDivision: this.selectedDivision }),
-          { autoClear: false }
+          { autoClear: false },
         );
       } else {
-        this.notifications.error(error.message, { autoClear: false });
+        this.notifications.sendError(error.message, { autoClear: false });
       }
     }
   }
@@ -62,35 +64,34 @@ export default class AuthenticatedCertificationsController extends Controller {
     try {
       if (_isDivisionInvalid(this.selectedDivision, this.model.options)) {
         throw new Error(
-          this.intl.t('pages.certifications.errors.invalid-division', { selectedDivision: this.selectedDivision })
+          this.intl.t('pages.certifications.errors.invalid-division', { selectedDivision: this.selectedDivision }),
         );
       }
 
+      const lang = this.intl.primaryLocale;
       const organizationId = this.currentUser.organization.id;
-      const url = `/api/organizations/${organizationId}/certification-attestations?division=${this.selectedDivision}&isFrenchDomainExtension=${this.url.isFrenchDomainExtension}`;
-      const fileName = 'attestations_pix.pdf';
-
+      const url = `/api/organizations/${organizationId}/certification-attestations?division=${this.selectedDivision}&isFrenchDomainExtension=${this.currentDomain.isFranceDomain}&lang=${lang}`;
       let token = '';
 
       if (this.session.isAuthenticated) {
         token = this.session.data.authenticated.access_token;
       }
 
-      await this.fileSaver.save({ url, fileName, token });
+      await this.fileSaver.save({ url, token });
     } catch (error) {
       if (_isErrorNotFound(error)) {
         this.notifications.info(
           this.intl.t('pages.certifications.errors.no-results', { selectedDivision: this.selectedDivision }),
-          { autoClear: false }
+          { autoClear: false },
         );
       }
       if (_isErrorNoResults(error)) {
         this.notifications.info(
           this.intl.t('pages.certifications.errors.no-certificates', { selectedDivision: this.selectedDivision }),
-          { autoClear: false }
+          { autoClear: false },
         );
       } else {
-        this.notifications.error(error.message, { autoClear: false });
+        this.notifications.sendError(error.message, { autoClear: false });
       }
     }
   }

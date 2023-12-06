@@ -1,7 +1,7 @@
-const { expect, generateValidRequestAuthorizationHeader, databaseBuilder } = require('../../test-helper');
-const createServer = require('../../../server');
-const Membership = require('../../../lib/domain/models/Membership');
-const securityPreHandlers = require('../../../lib/application/security-pre-handlers');
+import { expect, generateValidRequestAuthorizationHeader, databaseBuilder } from '../../test-helper.js';
+import { createServer } from '../../../server.js';
+import { Membership } from '../../../lib/domain/models/Membership.js';
+import { securityPreHandlers } from '../../../lib/application/security-pre-handlers.js';
 
 describe('Acceptance | Application | SecurityPreHandlers', function () {
   const jsonApiError403 = {
@@ -338,7 +338,7 @@ describe('Acceptance | Application | SecurityPreHandlers', function () {
       // given
       const options = {
         method: 'GET',
-        url: '/api/frameworks/pix/areas',
+        url: '/api/frameworks/for-target-profile-submission',
         headers: { authorization: generateValidRequestAuthorizationHeader() },
       };
 

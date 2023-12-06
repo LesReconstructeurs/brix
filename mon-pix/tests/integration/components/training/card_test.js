@@ -1,6 +1,8 @@
 import { module, test } from 'qunit';
-import { find, render } from '@ember/test-helpers';
-import hbs from 'htmlbars-inline-precompile';
+// eslint-disable-next-line no-restricted-imports
+import { find } from '@ember/test-helpers';
+import { render } from '@1024pix/ember-testing-library';
+import { hbs } from 'ember-cli-htmlbars';
 import setupIntlRenderingTest from '../../../helpers/setup-intl-rendering';
 
 module('Integration | Component | Training | Card', function (hooks) {
@@ -14,7 +16,7 @@ module('Integration | Component | Training | Card', function (hooks) {
       type: 'webinaire',
       locale: 'fr-fr',
       duration: { hours: 6 },
-      editorName: "Ministère de l'éducation nationale et de la jeunesse",
+      editorName: "Ministère de l'éducation nationale et de la jeunesse. Liberté égalité fraternité",
       editorLogoUrl:
         'https://images.pix.fr/contenu-formatif/editeur/logo-ministere-education-nationale-et-jeunesse.svg',
     });
@@ -27,16 +29,18 @@ module('Integration | Component | Training | Card', function (hooks) {
     assert.strictEqual(find('.training-card__content').href, 'https://training.net/');
     assert.strictEqual(find('.training-card-content__title').textContent.trim(), 'Mon super training');
     assert.dom('.training-card-content__infos').exists();
-    assert.strictEqual(find('.training-card-content-infos-list__type').textContent.trim(), 'Webinaire');
-    assert.strictEqual(find('.training-card-content-infos-list__duration').textContent.trim(), '6h');
+    assert.strictEqual(find('.training-card-content__infos').title, 'Webinaire - 6h');
+    assert.dom('.training-card-content-infos__tag').exists();
+    assert.strictEqual(find('.training-card-content-infos-tag-list__type').textContent.trim(), 'Webinaire');
+    assert.strictEqual(find('.training-card-content-infos-tag-list__duration').textContent.trim(), '6h');
     assert.notOk(find('.training-card-content-illustration__image').alt);
     assert.strictEqual(
       find('.training-card-content-illustration__logo').alt,
-      "Ministère de l'éducation nationale et de la jeunesse"
+      "Contenu formatif proposé par Ministère de l'éducation nationale et de la jeunesse. Liberté égalité fraternité",
     );
     assert.strictEqual(
       find('.training-card-content-illustration__logo').src,
-      'https://images.pix.fr/contenu-formatif/editeur/logo-ministere-education-nationale-et-jeunesse.svg'
+      'https://images.pix.fr/contenu-formatif/editeur/logo-ministere-education-nationale-et-jeunesse.svg',
     );
   });
 });

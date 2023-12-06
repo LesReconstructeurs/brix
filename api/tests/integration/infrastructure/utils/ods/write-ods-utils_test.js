@@ -1,9 +1,13 @@
-const { writeFile, unlink } = require('fs').promises;
+import fs from 'fs';
 
-const { expect } = require('../../../../test-helper');
+const { promises } = fs;
 
-const { getContentXml } = require('../../../../../lib/infrastructure/utils/ods/read-ods-utils');
-const {
+const { writeFile, unlink } = promises;
+
+import { expect } from '../../../../test-helper.js';
+import { getContentXml } from '../../../../../lib/infrastructure/utils/ods/read-ods-utils.js';
+
+import {
   makeUpdatedOdsByContentXml,
   updateXmlRows,
   updateXmlSparseValues,
@@ -11,8 +15,12 @@ const {
   incrementRowsColumnSpan,
   addValidatorRestrictedList,
   addTooltipOnCell,
-} = require('../../../../../lib/infrastructure/utils/ods/write-ods-utils');
-const AddedCellOption = require('../../../../../lib/infrastructure/utils/ods/added-cell-option');
+} from '../../../../../lib/infrastructure/utils/ods/write-ods-utils.js';
+
+import { AddedCellOption } from '../../../../../lib/infrastructure/utils/ods/added-cell-option.js';
+
+import * as url from 'url';
+const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 
 describe('Integration | Infrastructure | Utils | Ods | write-ods-utils', function () {
   const GET_CONTENT_ODS_FILE_PATH = `${__dirname}/files/get-content-xml_test.ods`;
@@ -154,7 +162,7 @@ describe('Integration | Infrastructure | Utils | Ods | write-ods-utils', functio
       '<xml xmlns:some="" xmlns:text="">' +
       '<some:element>' +
       '<some:element>' +
-      '<some:element xmlns:office="" office:value-type="percentage" office:value="0.5"/>' +
+      '<some:element office:value-type="percentage" office:value="0.5"/>' +
       '<some:element office:value-type="string">' +
       '<text:p>Bibidi</text:p>' +
       '</some:element>' +
@@ -233,7 +241,7 @@ describe('Integration | Infrastructure | Utils | Ods | write-ods-utils', functio
           <xml xmlns:some="" xmlns:text="">
             <some:element>
               <some:element>
-                <some:element xmlns:office="" office:value-type="string">
+                <some:element office:value-type="string">
                   <text:p>Bibidi</text:p>
                 </some:element>
                 <some:element

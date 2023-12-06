@@ -1,7 +1,7 @@
-const { expect, databaseBuilder, mockLearningContent } = require('../../../test-helper');
-const campaignParticipationResultRepository = require('../../../../lib/infrastructure/repositories/campaign-participation-result-repository');
-const KnowledgeElement = require('../../../../lib/domain/models/KnowledgeElement');
-const CampaignParticipationStatuses = require('../../../../lib/domain/models/CampaignParticipationStatuses');
+import { expect, databaseBuilder, mockLearningContent } from '../../../test-helper.js';
+import { campaignParticipationResultRepository } from '../../../../lib/infrastructure/repositories/campaign-participation-result-repository.js';
+import { KnowledgeElement } from '../../../../lib/domain/models/KnowledgeElement.js';
+import { CampaignParticipationStatuses } from '../../../../lib/domain/models/CampaignParticipationStatuses.js';
 
 const { STARTED } = CampaignParticipationStatuses;
 
@@ -83,7 +83,7 @@ describe('Integration | Repository | Campaign Participation Result', function ()
       await databaseBuilder.commit();
 
       const campaignAssessmentParticipationResult = await campaignParticipationResultRepository.getByParticipationId(
-        campaignParticipationId
+        campaignParticipationId,
       );
 
       expect(campaignAssessmentParticipationResult).to.deep.include({
@@ -138,7 +138,7 @@ describe('Integration | Repository | Campaign Participation Result', function ()
       });
       await databaseBuilder.commit();
       const campaignAssessmentParticipationResult = await campaignParticipationResultRepository.getByParticipationId(
-        campaignParticipationId
+        campaignParticipationId,
       );
 
       expect(campaignAssessmentParticipationResult).to.deep.include({
@@ -200,7 +200,7 @@ describe('Integration | Repository | Campaign Participation Result', function ()
       });
       await databaseBuilder.commit();
       const campaignAssessmentParticipationResult = await campaignParticipationResultRepository.getByParticipationId(
-        campaignParticipationId
+        campaignParticipationId,
       );
       const competenceResults = campaignAssessmentParticipationResult.competenceResults.sort((a, b) => a.id <= b.id);
       expect(competenceResults).to.deep.equal([
@@ -272,7 +272,7 @@ describe('Integration | Repository | Campaign Participation Result', function ()
         knowledgeElementsAttributes.forEach((attributes) => databaseBuilder.factory.buildKnowledgeElement(attributes));
         await databaseBuilder.commit();
         const campaignAssessmentParticipationResult = await campaignParticipationResultRepository.getByParticipationId(
-          campaignParticipationId
+          campaignParticipationId,
         );
 
         expect(campaignAssessmentParticipationResult).to.deep.include({
@@ -282,98 +282,6 @@ describe('Integration | Repository | Campaign Participation Result', function ()
           totalSkillsCount: 4,
           validatedSkillsCount: 1,
         });
-      });
-    });
-
-    context('when the target profile has some stages', function () {
-      it('returns the stage reached', async function () {
-        const { id: userId } = databaseBuilder.factory.buildUser();
-        const { id: campaignId } = databaseBuilder.factory.buildCampaign({ targetProfileId });
-        _buildCampaignSkills(campaignId);
-        const { id: campaignParticipationId } = databaseBuilder.factory.buildCampaignParticipation({
-          userId,
-          campaignId,
-          sharedAt: new Date('2020-01-02'),
-        });
-
-        const { id: assessmentId } = databaseBuilder.factory.buildAssessment({
-          campaignParticipationId,
-          userId,
-          state: 'completed',
-          type: 'CAMPAIGN',
-        });
-        databaseBuilder.factory.buildStage({
-          id: 10,
-          title: 'StageO',
-          message: 'Message0',
-          targetProfileId,
-          threshold: 0,
-        });
-        databaseBuilder.factory.buildStage({
-          id: 1,
-          title: 'Stage1',
-          message: 'Message1',
-          targetProfileId,
-          threshold: 10,
-        });
-        databaseBuilder.factory.buildStage({
-          id: 2,
-          title: 'Stage2',
-          message: 'Message2',
-          targetProfileId,
-          threshold: 50,
-        });
-        databaseBuilder.factory.buildStage({
-          id: 3,
-          title: 'Stage3',
-          message: 'Message3',
-          targetProfileId,
-          threshold: 100,
-        });
-
-        const knowledgeElementsAttributes = [
-          {
-            userId,
-            skillId: 'skill1',
-            competenceId: 'rec1',
-            createdAt: new Date('2020-01-01'),
-            status: KnowledgeElement.StatusType.VALIDATED,
-          },
-          {
-            userId,
-            assessmentId,
-            skillId: 'skill2',
-            competenceId: 'rec1',
-            createdAt: new Date('2020-01-01'),
-            status: KnowledgeElement.StatusType.VALIDATED,
-          },
-          {
-            userId,
-            assessmentId,
-            skillId: 'skill3',
-            competenceId: 'rec2',
-            createdAt: new Date('2020-01-01'),
-            status: KnowledgeElement.StatusType.INVALIDATED,
-          },
-        ];
-
-        databaseBuilder.factory.knowledgeElementSnapshotFactory.buildSnapshot({
-          userId,
-          snappedAt: new Date('2020-01-02'),
-          knowledgeElementsAttributes,
-        });
-        await databaseBuilder.commit();
-        const campaignAssessmentParticipationResult = await campaignParticipationResultRepository.getByParticipationId(
-          campaignParticipationId
-        );
-        expect(campaignAssessmentParticipationResult.reachedStage).to.deep.include({
-          id: 2,
-          message: 'Message2',
-          starCount: 3,
-          threshold: 50,
-          title: 'Stage2',
-        });
-        expect(campaignAssessmentParticipationResult.stageCount).to.equal(4);
       });
     });
   });

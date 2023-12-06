@@ -10,7 +10,7 @@ module('Unit | Component | Dashboard | Content', function (hooks) {
 
   hooks.beforeEach(function () {
     // given
-    component = createGlimmerComponent('component:dashboard/content');
+    component = createGlimmerComponent('dashboard/content');
   });
 
   module('#recommendedScorecards', function () {
@@ -248,9 +248,7 @@ module('Unit | Component | Dashboard | Content', function (hooks) {
       const result = component.userFirstname;
 
       // then
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(result, userFirstName);
+      assert.strictEqual(result, userFirstName);
     });
   });
 
@@ -343,9 +341,7 @@ module('Unit | Component | Dashboard | Content', function (hooks) {
       const result = component.userScore;
 
       // then
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(result, pixScore);
+      assert.strictEqual(result, pixScore);
     });
   });
 });

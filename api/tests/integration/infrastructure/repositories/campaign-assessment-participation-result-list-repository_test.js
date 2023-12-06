@@ -1,6 +1,6 @@
-const { expect, databaseBuilder, knex, mockLearningContent, learningContentBuilder } = require('../../../test-helper');
-const campaignAssessmentParticipationResultListRepository = require('../../../../lib/infrastructure/repositories/campaign-assessment-participation-result-list-repository');
-const CampaignParticipationStatuses = require('../../../../lib/domain/models/CampaignParticipationStatuses');
+import { expect, databaseBuilder, knex, mockLearningContent, learningContentBuilder } from '../../../test-helper.js';
+import * as campaignAssessmentParticipationResultListRepository from '../../../../lib/infrastructure/repositories/campaign-assessment-participation-result-list-repository.js';
+import { CampaignParticipationStatuses } from '../../../../lib/domain/models/CampaignParticipationStatuses.js';
 
 const { STARTED } = CampaignParticipationStatuses;
 
@@ -24,7 +24,7 @@ describe('Integration | Repository | Campaign Assessment Participation Result Li
           {
             firstName: 'John',
             lastName: 'Doe',
-          }
+          },
         );
 
         databaseBuilder.factory.buildAssessmentFromParticipation({
@@ -55,7 +55,7 @@ describe('Integration | Repository | Campaign Assessment Participation Result Li
             ],
           },
         ];
-        const learningContentObjects = learningContentBuilder.buildLearningContent.fromAreas(learningContent);
+        const learningContentObjects = learningContentBuilder.fromAreas(learningContent);
         mockLearningContent(learningContentObjects);
       });
 
@@ -110,7 +110,7 @@ describe('Integration | Repository | Campaign Assessment Participation Result Li
             ],
           },
         ];
-        const learningContentObjects = learningContentBuilder.buildLearningContent.fromAreas(learningContent);
+        const learningContentObjects = learningContentBuilder.fromAreas(learningContent);
         mockLearningContent(learningContentObjects);
       });
 
@@ -136,7 +136,7 @@ describe('Integration | Repository | Campaign Assessment Participation Result Li
           },
           {
             campaignId: campaign.id,
-          }
+          },
         );
         await databaseBuilder.commit();
 
@@ -156,7 +156,7 @@ describe('Integration | Repository | Campaign Assessment Participation Result Li
             ],
           },
         ];
-        const learningContentObjects = learningContentBuilder.buildLearningContent.fromAreas(learningContent);
+        const learningContentObjects = learningContentBuilder.fromAreas(learningContent);
         mockLearningContent(learningContentObjects);
       });
 
@@ -213,7 +213,7 @@ describe('Integration | Repository | Campaign Assessment Participation Result Li
             ],
           },
         ];
-        const learningContentObjects = learningContentBuilder.buildLearningContent.fromAreas(learningContent);
+        const learningContentObjects = learningContentBuilder.fromAreas(learningContent);
         mockLearningContent(learningContentObjects);
       });
 
@@ -261,7 +261,7 @@ describe('Integration | Repository | Campaign Assessment Participation Result Li
             ],
           },
         ];
-        const learningContentObjects = learningContentBuilder.buildLearningContent.fromAreas(learningContent);
+        const learningContentObjects = learningContentBuilder.fromAreas(learningContent);
         mockLearningContent(learningContentObjects);
       });
 
@@ -307,7 +307,7 @@ describe('Integration | Repository | Campaign Assessment Participation Result Li
             ],
           },
         ];
-        const learningContentObjects = learningContentBuilder.buildLearningContent.fromAreas(learningContent);
+        const learningContentObjects = learningContentBuilder.fromAreas(learningContent);
         mockLearningContent(learningContentObjects);
       });
 
@@ -329,22 +329,22 @@ describe('Integration | Repository | Campaign Assessment Participation Result Li
         databaseBuilder.factory.buildCampaignParticipationWithOrganizationLearner(
           { firstName: 'Jaja', lastName: 'Le raplapla', organizationId },
           campaignParticipation,
-          true
+          true,
         );
         databaseBuilder.factory.buildCampaignParticipationWithOrganizationLearner(
           { firstName: 'Jiji', lastName: 'Le riquiqui', organizationId },
           campaignParticipation,
-          true
+          true,
         );
         databaseBuilder.factory.buildCampaignParticipationWithOrganizationLearner(
           { firstName: 'Jojo', lastName: 'le rococo', organizationId },
           campaignParticipation,
-          true
+          true,
         );
         databaseBuilder.factory.buildCampaignParticipationWithOrganizationLearner(
           { firstName: 'juju', lastName: 'Le riquiqui', organizationId },
           campaignParticipation,
-          true
+          true,
         );
 
         await databaseBuilder.commit();
@@ -365,7 +365,7 @@ describe('Integration | Repository | Campaign Assessment Participation Result Li
             ],
           },
         ];
-        const learningContentObjects = learningContentBuilder.buildLearningContent.fromAreas(learningContent);
+        const learningContentObjects = learningContentBuilder.fromAreas(learningContent);
         mockLearningContent(learningContentObjects);
 
         // when
@@ -408,7 +408,7 @@ describe('Integration | Repository | Campaign Assessment Participation Result Li
             ],
           },
         ];
-        const learningContentObjects = learningContentBuilder.buildLearningContent.fromAreas(learningContent);
+        const learningContentObjects = learningContentBuilder.fromAreas(learningContent);
         mockLearningContent(learningContentObjects);
       });
 
@@ -523,7 +523,7 @@ describe('Integration | Repository | Campaign Assessment Participation Result Li
             ],
           },
         ];
-        const learningContentObjects = learningContentBuilder.buildLearningContent.fromAreas(learningContent);
+        const learningContentObjects = learningContentBuilder.fromAreas(learningContent);
         mockLearningContent(learningContentObjects);
 
         // when
@@ -568,7 +568,7 @@ describe('Integration | Repository | Campaign Assessment Participation Result Li
             ],
           },
         ];
-        const learningContentObjects = learningContentBuilder.buildLearningContent.fromAreas(learningContent);
+        const learningContentObjects = learningContentBuilder.fromAreas(learningContent);
         mockLearningContent(learningContentObjects);
       });
       it('returns participants which have one badge', async function () {
@@ -721,9 +721,10 @@ describe('Integration | Repository | Campaign Assessment Participation Result Li
             ],
           },
         ];
-        const learningContentObjects = learningContentBuilder.buildLearningContent.fromAreas(learningContent);
+        const learningContentObjects = learningContentBuilder.fromAreas(learningContent);
         mockLearningContent(learningContentObjects);
       });
+
       it('returns participants which have the given stage', async function () {
         campaign = databaseBuilder.factory.buildAssessmentCampaignForSkills({}, [
           { id: 'Skill1' },
@@ -732,6 +733,12 @@ describe('Integration | Repository | Campaign Assessment Participation Result Li
           { id: 'Skill4' },
         ]);
         databaseBuilder.factory.buildStage({ targetProfileId: campaign.targetProfileId, threshold: 0 });
+        const firstSkillStageId = databaseBuilder.factory.buildStage({
+          targetProfileId: campaign.targetProfileId,
+          threshold: null,
+          level: null,
+          isFirstSkill: true,
+        }).id;
         const { id: stageId } = databaseBuilder.factory.buildStage({
           targetProfileId: campaign.targetProfileId,
           threshold: 25,
@@ -740,6 +747,12 @@ describe('Integration | Repository | Campaign Assessment Participation Result Li
         databaseBuilder.factory.buildAssessmentFromParticipation({
           masteryRate: 0,
           participantExternalId: 'Juste Before',
+          campaignId: campaign.id,
+        });
+        databaseBuilder.factory.buildAssessmentFromParticipation({
+          masteryRate: 0.1,
+          validatedSkillsCount: 2,
+          participantExternalId: 'FirstSkill',
           campaignId: campaign.id,
         });
         databaseBuilder.factory.buildAssessmentFromParticipation({
@@ -762,13 +775,138 @@ describe('Integration | Repository | Campaign Assessment Participation Result Li
         // when
         const { participations } = await campaignAssessmentParticipationResultListRepository.findPaginatedByCampaignId({
           campaignId: campaign.id,
-          filters: { stages: [stageId] },
+          filters: { stages: [stageId, firstSkillStageId] },
         });
 
         const participantExternalIds = participations.map((result) => result.participantExternalId);
 
         // then
-        expect(participantExternalIds).to.exactlyContain(['Stage Reached Boundary IN', 'Stage Reached Boundary OUT']);
+        expect(participantExternalIds).to.exactlyContain([
+          'FirstSkill',
+          'Stage Reached Boundary IN',
+          'Stage Reached Boundary OUT',
+        ]);
+      });
+
+      it('returns participants which have the given stage (again)', async function () {
+        campaign = databaseBuilder.factory.buildAssessmentCampaignForSkills({}, [
+          { id: 'Skill1' },
+          { id: 'Skill2' },
+          { id: 'Skill3' },
+          { id: 'Skill4' },
+        ]);
+        const zeroStageId = databaseBuilder.factory.buildStage({
+          targetProfileId: campaign.targetProfileId,
+          threshold: 0,
+        }).id;
+        databaseBuilder.factory.buildStage({
+          targetProfileId: campaign.targetProfileId,
+          threshold: null,
+          level: null,
+          isFirstSkill: true,
+        }).id;
+        const { id: stageId } = databaseBuilder.factory.buildStage({
+          targetProfileId: campaign.targetProfileId,
+          threshold: 25,
+        });
+        databaseBuilder.factory.buildStage({ targetProfileId: campaign.targetProfileId, threshold: 75 });
+        databaseBuilder.factory.buildAssessmentFromParticipation({
+          masteryRate: 0,
+          validatedSkillsCount: 0,
+          participantExternalId: 'Zero Stage reached',
+          campaignId: campaign.id,
+        });
+        databaseBuilder.factory.buildAssessmentFromParticipation({
+          masteryRate: 0,
+          validatedSkillsCount: 2,
+          participantExternalId: 'FirstSkill',
+          campaignId: campaign.id,
+        });
+        databaseBuilder.factory.buildAssessmentFromParticipation({
+          masteryRate: 0.25,
+          participantExternalId: 'Stage Reached Boundary IN',
+          campaignId: campaign.id,
+        });
+        databaseBuilder.factory.buildAssessmentFromParticipation({
+          masteryRate: 0.74,
+          participantExternalId: 'Stage Reached Boundary OUT',
+          campaignId: campaign.id,
+        });
+        databaseBuilder.factory.buildAssessmentFromParticipation({
+          masteryRate: 0.75,
+          participantExternalId: 'Just After',
+          campaignId: campaign.id,
+        });
+        await databaseBuilder.commit();
+
+        // when
+        const { participations } = await campaignAssessmentParticipationResultListRepository.findPaginatedByCampaignId({
+          campaignId: campaign.id,
+          filters: { stages: [stageId, zeroStageId] },
+        });
+
+        const participantExternalIds = participations.map((result) => result.participantExternalId);
+
+        // then
+        expect(participantExternalIds).to.exactlyContain([
+          'Zero Stage reached',
+          'Stage Reached Boundary IN',
+          'Stage Reached Boundary OUT',
+        ]);
+      });
+
+      it('returns participants which have the given stage (again without first skill stage)', async function () {
+        campaign = databaseBuilder.factory.buildAssessmentCampaignForSkills({}, [
+          { id: 'Skill1' },
+          { id: 'Skill2' },
+          { id: 'Skill3' },
+          { id: 'Skill4' },
+        ]);
+        const zeroStageId = databaseBuilder.factory.buildStage({
+          targetProfileId: campaign.targetProfileId,
+          threshold: 0,
+        }).id;
+        const { id: stageId } = databaseBuilder.factory.buildStage({
+          targetProfileId: campaign.targetProfileId,
+          threshold: 25,
+        });
+        databaseBuilder.factory.buildStage({ targetProfileId: campaign.targetProfileId, threshold: 75 });
+        databaseBuilder.factory.buildAssessmentFromParticipation({
+          masteryRate: 0.1,
+          participantExternalId: 'Zero Stage reached',
+          campaignId: campaign.id,
+        });
+        databaseBuilder.factory.buildAssessmentFromParticipation({
+          masteryRate: 0.25,
+          participantExternalId: 'Stage Reached Boundary IN',
+          campaignId: campaign.id,
+        });
+        databaseBuilder.factory.buildAssessmentFromParticipation({
+          masteryRate: 0.74,
+          participantExternalId: 'Stage Reached Boundary OUT',
+          campaignId: campaign.id,
+        });
+        databaseBuilder.factory.buildAssessmentFromParticipation({
+          masteryRate: 0.75,
+          participantExternalId: 'Just After',
+          campaignId: campaign.id,
+        });
+        await databaseBuilder.commit();
+
+        // when
+        const { participations } = await campaignAssessmentParticipationResultListRepository.findPaginatedByCampaignId({
+          campaignId: campaign.id,
+          filters: { stages: [stageId, zeroStageId] },
+        });
+
+        const participantExternalIds = participations.map((result) => result.participantExternalId);
+
+        // then
+        expect(participantExternalIds).to.exactlyContain([
+          'Zero Stage reached',
+          'Stage Reached Boundary IN',
+          'Stage Reached Boundary OUT',
+        ]);
       });
 
       it('returns participants which have validated skill count between several boundaries', async function () {
@@ -869,7 +1007,7 @@ describe('Integration | Repository | Campaign Assessment Participation Result Li
             ],
           },
         ];
-        const learningContentObjects = learningContentBuilder.buildLearningContent.fromAreas(learningContent);
+        const learningContentObjects = learningContentBuilder.fromAreas(learningContent);
         mockLearningContent(learningContentObjects);
 
         // when
@@ -908,7 +1046,7 @@ describe('Integration | Repository | Campaign Assessment Participation Result Li
             ],
           },
         ];
-        const learningContentObjects = learningContentBuilder.buildLearningContent.fromAreas(learningContent);
+        const learningContentObjects = learningContentBuilder.fromAreas(learningContent);
         mockLearningContent(learningContentObjects);
       });
 
@@ -922,7 +1060,7 @@ describe('Integration | Repository | Campaign Assessment Participation Result Li
           {
             firstName: 'Saphira',
             lastName: 'Eurasier',
-          }
+          },
         );
 
         await databaseBuilder.commit();
@@ -947,7 +1085,7 @@ describe('Integration | Repository | Campaign Assessment Participation Result Li
           {
             firstName: 'Choupette',
             lastName: 'Eurasier',
-          }
+          },
         );
 
         databaseBuilder.factory.buildAssessmentFromParticipation(
@@ -958,7 +1096,7 @@ describe('Integration | Repository | Campaign Assessment Participation Result Li
           {
             firstName: 'Salto',
             lastName: 'Irish terrier',
-          }
+          },
         );
 
         await databaseBuilder.commit();
@@ -984,7 +1122,7 @@ describe('Integration | Repository | Campaign Assessment Participation Result Li
           {
             firstName: 'Choupette',
             lastName: 'Eurasier',
-          }
+          },
         );
 
         await databaseBuilder.commit();
@@ -1010,7 +1148,7 @@ describe('Integration | Repository | Campaign Assessment Participation Result Li
           {
             firstName: 'Choupette',
             lastName: 'Eurasier',
-          }
+          },
         );
 
         await databaseBuilder.commit();
@@ -1036,7 +1174,7 @@ describe('Integration | Repository | Campaign Assessment Participation Result Li
           {
             firstName: 'Choupette',
             lastName: 'Eurasier',
-          }
+          },
         );
 
         databaseBuilder.factory.buildAssessmentFromParticipation(
@@ -1047,7 +1185,7 @@ describe('Integration | Repository | Campaign Assessment Participation Result Li
           {
             firstName: 'Salto',
             lastName: 'Irish terrier',
-          }
+          },
         );
 
         await databaseBuilder.commit();
@@ -1072,7 +1210,7 @@ describe('Integration | Repository | Campaign Assessment Participation Result Li
           {
             firstName: 'Choupette',
             lastName: 'Eurasier',
-          }
+          },
         );
 
         databaseBuilder.factory.buildAssessmentFromParticipation(
@@ -1083,7 +1221,7 @@ describe('Integration | Repository | Campaign Assessment Participation Result Li
           {
             firstName: 'Salto',
             lastName: 'Irish terrier',
-          }
+          },
         );
 
         await databaseBuilder.commit();
@@ -1109,7 +1247,7 @@ describe('Integration | Repository | Campaign Assessment Participation Result Li
           {
             firstName: 'Choupette',
             lastName: 'Eurasier',
-          }
+          },
         );
 
         databaseBuilder.factory.buildAssessmentFromParticipation(
@@ -1120,7 +1258,7 @@ describe('Integration | Repository | Campaign Assessment Participation Result Li
           {
             firstName: 'Choupette',
             lastName: 'Wrong',
-          }
+          },
         );
 
         await databaseBuilder.commit();
@@ -1146,7 +1284,7 @@ describe('Integration | Repository | Campaign Assessment Participation Result Li
           {
             firstName: 'Salto',
             lastName: 'Irish terrier',
-          }
+          },
         );
 
         databaseBuilder.factory.buildAssessmentFromParticipation(
@@ -1157,7 +1295,7 @@ describe('Integration | Repository | Campaign Assessment Participation Result Li
           {
             firstName: 'Saphira',
             lastName: 'Young',
-          }
+          },
         );
 
         await databaseBuilder.commit();

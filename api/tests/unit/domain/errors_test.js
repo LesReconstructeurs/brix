@@ -1,5 +1,5 @@
-const { expect } = require('../../test-helper');
-const errors = require('../../../lib/domain/errors');
+import { expect } from '../../test-helper.js';
+import * as errors from '../../../lib/domain/errors.js';
 
 describe('Unit | Domain | Errors', function () {
   it('should export a AdminMemberError', function () {
@@ -375,128 +375,8 @@ describe('Unit | Domain | Errors', function () {
     });
   });
 
-  describe('CertificationCandidatesImportError', function () {
-    context('#fromInvalidCertificationCandidateError', function () {
-      it('should return a CertificationCandidatesImportError', function () {
-        // given
-        const invalidCertificationCandidateError = {
-          key: 'someKey',
-          why: 'someWhy',
-        };
-
-        // when
-        const error = errors.CertificationCandidatesImportError.fromInvalidCertificationCandidateError(
-          invalidCertificationCandidateError,
-          {},
-          1
-        );
-
-        // then
-        expect(error).to.be.instanceOf(errors.CertificationCandidatesImportError);
-      });
-
-      it('should start the error message with line number', function () {
-        // given
-        const lineNumber = 20;
-        const invalidCertificationCandidateError = {
-          key: 'someKey',
-          why: 'someWhy',
-        };
-
-        // when
-        const error = errors.CertificationCandidatesImportError.fromInvalidCertificationCandidateError(
-          invalidCertificationCandidateError,
-          {},
-          lineNumber
-        );
-
-        // then
-        expect(error.message.startsWith(`Ligne ${lineNumber} :`)).to.be.true;
-      });
-
-      context('when err.why is known', function () {
-        it('should include the right label when found in the keyLabelMap', function () {
-          // given
-          const lineNumber = 20;
-          const invalidCertificationCandidateError = {
-            key: 'someKey',
-            why: 'not_a_date',
-          };
-          const keyLabelMap = {
-            someKey: 'someLabel',
-            someOtherKey: 'someOtherLabel',
-          };
-
-          // when
-          const error = errors.CertificationCandidatesImportError.fromInvalidCertificationCandidateError(
-            invalidCertificationCandidateError,
-            keyLabelMap,
-            lineNumber
-          );
-
-          // then
-          expect(error.message).to.contain('Le champ “someLabel”');
-        });
-
-        // eslint-disable-next-line mocha/no-setup-in-describe
-        [
-          { why: 'not_a_date', content: 'doit être au format jj/mm/aaaa.' },
-          { why: 'date_format', content: 'doit être au format jj/mm/aaaa.' },
-          { why: 'email_format', content: 'doit être au format email.' },
-          { why: 'not_a_string', content: 'doit être une chaîne de caractères.' },
-          { why: 'not_a_number', content: 'doit être un nombre.' },
-          { why: 'required', content: 'est obligatoire.' },
-        ].forEach(({ why, content }) => {
-          it(`message should contain "${content}" when why is "${why}"`, async function () {
-            // given
-            const invalidCertificationCandidateError = {
-              key: 'someKey',
-              why,
-            };
-            const keyLabelMap = {
-              someKey: 'someLabel',
-            };
-
-            // when
-            const error = errors.CertificationCandidatesImportError.fromInvalidCertificationCandidateError(
-              invalidCertificationCandidateError,
-              keyLabelMap,
-              1
-            );
-
-            // then
-            expect(error.message.endsWith(content)).to.be.true;
-          });
-        });
-      });
-
-      context('when err.why is unknown', function () {
-        it('should display generic message', function () {
-          // given
-          const invalidCertificationCandidateError = {
-            key: 'someKey',
-            why: 'unknown',
-          };
-          const keyLabelMap = {
-            someKey: 'someLabel',
-          };
-
-          // when
-          const error = errors.CertificationCandidatesImportError.fromInvalidCertificationCandidateError(
-            invalidCertificationCandidateError,
-            keyLabelMap,
-            1
-          );
-
-          // then
-          expect(error.message).to.contain("Quelque chose s'est mal passé. Veuillez réessayer");
-        });
-      });
-    });
-  });
-
-  it('should export a UnknownCountryForStudentEnrollmentError', function () {
-    expect(errors.UnknownCountryForStudentEnrollmentError).to.exist;
+  it('should export a UnknownCountryForStudentEnrolmentError', function () {
+    expect(errors.UnknownCountryForStudentEnrolmentError).to.exist;
   });
 
   it('should export a OrganizationLearnersCouldNotBeSavedError', function () {
@@ -523,78 +403,19 @@ describe('Unit | Domain | Errors', function () {
     expect(errors.MissingAttributesError).to.exist;
   });
 
-  describe('CertificationCandidateAddError', function () {
-    context('#fromInvalidCertificationCandidateError', function () {
-      it('should return a CertificationCandidateAddError', function () {
-        // given
-        const invalidCertificationCandidateError = {
-          key: 'someKey',
-          why: 'someWhy',
-        };
-
-        // when
-        const error = errors.CertificationCandidateAddError.fromInvalidCertificationCandidateError(
-          invalidCertificationCandidateError,
-          {},
-          1
-        );
-
-        // then
-        expect(error).to.be.instanceOf(errors.CertificationCandidateAddError);
-      });
-
-      context('when err.why is known', function () {
-        // eslint-disable-next-line mocha/no-setup-in-describe
-        [
-          {
-            why: 'not_a_billing_mode',
-            message: `Le champ “Tarification part Pix” ne peut contenir qu'une des valeurs suivantes: Gratuite, Payante ou Prépayée.`,
-          },
-          {
-            why: 'prepayment_code_null',
-            message: `Le champ “Code de prépaiement” est obligatoire puisque l’option “Prépayée” a été sélectionnée pour ce candidat.`,
-          },
-          {
-            why: 'prepayment_code_not_null',
-            message: `Le champ “Code de prépaiement” doit rester vide puisque l’option “Prépayée” n'a pas été sélectionnée pour ce candidat.`,
-          },
-        ].forEach(({ why, message }) => {
-          it(`message should be "${message}" when why is "${why}"`, async function () {
-            // given
-            const invalidCertificationCandidateError = { why };
-
-            // when
-            const error = errors.CertificationCandidateAddError.fromInvalidCertificationCandidateError(
-              invalidCertificationCandidateError
-            );
-
-            // then
-            expect(error.message).to.equal(message);
-          });
-        });
-      });
-
-      context('when err.why is unknown', function () {
-        it('should display generic message', function () {
-          // given
-          const invalidCertificationCandidateError = {
-            key: 'someKey',
-            why: 'unknown',
-          };
-
-          // when
-          const error = errors.CertificationCandidateAddError.fromInvalidCertificationCandidateError(
-            invalidCertificationCandidateError
-          );
-
-          // then
-          expect(error.message).to.contain('Candidat de certification invalide.');
-        });
-      });
-    });
-  });
-
   it('should export an DifferentExternalIdentifierError', function () {
     expect(errors.DifferentExternalIdentifierError).to.exist;
+  });
+
+  it('exports SendingEmailToInvalidEmailAddressError', function () {
+    expect(errors.SendingEmailToInvalidEmailAddressError).to.exist;
+  });
+
+  it('exports LocaleFormatError', function () {
+    expect(errors.LocaleFormatError).to.exist;
+  });
+
+  it('exports LocaleNotSupportedError', function () {
+    expect(errors.LocaleNotSupportedError).to.exist;
   });
 });

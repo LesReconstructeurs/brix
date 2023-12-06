@@ -1,25 +1,41 @@
-const { sinon, expect, hFake, catchErr, domainBuilder } = require('../../../../test-helper');
-const authenticationServiceRegistry = require('../../../../../lib/domain/services/authentication/authentication-service-registry');
-const oidcController = require('../../../../../lib/application/authentication/oidc/oidc-controller');
-const oidcSerializer = require('../../../../../lib/infrastructure/serializers/jsonapi/oidc-serializer');
-const usecases = require('../../../../../lib/domain/usecases');
-const { UnauthorizedError } = require('../../../../../lib/application/http-errors');
+import { sinon, expect, hFake, catchErr, domainBuilder } from '../../../../test-helper.js';
+import { oidcController } from '../../../../../lib/application/authentication/oidc/oidc-controller.js';
+import { usecases } from '../../../../../lib/domain/usecases/index.js';
+import { UnauthorizedError } from '../../../../../lib/application/http-errors.js';
 
 describe('Unit | Application | Controller | Authentication | OIDC', function () {
   const identityProvider = 'OIDC';
 
   describe('#getIdentityProviders', function () {
-    it('should return the list of oidc identity providers', async function () {
-      // given & when
+    it('returns the list of oidc identity providers', async function () {
+      // given
+      sinon.stub(usecases, 'getIdentityProviders').returns([
+        {
+          code: 'SOME_OIDC_PROVIDER',
+          source: 'some_oidc_provider',
+          organizationName: 'Some OIDC Provider',
+          slug: 'some-oidc-provider',
+          hasLogoutUrl: false,
+        },
+      ]);
+
+      // when
       const response = await oidcController.getIdentityProviders(null, hFake);
 
       // then
-      const expectedCnavProvider = {
+      expect(usecases.getIdentityProviders).to.have.been.called;
+      expect(response.statusCode).to.equal(200);
+      expect(response.source.data.length).to.equal(1);
+      expect(response.source.data).to.deep.contain({
         type: 'oidc-identity-providers',
-        id: 'cnav',
-        attributes: { code: 'CNAV', 'organization-name': 'CNAV', 'has-logout-url': false, source: 'cnav' },
-      };
-      expect(response.source.data).to.deep.contain(expectedCnavProvider);
+        id: 'some-oidc-provider',
+        attributes: {
+          code: 'SOME_OIDC_PROVIDER',
+          source: 'some_oidc_provider',
+          'organization-name': 'Some OIDC Provider',
+          'has-logout-url': false,
+        },
+      });
     });
   });
 
@@ -38,16 +54,23 @@ describe('Unit | Application | Controller | Authentication | OIDC', function () 
         const oidcAuthenticationService = {
           getRedirectLogoutUrl: sinon.stub(),
         };
-        sinon
-          .stub(authenticationServiceRegistry, 'lookupAuthenticationService')
+
+        const authenticationServiceRegistryStub = {
+          getOidcProviderServiceByCode: sinon.stub(),
+        };
+
+        authenticationServiceRegistryStub.getOidcProviderServiceByCode
           .withArgs(identityProvider)
           .returns(oidcAuthenticationService);
 
+        const dependencies = {
+          authenticationServiceRegistry: authenticationServiceRegistryStub,
+        };
+
         // when
-        await oidcController.getRedirectLogoutUrl(request, hFake);
+        await oidcController.getRedirectLogoutUrl(request, hFake, dependencies);
 
         // then
-        expect(authenticationServiceRegistry.lookupAuthenticationService).to.have.been.calledWith(identityProvider);
         expect(oidcAuthenticationService.getRedirectLogoutUrl).to.have.been.calledWith({
           userId: '123',
           logoutUrlUUID: '1f3dbb71-f399-4c1c-85ae-0a863c78aeea',
@@ -64,14 +87,21 @@ describe('Unit | Application | Controller | Authentication | OIDC', function () 
       const oidcAuthenticationService = {
         getAuthenticationUrl: getAuthenticationUrlStub,
       };
-      sinon
-        .stub(authenticationServiceRegistry, 'lookupAuthenticationService')
+      const authenticationServiceRegistryStub = {
+        getOidcProviderServiceByCode: sinon.stub(),
+      };
+
+      authenticationServiceRegistryStub.getOidcProviderServiceByCode
         .withArgs(identityProvider)
         .returns(oidcAuthenticationService);
+
+      const dependencies = {
+        authenticationServiceRegistry: authenticationServiceRegistryStub,
+      };
       getAuthenticationUrlStub.returns('an authentication url');
 
       // when
-      await oidcController.getAuthenticationUrl(request, hFake);
+      await oidcController.getAuthenticationUrl(request, hFake, dependencies);
 
       //then
       expect(oidcAuthenticationService.getAuthenticationUrl).to.have.been.calledWith({
@@ -108,10 +138,17 @@ describe('Unit | Application | Controller | Authentication | OIDC', function () 
     it('should authenticate the user with payload parameters', async function () {
       // given
       const oidcAuthenticationService = {};
-      sinon
-        .stub(authenticationServiceRegistry, 'lookupAuthenticationService')
+      const authenticationServiceRegistryStub = {
+        getOidcProviderServiceByCode: sinon.stub(),
+      };
+
+      authenticationServiceRegistryStub.getOidcProviderServiceByCode
         .withArgs(identityProvider)
         .returns(oidcAuthenticationService);
+
+      const dependencies = {
+        authenticationServiceRegistry: authenticationServiceRegistryStub,
+      };
 
       usecases.authenticateOidcUser.resolves({
         pixAccessToken,
@@ -120,7 +157,7 @@ describe('Unit | Application | Controller | Authentication | OIDC', function () 
       });
 
       // when
-      await oidcController.authenticateUser(request, hFake);
+      await oidcController.authenticateUser(request, hFake, dependencies);
 
       // then
       expect(usecases.authenticateOidcUser).to.have.been.calledWith({
@@ -135,10 +172,17 @@ describe('Unit | Application | Controller | Authentication | OIDC', function () 
     it('should return PIX access token and logout url uuid when authentication is complete', async function () {
       // given
       const oidcAuthenticationService = {};
-      sinon
-        .stub(authenticationServiceRegistry, 'lookupAuthenticationService')
+      const authenticationServiceRegistryStub = {
+        getOidcProviderServiceByCode: sinon.stub(),
+      };
+
+      authenticationServiceRegistryStub.getOidcProviderServiceByCode
         .withArgs(identityProvider)
         .returns(oidcAuthenticationService);
+
+      const dependencies = {
+        authenticationServiceRegistry: authenticationServiceRegistryStub,
+      };
       usecases.authenticateOidcUser.resolves({
         pixAccessToken,
         logoutUrlUUID: '0208f50b-f612-46aa-89a0-7cdb5fb0d312',
@@ -146,7 +190,7 @@ describe('Unit | Application | Controller | Authentication | OIDC', function () 
       });
 
       // when
-      const response = await oidcController.authenticateUser(request, hFake);
+      const response = await oidcController.authenticateUser(request, hFake, dependencies);
 
       // then
       const expectedResult = {
@@ -159,17 +203,24 @@ describe('Unit | Application | Controller | Authentication | OIDC', function () 
     it('should return UnauthorizedError if pix access token does not exist', async function () {
       // given
       const oidcAuthenticationService = {};
-      sinon
-        .stub(authenticationServiceRegistry, 'lookupAuthenticationService')
+      const authenticationServiceRegistryStub = {
+        getOidcProviderServiceByCode: sinon.stub(),
+      };
+
+      authenticationServiceRegistryStub.getOidcProviderServiceByCode
         .withArgs(identityProvider)
         .returns(oidcAuthenticationService);
+
+      const dependencies = {
+        authenticationServiceRegistry: authenticationServiceRegistryStub,
+      };
       const authenticationKey = 'aaa-bbb-ccc';
       const givenName = 'Mélusine';
       const familyName = 'TITEGOUTTE';
       usecases.authenticateOidcUser.resolves({ authenticationKey, givenName, familyName });
 
       // when
-      const error = await catchErr(oidcController.authenticateUser)(request, hFake);
+      const error = await catchErr(oidcController.authenticateUser)(request, hFake, dependencies);
 
       // then
       expect(error).to.be.an.instanceOf(UnauthorizedError);
@@ -184,20 +235,35 @@ describe('Unit | Application | Controller | Authentication | OIDC', function () 
       // given
       const request = {
         deserializedPayload: { identityProvider, authenticationKey: 'abcde' },
+        state: {
+          locale: 'fr-FR',
+        },
       };
       const accessToken = 'access.token';
       const oidcAuthenticationService = {};
-      sinon
-        .stub(authenticationServiceRegistry, 'lookupAuthenticationService')
+      const authenticationServiceRegistryStub = {
+        getOidcProviderServiceByCode: sinon.stub(),
+      };
+
+      authenticationServiceRegistryStub.getOidcProviderServiceByCode
         .withArgs(identityProvider)
         .returns(oidcAuthenticationService);
+
+      const dependencies = {
+        authenticationServiceRegistry: authenticationServiceRegistryStub,
+      };
       sinon
         .stub(usecases, 'createOidcUser')
-        .withArgs({ authenticationKey: 'abcde', identityProvider, oidcAuthenticationService })
+        .withArgs({
+          authenticationKey: 'abcde',
+          identityProvider,
+          oidcAuthenticationService,
+          localeFromCookie: 'fr-FR',
+        })
         .resolves({ accessToken, logoutUrlUUID: 'logoutUrlUUID' });
 
       // when
-      const result = await oidcController.createUser(request, hFake);
+      const result = await oidcController.createUser(request, hFake, dependencies);
 
       //then
       expect(result.source.access_token).to.equal(accessToken);
@@ -222,20 +288,28 @@ describe('Unit | Application | Controller | Authentication | OIDC', function () 
           authenticationKey,
         },
       };
-      sinon.stub(authenticationServiceRegistry, 'lookupAuthenticationService');
-      sinon.stub(usecases, 'findUserForOidcReconciliation').resolves({
-        firstName: 'sarah',
-        lastName: 'croche',
-        authenticationMethods: [pixAuthenticationMethod],
-      });
-      sinon.stub(oidcSerializer, 'serialize').returns({
+
+      const serializerStub = {
+        serialize: sinon.stub(),
+      };
+
+      serializerStub.serialize.returns({
         'full-name-from-pix': 'Sarah Pix',
         'full-name-from-external-identity-provider': 'Sarah Idp',
         'authentication-methods': [pixAuthenticationMethod],
       });
 
+      const dependencies = {
+        oidcSerializer: serializerStub,
+      };
+      sinon.stub(usecases, 'findUserForOidcReconciliation').resolves({
+        firstName: 'sarah',
+        lastName: 'croche',
+        authenticationMethods: [pixAuthenticationMethod],
+      });
+
       // when
-      const result = await oidcController.findUserForReconciliation(request, hFake);
+      const result = await oidcController.findUserForReconciliation(request, hFake, dependencies);
 
       // then
       expect(result.source).to.deep.equal({
@@ -255,14 +329,20 @@ describe('Unit | Application | Controller | Authentication | OIDC', function () 
           authenticationKey: '123abc',
         },
       };
-      sinon.stub(authenticationServiceRegistry, 'lookupAuthenticationService');
+      const authenticationServiceRegistryStub = {
+        getOidcProviderServiceByCode: sinon.stub(),
+      };
+
+      const dependencies = {
+        authenticationServiceRegistry: authenticationServiceRegistryStub,
+      };
       sinon.stub(usecases, 'reconcileOidcUser').resolves({
         accessToken: 'accessToken',
         logoutUrlUUID: 'logoutUrlUUID',
       });
 
       // when
-      const result = await oidcController.reconcileUser(request, hFake);
+      const result = await oidcController.reconcileUser(request, hFake, dependencies);
 
       // then
       expect(result.source).to.deep.equal({ access_token: 'accessToken', logout_url_uuid: 'logoutUrlUUID' });

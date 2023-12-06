@@ -2,7 +2,7 @@ import dayjs from 'dayjs';
 import { render } from '@1024pix/ember-testing-library';
 import { module, test } from 'qunit';
 import { setupRenderingTest } from 'ember-qunit';
-import hbs from 'htmlbars-inline-precompile';
+import { hbs } from 'ember-cli-htmlbars';
 import EmberObject from '@ember/object';
 import sinon from 'sinon';
 
@@ -32,7 +32,7 @@ module('Integration | Component | certification-centers/memberships-section', fu
       hbs`<CertificationCenters::MembershipsSection
   @certificationCenterMemberships={{this.certificationCenterMemberships}}
   @disableCertificationCenterMembership={{this.disableCertificationCenterMembership}}
-/>`
+/>`,
     );
 
     // then
@@ -69,7 +69,7 @@ module('Integration | Component | certification-centers/memberships-section', fu
       hbs`<CertificationCenters::MembershipsSection
   @certificationCenterMemberships={{this.certificationCenterMemberships}}
   @disableCertificationCenterMembership={{this.disableCertificationCenterMembership}}
-/>`
+/>`,
     );
 
     // then
@@ -85,7 +85,7 @@ module('Integration | Component | certification-centers/memberships-section', fu
     const screen = await render(
       hbs`<CertificationCenters::MembershipsSection
   @disableCertificationCenterMembership={{this.disableCertificationCenterMembership}}
-/>`
+/>`,
     );
 
     // then

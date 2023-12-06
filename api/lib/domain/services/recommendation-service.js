@@ -1,4 +1,4 @@
-const _ = require('lodash');
+import _ from 'lodash';
 
 const REACH_LEVEL_POINTS = 40;
 const DIFFICULTY_POINTS = 30;
@@ -55,7 +55,7 @@ function _getNextLevelToReach(skillsOfTube, validatedKnowledgeElements) {
 
 function _getReachedLevelInTube(validatedKnowledgeElements, skillsOfTube) {
   const skillsOfTubeWithKnowledgeElement = skillsOfTube.filter(({ id }) =>
-    _.find(validatedKnowledgeElements, { skillId: id })
+    _.find(validatedKnowledgeElements, { skillId: id }),
   );
   const reachSkill = _getSkillOfMaxDifficulty(skillsOfTubeWithKnowledgeElement);
 
@@ -66,6 +66,4 @@ function _isSkillValidated(validatedKnowledgeElements) {
   return (skill) => _.map(validatedKnowledgeElements, 'skillId').includes(skill.id);
 }
 
-module.exports = {
-  computeRecommendationScore,
-};
+export { computeRecommendationScore };

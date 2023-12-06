@@ -1,9 +1,17 @@
-/* eslint-disable node/no-process-env*/
-const path = require('path');
-const moment = require('moment');
-const ms = require('ms');
+import * as dotenv from 'dotenv';
+// eslint-disable-next-line eslint-comments/disable-enable-pair
+/* eslint-disable n/no-process-env */
+import path from 'path';
+import moment from 'moment';
+import ms from 'ms';
 
-const { getArrayOfStrings } = require('../lib/infrastructure/utils/string-utils');
+import { getArrayOfStrings } from '../lib/infrastructure/utils/string-utils.js';
+
+import * as url from 'url';
+
+dotenv.config();
+
+const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 
 function parseJSONEnv(varName) {
   if (process.env[varName]) {
@@ -47,7 +55,7 @@ function _getLogForHumans() {
   return processOutputingToTerminal && !forceJSONLogs;
 }
 
-module.exports = (function () {
+const configuration = (function () {
   const config = {
     rootPath: path.normalize(__dirname + '/..'),
 
@@ -174,7 +182,7 @@ module.exports = (function () {
 
     login: {
       temporaryBlockingThresholdFailureCount: _getNumber(
-        process.env.LOGIN_TEMPORARY_BLOCKING_THRESHOLD_FAILURE_COUNT || 10
+        process.env.LOGIN_TEMPORARY_BLOCKING_THRESHOLD_FAILURE_COUNT || 10,
       ),
       temporaryBlockingBaseTimeMs: ms(process.env.LOGIN_TEMPORARY_BLOCKING_BASE_TIME || '2m'),
       blockingLimitFailureCount: _getNumber(process.env.LOGIN_BLOCKING_LIMIT_FAILURE_COUNT || 50),
@@ -207,13 +215,12 @@ module.exports = (function () {
     },
 
     featureToggles: {
-      isCleaResultsRetrievalByHabilitatedCertificationCentersEnabled: isFeatureEnabled(
-        process.env.FT_CLEA_RESULTS_RETRIEVAL_BY_HABILITATED_CERTIFICATION_CENTERS
-      ),
       isMassiveSessionManagementEnabled: isFeatureEnabled(process.env.FT_MASSIVE_SESSION_MANAGEMENT),
       isAlwaysOkValidateNextChallengeEndpointEnabled: isFeatureEnabled(
-        process.env.FT_ALWAYS_OK_VALIDATE_NEXT_CHALLENGE_ENDPOINT
+        process.env.FT_ALWAYS_OK_VALIDATE_NEXT_CHALLENGE_ENDPOINT,
       ),
+      isPix1dEnabled: isFeatureEnabled(process.env.FT_PIX_1D_ENABLED),
+      isTargetProfileVersioningEnabled: isFeatureEnabled(process.env.FT_TARGET_PROFILE_VERSIONING),
     },
 
     infra: {
@@ -221,7 +228,7 @@ module.exports = (function () {
       chunkSizeForCampaignResultProcessing: _getNumber(process.env.INFRA_CHUNK_SIZE_CAMPAIGN_RESULT_PROCESSING, 10),
       chunkSizeForOrganizationLearnerDataProcessing: _getNumber(
         process.env.INFRA_CHUNK_SIZE_ORGANIZATION_LEARNER_DATA_PROCESSING,
-        1000
+        1000,
       ),
     },
 
@@ -235,6 +242,7 @@ module.exports = (function () {
     },
 
     poleEmploi: {
+      isEnabled: isFeatureEnabled(process.env.POLE_EMPLOI_ENABLED),
       clientId: process.env.POLE_EMPLOI_CLIENT_ID,
       clientSecret: process.env.POLE_EMPLOI_CLIENT_SECRET,
       tokenUrl: process.env.POLE_EMPLOI_TOKEN_URL,
@@ -248,9 +256,11 @@ module.exports = (function () {
       },
       poleEmploiSendingsLimit: _getNumber(process.env.POLE_EMPLOI_SENDING_LIMIT, 100),
       accessTokenLifespanMs: ms(process.env.POLE_EMPLOI_ACCESS_TOKEN_LIFESPAN || '7d'),
+      pushEnabled: isFeatureEnabled(process.env.PUSH_DATA_TO_POLE_EMPLOI_ENABLED),
     },
 
     cnav: {
+      isEnabled: isFeatureEnabled(process.env.CNAV_ENABLED),
       clientId: process.env.CNAV_CLIENT_ID,
       authenticationUrl: process.env.CNAV_AUTHENTICATION_URL,
       userInfoUrl: process.env.CNAV_OIDC_USER_INFO_URL,
@@ -260,12 +270,17 @@ module.exports = (function () {
     },
 
     fwb: {
+      isEnabled: isFeatureEnabled(process.env.FWB_ENABLED),
       clientId: process.env.FWB_CLIENT_ID,
       clientSecret: process.env.FWB_CLIENT_SECRET,
       tokenUrl: process.env.FWB_TOKEN_URL,
       authenticationUrl: process.env.FWB_AUTHENTICATION_URL,
       userInfoUrl: process.env.FWB_USER_INFO_URL,
       accessTokenLifespanMs: ms(process.env.FWB_ACCESS_TOKEN_LIFESPAN || '7d'),
+      logoutUrl: process.env.FWB_OIDC_LOGOUT_URL,
+      temporaryStorage: {
+        idTokenLifespanMs: ms(process.env.FWB_ID_TOKEN_LIFESPAN || '7d'),
+      },
     },
 
     authenticationSession: {
@@ -275,21 +290,26 @@ module.exports = (function () {
       },
     },
 
+    temporarySessionsStorageForMassImport: {
+      expirationDelaySeconds:
+        parseInt(process.env.SESSIONS_MASS_IMPORT_TEMPORARY_STORAGE_EXP_DELAY_SECONDS, 10) || 7200,
+    },
+
     temporaryStorage: {
       expirationDelaySeconds: parseInt(process.env.TEMPORARY_STORAGE_EXPIRATION_DELAY_SECONDS, 10) || 600,
       redisUrl: process.env.REDIS_URL,
     },
 
-    graviteeRegisterApplicationsCredentials: [
+    apimRegisterApplicationsCredentials: [
       {
-        clientId: process.env.GRAVITEE_OSMOSE_CLIENT_ID,
-        clientSecret: process.env.GRAVITEE_OSMOSE_CLIENT_SECRET,
+        clientId: process.env.APIM_OSMOSE_CLIENT_ID,
+        clientSecret: process.env.APIM_OSMOSE_CLIENT_SECRET,
         scope: 'organizations-certifications-result',
         source: 'livretScolaire',
       },
       {
-        clientId: process.env.GRAVITEE_POLE_EMPLOI_CLIENT_ID,
-        clientSecret: process.env.GRAVITEE_POLE_EMPLOI_CLIENT_SECRET,
+        clientId: process.env.APIM_POLE_EMPLOI_CLIENT_ID,
+        clientSecret: process.env.APIM_POLE_EMPLOI_CLIENT_SECRET,
         scope: 'pole-emploi-participants-result',
         source: 'poleEmploi',
       },
@@ -318,6 +338,11 @@ module.exports = (function () {
         cron: process.env.CPF_SEND_EMAIL_JOB_CRON || '0 0 1 1 *',
       },
     },
+
+    v3Certification: {
+      numberOfChallengesPerCourse: process.env.V3_CERTIFICATION_NUMBER_OF_CHALLENGES_PER_COURSE || 20,
+      defaultProbabilityToPickChallenge: parseInt(process.env.DEFAULT_PROBABILITY_TO_PICK_CHALLENGE, 10) || 51,
+    },
   };
 
   if (config.environment === 'development') {
@@ -341,8 +366,9 @@ module.exports = (function () {
     config.features.pixCertifScoBlockedAccessDateLycee = null;
     config.features.pixCertifScoBlockedAccessDateCollege = null;
 
-    config.featureToggles.isCleaResultsRetrievalByHabilitatedCertificationCentersEnabled = false;
     config.featureToggles.isMassiveSessionManagementEnabled = false;
+    config.featureToggles.isPix1dEnabled = true;
+    config.featureToggles.isTargetProfileVersioningEnabled = true;
 
     config.mailing.enabled = false;
     config.mailing.provider = 'sendinblue';
@@ -367,6 +393,7 @@ module.exports = (function () {
 
     config.temporaryKey.secret = 'test-jwt-key';
 
+    config.poleEmploi.isEnabled = true;
     config.poleEmploi.clientId = 'PIX_POLE_EMPLOI_CLIENT_ID';
     config.poleEmploi.clientSecret = 'PIX_POLE_EMPLOI_CLIENT_SECRET';
     config.poleEmploi.tokenUrl = 'http://tokenUrl.fr';
@@ -376,21 +403,25 @@ module.exports = (function () {
     config.poleEmploi.logoutUrl = 'http://logout-url.fr';
     config.poleEmploi.afterLogoutUrl = 'http://after-logout.url';
     config.poleEmploi.temporaryStorage.redisUrl = null;
+    config.poleEmploi.pushEnabled = true;
 
     config.temporaryStorage.redisUrl = null;
 
+    config.cnav.isEnabled = true;
     config.cnav.clientId = 'PIX_CNAV_CLIENT_ID';
     config.cnav.authenticationUrl = 'http://idp.cnav/auth';
     config.cnav.userInfoUrl = 'http://userInfoUrl.fr';
     config.cnav.tokenUrl = 'http://idp.cnav/token';
     config.cnav.clientSecret = 'PIX_CNAV_CLIENT_SECRET';
 
+    config.fwb.logoutUrl = 'http://logout-url.org';
+
     config.saml.accessTokenLifespanMs = 1000;
 
-    config.graviteeRegisterApplicationsCredentials = [
+    config.apimRegisterApplicationsCredentials = [
       {
-        clientId: 'graviteeOsmoseClientId',
-        clientSecret: 'graviteeOsmoseClientSecret',
+        clientId: 'apimOsmoseClientId',
+        clientSecret: 'apimOsmoseClientSecret',
         scope: 'organizations-certifications-result',
         source: 'livretScolaire',
       },
@@ -436,4 +467,5 @@ module.exports = (function () {
 
   return config;
 })();
-/* eslint-enable node/no-process-env*/
+
+export { configuration as config };

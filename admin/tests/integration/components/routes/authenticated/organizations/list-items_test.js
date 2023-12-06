@@ -1,12 +1,14 @@
 import { module, test } from 'qunit';
 import { setupRenderingTest } from 'ember-qunit';
 import { render } from '@ember/test-helpers';
-import hbs from 'htmlbars-inline-precompile';
+import { hbs } from 'ember-cli-htmlbars';
 
 module('Integration | Component | routes/authenticated/organizations | list-items', function (hooks) {
   setupRenderingTest(hooks);
 
   hooks.beforeEach(async function () {
+    const currentUser = this.owner.lookup('service:currentUser');
+    currentUser.adminMember = { isSuperAdmin: true };
     const triggerFiltering = function () {};
     this.triggerFiltering = triggerFiltering;
   });
@@ -48,7 +50,7 @@ module('Integration | Component | routes/authenticated/organizations | list-item
 
     // when
     await render(
-      hbs`<Organizations::ListItems @organizations={{this.organizations}} @triggerFiltering={{this.triggerFiltering}} />`
+      hbs`<Organizations::ListItems @organizations={{this.organizations}} @triggerFiltering={{this.triggerFiltering}} />`,
     );
 
     // then

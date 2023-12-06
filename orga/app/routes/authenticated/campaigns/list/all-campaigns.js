@@ -1,5 +1,5 @@
 import Route from '@ember/routing/route';
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 
 export default class AuthenticatedCampaignsListAllCampaignsRoute extends Route {
   queryParams = {
@@ -22,7 +22,6 @@ export default class AuthenticatedCampaignsListAllCampaignsRoute extends Route {
 
   @service store;
   @service currentUser;
-  @service navigation;
 
   model(params) {
     return this.store.query(
@@ -39,12 +38,8 @@ export default class AuthenticatedCampaignsListAllCampaignsRoute extends Route {
           size: params.pageSize,
         },
       },
-      { reload: true }
+      { reload: true },
     );
-  }
-
-  afterModel() {
-    this.navigation.campaignsRouteToGoBackTo = 'authenticated.campaigns.list.all-campaigns';
   }
 
   resetController(controller, isExiting) {

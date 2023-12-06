@@ -1,6 +1,7 @@
 import { module, test } from 'qunit';
 import { setupApplicationTest } from 'ember-qunit';
 import { setupMirage } from 'ember-cli-mirage/test-support';
+// eslint-disable-next-line no-restricted-imports
 import { find, click, currentURL } from '@ember/test-helpers';
 import { visit } from '@1024pix/ember-testing-library';
 import { authenticate } from '../../helpers/authentication';
@@ -9,6 +10,7 @@ import { waitForDialog } from '../../helpers/wait-for';
 module('Acceptance | User-tutorials | Recommended', function (hooks) {
   setupApplicationTest(hooks);
   setupMirage(hooks);
+
   let user;
 
   hooks.beforeEach(async function () {
@@ -28,7 +30,10 @@ module('Acceptance | User-tutorials | Recommended', function (hooks) {
       //then
       assert.dom('.tutorial-card').exists();
       assert.dom('.tutorial-card').exists({ count: 10 });
-      assert.ok(find('.pix-pagination__navigation').textContent.includes('Page 1 / 10'));
+
+      const pixPaginationTextContent = find('.pix-pagination__navigation').textContent;
+      assert.ok(pixPaginationTextContent.includes('100 éléments'));
+      assert.ok(pixPaginationTextContent.includes('Page 1 / 10'));
     });
 
     module('when a tutorial is not already saved', function () {

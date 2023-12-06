@@ -3,7 +3,7 @@ import { currentURL, click } from '@ember/test-helpers';
 import { visit } from '@1024pix/ember-testing-library';
 import { setupApplicationTest } from 'ember-qunit';
 
-import setupMirage from 'ember-cli-mirage/test-support/setup-mirage';
+import { setupMirage } from 'ember-cli-mirage/test-support';
 import { authenticateAdminMemberWithRole } from 'pix-admin/tests/helpers/test-init';
 
 module('Acceptance | Organizations | List', function (hooks) {
@@ -33,6 +33,14 @@ module('Acceptance | Organizations | List', function (hooks) {
       assert.strictEqual(currentURL(), '/organizations/list');
     });
 
+    test('it should set organizations menubar item active', async function (assert) {
+      // when
+      const screen = await visit('/organizations/list');
+
+      // then
+      assert.dom(screen.getByRole('link', { name: 'Organisations' })).hasClass('active');
+    });
+
     test('it should list the organizations', async function (assert) {
       // given
       server.create('organization', { name: 'Tic' });
@@ -44,6 +52,18 @@ module('Acceptance | Organizations | List', function (hooks) {
       // then
       assert.dom(screen.getByLabelText('Organisation Tic')).exists();
       assert.dom(screen.getByLabelText('Organisation Tac')).exists();
+    });
+
+    test('it should not show an Actions column', async function (assert) {
+      // given
+      server.create('organization', { name: 'Tic' });
+      server.create('organization', { name: 'Tac' });
+
+      // when
+      const screen = await visit('/organizations/list');
+
+      // then
+      assert.dom(screen.queryByText('Actions')).doesNotExist();
     });
 
     test('it should allow creation of a new organization', async function (assert) {

@@ -1,16 +1,20 @@
-const Joi = require('joi').extend(require('@joi/date'));
+import BaseJoi from 'joi';
+import JoiDate from '@joi/date';
+const Joi = BaseJoi.extend(JoiDate);
 
-const { sendJsonApiError, UnprocessableEntityError, BadRequestError } = require('../http-errors');
-const scoOrganizationLearnerController = require('./sco-organization-learner-controller');
-const XRegExp = require('xregexp');
-const securityPreHandlers = require('../security-pre-handlers');
-const identifiersType = require('../../domain/types/identifiers-type');
-const { passwordValidationPattern } = require('../../config').account;
+import { sendJsonApiError, UnprocessableEntityError, BadRequestError } from '../http-errors.js';
+import { scoOrganizationLearnerController } from './sco-organization-learner-controller.js';
+import XRegExp from 'xregexp';
+import { securityPreHandlers } from '../security-pre-handlers.js';
+import { identifiersType } from '../../domain/types/identifiers-type.js';
+import { config } from '../../config.js';
+
+const { passwordValidationPattern } = config.account;
 
 const inePattern = new RegExp('^[0-9]{9}[a-zA-Z]{2}$');
 const inaPattern = new RegExp('^[0-9]{10}[a-zA-Z]{1}$');
 
-exports.register = async function (server) {
+const register = async function (server) {
   server.route([
     {
       method: 'POST',
@@ -189,13 +193,50 @@ exports.register = async function (server) {
           failAction: (request, h) => {
             return sendJsonApiError(
               new BadRequestError('The server could not understand the request due to invalid syntax.'),
-              h
+              h,
             );
           },
         },
         notes: [
           "- Met à jour le mot de passe d'un utilisateur identifié par son identifiant élève\n" +
             "- La demande de modification du mot de passe doit être effectuée par un membre de l'organisation à laquelle appartient l'élève.",
+        ],
+        tags: ['api', 'sco-organization-learners'],
+      },
+    },
+    {
+      method: 'POST',
+      path: '/api/sco-organization-learners/password-reset',
+      config: {
+        pre: [
+          {
+            method: securityPreHandlers.checkUserBelongsToScoOrganizationAndManagesStudents,
+            assign: 'belongsToScoOrganizationAndManageStudents',
+          },
+        ],
+        handler: scoOrganizationLearnerController.updateOrganizationLearnersPassword,
+        validate: {
+          options: {
+            allowUnknown: true,
+          },
+          payload: Joi.object({
+            data: {
+              attributes: {
+                'organization-id': identifiersType.campaignId,
+                'organization-learners-id': Joi.array().items(identifiersType.organizationLearnerId),
+              },
+            },
+          }),
+          failAction: (request, h) => {
+            return sendJsonApiError(
+              new BadRequestError('The server could not understand the request due to invalid syntax.'),
+              h,
+            );
+          },
+        },
+        notes: [
+          "- Réinitialise, avec un mot de passe à usage unique, les mots de passe des élèves dont les identifiants sont passés en paramètre et qui ont un identifiant comme méthode d'authentification\n" +
+            "- La demande de modification du mot de passe doit être effectuée par un membre de l'organisation à laquelle appartiennent les élèves.",
         ],
         tags: ['api', 'sco-organization-learners'],
       },
@@ -245,7 +286,7 @@ exports.register = async function (server) {
                 'last-name': Joi.string().empty(Joi.string().regex(/^\s*$/)).required(),
                 'ine-ina': Joi.alternatives().try(
                   Joi.string().regex(inePattern).required(),
-                  Joi.string().regex(inaPattern).required()
+                  Joi.string().regex(inaPattern).required(),
                 ),
                 birthdate: Joi.date().format('YYYY-MM-DD').required(),
               },
@@ -262,4 +303,5 @@ exports.register = async function (server) {
   ]);
 };
 
-exports.name = 'sco-organization-learners-api';
+const name = 'sco-organization-learners-api';
+export { register, name };

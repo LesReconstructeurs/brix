@@ -1,9 +1,10 @@
-const UserToCreate = require('../models/UserToCreate');
-const { AuthenticationKeyExpired, UserAlreadyExistsWithAuthenticationMethodError } = require('../errors');
+import { UserToCreate } from '../models/UserToCreate.js';
+import { AuthenticationKeyExpired, UserAlreadyExistsWithAuthenticationMethodError } from '../errors.js';
 
-module.exports = async function createOidcUser({
+const createOidcUser = async function ({
   identityProvider,
   authenticationKey,
+  localeFromCookie,
   authenticationSessionService,
   oidcAuthenticationService,
   authenticationMethodRepository,
@@ -24,16 +25,17 @@ module.exports = async function createOidcUser({
 
   if (authenticationMethod) {
     throw new UserAlreadyExistsWithAuthenticationMethodError(
-      'Authentication method already exists for this external identifier.'
+      'Authentication method already exists for this external identifier.',
     );
   }
 
   const user = UserToCreate.createWithTermsOfServiceAccepted({
     firstName: userInfo.firstName,
     lastName: userInfo.lastName,
+    locale: localeFromCookie,
   });
 
-  const { userId, idToken } = await oidcAuthenticationService.createUserAccount({
+  const userId = await oidcAuthenticationService.createUserAccount({
     user,
     sessionContent,
     externalIdentityId: userInfo.externalIdentityId,
@@ -42,8 +44,10 @@ module.exports = async function createOidcUser({
   });
 
   const accessToken = oidcAuthenticationService.createAccessToken(userId);
-  const logoutUrlUUID = await oidcAuthenticationService.saveIdToken({ idToken, userId });
+  const logoutUrlUUID = await oidcAuthenticationService.saveIdToken({ idToken: sessionContent.idToken, userId });
   await userRepository.updateLastLoggedAt({ userId });
 
   return { accessToken, logoutUrlUUID };
 };
+
+export { createOidcUser };

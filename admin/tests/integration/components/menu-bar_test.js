@@ -1,11 +1,19 @@
 import { module, test } from 'qunit';
 import { setupRenderingTest } from 'ember-qunit';
 import { render } from '@1024pix/ember-testing-library';
-import hbs from 'htmlbars-inline-precompile';
+import { hbs } from 'ember-cli-htmlbars';
 import Service from '@ember/service';
 
 module('Integration | Component | menu-bar', function (hooks) {
   setupRenderingTest(hooks);
+
+  hooks.beforeEach(async function () {
+    this.owner.lookup('service:store');
+    class FeatureTogglesStub extends Service {
+      featureToggles = { isTargetProfileVersioningEnabled: true };
+    }
+    this.owner.register('service:featureToggles', FeatureTogglesStub);
+  });
 
   test('should display principal navigation', async function (assert) {
     // given
@@ -69,7 +77,7 @@ module('Integration | Component | menu-bar', function (hooks) {
         currentUser.adminMember = { isSuperAdmin: true };
 
         // when
-        const screen = await render(hbs`{{menu-bar}}`);
+        const screen = await render(hbs`<MenuBar />`);
 
         // then
         assert.dom(screen.getByRole('link', { name: 'Contenus formatifs' })).exists();
@@ -83,7 +91,7 @@ module('Integration | Component | menu-bar', function (hooks) {
         currentUser.adminMember = { isCertif: true };
 
         // when
-        const screen = await render(hbs`{{menu-bar}}`);
+        const screen = await render(hbs`<MenuBar />`);
 
         // then
         assert.dom(screen.queryByRole('link', { name: 'Contenus formatifs' })).doesNotExist();
@@ -171,6 +179,36 @@ module('Integration | Component | menu-bar', function (hooks) {
     });
   });
 
+  module('Complementary certifications tab', function () {
+    test('should contain link to "complementary certifications" management page when admin member have access to complementary certifications actions scope', async function (assert) {
+      // given
+      class AccessControlStub extends Service {
+        hasAccessToComplementaryCertificationsScope = true;
+      }
+      this.owner.register('service:accessControl', AccessControlStub);
+
+      // when
+      const screen = await render(hbs`<MenuBar />`);
+
+      // then
+      assert.dom(screen.getByRole('link', { name: 'Certifications complémentaires' })).exists();
+    });
+
+    test('should not contain link to "complementary certifications" management page when admin member does not have access to complementary certifications actions scope', async function (assert) {
+      // given
+      class AccessControlStub extends Service {
+        hasAccessToComplementaryCertificationsScope = false;
+      }
+      this.owner.register('service:accessControl', AccessControlStub);
+
+      // when
+      const screen = await render(hbs`<MenuBar />`);
+
+      // then
+      assert.dom(screen.queryByRole('link', { name: 'Certifications complémentaires' })).doesNotExist();
+    });
+  });
+
   test('should contain link to "certification centers" management page', async function (assert) {
     // given
     const currentUser = this.owner.lookup('service:currentUser');
@@ -181,6 +219,36 @@ module('Integration | Component | menu-bar', function (hooks) {
 
     // then
     assert.dom(screen.getByRole('link', { name: 'Centres de certification' })).exists();
+  });
+
+  module('Administration tab', function () {
+    module('when user is Super Admin', function () {
+      test('should contain link to "Administration" management page', async function (assert) {
+        // given
+        const currentUser = this.owner.lookup('service:currentUser');
+        currentUser.adminMember = { isSuperAdmin: true };
+
+        // when
+        const screen = await render(hbs`<MenuBar />`);
+
+        // then
+        assert.dom(screen.getByRole('link', { name: 'Administration' })).exists();
+      });
+    });
+
+    module('when user is Certif, Metier or Support', function () {
+      test('should not contain link to "Administration" management page', async function (assert) {
+        // given
+        const currentUser = this.owner.lookup('service:currentUser');
+        currentUser.adminMember = { isSuperAdmin: false };
+
+        // when
+        const screen = await render(hbs`<MenuBar />`);
+
+        // then
+        assert.dom(screen.queryByRole('link', { name: 'Administration' })).doesNotExist();
+      });
+    });
   });
 
   module('Tools tab', function () {
@@ -198,11 +266,25 @@ module('Integration | Component | menu-bar', function (hooks) {
       });
     });
 
-    module('when user is Certif, Metier or Support', function () {
+    module('when user is Metier', function () {
       test('should not contain link to "tools" management page', async function (assert) {
         // given
         const currentUser = this.owner.lookup('service:currentUser');
-        currentUser.adminMember = { isSuperAdmin: false };
+        currentUser.adminMember = { isMetier: true };
+
+        // when
+        const screen = await render(hbs`<MenuBar />`);
+
+        // then
+        assert.dom(screen.queryByRole('link', { name: 'Outils' })).exists();
+      });
+    });
+
+    module('when user is Certif or Support', function () {
+      test('should not contain link to "tools" management page', async function (assert) {
+        // given
+        const currentUser = this.owner.lookup('service:currentUser');
+        currentUser.adminMember = { isSuperAdmin: false, isMetier: false };
 
         // when
         const screen = await render(hbs`<MenuBar />`);

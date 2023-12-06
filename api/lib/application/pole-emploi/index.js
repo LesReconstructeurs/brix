@@ -1,9 +1,9 @@
-const Joi = require('joi');
-const poleEmploiController = require('./pole-emploi-controller');
-const poleEmploiErreurDoc = require('../../infrastructure/open-api-doc/pole-emploi/erreur-doc');
-const poleEmploiEnvoisDoc = require('../../infrastructure/open-api-doc/pole-emploi/envois-doc');
+import Joi from 'joi';
+import { poleEmploiController } from './pole-emploi-controller.js';
+import { erreurDoc } from '../../infrastructure/open-api-doc/pole-emploi/erreur-doc.js';
+import { poleEmploiEnvoisDoc } from '../../infrastructure/open-api-doc/pole-emploi/envois-doc.js';
 
-exports.register = async function (server) {
+const register = async function (server) {
   server.route([
     {
       method: 'GET',
@@ -20,9 +20,9 @@ exports.register = async function (server) {
           status: {
             200: poleEmploiEnvoisDoc,
             204: poleEmploiEnvoisDoc,
-            400: poleEmploiErreurDoc,
-            401: poleEmploiErreurDoc,
-            403: poleEmploiErreurDoc,
+            400: erreurDoc,
+            401: erreurDoc,
+            403: erreurDoc,
           },
         },
         plugins: {
@@ -45,7 +45,7 @@ exports.register = async function (server) {
             enErreur: Joi.boolean()
               .optional()
               .description(
-                "Permet de récupérer uniquement les résultats des participants dont l'envoi a échoué la première fois."
+                "Permet de récupérer uniquement les résultats des participants dont l'envoi a échoué la première fois.",
               ),
           }).options({ allowUnknown: true }),
         },
@@ -55,4 +55,5 @@ exports.register = async function (server) {
   ]);
 };
 
-exports.name = 'pole-emploi-api';
+const name = 'pole-emploi-api';
+export { register, name };

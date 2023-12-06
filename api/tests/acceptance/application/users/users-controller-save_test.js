@@ -1,10 +1,11 @@
-const pick = require('lodash/pick');
+import lodash from 'lodash';
+const { pick } = lodash;
 
-const { domainBuilder, expect, knex, nock } = require('../../../test-helper');
+import { domainBuilder, expect, knex, nock } from '../../../test-helper.js';
 
-const userRepository = require('../../../../lib/infrastructure/repositories/user-repository');
+import * as userRepository from '../../../../lib/infrastructure/repositories/user-repository.js';
 
-const createServer = require('../../../../server');
+import { createServer } from '../../../../server.js';
 
 describe('Acceptance | Controller | users-controller', function () {
   let server;
@@ -99,6 +100,43 @@ describe('Acceptance | Controller | users-controller', function () {
         const userFound = await userRepository.getByUsernameOrEmailWithRolesAndPassword(user.email);
         expect(pick(userFound, pickedUserAttributes)).to.deep.equal(expectedUser);
         expect(userFound.authenticationMethods[0].authenticationComplement.password).to.exist;
+      });
+    });
+
+    context('when a "locale" cookie is present', function () {
+      it('creates a user with a locale in database', async function () {
+        // given
+        const localeFromCookie = 'fr';
+        const userAttributes = {
+          'first-name': 'John',
+          'last-name': 'DoDoe',
+          email: 'john.dodoe@example.net',
+          cgu: true,
+          password: 'Password123',
+        };
+
+        const options = {
+          method: 'POST',
+          url: '/api/users',
+          headers: {
+            cookie: `locale=${localeFromCookie}`,
+          },
+          payload: {
+            data: {
+              type: 'users',
+              attributes: userAttributes,
+              relationships: {},
+            },
+          },
+        };
+
+        // when
+        const response = await server.inject(options);
+
+        // then
+        const createdUser = await userRepository.getByUsernameOrEmailWithRolesAndPassword(userAttributes.email);
+        expect(createdUser.locale).to.equal(localeFromCookie);
+        expect(response.statusCode).to.equal(201);
       });
     });
 

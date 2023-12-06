@@ -1,7 +1,7 @@
-const CampaignTypes = require('../../../../lib/domain/models/CampaignTypes');
-const CampaignManagement = require('../../../../lib/domain/read-models/CampaignManagement');
+import { CampaignTypes } from '../../../../lib/domain/models/CampaignTypes.js';
+import { CampaignManagement } from '../../../../lib/domain/read-models/CampaignManagement.js';
 
-module.exports = function buildCampaignManagement({
+const buildCampaignManagement = function ({
   id = 1,
   name = 'Un nom de campagne',
   code = 'AZERTY123',
@@ -14,6 +14,8 @@ module.exports = function buildCampaignManagement({
   ownerId = 3,
   ownerFirstName = 'Alain',
   ownerLastName = 'Provist',
+  targetProfileId = 1,
+  targetProfileName = 'Juste un profil cible',
 } = {}) {
   return new CampaignManagement({
     id,
@@ -28,5 +30,9 @@ module.exports = function buildCampaignManagement({
     ownerId,
     ownerFirstName,
     ownerLastName,
+    targetProfileId,
+    targetProfileName,
   });
 };
+
+export { buildCampaignManagement };

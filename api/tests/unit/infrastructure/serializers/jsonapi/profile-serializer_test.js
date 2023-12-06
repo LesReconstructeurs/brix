@@ -1,5 +1,6 @@
-const { expect, domainBuilder } = require('../../../../test-helper');
-const serializer = require('../../../../../lib/infrastructure/serializers/jsonapi/profile-serializer');
+import { expect, domainBuilder } from '../../../../test-helper.js';
+import * as serializer from '../../../../../lib/infrastructure/serializers/jsonapi/profile-serializer.js';
+import { MAX_REACHABLE_LEVEL } from '../../../../../lib/domain/constants.js';
 
 describe('Unit | Serializer | JSONAPI | profile', function () {
   describe('#serialize()', function () {
@@ -18,12 +19,14 @@ describe('Unit | Serializer | JSONAPI | profile', function () {
         color: '2',
       };
       const expectedScorecards = [
-        domainBuilder.buildUserScorecard({ id: 'rec1', area: area1 }),
-        domainBuilder.buildUserScorecard({ id: 'rec2', area: area2 }),
+        domainBuilder.buildUserScorecard({ id: 'rec1', area: area1, level: MAX_REACHABLE_LEVEL }),
+        domainBuilder.buildUserScorecard({ id: 'rec2', area: area2, level: MAX_REACHABLE_LEVEL }),
       ];
       const profile = {
         scorecards: expectedScorecards,
         pixScore: 45,
+        maxReachableLevel: MAX_REACHABLE_LEVEL,
+        maxReachablePixScore: 768,
       };
 
       const expectedSerializedProfile = {
@@ -31,6 +34,8 @@ describe('Unit | Serializer | JSONAPI | profile', function () {
           type: 'Profiles',
           attributes: {
             'pix-score': 45,
+            'max-reachable-level': MAX_REACHABLE_LEVEL,
+            'max-reachable-pix-score': 768,
           },
           relationships: {
             scorecards: {
@@ -74,7 +79,7 @@ describe('Unit | Serializer | JSONAPI | profile', function () {
               'is-progressable': false,
               'is-resettable': false,
               'is-started': true,
-              level: 6,
+              level: MAX_REACHABLE_LEVEL,
               name: 'Mener une troupe à la bataille',
               'percentage-ahead-of-next-level': 37.5,
               'pix-score-ahead-of-next-level': 3,
@@ -121,7 +126,7 @@ describe('Unit | Serializer | JSONAPI | profile', function () {
               'is-progressable': false,
               'is-resettable': false,
               'is-started': true,
-              level: 6,
+              level: MAX_REACHABLE_LEVEL,
               name: 'Mener une troupe à la bataille',
               'percentage-ahead-of-next-level': 37.5,
               'pix-score-ahead-of-next-level': 3,

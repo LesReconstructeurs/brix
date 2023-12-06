@@ -1,8 +1,7 @@
-const _map = require('lodash/map');
-const _omit = require('lodash/omit');
-const dragonLogo = require('../../../../db/seeds/src/dragonAndCoBase64');
+import lodash from 'lodash';
+const { map: _map, omit: _omit } = lodash;
 
-const {
+import {
   expect,
   knex,
   learningContentBuilder,
@@ -11,15 +10,14 @@ const {
   generateValidRequestAuthorizationHeader,
   insertUserWithRoleSuperAdmin,
   sinon,
-} = require('../../../test-helper');
+} from '../../../test-helper.js';
 
-const createServer = require('../../../../server');
-
-const Membership = require('../../../../lib/domain/models/Membership');
-const OrganizationInvitation = require('../../../../lib/domain/models/OrganizationInvitation');
-const Assessment = require('../../../../lib/domain/models/Assessment');
-const AssessmentResult = require('../../../../lib/domain/models/AssessmentResult');
-const CampaignTypes = require('../../../../lib/domain/models/CampaignTypes');
+import { createServer } from '../../../../server.js';
+import { Membership } from '../../../../lib/domain/models/Membership.js';
+import { OrganizationInvitation } from '../../../../lib/domain/models/OrganizationInvitation.js';
+import { Assessment } from '../../../../lib/domain/models/Assessment.js';
+import { AssessmentResult } from '../../../../lib/domain/models/AssessmentResult.js';
+import { CampaignTypes } from '../../../../lib/domain/models/CampaignTypes.js';
 
 describe('Acceptance | Application | organization-controller', function () {
   let server;
@@ -152,127 +150,78 @@ describe('Acceptance | Application | organization-controller', function () {
     });
   });
 
-  describe('PATCH /api/admin/organizations/{id}', function () {
+  describe('POST /api/admin/organizations/import-csv', function () {
     afterEach(async function () {
-      await knex('organization-tags').delete();
       await knex('data-protection-officers').delete();
+      await knex('target-profile-shares').delete();
+      await knex('target-profiles').delete();
+      await knex('organization-tags').delete();
+      await knex('tags').delete();
+      await knex('organizations').delete();
     });
 
-    it('should return the updated organization and status code 200', async function () {
+    it('create organizations for the given csv file', async function () {
       // given
-      const logo = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
-      const organizationAttributes = {
-        externalId: '0446758F',
-        provinceCode: '044',
-        email: 'sco.generic.newaccount@example.net',
-        credit: 50,
-        logoUrl: logo,
-      };
-      const organization = databaseBuilder.factory.buildOrganization({ ...organizationAttributes });
-      const tag1 = databaseBuilder.factory.buildTag({ name: 'AGRICULTURE' });
+      const superAdminUserId = databaseBuilder.factory.buildUser.withRole().id;
+      databaseBuilder.factory.buildTag({ name: 'GRAS' });
+      databaseBuilder.factory.buildTag({ name: 'GARGOUILLE' });
+      databaseBuilder.factory.buildTag({ name: 'GARBURE' });
+      const organizationId = databaseBuilder.factory.buildOrganization().id;
+      const targetProfileId = databaseBuilder.factory.buildTargetProfile({ ownerOrganizationId: organizationId }).id;
       await databaseBuilder.commit();
 
-      const newLogo = dragonLogo;
-      const payload = {
-        data: {
-          type: 'organizations',
-          id: organization.id,
-          attributes: {
-            'external-id': organizationAttributes.externalId,
-            'province-code': organizationAttributes.provinceCode,
-            email: organizationAttributes.email,
-            credit: organizationAttributes.credit,
-            'logo-url': newLogo,
-          },
-          relationships: {
-            tags: {
-              data: [{ type: 'tags', id: tag1.id }],
-            },
-          },
-        },
-      };
-      const options = {
-        method: 'PATCH',
-        url: `/api/admin/organizations/${organization.id}`,
-        payload,
-        headers: { authorization: generateValidRequestAuthorizationHeader() },
-      };
+      const buffer =
+        'type,externalId,name,provinceCode,credit,createdBy,documentationUrl,identityProviderForCampaigns,isManagingStudents,emailForSCOActivation,DPOFirstName,DPOLastName,DPOEmail,emailInvitations,organizationInvitationRole,locale,tags,targetProfiles\n' +
+        `SCO,ANNEGRAELLE,Orga des Anne-Graelle,33700,666,${superAdminUserId},url.com,,true,,Anne,Graelle,anne-graelle@example.net,,ADMIN,fr,GRAS_GARGOUILLE,${targetProfileId}\n` +
+        `PRO,ANNEGARBURE,Orga des Anne-Garbure,33700,999,${superAdminUserId},,,,,Anne,Garbure,anne-garbure@example.net,,ADMIN,fr,GARBURE,${targetProfileId}`;
 
       // when
-      const response = await server.inject(options);
+      const response = await server.inject({
+        method: 'POST',
+        url: `/api/admin/organizations/import-csv`,
+        headers: {
+          authorization: generateValidRequestAuthorizationHeader(superAdminUserId),
+        },
+        payload: buffer,
+      });
 
       // then
-      expect(response.statusCode).to.equal(200);
-      expect(response.result.data.attributes['external-id']).to.equal('0446758F');
-      expect(response.result.data.attributes['province-code']).to.equal('044');
-      expect(response.result.data.attributes['email']).to.equal('sco.generic.newaccount@example.net');
-      expect(response.result.data.attributes['credit']).to.equal(50);
-      expect(response.result.data.attributes['logo-url']).to.equal(newLogo);
-      expect(response.result.data.relationships.tags.data[0]).to.deep.equal({ type: 'tags', id: tag1.id.toString() });
-      expect(parseInt(response.result.data.id)).to.equal(organization.id);
-    });
+      expect(response.statusCode).to.equal(204);
 
-    describe('Resource access management', function () {
-      it('should respond with a 401 - unauthorized access - if user is not authenticated', async function () {
-        // given
-        const organization = databaseBuilder.factory.buildOrganization();
-        await databaseBuilder.commit();
-        const payload = {
-          data: {
-            type: 'organizations',
-            id: organization.id,
-            attributes: {
-              'external-id': '0446758F',
-              'province-code': '044',
-              email: 'sco.generic.newaccount@example.net',
-              credit: 50,
-            },
-          },
-        };
-        const options = {
-          method: 'PATCH',
-          url: `/api/admin/organizations/${organization.id}`,
-          payload,
-          headers: { authorization: 'invalid.access.token' },
-        };
+      const organizations = await knex('organizations');
+      expect(organizations).to.have.lengthOf(3);
 
-        // when
-        const response = await server.inject(options);
-
-        // then
-        expect(response.statusCode).to.equal(401);
+      const firstOrganizationCreated = organizations.find((organization) => organization.externalId === 'ANNEGRAELLE');
+      expect(firstOrganizationCreated).to.deep.include({
+        type: 'SCO',
+        externalId: 'ANNEGRAELLE',
+        name: 'Orga des Anne-Graelle',
+        provinceCode: '33700',
+        credit: 666,
+        createdBy: superAdminUserId,
+        documentationUrl: 'url.com',
+        identityProviderForCampaigns: null,
+        isManagingStudents: true,
       });
 
-      it('should respond with a 403 - forbidden access - if user has not role Super Admin', async function () {
-        // given
-        const nonSuperAdminUserId = 9999;
-        const organization = databaseBuilder.factory.buildOrganization();
-        await databaseBuilder.commit();
-        const payload = {
-          data: {
-            type: 'organizations',
-            id: organization.id,
-            attributes: {
-              'external-id': '0446758F',
-              'province-code': '044',
-              email: 'sco.generic.newaccount@example.net',
-              credit: 50,
-            },
-          },
-        };
-        const options = {
-          method: 'PATCH',
-          url: `/api/admin/organizations/${organization.id}`,
-          payload,
-          headers: { authorization: generateValidRequestAuthorizationHeader(nonSuperAdminUserId) },
-        };
+      const dataProtectionOfficers = await knex('data-protection-officers');
+      expect(dataProtectionOfficers).to.have.lengthOf(2);
 
-        // when
-        const response = await server.inject(options);
+      const targetProfileShares = await knex('target-profile-shares');
+      expect(targetProfileShares).to.have.lengthOf(2);
 
-        // then
-        expect(response.statusCode).to.equal(403);
+      const firstTargetProfileShare = targetProfileShares.find(
+        (targetProfileShare) => targetProfileShare.organizationId === firstOrganizationCreated.id,
+      );
+      expect(firstTargetProfileShare).to.deep.include({
+        organizationId: firstOrganizationCreated.id,
+        targetProfileId,
       });
+
+      const firstOrganizationTags = await knex('organization-tags').where({
+        organizationId: firstOrganizationCreated.id,
+      });
+      expect(firstOrganizationTags).to.have.lengthOf(2);
     });
   });
 
@@ -417,7 +366,7 @@ describe('Acceptance | Application | organization-controller', function () {
         (camp) => {
           const builtCampaign = databaseBuilder.factory.buildCampaign(camp);
           return { name: camp.name, code: camp.code, id: builtCampaign.id };
-        }
+        },
       );
       databaseBuilder.factory.buildCampaignParticipation({ campaignId: campaignsData[4].id });
       await databaseBuilder.commit();
@@ -584,176 +533,6 @@ describe('Acceptance | Application | organization-controller', function () {
         expect(response.statusCode).to.equal(200);
         expect(response.result.meta).to.deep.equal(expectedMetaData);
         expect(response.result.data).to.have.lengthOf(0);
-      });
-    });
-  });
-
-  describe('GET /api/admin/organizations/{id}', function () {
-    context('Expected output', function () {
-      it('should return the matching organization as JSON API', async function () {
-        // given
-        const superAdminUserId = databaseBuilder.factory.buildUser.withRole({
-          firstName: 'Tom',
-          lastName: 'Dereck',
-        }).id;
-
-        const archivist = databaseBuilder.factory.buildUser({
-          firstName: 'Jean',
-          lastName: 'Bonneau',
-        });
-        const archivedAt = new Date('2019-04-28T02:42:00Z');
-        const createdAt = new Date('2019-04-28T02:42:00Z');
-        const organization = databaseBuilder.factory.buildOrganization({
-          type: 'SCO',
-          name: 'Organization catalina',
-          logoUrl: 'some logo url',
-          externalId: 'ABC123',
-          provinceCode: '45',
-          isManagingStudents: true,
-          credit: 666,
-          email: 'sco.generic.account@example.net',
-          createdBy: superAdminUserId,
-          documentationUrl: 'https://pix.fr/',
-          archivedBy: archivist.id,
-          archivedAt,
-          createdAt,
-        });
-        const dataProtectionOfficer = databaseBuilder.factory.buildDataProtectionOfficer.withOrganizationId({
-          firstName: 'Justin',
-          lastName: 'Ptipeu',
-          email: 'justin.ptipeu@example.net',
-          organizationId: organization.id,
-          createdAt,
-          updatedAt: createdAt,
-        });
-        const tag = databaseBuilder.factory.buildTag({ id: 7, name: 'AEFE' });
-        databaseBuilder.factory.buildOrganizationTag({ tagId: tag.id, organizationId: organization.id });
-        await databaseBuilder.commit();
-
-        // when
-        const response = await server.inject({
-          method: 'GET',
-          url: `/api/admin/organizations/${organization.id}`,
-          headers: { authorization: generateValidRequestAuthorizationHeader(superAdminUserId) },
-        });
-
-        // then
-        expect(response.result).to.deep.equal({
-          data: {
-            attributes: {
-              name: organization.name,
-              type: organization.type,
-              'logo-url': organization.logoUrl,
-              'external-id': organization.externalId,
-              'province-code': organization.provinceCode,
-              'is-managing-students': organization.isManagingStudents,
-              credit: organization.credit,
-              email: organization.email,
-              'created-by': superAdminUserId,
-              'created-at': createdAt,
-              'documentation-url': organization.documentationUrl,
-              'show-nps': organization.showNPS,
-              'form-nps-url': organization.formNPSUrl,
-              'show-skills': false,
-              'archivist-full-name': 'Jean Bonneau',
-              'data-protection-officer-first-name': dataProtectionOfficer.firstName,
-              'data-protection-officer-last-name': dataProtectionOfficer.lastName,
-              'data-protection-officer-email': dataProtectionOfficer.email,
-              'archived-at': archivedAt,
-              'creator-full-name': 'Tom Dereck',
-              'identity-provider-for-campaigns': null,
-            },
-            id: organization.id.toString(),
-            relationships: {
-              'organization-memberships': {
-                links: {
-                  related: `/api/organizations/${organization.id}/memberships`,
-                },
-              },
-              tags: {
-                data: [
-                  {
-                    id: tag.id.toString(),
-                    type: 'tags',
-                  },
-                ],
-              },
-              'target-profile-summaries': {
-                links: {
-                  related: `/api/admin/organizations/${organization.id}/target-profile-summaries`,
-                },
-              },
-            },
-            type: 'organizations',
-          },
-          included: [
-            {
-              attributes: {
-                id: tag.id,
-                name: tag.name,
-              },
-              id: tag.id.toString(),
-              type: 'tags',
-            },
-          ],
-        });
-      });
-
-      it('should return a 404 error when organization was not found', async function () {
-        // given
-        const superAdminUserId = databaseBuilder.factory.buildUser.withRole().id;
-        await databaseBuilder.commit();
-
-        // when
-        const response = await server.inject({
-          method: 'GET',
-          url: `/api/admin/organizations/999`,
-          headers: { authorization: generateValidRequestAuthorizationHeader(superAdminUserId) },
-        });
-
-        // then
-        expect(response.result).to.deep.equal({
-          errors: [
-            {
-              status: '404',
-              detail: 'Not found organization for ID 999',
-              title: 'Not Found',
-            },
-          ],
-        });
-      });
-    });
-
-    describe('Resource access management', function () {
-      it('should respond with a 401 - unauthorized access - if user is not authenticated', function () {
-        // given & when
-        const promise = server.inject({
-          method: 'GET',
-          url: `/api/admin/organizations/999`,
-          headers: { authorization: 'invalid.access.token' },
-        });
-
-        // then
-        return promise.then((response) => {
-          expect(response.statusCode).to.equal(401);
-        });
-      });
-
-      it('should respond with a 403 - forbidden access - if user has not role Super Admin', function () {
-        // given
-        const nonSuperAdminUserId = 9999;
-
-        // when
-        const promise = server.inject({
-          method: 'GET',
-          url: `/api/admin/organizations/999`,
-          headers: { authorization: generateValidRequestAuthorizationHeader(nonSuperAdminUserId) },
-        });
-
-        // then
-        return promise.then((response) => {
-          expect(response.statusCode).to.equal(403);
-        });
       });
     });
   });
@@ -1119,7 +898,7 @@ describe('Acceptance | Application | organization-controller', function () {
           // given
           options = {
             method: 'GET',
-            url: `/api/organizations/${organization.id}/sco-participants?filter[connexionType][]=none`,
+            url: `/api/organizations/${organization.id}/sco-participants?filter[connectionTypes][]=none`,
             headers: { authorization: generateValidRequestAuthorizationHeader(user.id) },
           };
 
@@ -1134,7 +913,7 @@ describe('Acceptance | Application | organization-controller', function () {
           // given
           options = {
             method: 'GET',
-            url: `/api/organizations/${organization.id}/sco-participants?filter[connexionType][]=none&filter[connexionType][]=email`,
+            url: `/api/organizations/${organization.id}/sco-participants?filter[connectionTypes][]=none&filter[connectionTypes][]=email`,
             headers: { authorization: generateValidRequestAuthorizationHeader(user.id) },
           };
 
@@ -1467,10 +1246,10 @@ describe('Acceptance | Application | organization-controller', function () {
         expect(response.statusCode).to.equal(201);
         expect(response.result.data.length).equal(2);
         expect(
-          _omit(response.result.data[0], 'id', 'attributes.updated-at', 'attributes.organization-name')
+          _omit(response.result.data[0], 'id', 'attributes.updated-at', 'attributes.organization-name'),
         ).to.deep.equal(expectedResults[0]);
         expect(
-          _omit(response.result.data[1], 'id', 'attributes.updated-at', 'attributes.organization-name')
+          _omit(response.result.data[1], 'id', 'attributes.updated-at', 'attributes.organization-name'),
         ).to.deep.equal(expectedResults[1]);
       });
     });
@@ -1663,7 +1442,7 @@ describe('Acceptance | Application | organization-controller', function () {
           'data[0].id',
           'data[0].attributes.organization-name',
           'data[1].id',
-          'data[1].attributes.organization-name'
+          'data[1].attributes.organization-name',
         );
         expect(omittedResult.data).to.deep.have.members(expectedResult.data);
       });
@@ -1757,7 +1536,7 @@ describe('Acceptance | Application | organization-controller', function () {
             ],
           },
         ];
-        const learningContentObjects = learningContentBuilder.buildLearningContent.fromAreas(learningContent);
+        const learningContentObjects = learningContentBuilder.fromAreas(learningContent);
         mockLearningContent(learningContentObjects);
 
         user = databaseBuilder.factory.buildUser({});
@@ -1839,6 +1618,7 @@ describe('Acceptance | Application | organization-controller', function () {
             attributes: {
               name: 'Super profil cible',
               outdated: false,
+              'created-at': undefined,
             },
           },
         ],
@@ -2040,13 +1820,12 @@ describe('Acceptance | Application | organization-controller', function () {
           ],
         },
       ];
-      const learningContentObjects = learningContentBuilder.buildLearningContent.fromAreas(learningContent);
+      const learningContentObjects = learningContentBuilder.fromAreas(learningContent);
       mockLearningContent(learningContentObjects);
     });
 
     it('should return HTTP status 200', async function () {
       // given
-
       const adminIsManagingStudent = databaseBuilder.factory.buildUser.withRawPassword();
 
       const organization = databaseBuilder.factory.buildOrganization({ type: 'SCO', isManagingStudents: true });
@@ -2102,7 +1881,7 @@ describe('Acceptance | Application | organization-controller', function () {
 
       const options = {
         method: 'GET',
-        url: `/api/organizations/${organization.id}/certification-attestations?division=aDivision&isFrenchDomainExtension=true`,
+        url: `/api/organizations/${organization.id}/certification-attestations?division=aDivision&isFrenchDomainExtension=true&lang=fr`,
         headers: { authorization: generateValidRequestAuthorizationHeader(adminIsManagingStudent.id) },
       };
 
@@ -2131,7 +1910,7 @@ describe('Acceptance | Application | organization-controller', function () {
         { id: 2, division: '2ndA', firstName: 'Laura', lastName: 'Booooo' },
         { id: 3, division: '2ndA', firstName: 'Laura', lastName: 'aaaaa' },
         { id: 4, division: '2ndA', firstName: 'Bart', lastName: 'Coucou' },
-        { id: 5, division: '2ndA', firstName: 'Arthur', lastName: 'Coucou' }
+        { id: 5, division: '2ndA', firstName: 'Arthur', lastName: 'Coucou' },
       );
 
       await databaseBuilder.commit();
@@ -2153,6 +1932,6 @@ describe('Acceptance | Application | organization-controller', function () {
 
 function _buildOrganizationLearners(organization, ...students) {
   return students.map((student) =>
-    databaseBuilder.factory.buildOrganizationLearner({ organizationId: organization.id, ...student })
+    databaseBuilder.factory.buildOrganizationLearner({ organizationId: organization.id, ...student }),
   );
 }

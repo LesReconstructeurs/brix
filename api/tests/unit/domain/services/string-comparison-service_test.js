@@ -1,11 +1,12 @@
-const { expect } = require('../../../test-helper');
-const {
+import { expect } from '../../../test-helper.js';
+
+import {
   areTwoStringsCloseEnough,
   getSmallestLevenshteinDistance,
   getSmallestLevenshteinRatio,
   getLevenshteinRatio,
   isOneStringCloseEnoughFromMultipleStrings,
-} = require('../../../../lib/domain/services/string-comparison-service');
+} from '../../../../lib/domain/services/string-comparison-service.js';
 
 describe('Unit | Service | Validation Comparison', function () {
   describe('getSmallestLevenshteinDistance', function () {
@@ -19,9 +20,9 @@ describe('Unit | Service | Validation Comparison', function () {
 
       // eslint-disable-next-line mocha/no-setup-in-describe
       successfulCases.forEach(function (testCase) {
-        it(`${
-          testCase.should
-        } for example arg1 ${JSON.stringify(testCase.arg1)} and arg2 ${JSON.stringify(testCase.arg2)} => ${testCase.output}`, function () {
+        it(`${testCase.should} for example arg1 ${JSON.stringify(testCase.arg1)} and arg2 ${JSON.stringify(
+          testCase.arg2,
+        )} => ${testCase.output}`, function () {
           expect(getSmallestLevenshteinDistance(testCase.arg1, testCase.arg2)).to.equal(testCase.output);
         });
       });
@@ -54,9 +55,9 @@ describe('Unit | Service | Validation Comparison', function () {
 
       // eslint-disable-next-line mocha/no-setup-in-describe
       successfulCases.forEach(function (testCase) {
-        it(`${
-          testCase.should
-        } for example arg1 ${JSON.stringify(testCase.arg1)} and arg2 ${JSON.stringify(testCase.arg2)} => ${testCase.output}`, function () {
+        it(`${testCase.should} for example arg1 ${JSON.stringify(testCase.arg1)} and arg2 ${JSON.stringify(
+          testCase.arg2,
+        )} => ${testCase.output}`, function () {
           expect(getSmallestLevenshteinDistance(testCase.arg1, testCase.arg2)).to.equal(testCase.output);
         });
       });
@@ -175,7 +176,7 @@ describe('Unit | Service | Validation Comparison', function () {
         it('should return false', function () {
           expect(actual).to.be.false;
         });
-      }
+      },
     );
 
     context(
@@ -195,7 +196,7 @@ describe('Unit | Service | Validation Comparison', function () {
         it('should return true', function () {
           expect(actual).to.be.true;
         });
-      }
+      },
     );
   });
 });

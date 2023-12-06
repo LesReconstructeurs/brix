@@ -1,7 +1,9 @@
 import { module, test } from 'qunit';
 import setupIntlRenderingTest from '../../../../../helpers/setup-intl-rendering';
-import { render, find } from '@ember/test-helpers';
-import hbs from 'htmlbars-inline-precompile';
+// eslint-disable-next-line no-restricted-imports
+import { find } from '@ember/test-helpers';
+import { render } from '@1024pix/ember-testing-library';
+import { hbs } from 'ember-cli-htmlbars';
 
 module('Integration | Component | routes/campaigns/invited/fill-in-participant-external-id', function (hooks) {
   setupIntlRenderingTest(hooks);
@@ -18,14 +20,14 @@ module('Integration | Component | routes/campaigns/invited/fill-in-participant-e
     test('should display image help', async function (assert) {
       // when
       const campaign = {
-        externalIdHelpImageUrl: '/images/brix-logo.svg',
+        externalIdHelpImageUrl: '/images/pix-logo.svg',
         alternativeTextToExternalIdHelpImage: 'alternative text',
       };
       this.set('campaign', campaign);
 
       // given
       await render(
-        hbs`<Routes::Campaigns::Invited::FillInParticipantExternalId @campaign={{this.campaign}} @onSubmit={{this.onSubmitStub}} @onCancel={{this.onCancelStub}}/>`
+        hbs`<Routes::Campaigns::Invited::FillInParticipantExternalId @campaign={{this.campaign}} @onSubmit={{this.onSubmitStub}} @onCancel={{this.onCancelStub}}/>`,
       );
 
       // then
@@ -44,7 +46,7 @@ module('Integration | Component | routes/campaigns/invited/fill-in-participant-e
 
       // given
       await render(
-        hbs`<Routes::Campaigns::Invited::FillInParticipantExternalId @campaign={{this.campaign}} @onSubmit={{this.onSubmitStub}} @onCancel={{this.onCancelStub}}/>`
+        hbs`<Routes::Campaigns::Invited::FillInParticipantExternalId @campaign={{this.campaign}} @onSubmit={{this.onSubmitStub}} @onCancel={{this.onCancelStub}}/>`,
       );
 
       // then

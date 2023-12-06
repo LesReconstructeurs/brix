@@ -1,14 +1,19 @@
+.comparison-window {
+  width: calc(100% - 1rem);
+  max-width: 990px;
+}
+
 .comparison-window-content__body {
   display: flex;
   flex-direction: column;
 }
 
 .comparison-window-content-body {
-
   &__instruction {
     font-size: 1rem;
 
-    ul, ol {
+    ul,
+    ol {
       padding-left: 2em;
 
       &:not(:last-child) {
@@ -38,11 +43,10 @@
 }
 
 .comparison-windows-content-body-default-message-container {
-
   &__default-message-title {
     margin: 10px 25px 40px;
     color: $pix-neutral-110;
-    font-weight: $font-semi-bold;
+    font-weight: $font-medium;
     font-size: 1.063rem;
     font-family: $font-open-sans;
     text-align: center;
@@ -56,17 +60,13 @@
 .comparison-window-solution {
   display: flex;
   align-items: stretch;
+  margin-top: $pix-spacing-xs;
 
   &__text {
-    position: relative;
-    bottom: 3px;
-    display: flex;
-    margin-top: 10px;
-    margin-left: 10px;
+    @extend %pix-body-m;
+
     color: $pix-success-70;
     font-weight: $font-bold;
-    font-size: 1rem;
-    overflow-wrap: break-word;
   }
 
   &__img {
@@ -77,4 +77,8 @@
   &--with-margin {
     margin: 0 0 20px 20px;
   }
+}
+
+.comparison-window .feedback-panel {
+  margin-bottom: $pix-spacing-xs;
 }

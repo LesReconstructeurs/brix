@@ -1,12 +1,11 @@
-// Usage: node create-profile-collection-campaigns.js path/file.csv <creatorId>
-// To use on file with columns |name, organizationId, customLandingPageText, creatorId|, those headers included
-const bluebird = require('bluebird');
-const { knex, disconnect } = require('../../db/knex-database-connection');
-const CampaignTypes = require('../../lib/domain/models/CampaignTypes');
-const campaignCodeGenerator = require('../../lib/domain/services/campaigns/campaign-code-generator');
-const campaignValidator = require('../../lib/domain/validators/campaign-validator');
-const campaignRepository = require('../../lib/infrastructure/repositories/campaign-repository');
-const { parseCsvWithHeader } = require('../helpers/csvHelpers');
+import bluebird from 'bluebird';
+import { knex, disconnect } from '../../db/knex-database-connection.js';
+import { CampaignTypes } from '../../lib/domain/models/CampaignTypes.js';
+import * as campaignCodeGenerator from '../../lib/domain/services/campaigns/campaign-code-generator.js';
+import * as campaignValidator from '../../lib/domain/validators/campaign-validator.js';
+import * as campaignRepository from '../../lib/infrastructure/repositories/campaign-repository.js';
+import { parseCsvWithHeader } from '../helpers/csvHelpers.js';
+import * as url from 'url';
 
 function checkData(campaignData) {
   return campaignData.map(({ name, organizationId, customLandingPageText, creatorId }, index) => {
@@ -15,7 +14,7 @@ function checkData(campaignData) {
     }
     if (!name) {
       throw new Error(
-        `Ligne ${index + 1}: Le nom de campagne est obligatoire pour la campagne de collecte de profils.`
+        `Ligne ${index + 1}: Le nom de campagne est obligatoire pour la campagne de collecte de profils.`,
       );
     }
     if (!creatorId) {
@@ -44,13 +43,13 @@ async function prepareCampaigns(campaignsData) {
       campaign.code = await campaignCodeGenerator.generate(campaignRepository, generatedList);
       generatedList.push(campaign.code);
 
-      if (require.main === module)
+      if (isLaunchedFromCommandLine)
         process.stdout.write(
-          `Campagne de collecte de profils ${campaign.name} pour l'organisation ${campaign.organizationId} ===> ✔\n`
+          `Campagne de collecte de profils ${campaign.name} pour l'organisation ${campaign.organizationId} ===> ✔\n`,
         );
       return campaign;
     },
-    { concurrency: 10 }
+    { concurrency: 10 },
   );
 
   return campaigns.flat();
@@ -60,7 +59,8 @@ function createProfilesCollectionCampaigns(campaigns) {
   return knex.batchInsert('campaigns', campaigns);
 }
 
-const isLaunchedFromCommandLine = require.main === module;
+const modulePath = url.fileURLToPath(import.meta.url);
+const isLaunchedFromCommandLine = process.argv[1] === modulePath;
 
 async function main() {
   const filePath = process.argv[2];
@@ -93,7 +93,4 @@ async function main() {
   }
 })();
 
-module.exports = {
-  prepareCampaigns,
-  checkData,
-};
+export { prepareCampaigns, checkData };

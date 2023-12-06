@@ -1,5 +1,6 @@
-const _ = require('lodash');
-const {
+import _ from 'lodash';
+
+import {
   knex,
   databaseBuilder,
   expect,
@@ -7,9 +8,10 @@ const {
   sinon,
   mockLearningContent,
   learningContentBuilder,
-} = require('../../../test-helper');
-const createServer = require('../../../../server');
-const CampaignParticipationStatuses = require('../../../../lib/domain/models/CampaignParticipationStatuses');
+} from '../../../test-helper.js';
+
+import { createServer } from '../../../../server.js';
+import { CampaignParticipationStatuses } from '../../../../lib/domain/models/CampaignParticipationStatuses.js';
 
 const { STARTED } = CampaignParticipationStatuses;
 
@@ -21,15 +23,15 @@ describe('Acceptance | Controller | users-controller-reset-scorecard', function 
   const competenceId = 'recAbe382T0e1337';
   const competence = {
     id: competenceId,
-    nameFr: 'Mener une recherche et une veille d’information',
-    descriptionFr: 'descriptionCompetence1',
+    name_i18n: { fr: 'Mener une recherche et une veille d’information' },
+    description_i18n: { fr: 'descriptionCompetence1' },
     index: '1.1',
     origin: 'Pix',
     areaId: 'recvoGdo7z2z7pXWa',
   };
   const area = {
     id: 'recvoGdo7z2z7pXWa',
-    titleFr: 'Information et données',
+    title_i18n: { fr: 'Information et données' },
     color: 'jaffa',
     code: '1',
     competenceIds: [competenceId],
@@ -98,7 +100,7 @@ describe('Acceptance | Controller | users-controller-reset-scorecard', function 
         ],
       },
     ];
-    const learningContentObjects = learningContentBuilder.buildLearningContent.fromAreas(learningContent);
+    const learningContentObjects = learningContentBuilder.fromAreas(learningContent);
     mockLearningContent(learningContentObjects);
 
     server = await createServer();
@@ -226,9 +228,9 @@ describe('Acceptance | Controller | users-controller-reset-scorecard', function 
             const assessmentId = databaseBuilder.factory.buildAssessment({ ...assessment, campaignParticipationId }).id;
             databaseBuilder.factory.buildCompetenceEvaluation({ ...competenceEvaluation, assessmentId });
             _.each(knowledgeElements, (ke) =>
-              databaseBuilder.factory.buildKnowledgeElement({ ...ke, userId, assessmentId })
+              databaseBuilder.factory.buildKnowledgeElement({ ...ke, userId, assessmentId }),
             );
-          }
+          },
         );
 
         await databaseBuilder.commit();
@@ -284,7 +286,7 @@ describe('Acceptance | Controller | users-controller-reset-scorecard', function 
             {
               attributes: {
                 code: area.code,
-                title: area.titleFr,
+                title: area.title_i18n.fr,
                 color: area.color,
               },
               id: area.id,

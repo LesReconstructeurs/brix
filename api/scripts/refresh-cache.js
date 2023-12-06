@@ -1,9 +1,10 @@
-#! /usr/bin/env node
-'use strict';
-require('dotenv').config();
-const logger = require('../lib/infrastructure/logger');
-const cache = require('../lib/infrastructure/caches/learning-content-cache');
-const learningContentDatasource = require('../lib/infrastructure/datasources/learning-content/datasource');
+import dotenv from 'dotenv';
+
+dotenv.config();
+import { logger } from '../lib/infrastructure/logger.js';
+import { learningContentCache } from '../lib/infrastructure/caches/learning-content-cache.js';
+
+import * as learningContentDatasource from '../lib/infrastructure/datasources/learning-content/datasource.js';
 
 logger.info('Starting refreshing Learning Content');
 learningContentDatasource
@@ -12,4 +13,4 @@ learningContentDatasource
     logger.info('Learning Content refreshed');
   })
   .catch((e) => logger.error('Error while reloading cache', e))
-  .finally(() => cache.quit());
+  .finally(() => learningContentCache.quit());

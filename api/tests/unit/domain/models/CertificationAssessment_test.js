@@ -1,14 +1,15 @@
-const _ = require('lodash');
-const CertificationAssessment = require('../../../../lib/domain/models/CertificationAssessment');
-const AnswerStatus = require('../../../../lib/domain/models/AnswerStatus');
-const NeutralizationAttempt = require('../../../../lib/domain/models/NeutralizationAttempt');
-const CertificationAnswerStatusChangeAttempt = require('../../../../lib/domain/models/CertificationAnswerStatusChangeAttempt');
-const { expect, domainBuilder } = require('../../../test-helper');
-const {
+import _ from 'lodash';
+import { CertificationAssessment } from '../../../../lib/domain/models/CertificationAssessment.js';
+import { AnswerStatus } from '../../../../lib/domain/models/AnswerStatus.js';
+import { NeutralizationAttempt } from '../../../../lib/domain/models/NeutralizationAttempt.js';
+import { CertificationAnswerStatusChangeAttempt } from '../../../../lib/domain/models/CertificationAnswerStatusChangeAttempt.js';
+import { expect, domainBuilder } from '../../../test-helper.js';
+
+import {
   ObjectValidationError,
   ChallengeToBeNeutralizedNotFoundError,
   ChallengeToBeDeneutralizedNotFoundError,
-} = require('../../../../lib/domain/errors');
+} from '../../../../lib/domain/errors.js';
 
 describe('Unit | Domain | Models | CertificationAssessment', function () {
   describe('constructor', function () {
@@ -21,7 +22,7 @@ describe('Unit | Domain | Models | CertificationAssessment', function () {
         createdAt: new Date('2020-01-01'),
         completedAt: new Date('2020-01-01'),
         state: CertificationAssessment.states.STARTED,
-        isV2Certification: true,
+        version: 2,
         certificationChallenges: ['challenge'],
         certificationAnswersByDate: ['answer'],
       };
@@ -40,28 +41,28 @@ describe('Unit | Domain | Models | CertificationAssessment', function () {
     it('should throw an ObjectValidationError when userId is not valid', function () {
       // when
       expect(() => new CertificationAssessment({ ...validArguments, userId: 'les zouzous' })).to.throw(
-        ObjectValidationError
+        ObjectValidationError,
       );
     });
 
     it('should throw an ObjectValidationError when certificationCourseId is not valid', function () {
       // when
       expect(() => new CertificationAssessment({ ...validArguments, certificationCourseId: 'ça gaze ?' })).to.throw(
-        ObjectValidationError
+        ObjectValidationError,
       );
     });
 
     it('should throw an ObjectValidationError when createdAt is not valid', function () {
       // when
       expect(() => new CertificationAssessment({ ...validArguments, createdAt: 'coucou' })).to.throw(
-        ObjectValidationError
+        ObjectValidationError,
       );
     });
 
     it('should throw an ObjectValidationError when completed is not valid', function () {
       // when
       expect(() => new CertificationAssessment({ ...validArguments, completedAt: 'ça pétille !' })).to.throw(
-        ObjectValidationError
+        ObjectValidationError,
       );
     });
 
@@ -71,7 +72,7 @@ describe('Unit | Domain | Models | CertificationAssessment', function () {
       it(`should not throw an ObjectValidationError when state is ${value}`, function () {
         // when
         expect(() => new CertificationAssessment({ ...validArguments, state: value })).not.to.throw(
-          ObjectValidationError
+          ObjectValidationError,
         );
       });
     });
@@ -79,35 +80,35 @@ describe('Unit | Domain | Models | CertificationAssessment', function () {
     it('should throw an ObjectValidationError when status is not one of [completed, started]', function () {
       // when
       expect(() => new CertificationAssessment({ ...validArguments, state: 'aborted' })).to.throw(
-        ObjectValidationError
+        ObjectValidationError,
       );
     });
 
-    it('should throw an ObjectValidationError when isV2Certification is not valid', function () {
+    it('should throw an ObjectValidationError when version is not valid', function () {
       // when
-      expect(() => new CertificationAssessment({ ...validArguments, isV2Certification: 'glouglou' })).to.throw(
-        ObjectValidationError
+      expect(() => new CertificationAssessment({ ...validArguments, version: 'glouglou' })).to.throw(
+        ObjectValidationError,
       );
     });
 
     it('should throw an ObjectValidationError when certificationChallenges is not valid', function () {
       // when
       expect(() => new CertificationAssessment({ ...validArguments, certificationChallenges: [] })).to.throw(
-        ObjectValidationError
+        ObjectValidationError,
       );
     });
 
     it('should throw an ObjectValidationError when certificationAnswersByDate is not valid', function () {
       // when
       expect(() => new CertificationAssessment({ ...validArguments, certificationAnswersByDate: 'glouglou' })).to.throw(
-        ObjectValidationError
+        ObjectValidationError,
       );
     });
 
     it('should be valid when certificationAnswersByDate has no answer', function () {
       // when
       expect(() => new CertificationAssessment({ ...validArguments, certificationAnswersByDate: [] })).not.to.throw(
-        ObjectValidationError
+        ObjectValidationError,
       );
     });
   });
@@ -161,7 +162,7 @@ describe('Unit | Domain | Models | CertificationAssessment', function () {
         createdAt: new Date('2020-01-01'),
         completedAt: new Date('2020-01-01'),
         state: CertificationAssessment.states.STARTED,
-        isV2Certification: true,
+        version: 2,
         certificationChallenges: [
           challengeToBeNeutralized,
           domainBuilder.buildCertificationChallengeWithType({ challengeId: 'rec2', isNeutralized: false }),
@@ -193,7 +194,7 @@ describe('Unit | Domain | Models | CertificationAssessment', function () {
         createdAt: new Date('2020-01-01'),
         completedAt: new Date('2020-01-01'),
         state: CertificationAssessment.states.STARTED,
-        isV2Certification: true,
+        version: 2,
         certificationChallenges: [
           domainBuilder.buildCertificationChallengeWithType({ challengeId: 'rec2', isNeutralized: false }),
           domainBuilder.buildCertificationChallengeWithType({ challengeId: 'rec3', isNeutralized: false }),
@@ -223,7 +224,7 @@ describe('Unit | Domain | Models | CertificationAssessment', function () {
         createdAt: new Date('2020-01-01'),
         completedAt: new Date('2020-01-01'),
         state: CertificationAssessment.states.STARTED,
-        isV2Certification: true,
+        version: 2,
         certificationChallenges: [
           challengeToBeDeneutralized,
           domainBuilder.buildCertificationChallengeWithType({ challengeId: 'rec2', isNeutralized: true }),
@@ -255,7 +256,7 @@ describe('Unit | Domain | Models | CertificationAssessment', function () {
         createdAt: new Date('2020-01-01'),
         completedAt: new Date('2020-01-01'),
         state: CertificationAssessment.states.STARTED,
-        isV2Certification: true,
+        version: 2,
         certificationChallenges: [
           domainBuilder.buildCertificationChallengeWithType({ challengeId: 'rec2', isNeutralized: false }),
           domainBuilder.buildCertificationChallengeWithType({ challengeId: 'rec3', isNeutralized: false }),
@@ -285,7 +286,7 @@ describe('Unit | Domain | Models | CertificationAssessment', function () {
         createdAt: new Date('2020-01-01'),
         completedAt: new Date('2020-01-01'),
         state: CertificationAssessment.states.STARTED,
-        isV2Certification: true,
+        version: 2,
         certificationChallenges: [challengeKoToBeNeutralized],
         certificationAnswersByDate: [
           domainBuilder.buildAnswer({
@@ -318,7 +319,7 @@ describe('Unit | Domain | Models | CertificationAssessment', function () {
         createdAt: new Date('2020-01-01'),
         completedAt: new Date('2020-01-01'),
         state: CertificationAssessment.states.STARTED,
-        isV2Certification: true,
+        version: 2,
         certificationChallenges: [challengeSkippedToBeNeutralized],
         certificationAnswersByDate: [
           domainBuilder.buildAnswer({
@@ -351,7 +352,7 @@ describe('Unit | Domain | Models | CertificationAssessment', function () {
         createdAt: new Date('2020-01-01'),
         completedAt: new Date('2020-01-01'),
         state: CertificationAssessment.states.STARTED,
-        isV2Certification: true,
+        version: 2,
         certificationChallenges: [challengeSkippedToBeNeutralized],
         certificationAnswersByDate: [
           domainBuilder.buildAnswer({
@@ -384,7 +385,7 @@ describe('Unit | Domain | Models | CertificationAssessment', function () {
         createdAt: new Date('2020-01-01'),
         completedAt: new Date('2020-01-01'),
         state: CertificationAssessment.states.STARTED,
-        isV2Certification: true,
+        version: 2,
         certificationChallenges: [challengeNotToBeNeutralized],
         certificationAnswersByDate: [
           domainBuilder.buildAnswer({
@@ -412,7 +413,7 @@ describe('Unit | Domain | Models | CertificationAssessment', function () {
         createdAt: new Date('2020-01-01'),
         completedAt: new Date('2020-01-01'),
         state: CertificationAssessment.states.STARTED,
-        isV2Certification: true,
+        version: 2,
         certificationChallenges: [
           domainBuilder.buildCertificationChallengeWithType({ challengeId: 'rec2', isNeutralized: false }),
           domainBuilder.buildCertificationChallengeWithType({ challengeId: 'rec3', isNeutralized: false }),
@@ -635,18 +636,18 @@ describe('Unit | Domain | Models | CertificationAssessment', function () {
       // then
       expect(
         certificationAssessment.certificationChallenges.find(
-          (certificationChallenge) => certificationChallenge.challengeId === 'rec456'
-        ).hasBeenSkippedAutomatically
+          (certificationChallenge) => certificationChallenge.challengeId === 'rec456',
+        ).hasBeenSkippedAutomatically,
       ).to.be.true;
       expect(
         certificationAssessment.certificationChallenges.find(
-          (certificationChallenge) => certificationChallenge.challengeId === 'rec1234'
-        ).hasBeenSkippedAutomatically
+          (certificationChallenge) => certificationChallenge.challengeId === 'rec1234',
+        ).hasBeenSkippedAutomatically,
       ).to.be.false;
       expect(
         certificationAssessment.certificationChallenges.find(
-          (certificationChallenge) => certificationChallenge.challengeId === 'rec789'
-        ).hasBeenSkippedAutomatically
+          (certificationChallenge) => certificationChallenge.challengeId === 'rec789',
+        ).hasBeenSkippedAutomatically,
       ).to.be.false;
     });
   });
@@ -687,18 +688,18 @@ describe('Unit | Domain | Models | CertificationAssessment', function () {
       // then
       expect(
         certificationAssessment.certificationChallenges.find(
-          (certificationChallenge) => certificationChallenge.challengeId === 'rec456'
-        ).isNeutralized
+          (certificationChallenge) => certificationChallenge.challengeId === 'rec456',
+        ).isNeutralized,
       ).to.be.true;
       expect(
         certificationAssessment.certificationChallenges.find(
-          (certificationChallenge) => certificationChallenge.challengeId === 'rec1234'
-        ).isNeutralized
+          (certificationChallenge) => certificationChallenge.challengeId === 'rec1234',
+        ).isNeutralized,
       ).to.be.false;
       expect(
         certificationAssessment.certificationChallenges.find(
-          (certificationChallenge) => certificationChallenge.challengeId === 'rec789'
-        ).isNeutralized
+          (certificationChallenge) => certificationChallenge.challengeId === 'rec789',
+        ).isNeutralized,
       ).to.be.false;
     });
   });
@@ -738,7 +739,7 @@ describe('Unit | Domain | Models | CertificationAssessment', function () {
       expect(certificationAssessmentAnswer).to.deep.equal(
         domainBuilder.buildAnswer({
           challengeId: 'rec456',
-        })
+        }),
       );
     });
 

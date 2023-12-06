@@ -1,11 +1,7 @@
-const { sinon, expect, hFake } = require('../../../test-helper');
-
-const scorecardController = require('../../../../lib/application/scorecards/scorecard-controller');
-
-const usecases = require('../../../../lib/domain/usecases');
-
-const scorecardSerializer = require('../../../../lib/infrastructure/serializers/jsonapi/scorecard-serializer');
-const tutorialSerializer = require('../../../../lib/infrastructure/serializers/jsonapi/tutorial-serializer');
+import { sinon, expect, hFake } from '../../../test-helper.js';
+import { scorecardController } from '../../../../lib/application/scorecards/scorecard-controller.js';
+import { usecases } from '../../../../lib/domain/usecases/index.js';
+import * as requestResponseUtils from '../../../../lib/infrastructure/utils/request-response-utils.js';
 
 describe('Unit | Controller | scorecard-controller', function () {
   const authenticatedUserId = '12';
@@ -19,11 +15,13 @@ describe('Unit | Controller | scorecard-controller', function () {
 
     beforeEach(function () {
       sinon.stub(usecases, 'getScorecard').withArgs({ authenticatedUserId, scorecardId, locale }).resolves(scorecard);
-      sinon.stub(scorecardSerializer, 'serialize').resolvesArg(0);
     });
 
     it('should call the expected usecase', async function () {
       // given
+      const scorecardSerializer = {
+        serialize: sinon.stub().resolvesArg(0),
+      };
       const scorecardId = 'foo';
       const locale = 'fr';
 
@@ -40,7 +38,10 @@ describe('Unit | Controller | scorecard-controller', function () {
       };
 
       // when
-      const result = await scorecardController.getScorecard(request, hFake);
+      const result = await scorecardController.getScorecard(request, hFake, {
+        scorecardSerializer,
+        requestResponseUtils,
+      });
 
       // then
       expect(result).to.be.equal(scorecard);
@@ -52,11 +53,14 @@ describe('Unit | Controller | scorecard-controller', function () {
 
     beforeEach(function () {
       sinon.stub(usecases, 'findTutorials').withArgs({ authenticatedUserId, scorecardId, locale }).resolves(tutorials);
-      sinon.stub(tutorialSerializer, 'serialize').withArgs(tutorials).resolves('ok');
     });
 
     it('should call the expected usecase', async function () {
       // given
+      const tutorialSerializer = {
+        serialize: sinon.stub(),
+      };
+      tutorialSerializer.serialize.resolvesArg(0);
       const request = {
         auth: {
           credentials: {
@@ -70,10 +74,13 @@ describe('Unit | Controller | scorecard-controller', function () {
       };
 
       // when
-      const result = await scorecardController.findTutorials(request, hFake);
+      const result = await scorecardController.findTutorials(request, hFake, {
+        tutorialSerializer,
+        requestResponseUtils,
+      });
 
       // then
-      expect(result).to.be.equal('ok');
+      expect(result).to.be.equal(tutorials);
     });
   });
 });

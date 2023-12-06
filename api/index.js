@@ -1,13 +1,16 @@
-require('dotenv').config();
-const validateEnvironmentVariables = require('./lib/infrastructure/validate-environment-variables');
+import * as dotenv from 'dotenv';
+
+dotenv.config();
+import { validateEnvironmentVariables } from './lib/infrastructure/validate-environment-variables.js';
+
 validateEnvironmentVariables();
 
-const createServer = require('./server');
-const logger = require('./lib/infrastructure/logger');
-const { disconnect } = require('./db/knex-database-connection');
-const cache = require('./lib/infrastructure/caches/learning-content-cache');
-const temporaryStorage = require('./lib/infrastructure/temporary-storage/index');
-const redisMonitor = require('./lib/infrastructure/utils/redis-monitor');
+import { createServer } from './server.js';
+import { logger } from './lib/infrastructure/logger.js';
+import { disconnect } from './db/knex-database-connection.js';
+import { learningContentCache } from './lib/infrastructure/caches/learning-content-cache.js';
+import { temporaryStorage } from './lib/infrastructure/temporary-storage/index.js';
+import { redisMonitor } from './lib/infrastructure/utils/redis-monitor.js';
 
 let server;
 
@@ -27,7 +30,7 @@ async function _exitOnSignal(signal) {
   logger.info('Closing connexions to database...');
   await disconnect();
   logger.info('Closing connexions to cache...');
-  await cache.quit();
+  await learningContentCache.quit();
   logger.info('Closing connexions to temporary storage...');
   await temporaryStorage.quit();
   logger.info('Closing connexions to redis monitor...');
@@ -46,7 +49,7 @@ process.on('SIGINT', () => {
   try {
     await start();
     if (process.env.START_JOB_IN_WEB_PROCESS) {
-      require('./worker.js');
+      import('./worker.js');
     }
   } catch (error) {
     logger.error(error);

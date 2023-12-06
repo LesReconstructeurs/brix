@@ -1,8 +1,8 @@
-const { expect, knex, domainBuilder, databaseBuilder, catchErr } = require('../../../test-helper');
-const AnswerStatus = require('../../../../lib/domain/models/AnswerStatus');
-const KnowledgeElement = require('../../../../lib/domain/models/KnowledgeElement');
-const { ChallengeAlreadyAnsweredError, NotFoundError } = require('../../../../lib/domain/errors');
-const answerRepository = require('../../../../lib/infrastructure/repositories/answer-repository');
+import { catchErr, databaseBuilder, domainBuilder, expect, knex } from '../../../test-helper.js';
+import { AnswerStatus } from '../../../../lib/domain/models/AnswerStatus.js';
+import { KnowledgeElement } from '../../../../lib/domain/models/KnowledgeElement.js';
+import { ChallengeAlreadyAnsweredError, NotFoundError } from '../../../../lib/domain/errors.js';
+import * as answerRepository from '../../../../lib/infrastructure/repositories/answer-repository.js';
 
 describe('Integration | Repository | answerRepository', function () {
   describe('#get', function () {
@@ -420,7 +420,7 @@ describe('Integration | Repository | answerRepository', function () {
       const challengeIds = await answerRepository.findChallengeIdsFromAnswerIds([456, 123, 789, 159]);
 
       // then
-      expect(challengeIds).to.deepEqualArray(['recABC', 'recDEF', 'recGHI']);
+      expect(challengeIds).to.have.same.members(['recABC', 'recDEF', 'recGHI']);
     });
   });
 

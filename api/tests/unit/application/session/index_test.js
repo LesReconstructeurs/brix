@@ -1,20 +1,20 @@
-const { writeFile, stat, unlink } = require('fs').promises;
-const fs = require('fs');
-const FormData = require('form-data');
-const streamToPromise = require('stream-to-promise');
-const { NotFoundError } = require('../../../../lib/application/http-errors');
+import fs from 'fs';
+import { writeFile, stat, unlink } from 'fs/promises';
 
-const { expect, HttpTestServer, sinon } = require('../../../test-helper');
-
-const securityPreHandlers = require('../../../../lib/application/security-pre-handlers');
-const sessionController = require('../../../../lib/application/sessions/session-controller');
-const sessionForSupervisingController = require('../../../../lib/application/sessions/session-for-supervising-controller');
-const sessionWithCleaCertifiedCandidateController = require('../../../../lib/application/sessions/session-with-clea-certified-candidate-controller');
-const finalizedSessionController = require('../../../../lib/application/sessions/finalized-session-controller');
-const authorization = require('../../../../lib/application/preHandlers/authorization');
-const moduleUnderTest = require('../../../../lib/application/sessions');
-const endTestScreenRemovalEnabled = require('../../../../lib/application/preHandlers/end-test-screen-removal-enabled');
-const sessionSupervisorAuthorization = require('../../../../lib/application/preHandlers/session-supervisor-authorization');
+import FormData from 'form-data';
+import streamToPromise from 'stream-to-promise';
+import { NotFoundError } from '../../../../lib/application/http-errors.js';
+import { expect, HttpTestServer, sinon } from '../../../test-helper.js';
+import { securityPreHandlers } from '../../../../lib/application/security-pre-handlers.js';
+import { sessionController } from '../../../../lib/application/sessions/session-controller.js';
+import { sessionForSupervisingController } from '../../../../lib/application/sessions/session-for-supervising-controller.js';
+import { sessionWithCleaCertifiedCandidateController } from '../../../../lib/application/sessions/session-with-clea-certified-candidate-controller.js';
+import { finalizedSessionController } from '../../../../lib/application/sessions/finalized-session-controller.js';
+import { authorization } from '../../../../lib/application/preHandlers/authorization.js';
+import * as moduleUnderTest from '../../../../lib/application/sessions/index.js';
+import { assessmentSupervisorAuthorization as sessionSupervisorAuthorization } from '../../../../lib/application/preHandlers/session-supervisor-authorization.js';
+import * as url from 'url';
+const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 
 describe('Unit | Application | Sessions | Routes', function () {
   describe('GET /api/sessions/{id}', function () {
@@ -154,22 +154,123 @@ describe('Unit | Application | Sessions | Routes', function () {
   });
 
   describe('POST /api/sessions/{id}/certification-candidates', function () {
-    it('should exist', async function () {
-      // given
-      sinon.stub(authorization, 'verifySessionAuthorization').returns(null);
-      sinon.stub(sessionController, 'addCertificationCandidate').returns('ok');
-      const httpTestServer = new HttpTestServer();
-      await httpTestServer.register(moduleUnderTest);
+    const correctAttributes = {
+      'first-name': 'prenom',
+      'last-name': 'nom',
+      birthdate: '2000-01-01',
+      'birth-city': null,
+      'birth-province-code': null,
+      'birth-country': 'FRANCE',
+      'birth-postal-code': null,
+      'birth-insee-code': '75115',
+      email: 'guybrush.threepwood@example.net',
+      'result-recipient-email': 'theotherone@example.net',
+      'external-id': '44AA3355',
+      'extra-time-percentage': 0.15,
+      'organization-learner-id': null,
+      sex: 'F',
+      'billing-mode': 'FREE',
+      'prepayment-code': null,
+      'complementary-certification': { id: 5 },
+    };
 
-      // when
-      const response = await httpTestServer.request('POST', '/api/sessions/3/certification-candidates');
+    describe('when the payload is correct', function () {
+      it('should return 404 if the user is not authorized on the session', async function () {
+        // given
+        sinon.stub(authorization, 'verifySessionAuthorization').throws(new NotFoundError());
+        const httpTestServer = new HttpTestServer();
+        await httpTestServer.register(moduleUnderTest);
 
-      // then
-      expect(response.statusCode).to.equal(200);
+        const response = await httpTestServer.request('POST', '/api/sessions/3/certification-candidates', {
+          data: { attributes: correctAttributes, type: 'certification-candidates' },
+        });
+
+        // then
+        expect(response.statusCode).to.equal(404);
+      });
+
+      it('should return 200', async function () {
+        // given
+        sinon.stub(authorization, 'verifySessionAuthorization').returns(true);
+        sinon.stub(sessionController, 'addCertificationCandidate').returns('ok');
+        const httpTestServer = new HttpTestServer();
+        await httpTestServer.register(moduleUnderTest);
+
+        // when
+        const response = await httpTestServer.request('POST', '/api/sessions/1/certification-candidates', {
+          data: {
+            attributes: correctAttributes,
+            type: 'certification-candidates',
+          },
+        });
+
+        // then
+        expect(response.statusCode).to.equal(200);
+      });
+    });
+
+    describe('when the payload is incorrect', function () {
+      describe('when an attribute has wrong type', function () {
+        it('should return 400', async function () {
+          // given
+          sinon.stub(authorization, 'verifySessionAuthorization').returns(true);
+          sinon.stub(sessionController, 'addCertificationCandidate').returns('ok');
+          const httpTestServer = new HttpTestServer();
+          await httpTestServer.register(moduleUnderTest);
+
+          // when
+          const response = await httpTestServer.request('POST', '/api/sessions/1/certification-candidates', {
+            data: {
+              attributes: { ...correctAttributes, 'complementary-certification': [] },
+              type: 'certification-candidates',
+            },
+          });
+
+          // then
+          expect(response.statusCode).to.equal(400);
+          const { errors } = JSON.parse(response.payload);
+          expect(errors[0].detail).to.equals('"data.attributes.complementary-certification" must be of type object');
+        });
+      });
+
+      describe('when there is an unexpected attribute', function () {
+        it('should return 400', async function () {
+          // given
+          sinon.stub(authorization, 'verifySessionAuthorization').returns(true);
+          sinon.stub(sessionController, 'addCertificationCandidate').returns('ok');
+          const httpTestServer = new HttpTestServer();
+          await httpTestServer.register(moduleUnderTest);
+
+          // when
+          const response = await httpTestServer.request('POST', '/api/sessions/1/certification-candidates', {
+            data: {
+              attributes: { ...correctAttributes, toto: 3 },
+              type: 'certification-candidates',
+            },
+          });
+
+          // then
+          expect(response.statusCode).to.equal(400);
+          const { errors } = JSON.parse(response.payload);
+          expect(errors[0].detail).to.equals('"data.attributes.toto" is not allowed');
+        });
+      });
     });
   });
 
   describe('DELETE /api/sessions/{id}/certification-candidates/{certificationCandidateId}', function () {
+    it('should return 404 if the user is not authorized on the session', async function () {
+      // given
+      sinon.stub(authorization, 'verifySessionAuthorization').throws(new NotFoundError());
+      const httpTestServer = new HttpTestServer();
+      await httpTestServer.register(moduleUnderTest);
+
+      const response = await httpTestServer.request('DELETE', '/api/sessions/3/certification-candidates');
+
+      // then
+      expect(response.statusCode).to.equal(404);
+    });
+
     it('should exist', async function () {
       // given
       sinon.stub(authorization, 'verifySessionAuthorization').returns(null);
@@ -182,6 +283,20 @@ describe('Unit | Application | Sessions | Routes', function () {
 
       // then
       expect(response.statusCode).to.equal(200);
+    });
+
+    it('should return an error if certification candidate id is incorrect', async function () {
+      // given
+      sinon.stub(authorization, 'verifySessionAuthorization').returns(null);
+      sinon.stub(sessionController, 'deleteCertificationCandidate').returns('ok');
+      const httpTestServer = new HttpTestServer();
+      await httpTestServer.register(moduleUnderTest);
+
+      // when
+      const response = await httpTestServer.request('DELETE', '/api/sessions/3/certification-candidates/ID');
+
+      // then
+      expect(response.statusCode).to.equal(400);
     });
   });
 
@@ -362,16 +477,16 @@ describe('Unit | Application | Sessions | Routes', function () {
     });
   });
 
-  describe('PUT /api/session/{id}/enroll-students-to-session', function () {
+  describe('PUT /api/session/{id}/enrol-students-to-session', function () {
     it('exists', async function () {
       // given
       sinon.stub(authorization, 'verifySessionAuthorization').returns(null);
-      sinon.stub(sessionController, 'enrollStudentsToSession').returns('ok');
+      sinon.stub(sessionController, 'enrolStudentsToSession').returns('ok');
       const httpTestServer = new HttpTestServer();
       await httpTestServer.register(moduleUnderTest);
 
       // when
-      const response = await httpTestServer.request('PUT', '/api/sessions/3/enroll-students-to-session');
+      const response = await httpTestServer.request('PUT', '/api/sessions/3/enrol-students-to-session');
 
       // then
       expect(response.statusCode).to.equal(200);
@@ -380,12 +495,12 @@ describe('Unit | Application | Sessions | Routes', function () {
     it('validates the session id', async function () {
       // given
       sinon.stub(authorization, 'verifySessionAuthorization').returns(null);
-      sinon.stub(sessionController, 'enrollStudentsToSession').returns('ok');
+      sinon.stub(sessionController, 'enrolStudentsToSession').returns('ok');
       const httpTestServer = new HttpTestServer();
       await httpTestServer.register(moduleUnderTest);
 
       // when
-      const response = await httpTestServer.request('PUT', '/api/sessions/invalidId/enroll-students-to-session');
+      const response = await httpTestServer.request('PUT', '/api/sessions/invalidId/enrol-students-to-session');
 
       // then
       expect(response.statusCode).to.equal(400);
@@ -394,12 +509,12 @@ describe('Unit | Application | Sessions | Routes', function () {
     it('denies access if the session of the logged used is not authorized', async function () {
       // given
       sinon.stub(authorization, 'verifySessionAuthorization').throws(new NotFoundError());
-      sinon.stub(sessionController, 'enrollStudentsToSession').returns('ok');
+      sinon.stub(sessionController, 'enrolStudentsToSession').returns('ok');
       const httpTestServer = new HttpTestServer();
       await httpTestServer.register(moduleUnderTest);
 
       // when
-      const response = await httpTestServer.request('PUT', '/api/sessions/3/enroll-students-to-session');
+      const response = await httpTestServer.request('PUT', '/api/sessions/3/enrol-students-to-session');
 
       // then
       expect(response.statusCode).to.equal(404);
@@ -407,9 +522,8 @@ describe('Unit | Application | Sessions | Routes', function () {
   });
 
   describe('GET /api/sessions/{id}/supervising', function () {
-    it('should return 200 if the user is a supervisor of the session and certification center is in the whitelist', async function () {
+    it('should return 200 if the user is a supervisor of the session', async function () {
       //given
-      sinon.stub(endTestScreenRemovalEnabled, 'verifyBySessionId').callsFake((request, h) => h.response(true));
       sinon.stub(sessionSupervisorAuthorization, 'verifyBySessionId').callsFake((request, h) => h.response(true));
       sinon.stub(sessionForSupervisingController, 'get').returns('ok');
 
@@ -425,7 +539,6 @@ describe('Unit | Application | Sessions | Routes', function () {
 
     it('should return 401 if the user is not a supervisor of the session', async function () {
       //given
-      sinon.stub(endTestScreenRemovalEnabled, 'verifyBySessionId').callsFake((request, h) => h.response(true));
       sinon
         .stub(sessionSupervisorAuthorization, 'verifyBySessionId')
         .callsFake((request, h) => h.response().code(401).takeover());
@@ -439,24 +552,6 @@ describe('Unit | Application | Sessions | Routes', function () {
 
       // then
       expect(response.statusCode).to.equal(401);
-    });
-
-    it('should return 404 if the certification center is not in the whitelist', async function () {
-      //given
-      sinon
-        .stub(endTestScreenRemovalEnabled, 'verifyBySessionId')
-        .callsFake((request, h) => h.response().code(404).takeover());
-      sinon.stub(sessionSupervisorAuthorization, 'verifyBySessionId').callsFake((request, h) => h.response(true));
-      sinon.stub(sessionForSupervisingController, 'get').returns('ok');
-
-      const httpTestServer = new HttpTestServer();
-      await httpTestServer.register(moduleUnderTest);
-
-      // when
-      const response = await httpTestServer.request('GET', '/api/sessions/3/supervising');
-
-      // then
-      expect(response.statusCode).to.equal(404);
     });
   });
 
@@ -543,7 +638,7 @@ describe('Unit | Application | Sessions | Routes', function () {
               h
                 .response({ errors: new Error('forbidden') })
                 .code(403)
-                .takeover()
+                .takeover(),
           );
 
         const httpTestServer = new HttpTestServer();
@@ -592,7 +687,7 @@ describe('Unit | Application | Sessions | Routes', function () {
               h
                 .response({ errors: new Error('forbidden') })
                 .code(403)
-                .takeover()
+                .takeover(),
           );
         const httpTestServer = new HttpTestServer();
         await httpTestServer.register(moduleUnderTest);
@@ -643,7 +738,7 @@ describe('Unit | Application | Sessions | Routes', function () {
               h
                 .response({ errors: new Error('forbidden') })
                 .code(403)
-                .takeover()
+                .takeover(),
           );
         const httpTestServer = new HttpTestServer();
         await httpTestServer.register(moduleUnderTest);
@@ -732,7 +827,7 @@ describe('Unit | Application | Sessions | Routes', function () {
               h
                 .response({ errors: new Error('forbidden') })
                 .code(403)
-                .takeover()
+                .takeover(),
           );
         const httpTestServer = new HttpTestServer();
         await httpTestServer.register(moduleUnderTest);
@@ -770,7 +865,7 @@ describe('Unit | Application | Sessions | Routes', function () {
         // when
         const response = await httpTestServer.request(
           'PATCH',
-          '/api/admin/sessions/1/certification-officer-assignment'
+          '/api/admin/sessions/1/certification-officer-assignment',
         );
 
         // then
@@ -791,7 +886,7 @@ describe('Unit | Application | Sessions | Routes', function () {
               h
                 .response({ errors: new Error('forbidden') })
                 .code(403)
-                .takeover()
+                .takeover(),
           );
         const httpTestServer = new HttpTestServer();
         await httpTestServer.register(moduleUnderTest);
@@ -799,7 +894,7 @@ describe('Unit | Application | Sessions | Routes', function () {
         // when
         const response = await httpTestServer.request(
           'PATCH',
-          '/api/admin/sessions/1/certification-officer-assignment'
+          '/api/admin/sessions/1/certification-officer-assignment',
         );
 
         // then
@@ -912,7 +1007,7 @@ describe('Unit | Application | Sessions | Routes', function () {
               h
                 .response({ errors: new Error('forbidden') })
                 .code(403)
-                .takeover()
+                .takeover(),
           );
         const httpTestServer = new HttpTestServer();
         await httpTestServer.register(moduleUnderTest);
@@ -955,7 +1050,7 @@ describe('Unit | Application | Sessions | Routes', function () {
               h
                 .response({ errors: new Error('forbidden') })
                 .code(403)
-                .takeover()
+                .takeover(),
           );
         const httpTestServer = new HttpTestServer();
         await httpTestServer.register(moduleUnderTest);
@@ -983,13 +1078,41 @@ describe('Unit | Application | Sessions | Routes', function () {
               h
                 .response({ errors: new Error('forbidden') })
                 .code(403)
-                .takeover()
+                .takeover(),
           );
         const httpTestServer = new HttpTestServer();
         await httpTestServer.register(moduleUnderTest);
 
         // when
         const response = await httpTestServer.request('GET', '/api/admin/sessions/1/generate-results-download-link');
+
+        // then
+        expect(response.statusCode).to.equal(403);
+      });
+    });
+
+    describe('GET /api/admin/sessions/{id}/attestations', function () {
+      it('return forbidden access if user has METIER role', async function () {
+        // given
+        sinon
+          .stub(securityPreHandlers, 'adminMemberHasAtLeastOneAccessOf')
+          .withArgs([
+            securityPreHandlers.checkAdminMemberHasRoleSuperAdmin,
+            securityPreHandlers.checkAdminMemberHasRoleCertif,
+            securityPreHandlers.checkAdminMemberHasRoleSupport,
+          ])
+          .callsFake(
+            () => (request, h) =>
+              h
+                .response({ errors: new Error('forbidden') })
+                .code(403)
+                .takeover(),
+          );
+        const httpTestServer = new HttpTestServer();
+        await httpTestServer.register(moduleUnderTest);
+
+        // when
+        const response = await httpTestServer.request('GET', '/api/admin/sessions/1/attestations');
 
         // then
         expect(response.statusCode).to.equal(403);
@@ -1022,20 +1145,6 @@ describe('Unit | Application | Sessions | Routes', function () {
 
       // when
       const response = await httpTestServer.request('GET', '/api/sessions/3/certified-clea-candidate-data');
-
-      // then
-      expect(response.statusCode).to.equal(200);
-    });
-  });
-
-  describe('GET /api/sessions/import', function () {
-    it('should exist', async function () {
-      // given
-      const httpTestServer = new HttpTestServer();
-      await httpTestServer.register(moduleUnderTest);
-
-      // when
-      const response = await httpTestServer.request('GET', '/api/sessions/import');
 
       // then
       expect(response.statusCode).to.equal(200);

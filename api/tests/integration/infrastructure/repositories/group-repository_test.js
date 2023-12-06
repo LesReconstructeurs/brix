@@ -1,5 +1,5 @@
-const { expect, databaseBuilder } = require('../../../test-helper');
-const groupRepository = require('../../../../lib/infrastructure/repositories/group-repository');
+import { expect, databaseBuilder } from '../../../test-helper.js';
+import * as groupRepository from '../../../../lib/infrastructure/repositories/group-repository.js';
 
 describe('Integration | Repository | Group', function () {
   describe('#findByCampaignId', function () {
@@ -10,11 +10,11 @@ describe('Integration | Repository | Group', function () {
 
       databaseBuilder.factory.buildCampaignParticipationWithOrganizationLearner(
         { organizationId: campaign.organizationId, group: group1 },
-        { campaignId: campaign.id }
+        { campaignId: campaign.id },
       );
       databaseBuilder.factory.buildCampaignParticipationWithOrganizationLearner(
         { organizationId: campaign.organizationId, group: group2 },
-        { campaignId: campaign.id }
+        { campaignId: campaign.id },
       );
       await databaseBuilder.commit();
 
@@ -30,11 +30,11 @@ describe('Integration | Repository | Group', function () {
 
         databaseBuilder.factory.buildCampaignParticipationWithOrganizationLearner(
           { organizationId: campaign.organizationId, group: group },
-          { campaignId: campaign.id }
+          { campaignId: campaign.id },
         );
         databaseBuilder.factory.buildCampaignParticipationWithOrganizationLearner(
           { organizationId: campaign.organizationId, group: group },
-          { campaignId: campaign.id }
+          { campaignId: campaign.id },
         );
         await databaseBuilder.commit();
 
@@ -51,7 +51,7 @@ describe('Integration | Repository | Group', function () {
 
         databaseBuilder.factory.buildCampaignParticipationWithOrganizationLearner(
           { organizationId: campaign.organizationId, group: group },
-          { campaignId: campaign.id }
+          { campaignId: campaign.id },
         );
         await databaseBuilder.commit();
 
@@ -68,7 +68,7 @@ describe('Integration | Repository | Group', function () {
 
         databaseBuilder.factory.buildCampaignParticipationWithOrganizationLearner(
           { organizationId: campaign.organizationId, group: group },
-          { campaignId: campaign.id, deletedAt: new Date() }
+          { campaignId: campaign.id, deletedAt: new Date() },
         );
 
         await databaseBuilder.commit();

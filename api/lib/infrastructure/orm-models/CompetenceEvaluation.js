@@ -1,11 +1,11 @@
-const Bookshelf = require('../bookshelf');
+import { Bookshelf } from '../bookshelf.js';
 
-require('./Assessment');
-require('./User');
+import './Assessment.js';
+import './User.js';
 
 const modelName = 'CompetenceEvaluation';
 
-module.exports = Bookshelf.model(
+const BookshelfCompetenceEvaluation = Bookshelf.model(
   modelName,
   {
     tableName: 'competence-evaluations',
@@ -21,5 +21,7 @@ module.exports = Bookshelf.model(
   },
   {
     modelName,
-  }
+  },
 );
+
+export { BookshelfCompetenceEvaluation };

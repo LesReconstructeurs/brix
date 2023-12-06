@@ -1,6 +1,6 @@
-const { AuthenticationKeyExpired, DifferentExternalIdentifierError } = require('../errors');
+import { AuthenticationKeyExpired, DifferentExternalIdentifierError } from '../errors.js';
 
-module.exports = async function findUserForOidcReconciliation({
+const findUserForOidcReconciliation = async function ({
   authenticationKey,
   email,
   password,
@@ -23,7 +23,7 @@ module.exports = async function findUserForOidcReconciliation({
 
   const authenticationMethods = await authenticationMethodRepository.findByUserId({ userId: foundUser.id });
   const oidcAuthenticationMethod = authenticationMethods.find(
-    (authenticationMethod) => authenticationMethod.identityProvider === identityProvider
+    (authenticationMethod) => authenticationMethod.identityProvider === identityProvider,
   );
 
   const isSameExternalIdentifier =
@@ -46,3 +46,5 @@ module.exports = async function findUserForOidcReconciliation({
     authenticationMethods,
   };
 };
+
+export { findUserForOidcReconciliation };

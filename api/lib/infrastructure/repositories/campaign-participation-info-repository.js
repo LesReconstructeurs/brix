@@ -1,32 +1,36 @@
-const { knex } = require('../../../db/knex-database-connection');
-const Assessment = require('../../domain/models/Assessment');
-const CampaignParticipationInfo = require('../../domain/read-models/CampaignParticipationInfo');
+import { knex } from '../../../db/knex-database-connection.js';
+import { Assessment } from '../../domain/models/Assessment.js';
+import { CampaignParticipationInfo } from '../../domain/read-models/CampaignParticipationInfo.js';
 
-module.exports = {
-  async findByCampaignId(campaignId) {
-    const results = await knex
-      .with('campaignParticipationWithUserAndRankedAssessment', (qb) => {
-        qb.select([
-          'campaign-participations.*',
-          'assessments.state',
-          _assessmentRankByCreationDate(),
-          'organization-learners.firstName',
-          'organization-learners.lastName',
-          'organization-learners.studentNumber',
-          'organization-learners.division',
-          'organization-learners.group',
-        ])
-          .from('campaign-participations')
-          .join('assessments', 'campaign-participations.id', 'assessments.campaignParticipationId')
-          .join('organization-learners', 'organization-learners.id', 'campaign-participations.organizationLearnerId')
-          .where({ campaignId, isImproved: false, deletedAt: null });
-      })
-      .from('campaignParticipationWithUserAndRankedAssessment')
-      .where({ rank: 1 });
+const findByCampaignId = async function (campaignId) {
+  const results = await knex
+    .with('campaignParticipationWithUserAndRankedAssessment', (qb) => {
+      qb.select([
+        'campaign-participations.*',
+        'assessments.state',
+        _assessmentRankByCreationDate(),
+        'view-active-organization-learners.firstName',
+        'view-active-organization-learners.lastName',
+        'view-active-organization-learners.studentNumber',
+        'view-active-organization-learners.division',
+        'view-active-organization-learners.group',
+      ])
+        .from('campaign-participations')
+        .join('assessments', 'campaign-participations.id', 'assessments.campaignParticipationId')
+        .join(
+          'view-active-organization-learners',
+          'view-active-organization-learners.id',
+          'campaign-participations.organizationLearnerId',
+        )
+        .where({ campaignId, isImproved: false, 'campaign-participations.deletedAt': null });
+    })
+    .from('campaignParticipationWithUserAndRankedAssessment')
+    .where({ rank: 1 });
 
-    return results.map(_rowToCampaignParticipationInfo);
-  },
+  return results.map(_rowToCampaignParticipationInfo);
 };
+
+export { findByCampaignId };
 
 function _assessmentRankByCreationDate() {
   return knex.raw('ROW_NUMBER() OVER (PARTITION BY ?? ORDER BY ?? DESC) AS rank', [
@@ -49,5 +53,6 @@ function _rowToCampaignParticipationInfo(row) {
     division: row.division,
     group: row.group,
     masteryRate: row.masteryRate,
+    validatedSkillsCount: row.validatedSkillsCount,
   });
 }

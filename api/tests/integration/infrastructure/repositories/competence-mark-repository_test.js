@@ -1,8 +1,8 @@
-const { expect, knex, domainBuilder, databaseBuilder } = require('../../../test-helper');
-const _ = require('lodash');
+import { expect, knex, domainBuilder, databaseBuilder } from '../../../test-helper.js';
+import _ from 'lodash';
 
-const CompetenceMark = require('../../../../lib/domain/models/CompetenceMark');
-const competenceMarkRepository = require('../../../../lib/infrastructure/repositories/competence-mark-repository');
+import { CompetenceMark } from '../../../../lib/domain/models/CompetenceMark.js';
+import * as competenceMarkRepository from '../../../../lib/infrastructure/repositories/competence-mark-repository.js';
 
 describe('Integration | Repository | CompetenceMark', function () {
   describe('#save', function () {
@@ -73,7 +73,7 @@ describe('Integration | Repository | CompetenceMark', function () {
         ],
         (mark) => {
           return databaseBuilder.factory.buildCompetenceMark(mark).id;
-        }
+        },
       );
 
       await databaseBuilder.commit();
@@ -149,7 +149,7 @@ describe('Integration | Repository | CompetenceMark', function () {
         ],
         (mark) => {
           return databaseBuilder.factory.buildCompetenceMark(mark).id;
-        }
+        },
       );
       const expectedCompetenceMarks = [
         domainBuilder.buildCompetenceMark({
@@ -207,7 +207,7 @@ describe('Integration | Repository | CompetenceMark', function () {
         ],
         (mark) => {
           return databaseBuilder.factory.buildCompetenceMark(mark).id;
-        }
+        },
       );
       const expectedCompetenceMarks = _.map(
         [
@@ -242,7 +242,7 @@ describe('Integration | Repository | CompetenceMark', function () {
         (mark) => {
           databaseBuilder.factory.buildCompetenceMark(mark);
           return domainBuilder.buildCompetenceMark(mark);
-        }
+        },
       );
       await databaseBuilder.commit();
 

@@ -1,9 +1,9 @@
-const Joi = require('joi');
-const frameworkController = require('./frameworks-controller');
-const securityPreHandlers = require('../security-pre-handlers');
-const identifiersType = require('../../domain/types/identifiers-type');
+import Joi from 'joi';
+import { frameworksController as frameworkController } from './frameworks-controller.js';
+import { securityPreHandlers } from '../security-pre-handlers.js';
+import { identifiersType } from '../../domain/types/identifiers-type.js';
 
-exports.register = async function (server) {
+const register = async function (server) {
   const adminRoutes = [
     {
       method: 'GET',
@@ -60,19 +60,6 @@ exports.register = async function (server) {
     ...adminRoutes,
     {
       method: 'GET',
-      path: '/api/frameworks/pix/areas',
-      config: {
-        handler: frameworkController.getPixFramework,
-        pre: [{ method: securityPreHandlers.checkUserIsMemberOfAnOrganization }],
-        tags: ['api', 'framework', 'pix'],
-        notes: [
-          "Cette route est restreinte aux utilisateurs authentifiés membre d'une organisation",
-          "Elle permet de récupérer toutes les données du référentiel Pix jusqu'aux sujets",
-        ],
-      },
-    },
-    {
-      method: 'GET',
       path: '/api/frameworks/pix/areas-for-user',
       config: {
         handler: frameworkController.getPixFrameworkAreasWithoutThematics,
@@ -83,7 +70,21 @@ exports.register = async function (server) {
         ],
       },
     },
+    {
+      method: 'GET',
+      path: '/api/frameworks/for-target-profile-submission',
+      config: {
+        handler: frameworkController.getFrameworksForTargetProfileSubmission,
+        pre: [{ method: securityPreHandlers.checkUserIsMemberOfAnOrganization }],
+        tags: ['api', 'framework'],
+        notes: [
+          "Cette route est restreinte aux utilisateurs authentifiés membre d'une organisation",
+          'Elle permet de récupérer tous le contenu pédagogique à disposition pour formuler une demande de création de profil cible',
+        ],
+      },
+    },
   ]);
 };
 
-exports.name = 'frameworks-api';
+const name = 'frameworks-api';
+export { register, name };

@@ -3,7 +3,7 @@ import setupIntlRenderingTest from '../../../../helpers/setup-intl-rendering';
 import sinon from 'sinon';
 import { click } from '@ember/test-helpers';
 import { render } from '@1024pix/ember-testing-library';
-import hbs from 'htmlbars-inline-precompile';
+import { hbs } from 'ember-cli-htmlbars';
 
 module('Integration | Component | Campaign::Charts::ParticipantsByStage', function (hooks) {
   setupIntlRenderingTest(hooks);
@@ -33,13 +33,15 @@ module('Integration | Component | Campaign::Charts::ParticipantsByStage', functi
 
     // when
     screen = await render(
-      hbs`<Campaign::Charts::ParticipantsByStage @campaignId={{this.campaignId}} @onSelectStage={{this.onSelectStage}} />`
+      hbs`<Campaign::Charts::ParticipantsByStage @campaignId={{this.campaignId}} @onSelectStage={{this.onSelectStage}} />`,
     );
   });
 
   test('it should display stage stars', async function (assert) {
-    assert.dom('[data-test-status=acquired]').isVisible({ count: 1 });
-    assert.dom('[data-test-status=unacquired]').isVisible({ count: 1 });
+    const [starNotAcquired, starAcquired] = document.querySelectorAll('.pix-stars__item');
+
+    assert.dom(starNotAcquired).doesNotHaveAttribute('data-acquired');
+    assert.dom(starAcquired).hasAttribute('data-acquired');
   });
 
   test('it should display participants number', async function (assert) {
@@ -56,8 +58,8 @@ module('Integration | Component | Campaign::Charts::ParticipantsByStage', functi
 
   test('should render a screen reader message', async function (assert) {
     // then
-    assert.dom(screen.getByLabelText('0 étoile sur 1')).exists();
-    assert.dom(screen.getByLabelText('1 étoile sur 1')).exists();
+    assert.dom(screen.getByText('0 étoile sur 1')).exists();
+    assert.dom(screen.getByText('1 étoile sur 1')).exists();
   });
 
   test('it should not display empty tooltip', async function (assert) {
@@ -90,7 +92,7 @@ module('Integration | Component | Campaign::Charts::ParticipantsByStage', functi
 
         // when
         await render(
-          hbs`<Campaign::Charts::ParticipantsByStage @campaignId={{this.campaignId}} @onSelectStage={{this.onSelectStage}} />`
+          hbs`<Campaign::Charts::ParticipantsByStage @campaignId={{this.campaignId}} @onSelectStage={{this.onSelectStage}} />`,
         );
 
         // then
@@ -115,7 +117,7 @@ module('Integration | Component | Campaign::Charts::ParticipantsByStage', functi
 
         // when
         await render(
-          hbs`<Campaign::Charts::ParticipantsByStage @campaignId={{this.campaignId}} @onSelectStage={{this.onSelectStage}} />`
+          hbs`<Campaign::Charts::ParticipantsByStage @campaignId={{this.campaignId}} @onSelectStage={{this.onSelectStage}} />`,
         );
 
         // then
@@ -137,7 +139,7 @@ module('Integration | Component | Campaign::Charts::ParticipantsByStage', functi
 
         // when
         await render(
-          hbs`<Campaign::Charts::ParticipantsByStage @campaignId={{this.campaignId}} @onSelectStage={{this.onSelectStage}} />`
+          hbs`<Campaign::Charts::ParticipantsByStage @campaignId={{this.campaignId}} @onSelectStage={{this.onSelectStage}} />`,
         );
 
         // then

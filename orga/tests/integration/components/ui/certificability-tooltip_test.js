@@ -1,7 +1,7 @@
 import { module, test } from 'qunit';
 import setupIntlRenderingTest from '../../../helpers/setup-intl-rendering';
 import { render } from '@1024pix/ember-testing-library';
-import hbs from 'htmlbars-inline-precompile';
+import { hbs } from 'ember-cli-htmlbars';
 
 module('Integration | Component | Ui::CertificabilityTooltip', function (hooks) {
   setupIntlRenderingTest(hooks);
@@ -12,7 +12,7 @@ module('Integration | Component | Ui::CertificabilityTooltip', function (hooks) 
     this.content = 'Amazing content';
 
     // when
-    await render(hbs`<Ui::CertificabilityTooltip @aria-label={{this.label}} @content={{this.content}}/>`);
+    await render(hbs`<Ui::CertificabilityTooltip @aria-label={{this.label}} @content={{this.content}} />`);
 
     // then
     assert.contains('Amazing content');

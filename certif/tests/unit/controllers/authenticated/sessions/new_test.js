@@ -15,6 +15,7 @@ module('Unit | Controller | authenticated/sessions/new', function (hooks) {
       controller = this.owner.lookup('controller:authenticated/sessions/new');
       event = { preventDefault: sinon.stub() };
       sinon.stub(controller.router, 'transitionTo');
+      sinon.stub(controller, 'checkMissingSessionFields');
       session.save = sinon.stub().resolves();
       controller.model = session;
     });
@@ -79,9 +80,7 @@ module('Unit | Controller | authenticated/sessions/new', function (hooks) {
       controller.send('onDatePicked', 'ignoredParam', lastSelectedDateFormatted);
 
       // then
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(session.date, lastSelectedDateFormatted);
+      assert.strictEqual(session.date, lastSelectedDateFormatted);
     });
   });
 
@@ -100,9 +99,7 @@ module('Unit | Controller | authenticated/sessions/new', function (hooks) {
       controller.send('onTimePicked', 'ignoredParam', lastSelectedTimeFormatted);
 
       // then
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(session.time, lastSelectedTimeFormatted);
+      assert.strictEqual(session.time, lastSelectedTimeFormatted);
     });
   });
 });

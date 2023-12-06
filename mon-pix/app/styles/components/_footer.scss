@@ -1,30 +1,20 @@
-.main {
-  min-height: calc(100vh - 101px - 100px);
+#footer {
+  margin-top: auto;
 }
 
-.footer {
-  padding: 20px 30px;
+.footer__container {
+  display: flex;
+  flex-direction: column;
+  max-width: 1280px;
+  padding: $pix-spacing-m 20px;
 
-  &__container {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    max-width: 1280px;
-    margin: auto;
-
-    @include device-is('desktop') {
-      flex-direction: row;
-      align-items: center;
-    }
-  }
-
-  @include device-is('tablet') {
-    height: 100px;
+  @include device-is('desktop') {
+    flex-direction: row;
+    margin: 0 auto;
   }
 }
 
 .footer-container {
-
   &__content {
     display: flex;
     flex-direction: column;
@@ -54,7 +44,6 @@
 }
 
 .footer-container-content {
-
   &__navigation {
     @include device-is('tablet') {
       flex-direction: row;
@@ -100,7 +89,6 @@
 }
 
 .footer-navigation {
-
   &__item {
     display: inline-block;
     padding: 0 12px 6px 0;
@@ -111,7 +99,6 @@
     letter-spacing: 0.009rem;
 
     &--internal-link {
-
       &:visited {
         color: $pix-neutral-60;
       }
@@ -144,7 +131,6 @@
   display: flex;
 
   &__french-government {
-
     > img {
       height: 45px;
       margin-right: 24px;

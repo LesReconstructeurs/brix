@@ -4,10 +4,16 @@ import { setupApplicationTest } from 'ember-qunit';
 import { authenticateSession } from '../helpers/test-init';
 import setupMirage from 'ember-cli-mirage/test-support/setup-mirage';
 import { visit } from '@1024pix/ember-testing-library';
+import { setupIntl } from 'ember-intl/test-support/index';
 
 module('Acceptance | Session Details Certification Candidates', function (hooks) {
   setupApplicationTest(hooks);
   setupMirage(hooks);
+  setupIntl(hooks);
+
+  hooks.beforeEach(function () {
+    server.create('feature-toggle', { isMassiveSessionManagementEnabled: true });
+  });
 
   hooks.afterEach(function () {
     const notificationMessagesService = this.owner.lookup('service:notifications');
@@ -52,7 +58,7 @@ module('Acceptance | Session Details Certification Candidates', function (hooks)
     test('it should redirect from candidates to session list on click on return button', async function (assert) {
       // when
       const screen = await visit(`/sessions/${session.id}/candidats`);
-      await click(screen.getByRole('link', { name: 'Retour à la liste des sessions' }));
+      await click(screen.getByRole('link', { name: 'Revenir à la liste des sessions' }));
 
       // then
       assert.deepEqual(currentURL(), '/sessions/liste');
@@ -141,7 +147,7 @@ module('Acceptance | Session Details Certification Candidates', function (hooks)
           // when
           const screen = await visit(`/sessions/${sessionWithCandidates.id}/candidats`);
           await click(
-            screen.getByLabelText(`Voir le détail du candidat ${aCandidate.firstName} ${aCandidate.lastName}`)
+            screen.getByLabelText(`Voir le détail du candidat ${aCandidate.firstName} ${aCandidate.lastName}`),
           );
           await screen.findByRole('dialog');
 
@@ -169,7 +175,7 @@ module('Acceptance | Session Details Certification Candidates', function (hooks)
 
         test('it should display a success message when uploading a valid file', async function (assert) {
           // given
-          await visit(`/sessions/${sessionWithCandidates.id}/candidats`);
+          const screen = await visit(`/sessions/${sessionWithCandidates.id}/candidats`);
           const file = new Blob(['foo'], { type: 'valid-file' });
 
           // when
@@ -177,71 +183,115 @@ module('Acceptance | Session Details Certification Candidates', function (hooks)
           await triggerEvent(input, 'change', { files: [file] });
 
           // then
-          assert
-            .dom('[data-test-notification-message="success"]')
-            .hasText('La liste des candidats a été importée avec succès.');
+          assert.dom(screen.getByText('La liste des candidats a été importée avec succès.')).exists();
         });
 
-        test('it should display the error message when uploading an invalid file', async function (assert) {
-          // given
-          await visit(`/sessions/${sessionWithCandidates.id}/candidats`);
-          const file = new Blob(['foo'], { type: 'invalid-file' });
+        module('error cases', function () {
+          module('when uploading an invalid file', function () {
+            test('it should display the error message', async function (assert) {
+              // given
+              const screen = await visit(`/sessions/${sessionWithCandidates.id}/candidats`);
+              const file = new Blob(['foo'], { type: 'invalid-file' });
 
-          // when
-          const input = find('#upload-attendance-sheet');
-          await triggerEvent(input, 'change', { files: [file] });
+              // when
+              const input = find('#upload-attendance-sheet');
+              await triggerEvent(input, 'change', { files: [file] });
 
-          // then
-          assert
-            .dom('[data-test-notification-message="error"]')
-            .hasText(
-              "Aucun candidat n’a été importé. Une erreur personnalisée. Veuillez télécharger à nouveau le modèle de liste des candidats et l'importer à nouveau."
-            );
-        });
+              // then
+              assert
+                .dom(
+                  screen.getByText(
+                    "La version du document est inconnue.Veuillez télécharger à nouveau le modèle de liste des candidats et l'importer à nouveau.",
+                    { exact: false },
+                  ),
+                )
+                .exists();
+            });
+          });
 
-        test('it should display the error message when uploading a file with validation error', async function (assert) {
-          // given
-          await visit(`/sessions/${sessionWithCandidates.id}/candidats`);
-          const file = new Blob(['foo'], { type: 'validation-error' });
+          module('when uploading a file with validation error', function () {
+            test('it should display the error message', async function (assert) {
+              // given
+              const screen = await visit(`/sessions/${sessionWithCandidates.id}/candidats`);
+              const file = new Blob(['foo'], { type: 'candidate-birth-postal-code-city-not-valid' });
 
-          // when
-          const input = find('#upload-attendance-sheet');
-          await triggerEvent(input, 'change', { files: [file] });
+              // when
+              const input = find('#upload-attendance-sheet');
+              await triggerEvent(input, 'change', { files: [file] });
 
-          // then
-          assert
-            .dom('[data-test-notification-message="error"]')
-            .hasText('Aucun candidat n’a été importé. Une erreur personnalisée.');
-        });
+              // then
+              assert
+                .dom(
+                  screen.getByText(
+                    'Aucun candidat n’a été importé. Ligne 2 : Le code postal "88000" ne correspond pas à la ville "Gotham City"',
+                  ),
+                )
+                .exists();
+            });
+          });
 
-        test('it should display a specific error message when importing is forbidden', async function (assert) {
-          // given
-          await visit(`/sessions/${sessionWithCandidates.id}/candidats`);
-          const file = new Blob(['foo'], { type: 'forbidden-import' });
+          module('when uploading a file with generic error', function () {
+            test('it should display the default message', async function (assert) {
+              // given
+              const screen = await visit(`/sessions/${sessionWithCandidates.id}/candidats`);
+              const file = new Blob(['foo'], { type: 'internal-error' });
 
-          // when
-          const input = find('#upload-attendance-sheet');
-          await triggerEvent(input, 'change', { files: [file] });
+              // when
+              const input = find('#upload-attendance-sheet');
+              await triggerEvent(input, 'change', { files: [file] });
 
-          // then
-          assert
-            .dom('[data-test-notification-message="error"]')
-            .hasText("La session a débuté, il n'est plus possible de modifier la liste des candidats.");
-        });
+              // then
+              assert
+                .dom(
+                  screen.getByText(
+                    "Aucun candidat n’a été importé. Veuillez réessayer ou nous contacter via le formulaire du centre d'aide.",
+                  ),
+                )
+                .exists();
+            });
+          });
 
-        test('it should display a warning when the import is not allowed', async function (assert) {
-          // given
-          server.create('certification-candidate', { sessionId: sessionWithCandidates.id, isLinked: true });
+          module('when importing is forbidden', function () {
+            test('it should display a specific error message', async function (assert) {
+              // given
+              const screen = await visit(`/sessions/${sessionWithCandidates.id}/candidats`);
+              const file = new Blob(['foo'], { type: 'forbidden-import' });
 
-          // when
-          await visit(`/sessions/${sessionWithCandidates.id}/candidats`);
+              // when
+              const input = find('#upload-attendance-sheet');
+              await triggerEvent(input, 'change', { files: [file] });
 
-          // then
-          assert
-            .dom('.panel-actions__warning')
-            .hasText(
-              'La session a débuté, vous ne pouvez plus importer une liste de candidats.Si vous souhaitez modifier la liste, vous pouvez inscrire un candidat directement dans le tableau ci-dessous.'
-            );
+              // then
+              assert
+                .dom(
+                  screen.getByText(
+                    (errorMessage) =>
+                      errorMessage.startsWith('Aucun candidat n’a été importé.') &&
+                      errorMessage.endsWith(
+                        'Si vous souhaitez modifier la liste, vous pouvez inscrire un candidat directement dans le tableau ci-dessous.',
+                      ),
+                  ),
+                )
+                .exists();
+            });
+          });
+
+          module('when the import is not allowed', function () {
+            test('it should display a warning', async function (assert) {
+              // given
+              server.create('certification-candidate', { sessionId: sessionWithCandidates.id, isLinked: true });
+
+              // when
+              await visit(`/sessions/${sessionWithCandidates.id}/candidats`);
+
+              // then
+              assert
+                .dom('.panel-actions__warning')
+                .hasText(
+                  'La session a débuté, vous ne pouvez plus importer une liste de candidats. Si vous souhaitez modifier la liste, vous pouvez inscrire un candidat directement dans le tableau ci-dessous.',
+                );
+            });
+          });
         });
       });
     });
@@ -290,7 +340,7 @@ module('Acceptance | Session Details Certification Candidates', function (hooks)
           const screen = await visit(`/sessions/${sessionWithoutCandidates.id}/candidats`);
 
           await click(screen.getByRole('button', { name: 'Inscrire un candidat' }));
-          await fillIn(screen.getByLabelText('* Nom de famille'), 'BackStreet');
+          await fillIn(screen.getByLabelText('* Nom de naissance'), 'BackStreet');
           await fillIn(screen.getByLabelText('* Prénom'), 'Boys');
           await click(screen.getByLabelText('Homme'));
           await fillIn(screen.getByLabelText('* Date de naissance'), '01/01/2000');
@@ -303,22 +353,24 @@ module('Acceptance | Session Details Certification Candidates', function (hooks)
           await click(
             await screen.findByRole('option', {
               name: 'Prépayée',
-            })
+            }),
           );
           await fillIn(screen.getByLabelText('Code de prépaiement'), '12345');
           await fillIn(
             screen.getByLabelText('E-mail du destinataire des résultats (formateur, enseignant...)'),
-            'guybrush.threepwood@example.net'
+            'guybrush.threepwood@example.net',
           );
           await fillIn(screen.getByLabelText('E-mail de convocation'), 'roooooar@example.net');
 
-          await click(screen.getByRole('button', { name: 'Fermer' }));
+          // TODO: remove this getAllByRole (isMassiveSessionManagementEnabled)
+          const closeButtons = screen.getAllByRole('button', { name: 'Fermer' });
+          await click(closeButtons[1]);
 
           // when
           await click(screen.getByRole('button', { name: 'Inscrire un candidat' }));
 
           // then
-          assert.strictEqual(screen.getByLabelText('* Nom de famille').value, '');
+          assert.strictEqual(screen.getByLabelText('* Nom de naissance').value, '');
           assert.strictEqual(screen.getByLabelText('* Prénom').value, '');
           assert.false(screen.getByLabelText('Homme').checked);
           assert.strictEqual(screen.getByLabelText('* Date de naissance').value, '');
@@ -329,39 +381,84 @@ module('Acceptance | Session Details Certification Candidates', function (hooks)
           assert.strictEqual(screen.getByLabelText('Code de prépaiement').value, '');
           assert.strictEqual(
             screen.getByLabelText('E-mail du destinataire des résultats (formateur, enseignant...)').value,
-            ''
+            '',
           );
           assert.strictEqual(screen.getByLabelText('E-mail de convocation').value, '');
         });
       });
 
       module('when the new candidate form is submitted', function () {
-        test('it should display the error message when the submitted form data is incorrect', async function (assert) {
-          // given
-          const session = server.create('session', { certificationCenterId: allowedCertificationCenterAccess.id });
-          server.createList('country', 2, { code: '99100' });
+        module('when the submitted form data is incorrect', function () {
+          test('it should display a generic error message', async function (assert) {
+            // given
+            const session = server.create('session', { certificationCenterId: allowedCertificationCenterAccess.id });
+            server.createList('country', 2, { code: '99100' });
 
-          this.server.post(
-            '/sessions/:id/certification-candidates',
-            () => ({
-              errors: [
-                {
-                  status: '422',
-                  detail: 'An error message',
-                },
-              ],
-            }),
-            422
-          );
+            this.server.post(
+              '/sessions/:id/certification-candidates',
+              () => ({
+                errors: [
+                  {
+                    status: '422',
+                    detail: 'An error message',
+                  },
+                ],
+              }),
+              422,
+            );
 
-          // when
-          const screen = await visit(`/sessions/${session.id}/candidats`);
-          await click(screen.getByRole('button', { name: 'Inscrire un candidat' }));
-          await _fillFormWithCorrectData(screen);
-          await click(screen.getByRole('button', { name: 'Inscrire le candidat' }));
+            // when
+            const screen = await visit(`/sessions/${session.id}/candidats`);
+            await click(screen.getByRole('button', { name: 'Inscrire un candidat' }));
+            await _fillFormWithCorrectData(screen);
+            await click(screen.getByRole('button', { name: 'Inscrire le candidat' }));
 
-          // then
-          assert.dom('[data-test-notification-message="error"]').hasText('An error message');
+            // then
+            assert
+              .dom(
+                screen.getByText(
+                  'Une erreur interne est survenue, nos équipes sont en train de résoudre le problème. Veuillez réessayer ultérieurement.',
+                ),
+              )
+              .exists();
+          });
+
+          module('when candidate information in form data are invalid', function () {
+            test('it should display a specific error message', async function (assert) {
+              // given
+              const session = server.create('session', { certificationCenterId: allowedCertificationCenterAccess.id });
+              server.createList('country', 2, { code: '99100' });
+
+              this.server.post(
+                '/sessions/:id/certification-candidates',
+                () => ({
+                  errors: [
+                    {
+                      status: '422',
+                      detail: 'An error message',
+                      code: 'CANDIDATE_BIRTH_POSTAL_CODE_CITY_NOT_VALID',
+                      meta: {
+                        birthPostalCode: 12345,
+                        birthCity: 'Gotham City',
+                      },
+                    },
+                  ],
+                }),
+                422,
+              );
+
+              // when
+              const screen = await visit(`/sessions/${session.id}/candidats`);
+              await click(screen.getByRole('button', { name: 'Inscrire un candidat' }));
+              await _fillFormWithCorrectData(screen);
+              await click(screen.getByRole('button', { name: 'Inscrire le candidat' }));
+
+              // then
+              assert
+                .dom(screen.getByText('Le code postal "12345" ne correspond pas à la ville "Gotham City"'))
+                .exists();
+            });
+          });
         });
 
         module('when candidate data is valid', function (hooks) {
@@ -400,7 +497,7 @@ module('Acceptance | Session Details Certification Candidates', function (hooks)
               const screen = await visit(`/sessions/${session.id}/candidats`);
               await click(screen.getByRole('button', { name: 'Inscrire un candidat' }));
               await fillIn(screen.getByLabelText('* Prénom'), 'Guybrush');
-              await fillIn(screen.getByLabelText('* Nom de famille'), 'Threepwood');
+              await fillIn(screen.getByLabelText('* Nom de naissance'), 'Threepwood');
               await fillIn(screen.getByLabelText('* Date de naissance'), '28/04/2019');
               await click(screen.getByLabelText('Homme'));
               await fillIn(screen.getByLabelText('* Pays de naissance'), '99100');
@@ -411,7 +508,7 @@ module('Acceptance | Session Details Certification Candidates', function (hooks)
               await click(
                 await screen.findByRole('option', {
                   name: 'Prépayée',
-                })
+                }),
               );
 
               await fillIn(screen.getByLabelText('Code de prépaiement'), '12345');
@@ -431,7 +528,7 @@ module('Acceptance | Session Details Certification Candidates', function (hooks)
 
   async function _fillFormWithCorrectData(screen) {
     await fillIn(screen.getByLabelText('* Prénom'), 'Guybrush');
-    await fillIn(screen.getByLabelText('* Nom de famille'), 'Threepwood');
+    await fillIn(screen.getByLabelText('* Nom de naissance'), 'Threepwood');
     await fillIn(screen.getByLabelText('* Date de naissance'), '28/04/2019');
     await click(screen.getByLabelText('Homme'));
     await fillIn(screen.getByLabelText('* Pays de naissance'), '99100');
@@ -443,11 +540,11 @@ module('Acceptance | Session Details Certification Candidates', function (hooks)
     await click(
       await screen.findByRole('option', {
         name: 'Gratuite',
-      })
+      }),
     );
     await fillIn(
       screen.getByLabelText('E-mail du destinataire des résultats (formateur, enseignant...)'),
-      'guybrush.threepwood@example.net'
+      'guybrush.threepwood@example.net',
     );
     await fillIn(screen.getByLabelText('E-mail de convocation'), 'roooooar@example.net');
   }

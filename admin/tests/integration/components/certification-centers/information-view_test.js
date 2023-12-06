@@ -7,8 +7,8 @@ import ArrayProxy from '@ember/array/proxy';
 function _createEmberDataHabilitations(store) {
   return ArrayProxy.create({
     content: [
-      store.createRecord('habilitation', { id: 0, key: 'DROIT', label: 'Pix+Droit' }),
-      store.createRecord('habilitation', { id: 1, key: 'CLEA', label: 'Cléa' }),
+      store.createRecord('complementary-certification', { id: 0, key: 'DROIT', label: 'Pix+Droit' }),
+      store.createRecord('complementary-certification', { id: 1, key: 'CLEA', label: 'Cléa' }),
     ],
   });
 }
@@ -26,7 +26,6 @@ module('Integration | Component | certification-centers/information-view', funct
       name: 'Centre SCO',
       type: 'SCO',
       externalId: 'AX129',
-      isSupervisorAccessEnabled: false,
       dataProtectionOfficerFirstName: 'Lucky',
       dataProtectionOfficerLastName: 'Number',
       dataProtectionOfficerEmail: 'lucky@example.net',
@@ -39,7 +38,7 @@ module('Integration | Component | certification-centers/information-view', funct
       hbs`<CertificationCenters::InformationView
   @availableHabilitations={{this.availableHabilitations}}
   @certificationCenter={{this.certificationCenter}}
-/>`
+/>`,
     );
 
     // then
@@ -47,7 +46,6 @@ module('Integration | Component | certification-centers/information-view', funct
     assert.dom(screen.getByText('Identifiant externe :')).exists();
     assert.dom(screen.getByText('Centre SCO')).exists();
     assert.dom(screen.getByText('AX129')).exists();
-    assert.strictEqual(screen.getByLabelText('Espace surveillant').textContent, 'non');
     assert.dom(screen.getByText('Nom du : Lucky Number')).exists();
     assert.dom(screen.getByText('Adresse e-mail du : lucky@example.net')).exists();
     assert.strictEqual(screen.getAllByTitle('Délégué à la protection des données').length, 2);
@@ -66,7 +64,7 @@ module('Integration | Component | certification-centers/information-view', funct
 
     // when
     const screen = await render(
-      hbs`<CertificationCenters::InformationView @certificationCenter={{this.certificationCenter}} />`
+      hbs`<CertificationCenters::InformationView @certificationCenter={{this.certificationCenter}} />`,
     );
 
     // then

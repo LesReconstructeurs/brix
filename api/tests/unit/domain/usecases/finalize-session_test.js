@@ -1,14 +1,15 @@
-const { sinon, expect, catchErr, domainBuilder } = require('../../../test-helper');
+import { sinon, expect, catchErr, domainBuilder } from '../../../test-helper.js';
+import { finalizeSession } from '../../../../lib/domain/usecases/finalize-session.js';
 
-const finalizeSession = require('../../../../lib/domain/usecases/finalize-session');
-const {
+import {
   SessionAlreadyFinalizedError,
   SessionWithoutStartedCertificationError,
   SessionWithAbortReasonOnCompletedCertificationCourseError,
   SessionWithMissingAbortReasonError,
   InvalidCertificationReportForFinalization,
-} = require('../../../../lib/domain/errors');
-const SessionFinalized = require('../../../../lib/domain/events/SessionFinalized');
+} from '../../../../lib/domain/errors.js';
+
+import { SessionFinalized } from '../../../../lib/domain/events/SessionFinalized.js';
 
 describe('Unit | UseCase | finalize-session', function () {
   let sessionId;
@@ -129,7 +130,7 @@ describe('Unit | UseCase | finalize-session', function () {
           .resolves([completedCertificationCourse]);
 
         certificationCourseRepository.update.resolves(
-          domainBuilder.buildCertificationCourse({ ...completedCertificationCourse, abortReason: null })
+          domainBuilder.buildCertificationCourse({ ...completedCertificationCourse, abortReason: null }),
         );
 
         // when
@@ -163,7 +164,7 @@ describe('Unit | UseCase | finalize-session', function () {
           .resolves([uncompletedCertificationCourse]);
 
         certificationCourseRepository.update.resolves(
-          domainBuilder.buildCertificationCourse({ ...uncompletedCertificationCourse, abortReason: null })
+          domainBuilder.buildCertificationCourse({ ...uncompletedCertificationCourse, abortReason: null }),
         );
 
         // when
@@ -248,7 +249,7 @@ describe('Unit | UseCase | finalize-session', function () {
             hasIncident,
             hasJoiningIssue,
             finalizedAt: now,
-          })
+          }),
         ).to.be.true;
       });
 
@@ -302,7 +303,7 @@ describe('Unit | UseCase | finalize-session', function () {
             certificationCenterName: 'a certification center name',
             sessionDate: '2019-12-12',
             sessionTime: '16:00:00',
-          })
+          }),
         );
       });
     });

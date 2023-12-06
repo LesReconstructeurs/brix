@@ -1,6 +1,6 @@
-const { sinon, expect, hFake } = require('../../../test-helper');
-const certificationIssueReportController = require('../../../../lib/application/certification-issue-reports/certification-issue-report-controller');
-const usecases = require('../../../../lib/domain/usecases');
+import { sinon, expect, hFake } from '../../../test-helper.js';
+import { certificationIssueReportController } from '../../../../lib/application/certification-issue-reports/certification-issue-report-controller.js';
+import { usecases } from '../../../../lib/domain/usecases/index.js';
 
 describe('Unit | Controller | certification-issue-report-controller', function () {
   describe('#deleteCertificationIssueReport', function () {
@@ -20,7 +20,7 @@ describe('Unit | Controller | certification-issue-report-controller', function (
             credentials: { userId },
           },
         },
-        hFake
+        hFake,
       );
 
       // then
@@ -44,7 +44,7 @@ describe('Unit | Controller | certification-issue-report-controller', function (
       };
       const manuallyResolveCertificationIssueReportStub = sinon.stub(
         usecases,
-        'manuallyResolveCertificationIssueReport'
+        'manuallyResolveCertificationIssueReport',
       );
       manuallyResolveCertificationIssueReportStub.resolves();
 

@@ -2,25 +2,34 @@
   <h2 class="page-section__title">Méthodes de connexion</h2>
 </header>
 
-<dl>
-  <div class="authentication-method__connexions-information">
-    <dt>Date de dernière connexion :</dt>
-    {{#if @user.lastLoggedAt}}
-      <dd>{{dayjs-format @user.lastLoggedAt "DD/MM/YYYY"}}</dd>
-    {{/if}}
-  </div>
+<ul>
+  <li class="authentication-method__connexions-information">
+    Date de dernière connexion :
+    {{#if @user.lastLoggedAt}}{{dayjs-format @user.lastLoggedAt "DD/MM/YYYY"}}{{/if}}
+  </li>
   {{#if @user.emailConfirmedAt}}
-    <div class="authentication-method__connexions-information">
-      <dt>Adresse e-mail confirmée le :</dt>
-      <dd>{{dayjs-format @user.emailConfirmedAt "DD/MM/YYYY"}}</dd>
-    </div>
+    <li class="authentication-method__connexions-information">
+      Adresse e-mail confirmée le :
+      {{dayjs-format @user.emailConfirmedAt "DD/MM/YYYY"}}
+    </li>
   {{else}}
-    <div class="authentication-method__connexions-information">
+    <li class="authentication-method__connexions-information">
       Adresse e-mail non confirmée
-    </div>
+    </li>
   {{/if}}
+</ul>
 
-</dl>
+{{#if this.hasPixAuthenticationMethod}}
+  <br />
+  <ul>
+    <li class="authentication-method__connexions-information">
+      {{t "components.users.user-detail-personal-information.authentication-method.should-change-password-status"}}
+      {{#if this.shouldChangePassword}}{{t "common.words.yes"}}{{else}}{{t "common.words.no"}}{{/if}}
+    </li>
+  </ul>
+{{/if}}
+
+<br />
 
 <table class="authentication-method-table">
 
@@ -131,20 +140,20 @@
       </td>
     </tr>
 
-    {{#each this.oidcAuthenticationMethods as |oidcAuthenticationMethod|}}
+    {{#each this.userOidcAuthenticationMethods as |userOidcAuthenticationMethod|}}
       <tr>
-        <td class="authentication-method-table__name-column">{{oidcAuthenticationMethod.name}}</td>
+        <td class="authentication-method-table__name-column">{{userOidcAuthenticationMethod.name}}</td>
         <td>
-          {{#if oidcAuthenticationMethod.hasAuthenticationMethod}}
+          {{#if userOidcAuthenticationMethod.userHasThisOidcAuthenticationMethod}}
             <FaIcon
               @icon="circle-check"
-              aria-label="L'utilisateur a une méthode de connexion {{oidcAuthenticationMethod.name}}"
+              aria-label="L'utilisateur a une méthode de connexion {{userOidcAuthenticationMethod.name}}"
               class="authentication-method-table__check"
             />
           {{else}}
             <FaIcon
               @icon="circle-xmark"
-              aria-label="L'utilisateur n'a pas de méthode de connexion {{oidcAuthenticationMethod.name}}"
+              aria-label="L'utilisateur n'a pas de méthode de connexion {{userOidcAuthenticationMethod.name}}"
               class="authentication-method-table__uncheck"
             />
           {{/if}}
@@ -152,17 +161,17 @@
         <td class="authentication-method-table__actions-column">
           {{#if this.accessControl.hasAccessToUsersActionsScope}}
             <div>
-              {{#if oidcAuthenticationMethod.canBeRemoved}}
+              {{#if userOidcAuthenticationMethod.canBeRemovedFromUserAuthenticationMethods}}
                 <PixButton
                   class="user-authentication-method__remove-button"
                   @size="small"
                   @backgroundColor="red"
-                  @triggerAction={{fn @toggleDisplayRemoveAuthenticationMethodModal oidcAuthenticationMethod.code}}
+                  @triggerAction={{fn @toggleDisplayRemoveAuthenticationMethodModal userOidcAuthenticationMethod.code}}
                 >Supprimer</PixButton>
               {{/if}}
-              {{#if oidcAuthenticationMethod.canBeReassigned}}
+              {{#if userOidcAuthenticationMethod.canBeReassignedToAnotherUser}}
                 <PixButton
-                  @triggerAction={{fn this.toggleReassignOidcAuthenticationMethodModal oidcAuthenticationMethod}}
+                  @triggerAction={{fn this.toggleReassignOidcAuthenticationMethodModal userOidcAuthenticationMethod}}
                   @size="small"
                 >
                   Déplacer cette méthode de connexion

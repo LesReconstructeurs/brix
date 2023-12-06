@@ -1,7 +1,7 @@
 import { module, test } from 'qunit';
 import setupIntlRenderingTest from '../../../../helpers/setup-intl-rendering';
 import { render } from '@ember/test-helpers';
-import hbs from 'htmlbars-inline-precompile';
+import { hbs } from 'ember-cli-htmlbars';
 import Service from '@ember/service';
 
 class CurrentUserStub extends Service {
@@ -25,7 +25,7 @@ module('Integration | Component | Campaign::Header::Tabs', function (hooks) {
   module('Common campaign navigation', function (hooks) {
     hooks.beforeEach(async function () {
       this.campaign = store.createRecord('campaign', { id: 12 });
-      await render(hbs`<Campaign::Header::Tabs @campaign={{this.campaign}}/>`);
+      await render(hbs`<Campaign::Header::Tabs @campaign={{this.campaign}} />`);
     });
 
     test('it should display campaign settings item', async function (assert) {
@@ -45,7 +45,7 @@ module('Integration | Component | Campaign::Header::Tabs', function (hooks) {
         type: 'ASSESSMENT',
       });
 
-      await render(hbs`<Campaign::Header::Tabs @campaign={{this.campaign}}/>`);
+      await render(hbs`<Campaign::Header::Tabs @campaign={{this.campaign}} />`);
     });
 
     test('it should display evaluation results item', async function (assert) {
@@ -66,7 +66,7 @@ module('Integration | Component | Campaign::Header::Tabs', function (hooks) {
         sharedParticipationsCount: 6,
       });
 
-      await render(hbs`<Campaign::Header::Tabs @campaign={{this.campaign}}/>`);
+      await render(hbs`<Campaign::Header::Tabs @campaign={{this.campaign}} />`);
     });
 
     test('it should display profile results item', async function (assert) {

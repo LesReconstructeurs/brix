@@ -129,9 +129,7 @@ module('Unit | Controller | Fill in Campaign Code', function (hooks) {
       await controller.actions.startCampaign.call(controller, eventStub);
 
       // then
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(controller.get('errorMessage'), 'Veuillez saisir un code.');
+      assert.strictEqual(controller.get('errorMessage'), 'Veuillez saisir un code.');
     });
 
     test('should set error when no campaign found with code', async function (assert) {
@@ -150,11 +148,9 @@ module('Unit | Controller | Fill in Campaign Code', function (hooks) {
       await controller.actions.startCampaign.call(controller, eventStub);
 
       // then
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(
+      assert.strictEqual(
         controller.get('errorMessage'),
-        'Votre code est erroné, veuillez vérifier ou contacter l’organisateur.'
+        controller.intl.t('pages.fill-in-campaign-code.errors.not-found'),
       );
     });
 
@@ -174,11 +170,9 @@ module('Unit | Controller | Fill in Campaign Code', function (hooks) {
       await controller.actions.startCampaign.call(controller, eventStub);
 
       // then
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(
+      assert.strictEqual(
         controller.get('errorMessage'),
-        'Oups ! nous ne parvenons pas à vous trouver. Vérifiez vos informations afin de continuer ou prévenez l’organisateur.'
+        'Oups ! nous ne parvenons pas à vous trouver. Vérifiez vos informations afin de continuer ou prévenez l’organisateur.',
       );
     });
   });
@@ -194,9 +188,7 @@ module('Unit | Controller | Fill in Campaign Code', function (hooks) {
         const firstTitle = controller.firstTitle;
 
         // then
-        // TODO: Fix this the next time the file is edited.
-        // eslint-disable-next-line qunit/no-assert-equal
-        assert.equal(firstTitle, expectedFirstTitle);
+        assert.strictEqual(firstTitle, expectedFirstTitle);
       });
     });
 
@@ -212,9 +204,7 @@ module('Unit | Controller | Fill in Campaign Code', function (hooks) {
         const firstTitle = controller.firstTitle;
 
         // then
-        // TODO: Fix this the next time the file is edited.
-        // eslint-disable-next-line qunit/no-assert-equal
-        assert.equal(firstTitle, expectedFirstTitle);
+        assert.strictEqual(firstTitle, expectedFirstTitle);
       });
     });
 
@@ -229,9 +219,7 @@ module('Unit | Controller | Fill in Campaign Code', function (hooks) {
         const firstTitle = controller.firstTitle;
 
         // then
-        // TODO: Fix this the next time the file is edited.
-        // eslint-disable-next-line qunit/no-assert-equal
-        assert.equal(firstTitle, expectedFirstTitle);
+        assert.strictEqual(firstTitle, expectedFirstTitle);
       });
     });
   });
@@ -245,9 +233,7 @@ module('Unit | Controller | Fill in Campaign Code', function (hooks) {
       const isUserAuthenticatedByPix = controller.isUserAuthenticatedByPix;
 
       // then
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(isUserAuthenticatedByPix, sessionStub.isAuthenticated);
+      assert.strictEqual(isUserAuthenticatedByPix, sessionStub.isAuthenticated);
     });
   });
 

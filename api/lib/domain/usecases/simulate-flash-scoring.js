@@ -1,21 +1,20 @@
-const SimulationResult = require('../models/SimulationResult');
+import { ScoringSimulationResult } from '../models/ScoringSimulationResult.js';
 
-module.exports = async function simulateFlashScoring({
+const simulateFlashScoring = async function ({
   challengeRepository,
   flashAlgorithmService,
-  successProbabilityThreshold,
   simulations,
-  calculateEstimatedLevel = false,
-  locale = 'fr',
+  locale,
+  context: { calculateEstimatedLevel, successProbabilityThreshold },
 }) {
-  const challenges = await challengeRepository.findFlashCompatible({ locale, successProbabilityThreshold });
+  const challenges = await challengeRepository.findOperativeFlashCompatible({ locale, successProbabilityThreshold });
   const challengeIds = new Set(challenges.map(({ id }) => id));
 
-  return simulations.map(({ id, estimatedLevel: givenEstimatedLevel, answers: allAnswers }) => {
+  return simulations.map(({ id, user: { estimatedLevel: givenEstimatedLevel }, answers: allAnswers }) => {
     let finalEstimatedLevel = givenEstimatedLevel;
 
     if (!calculateEstimatedLevel && givenEstimatedLevel == undefined) {
-      return new SimulationResult({
+      return new ScoringSimulationResult({
         id,
         error: 'Simulation should have an estimated level',
       });
@@ -23,7 +22,7 @@ module.exports = async function simulateFlashScoring({
 
     for (const answer of allAnswers) {
       if (!challengeIds.has(answer.challengeId)) {
-        return new SimulationResult({
+        return new ScoringSimulationResult({
           id,
           error: `Challenge ID ${answer.challengeId} is unknown or not compatible with flash algorithm`,
         });
@@ -32,7 +31,7 @@ module.exports = async function simulateFlashScoring({
 
     if (calculateEstimatedLevel) {
       if (allAnswers.length === 0) {
-        return new SimulationResult({
+        return new ScoringSimulationResult({
           id,
           error: 'Simulation should have answers in order to calculate estimated level',
         });
@@ -44,7 +43,7 @@ module.exports = async function simulateFlashScoring({
       });
 
       if (givenEstimatedLevel != undefined && calculatedEstimatedLevel !== givenEstimatedLevel) {
-        return new SimulationResult({
+        return new ScoringSimulationResult({
           id,
           estimatedLevel: calculatedEstimatedLevel,
           error: `Calculated estimated level ${calculatedEstimatedLevel} is different from expected given estimated level ${givenEstimatedLevel}`,
@@ -54,12 +53,14 @@ module.exports = async function simulateFlashScoring({
       finalEstimatedLevel = calculatedEstimatedLevel;
     }
 
-    const pixScore = flashAlgorithmService.calculateTotalPixScore({
+    const { pixScore, pixScoreByCompetence } = flashAlgorithmService.calculateTotalPixScoreAndScoreByCompetence({
       challenges,
       estimatedLevel: finalEstimatedLevel,
       allAnswers,
     });
 
-    return new SimulationResult({ id, estimatedLevel: finalEstimatedLevel, pixScore });
+    return new ScoringSimulationResult({ id, estimatedLevel: finalEstimatedLevel, pixScore, pixScoreByCompetence });
   });
 };
+
+export { simulateFlashScoring };

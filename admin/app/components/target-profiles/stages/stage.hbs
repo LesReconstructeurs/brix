@@ -1,22 +1,20 @@
-<tr aria-label="Informations sur le palier {{@title}}">
-  <td class="table__column table__column--id">{{@id}}</td>
-  <td class="stages-table__image">
-    <img src={{@imageUrl}} alt="" role="presentation" />
-  </td>
+<tr aria-label="Informations sur le palier {{@stage.title}}">
   <td>
-    {{#if @isTypeLevel}}
-      {{@level}}
+    {{#if @stage.isFirstSkill}}
+      1er acquis
+    {{else if @stage.isTypeLevel}}
+      {{@stage.level}}
     {{else}}
-      {{@threshold}}
+      {{@stage.threshold}}
     {{/if}}
   </td>
-  <td>{{@title}}</td>
-  <td>{{@message}}</td>
+  <td>{{@stage.title}}</td>
+  <td>{{@stage.message}}</td>
   <td>
-    <Common::TickOrCross @isTrue={{@hasPrescriberTitle}} />
+    <Common::TickOrCross @isTrue={{@stage.hasPrescriberTitle}} />
   </td>
   <td>
-    <Common::TickOrCross @isTrue={{@hasPrescriberDescription}} />
+    <Common::TickOrCross @isTrue={{@stage.hasPrescriberDescription}} />
   </td>
   <td>
     <PixButtonLink
@@ -24,10 +22,50 @@
       @isBorderVisible={{true}}
       @route="authenticated.target-profiles.target-profile.stages.stage"
       @size="small"
-      @model={{@id}}
-      class="pix-button__secondary"
+      @model={{@stage.id}}
+      aria-label="Voir le détail du palier {{@stage.id}}"
     >
       Voir détail
     </PixButtonLink>
+    {{#if this.canDeleteStage}}
+      <PixButton
+        @backgroundColor="red"
+        @isBorderVisible={{true}}
+        @size="small"
+        @iconBefore="trash"
+        @triggerAction={{this.toggleModal}}
+        aria-label="Supprimer le palier {{@stage.id}}"
+        class="stages-table-actions-delete"
+      >
+        Supprimer
+      </PixButton>
+      <PixModal
+        @title="Confirmer la suppression"
+        @showModal={{this.showModal}}
+        @onCloseButtonClick={{this.toggleModal}}
+      >
+        <:content>
+          <p>
+            Êtes-vous sûr de vouloir supprimer le
+            {{#if @stage.isTypeLevel}}
+              niveau
+              {{@stage.level}}
+            {{else}}
+              seuil
+              {{@stage.threshold}}
+            {{/if}}
+            <b>{{@stage.title}} </b>?
+          </p>
+        </:content>
+        <:footer>
+          <PixButton @backgroundColor="transparent-light" @isBorderVisible={{true}} @triggerAction={{this.toggleModal}}>
+            Annuler
+          </PixButton>
+          <PixButton @backgroundColor="red" @isBorderVisible={{true}} @triggerAction={{fn @deleteStage @stage}}>
+            Valider
+          </PixButton>
+        </:footer>
+      </PixModal>
+    {{/if}}
   </td>
 </tr>

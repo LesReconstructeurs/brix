@@ -1,24 +1,37 @@
 <section class="page-section">
+
   <form class="form stage-form" {{on "submit" this.updateStage}}>
     <div class="form-field">
-      <label for="threshold-or-level" class="form-field__label">
-        {{@stageTypeName}}
-      </label>
-      {{#if @isTypeLevel}}
+      {{#if @stage.isFirstSkill}}
+        <label class="form-field__label">1er acquis</label>
+        <br />
+      {{else if @isTypeLevel}}
+        <label for="threshold-or-level" class="form-field__label">
+          {{@stageTypeName}}
+        </label>
         <Stages::StageLevelSelect
           @id="threshold-or-level"
-          @maxLevel={{@maxLevel}}
+          @availableLevels={{@availableLevels}}
+          @isDisabled={{this.isThresholdOrLevelDisabled}}
           @onChange={{this.setLevel}}
-          @value={{this.form.level}}
+          @value={{this.level}}
         />
       {{else}}
-        <Input
-          id="threshold-or-level"
-          @type="number"
-          class="form-control"
-          @value={{this.form.threshold}}
+        <label for="threshold-or-level" class="form-field__label">
+          {{@stageTypeName}}
+        </label>
+        <PixInput
+          @id="threshold-or-level"
+          @errorMessage="Le seuil est invalide"
+          @validationStatus={{this.thresholdStatus}}
+          @requiredLabel="Champ obligatoire"
+          type="number"
+          readonly={{this.isThresholdOrLevelDisabled}}
+          @value={{this.threshold}}
+          @ariaLabel="Seuil du palier"
           min="0"
           max="100"
+          {{on "focusout" this.checkThresholdValidity}}
         />
       {{/if}}
       <br />
@@ -26,41 +39,38 @@
       <label for="title" class="form-field__label">
         Titre
       </label>
-      <Input id="title" @type="text" class="form-control" @value={{this.form.title}} />
+      <PixInput
+        @id="title"
+        @errorMessage="Le titre est vide"
+        @validationStatus={{this.titleStatus}}
+        @requiredLabel="Champ obligatoire"
+        @value={{this.title}}
+        type="text"
+        @ariaLabel="Titre du palier"
+        {{on "focusout" this.checkTitleValidity}}
+      />
       <br />
 
       <label for="message" class="form-field__label">
         Message
       </label>
-      <Textarea id="message" class="form-control" @value={{this.form.message}} rows="4" />
+      <PixTextarea
+        id="message"
+        @value={{this.message}}
+        @errorMessage={{this.messageError}}
+        {{on "focusout" this.checkMessageValidity}}
+      />
       <br />
 
       <label for="prescriberTitle" class="form-field__label">
         Titre pour le prescripteur
       </label>
-      <Input
-        id="prescriberTitle"
-        @type="text"
-        class="form-control {{if (v-get this.form 'prescriberTitle' 'isInvalid') 'is-invalid'}}"
-        @value={{this.form.prescriberTitle}}
-      />
-
-      {{#if (v-get this.form "prescriberTitle" "isInvalid")}}
-        <div class="form-field__error">
-          {{v-get this.form "prescriberTitle" "message"}}
-        </div>
-      {{/if}}
-      <br />
+      <Input id="prescriberTitle" @type="text" class="form-control" @value={{this.prescriberTitle}} maxlength="255" />
 
       <label for="prescriberDescription" class="form-field__label">
         Description pour le prescripteur
       </label>
-      <Textarea
-        id="prescriberDescription"
-        class="form-control {{if (v-get this.form 'prescriberDescription' 'isInvalid') 'is-invalid'}}"
-        @value={{this.form.prescriberDescription}}
-        rows="4"
-      />
+      <Textarea id="prescriberDescription" class="form-control" @value={{this.prescriberDescription}} rows="4" />
     </div>
     <div class="form-actions">
       <PixButton
@@ -68,7 +78,8 @@
         @isBorderVisible={{true}}
         @size="small"
         @triggerAction={{@toggleEditMode}}
-      >Annuler</PixButton>
+      >Annuler
+      </PixButton>
       <PixButton @backgroundColor="green" @size="small" @type="submit">
         Enregistrer
       </PixButton>

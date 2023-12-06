@@ -1,10 +1,7 @@
-const { expect, sinon, catchErr, domainBuilder } = require('../../../test-helper');
-
-const organizationInvitationService = require('../../../../lib/domain/services/organization-invitation-service');
-const Membership = require('../../../../lib/domain/models/Membership');
-
-const createOrganizationInvitationByAdmin = require('../../../../lib/domain/usecases/create-organization-invitation-by-admin');
-const { OrganizationArchivedError } = require('../../../../lib/domain/errors');
+import { expect, sinon, catchErr, domainBuilder } from '../../../test-helper.js';
+import { Membership } from '../../../../lib/domain/models/Membership.js';
+import { createOrganizationInvitationByAdmin } from '../../../../lib/domain/usecases/create-organization-invitation-by-admin.js';
+import { OrganizationArchivedError } from '../../../../lib/domain/errors.js';
 
 describe('Unit | UseCase | create-organization-invitation-by-admin', function () {
   describe('#createOrganizationInvitationByAdmin', function () {
@@ -17,7 +14,7 @@ describe('Unit | UseCase | create-organization-invitation-by-admin', function ()
 
       const organizationInvitationRepository = sinon.stub();
       const organizationRepository = { get: sinon.stub().resolves(organization) };
-      sinon.stub(organizationInvitationService, 'createOrUpdateOrganizationInvitation').resolves();
+      const organizationInvitationService = { createOrUpdateOrganizationInvitation: sinon.stub() };
 
       // when
       await createOrganizationInvitationByAdmin({
@@ -27,6 +24,7 @@ describe('Unit | UseCase | create-organization-invitation-by-admin', function ()
         role,
         organizationRepository,
         organizationInvitationRepository,
+        organizationInvitationService,
       });
 
       // then
@@ -52,7 +50,7 @@ describe('Unit | UseCase | create-organization-invitation-by-admin', function ()
       const organizationRepository = {
         get: sinon.stub().resolves(archivedOrganization),
       };
-      sinon.stub(organizationInvitationService, 'createOrUpdateOrganizationInvitation').resolves();
+      const organizationInvitationService = { createOrUpdateOrganizationInvitation: sinon.stub() };
 
       // when
       const error = await catchErr(createOrganizationInvitationByAdmin)({
@@ -62,6 +60,7 @@ describe('Unit | UseCase | create-organization-invitation-by-admin', function ()
         role,
         organizationRepository,
         organizationInvitationRepository,
+        organizationInvitationService,
       });
 
       // then

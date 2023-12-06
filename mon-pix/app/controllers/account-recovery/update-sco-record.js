@@ -1,6 +1,6 @@
 import Controller from '@ember/controller';
 import { action } from '@ember/object';
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
 
 export default class UpdateScoRecordController extends Controller {
@@ -44,7 +44,7 @@ export default class UpdateScoRecordController extends Controller {
     const { status, code } = err.errors?.[0] || {};
 
     const internalError = {
-      errorMessage: this.intl.t('api-error-messages.internal-server-error'),
+      errorMessage: this.intl.t('common.api-error-messages.internal-server-error'),
       showRenewLink: false,
       showBackToHomeButton: true,
     };

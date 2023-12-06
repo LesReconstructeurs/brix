@@ -1,8 +1,8 @@
-const _ = require('lodash');
-const { expect, databaseBuilder, domainBuilder, knex } = require('../../../test-helper');
-const campaignAnalysisRepository = require('../../../../lib/infrastructure/repositories/campaign-analysis-repository');
-const CampaignAnalysis = require('../../../../lib/domain/read-models/CampaignAnalysis');
-const CampaignParticipationStatuses = require('../../../../lib/domain/models/CampaignParticipationStatuses');
+import _ from 'lodash';
+import { expect, databaseBuilder, domainBuilder, knex } from '../../../test-helper.js';
+import * as campaignAnalysisRepository from '../../../../lib/infrastructure/repositories/campaign-analysis-repository.js';
+import { CampaignAnalysis } from '../../../../lib/domain/read-models/CampaignAnalysis.js';
+import { CampaignParticipationStatuses } from '../../../../lib/domain/models/CampaignParticipationStatuses.js';
 
 const { STARTED, SHARED } = CampaignParticipationStatuses;
 
@@ -87,6 +87,7 @@ describe('Integration | Repository | Campaign analysis repository', function () 
           tubes: [tubeUrl, tubeFile],
           name: 'The C',
           index: '2.3',
+          areaId: 'recArea',
         });
         const area = domainBuilder.buildArea({ id: 'recArea', color: 'jaffa', competences: [competence] });
         const framework = domainBuilder.buildFramework({ areas: [area] });
@@ -101,7 +102,7 @@ describe('Integration | Repository | Campaign analysis repository', function () 
         const actualAnalysis = await campaignAnalysisRepository.getCampaignAnalysis(
           campaignId,
           learningContent,
-          tutorials
+          tutorials,
         );
 
         // then
@@ -150,7 +151,7 @@ describe('Integration | Repository | Campaign analysis repository', function () 
           const actualAnalysis = await campaignAnalysisRepository.getCampaignAnalysis(
             campaignId,
             learningContent,
-            tutorials
+            tutorials,
           );
 
           // then
@@ -189,7 +190,7 @@ describe('Integration | Repository | Campaign analysis repository', function () 
           const actualAnalysis = await campaignAnalysisRepository.getCampaignAnalysis(
             campaignId,
             learningContent,
-            tutorials
+            tutorials,
           );
 
           // then
@@ -224,7 +225,7 @@ describe('Integration | Repository | Campaign analysis repository', function () 
           const actualAnalysis = await campaignAnalysisRepository.getCampaignAnalysis(
             campaignId,
             learningContent,
-            tutorials
+            tutorials,
           );
 
           // then
@@ -244,13 +245,13 @@ describe('Integration | Repository | Campaign analysis repository', function () 
             'Fred',
             campaignId,
             shareDate,
-            false
+            false,
           );
           const userWithCampaignParticipationJoe = _createUserWithSharedCampaignParticipation(
             'Joe',
             campaignId,
             shareDate,
-            false
+            false,
           );
           const userWithNonSharedParticipation = _createUserWithNonSharedCampaignParticipation('Paul', campaignId);
           const fredId = userWithCampaignParticipationFred.userId;
@@ -312,7 +313,7 @@ describe('Integration | Repository | Campaign analysis repository', function () 
             ],
             (knowledgeElement) => {
               databaseBuilder.factory.buildKnowledgeElement(knowledgeElement);
-            }
+            },
           );
 
           return databaseBuilder.commit();
@@ -324,7 +325,7 @@ describe('Integration | Repository | Campaign analysis repository', function () 
           const actualAnalysis = await campaignAnalysisRepository.getCampaignAnalysis(
             campaignId,
             learningContent,
-            tutorials
+            tutorials,
           );
 
           // then
@@ -348,7 +349,7 @@ describe('Integration | Repository | Campaign analysis repository', function () 
             'Fred',
             campaignId,
             shareDate,
-            true
+            true,
           );
           _createUserWithNonSharedCampaignParticipation('Fred', campaignId);
           const fredId = userWithCampaignParticipationFred.userId;
@@ -389,7 +390,7 @@ describe('Integration | Repository | Campaign analysis repository', function () 
             ],
             (knowledgeElement) => {
               databaseBuilder.factory.buildKnowledgeElement(knowledgeElement);
-            }
+            },
           );
 
           return databaseBuilder.commit();
@@ -401,7 +402,7 @@ describe('Integration | Repository | Campaign analysis repository', function () 
           const actualAnalysis = await campaignAnalysisRepository.getCampaignAnalysis(
             campaignId,
             learningContent,
-            tutorials
+            tutorials,
           );
 
           // then
@@ -432,7 +433,7 @@ describe('Integration | Repository | Campaign analysis repository', function () 
           'Fred',
           campaignId,
           sharedAt,
-          false
+          false,
         );
         userId = userWithCampaignParticipation.userId;
         campaignParticipation = { userId, sharedAt };
@@ -467,6 +468,7 @@ describe('Integration | Repository | Campaign analysis repository', function () 
           tubes: [tubeUrl, tubeFile],
           name: 'The C',
           index: '2.3',
+          areaId: 'recArea',
         });
         const area = domainBuilder.buildArea({ id: 'recArea', color: 'jaffa', competences: [competence] });
         const framework = domainBuilder.buildFramework({ areas: [area] });
@@ -482,7 +484,7 @@ describe('Integration | Repository | Campaign analysis repository', function () 
           campaignId,
           campaignParticipation,
           learningContent,
-          tutorials
+          tutorials,
         );
 
         // then
@@ -543,7 +545,7 @@ describe('Integration | Repository | Campaign analysis repository', function () 
             ],
             (knowledgeElement) => {
               databaseBuilder.factory.buildKnowledgeElement(knowledgeElement);
-            }
+            },
           );
 
           return databaseBuilder.commit();
@@ -556,7 +558,7 @@ describe('Integration | Repository | Campaign analysis repository', function () 
             campaignId,
             campaignParticipation,
             learningContent,
-            tutorials
+            tutorials,
           );
 
           // then

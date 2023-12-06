@@ -1,9 +1,7 @@
-const CertificationCourse = require('../../../../lib/domain/models/CertificationCourse');
-const buildAssessment = require('./build-assessment');
-const CertificationIssueReport = require('../../../../lib/domain/models/CertificationIssueReport');
-const {
-  CertificationIssueReportCategories,
-} = require('../../../../lib/domain/models/CertificationIssueReportCategory');
+import { CertificationCourse } from '../../../../lib/domain/models/CertificationCourse.js';
+import { buildAssessment } from './build-assessment.js';
+import { CertificationIssueReport } from '../../../../lib/domain/models/CertificationIssueReport.js';
+import { CertificationIssueReportCategory } from '../../../../lib/domain/models/CertificationIssueReportCategory.js';
 
 function buildCertificationCourse({
   id = 123,
@@ -21,7 +19,7 @@ function buildCertificationCourse({
   examinerComment = 'A cassé le clavier',
   hasSeenEndTestScreen = false,
   nbChallenges = 15,
-  isV2Certification = false,
+  version = 1,
   isPublished = false,
   verificationCode = 'P-ABCD1234',
   assessment = buildAssessment({ certificationCourseId: this.id }),
@@ -38,9 +36,9 @@ function buildCertificationCourse({
       new CertificationIssueReport({
         id: 159,
         certificationCourseId: id,
-        category: CertificationIssueReportCategories.OTHER,
+        category: CertificationIssueReportCategory.OTHER,
         description: examinerComment,
-      })
+      }),
     );
   }
 
@@ -60,7 +58,7 @@ function buildCertificationCourse({
     certificationIssueReports,
     hasSeenEndTestScreen,
     nbChallenges,
-    isV2Certification,
+    version,
     isPublished,
     verificationCode,
     assessment,
@@ -87,7 +85,7 @@ buildCertificationCourse.unpersisted = function ({
   externalId = 'externalId',
   hasSeenEndTestScreen = false,
   nbChallenges = 15,
-  isV2Certification = false,
+  version = 1,
   isPublished = false,
   verificationCode = 'P-ABCD1234',
   assessment = buildAssessment({ certificationCourseId: this.id }),
@@ -113,7 +111,7 @@ buildCertificationCourse.unpersisted = function ({
     certificationIssueReports: [],
     hasSeenEndTestScreen,
     nbChallenges,
-    isV2Certification,
+    version,
     isPublished,
     verificationCode,
     assessment,
@@ -126,4 +124,4 @@ buildCertificationCourse.unpersisted = function ({
   });
 };
 
-module.exports = buildCertificationCourse;
+export { buildCertificationCourse };

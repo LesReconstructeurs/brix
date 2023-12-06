@@ -1,6 +1,6 @@
-const TargetProfileForCreation = require('../../../../lib/domain/models/TargetProfileForCreation');
+import { TargetProfileForCreation } from '../../../../lib/domain/models/TargetProfileForCreation.js';
 
-module.exports = function buildTargetProfileForCreation({
+const buildTargetProfileForCreation = function ({
   name = 'Profil cible super cool',
   category = 'some_category',
   description = 'description',
@@ -9,6 +9,7 @@ module.exports = function buildTargetProfileForCreation({
   imageUrl = 'image/url',
   ownerOrganizationId = null,
   tubes = [{ id: 'recTubeId', level: 8 }],
+  areKnowledgeElementsResettable = false,
 } = {}) {
   return new TargetProfileForCreation({
     name,
@@ -19,5 +20,8 @@ module.exports = function buildTargetProfileForCreation({
     imageUrl,
     ownerOrganizationId,
     tubes,
+    areKnowledgeElementsResettable,
   });
 };
+
+export { buildTargetProfileForCreation };

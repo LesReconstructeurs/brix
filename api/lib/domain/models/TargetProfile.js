@@ -15,7 +15,6 @@ class TargetProfile {
     isPublic,
     isSimplifiedAccess,
     outdated,
-    skills = [],
     stages,
     badges,
     ownerOrganizationId,
@@ -27,7 +26,6 @@ class TargetProfile {
     this.isPublic = isPublic;
     this.isSimplifiedAccess = isSimplifiedAccess;
     this.outdated = outdated;
-    this.skills = skills;
     this.stages = stages;
     this.badges = badges;
     this.ownerOrganizationId = ownerOrganizationId;
@@ -39,29 +37,6 @@ class TargetProfile {
     return !!this.badges && this.badges.length > 0;
   }
 
-  hasSkill(skillId) {
-    return this.skills.some((skill) => skill.id === skillId);
-  }
-
-  getCompetenceIds() {
-    const competenceIdsOfSkills = this.skills.map((skill) => skill.competenceId);
-    const uniqCompetenceIds = new Set(competenceIdsOfSkills);
-    return Array.from(uniqCompetenceIds);
-  }
-
-  getTargetedCompetences(competences) {
-    const targetedCompetenceIds = this.getCompetenceIds();
-    return competences.filter((competence) => targetedCompetenceIds.includes(competence.id));
-  }
-
-  getSkillIds() {
-    return this.skills.map((skill) => skill.id);
-  }
-
-  getSkillCountForCompetence(competenceId) {
-    return this.skills.filter((skill) => skill.competenceId === competenceId).length;
-  }
-
   get organizations() {
     return this.organizationsAttached;
   }
@@ -69,4 +44,4 @@ class TargetProfile {
 
 TargetProfile.categories = categories;
 
-module.exports = TargetProfile;
+export { TargetProfile, categories };

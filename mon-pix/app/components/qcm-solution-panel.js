@@ -1,5 +1,6 @@
 import Component from '@glimmer/component';
 import labeledCheckboxes from 'mon-pix/utils/labeled-checkboxes';
+import { pshuffle } from 'mon-pix/utils/pshuffle';
 import valueAsArrayOfBoolean from 'mon-pix/utils/value-as-array-of-boolean';
 import proposalsAsArray from 'mon-pix/utils/proposals-as-array';
 import isEmpty from 'lodash/isEmpty';
@@ -7,7 +8,11 @@ import isEmpty from 'lodash/isEmpty';
 export default class QcmSolutionPanel extends Component {
   get solutionArray() {
     const solution = this.args.solution;
-    return !isEmpty(solution) ? valueAsArrayOfBoolean(solution) : [];
+    const solutionArray = !isEmpty(solution) ? valueAsArrayOfBoolean(solution, this._proposalsArray.length) : [];
+    if (this.args.challenge.get('shuffled')) {
+      pshuffle(solutionArray, this.args.answer.assessment.get('id'));
+    }
+    return solutionArray;
   }
 
   get isNotCorrectlyAnswered() {
@@ -18,11 +23,17 @@ export default class QcmSolutionPanel extends Component {
     const answer = this.args.answer.value;
     let checkboxes = [];
     if (!isEmpty(answer)) {
-      const proposals = this.args.challenge.get('proposals');
-      const proposalsArray = proposalsAsArray(proposals);
       const answerArray = valueAsArrayOfBoolean(answer);
-      checkboxes = labeledCheckboxes(proposalsArray, answerArray);
+      checkboxes = labeledCheckboxes(this._proposalsArray, answerArray);
+      if (this.args.challenge.get('shuffled')) {
+        pshuffle(checkboxes, this.args.answer.assessment.get('id'));
+      }
     }
     return checkboxes;
+  }
+
+  get _proposalsArray() {
+    const proposals = this.args.challenge.get('proposals');
+    return proposalsAsArray(proposals);
   }
 }

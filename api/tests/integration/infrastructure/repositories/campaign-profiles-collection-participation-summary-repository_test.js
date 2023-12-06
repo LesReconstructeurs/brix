@@ -1,7 +1,7 @@
-const { expect, databaseBuilder, mockLearningContent, knex } = require('../../../test-helper');
-const CampaignProfilesCollectionParticipationSummary = require('../../../../lib/domain/read-models/CampaignProfilesCollectionParticipationSummary');
-const campaignProfilesCollectionParticipationSummaryRepository = require('../../../../lib/infrastructure/repositories/campaign-profiles-collection-participation-summary-repository');
-const CampaignParticipationStatuses = require('../../../../lib/domain/models/CampaignParticipationStatuses');
+import { expect, databaseBuilder, mockLearningContent, knex } from '../../../test-helper.js';
+import { CampaignProfilesCollectionParticipationSummary } from '../../../../lib/domain/read-models/CampaignProfilesCollectionParticipationSummary.js';
+import * as campaignProfilesCollectionParticipationSummaryRepository from '../../../../lib/infrastructure/repositories/campaign-profiles-collection-participation-summary-repository.js';
+import { CampaignParticipationStatuses } from '../../../../lib/domain/models/CampaignParticipationStatuses.js';
 
 const { STARTED } = CampaignParticipationStatuses;
 
@@ -29,7 +29,7 @@ describe('Integration | Repository | Campaign Profiles Collection Participation 
     it('should return empty array if no participant', async function () {
       // when
       const results = await campaignProfilesCollectionParticipationSummaryRepository.findPaginatedByCampaignId(
-        campaignId
+        campaignId,
       );
 
       // then
@@ -44,7 +44,7 @@ describe('Integration | Repository | Campaign Profiles Collection Participation 
 
       // when
       const results = await campaignProfilesCollectionParticipationSummaryRepository.findPaginatedByCampaignId(
-        campaignId
+        campaignId,
       );
 
       // then
@@ -57,20 +57,20 @@ describe('Integration | Repository | Campaign Profiles Collection Participation 
       databaseBuilder.factory.buildCampaignParticipationWithOrganizationLearner(
         { firstName: 'Lise', lastName: 'Quesnel' },
         campaignParticipation1,
-        false
+        false,
       );
       const campaignId2 = databaseBuilder.factory.buildCampaign().id;
       const campaignParticipation2 = { campaignId: campaignId2 };
       databaseBuilder.factory.buildCampaignParticipationWithOrganizationLearner(
         { firstName: 'Benjamin', lastName: 'Petetot' },
         campaignParticipation2,
-        false
+        false,
       );
       await databaseBuilder.commit();
 
       // when
       const results = await campaignProfilesCollectionParticipationSummaryRepository.findPaginatedByCampaignId(
-        campaignId
+        campaignId,
       );
       const names = results.data.map((result) => result.firstName);
 
@@ -84,28 +84,28 @@ describe('Integration | Repository | Campaign Profiles Collection Participation 
       databaseBuilder.factory.buildCampaignParticipationWithOrganizationLearner(
         { firstName: 'Jaja', lastName: 'Le raplapla', organizationId },
         campaignParticipation,
-        false
+        false,
       );
       databaseBuilder.factory.buildCampaignParticipationWithOrganizationLearner(
         { firstName: 'Jiji', lastName: 'Le riquiqui', organizationId },
         campaignParticipation,
-        false
+        false,
       );
       databaseBuilder.factory.buildCampaignParticipationWithOrganizationLearner(
         { firstName: 'Jojo', lastName: 'Le rococo', organizationId },
         campaignParticipation,
-        false
+        false,
       );
       databaseBuilder.factory.buildCampaignParticipationWithOrganizationLearner(
         { firstName: 'Juju', lastName: 'Le riquiqui', organizationId },
         campaignParticipation,
-        false
+        false,
       );
       await databaseBuilder.commit();
 
       // when
       const results = await campaignProfilesCollectionParticipationSummaryRepository.findPaginatedByCampaignId(
-        campaignId
+        campaignId,
       );
       const names = results.data.map((result) => result.firstName);
 
@@ -130,7 +130,7 @@ describe('Integration | Repository | Campaign Profiles Collection Participation 
         await databaseBuilder.commit();
 
         const results = await campaignProfilesCollectionParticipationSummaryRepository.findPaginatedByCampaignId(
-          campaignId
+          campaignId,
         );
 
         expect(results.data).to.be.empty;
@@ -146,7 +146,7 @@ describe('Integration | Repository | Campaign Profiles Collection Participation 
         campaignParticipation = databaseBuilder.factory.buildCampaignParticipationWithOrganizationLearner(
           { firstName: 'Jérémy', lastName: 'bugietta', organizationId },
           participationData,
-          false
+          false,
         );
 
         databaseBuilder.factory.buildKnowledgeElement({
@@ -173,7 +173,7 @@ describe('Integration | Repository | Campaign Profiles Collection Participation 
       it('should return the certification profile info and pix score', async function () {
         // when
         const results = await campaignProfilesCollectionParticipationSummaryRepository.findPaginatedByCampaignId(
-          campaignId
+          campaignId,
         );
 
         // then
@@ -213,7 +213,7 @@ describe('Integration | Repository | Campaign Profiles Collection Participation 
       it('should return only the participationCampaign which is not improved', async function () {
         // when
         const results = await campaignProfilesCollectionParticipationSummaryRepository.findPaginatedByCampaignId(
-          campaignId
+          campaignId,
         );
 
         // then
@@ -266,7 +266,7 @@ describe('Integration | Repository | Campaign Profiles Collection Participation 
         const results = await campaignProfilesCollectionParticipationSummaryRepository.findPaginatedByCampaignId(
           campaignId,
           undefined,
-          { divisions }
+          { divisions },
         );
         const participantExternalIds = results.data.map((result) => result.participantExternalId);
 
@@ -322,7 +322,7 @@ describe('Integration | Repository | Campaign Profiles Collection Participation 
         const results = await campaignProfilesCollectionParticipationSummaryRepository.findPaginatedByCampaignId(
           campaignId,
           undefined,
-          { groups }
+          { groups },
         );
         const participantExternalIds = results.data.map((result) => result.participantExternalId);
 
@@ -371,7 +371,7 @@ describe('Integration | Repository | Campaign Profiles Collection Participation 
         const results = await campaignProfilesCollectionParticipationSummaryRepository.findPaginatedByCampaignId(
           campaignId,
           undefined,
-          { search: '' }
+          { search: '' },
         );
 
         // then
@@ -414,7 +414,7 @@ describe('Integration | Repository | Campaign Profiles Collection Participation 
         const results = await campaignProfilesCollectionParticipationSummaryRepository.findPaginatedByCampaignId(
           campaignId,
           undefined,
-          { search: 'La' }
+          { search: 'La' },
         );
 
         // then
@@ -458,7 +458,7 @@ describe('Integration | Repository | Campaign Profiles Collection Participation 
         const results = await campaignProfilesCollectionParticipationSummaryRepository.findPaginatedByCampaignId(
           campaignId,
           undefined,
-          { search: ' La' }
+          { search: ' La' },
         );
 
         // then
@@ -502,7 +502,7 @@ describe('Integration | Repository | Campaign Profiles Collection Participation 
         const results = await campaignProfilesCollectionParticipationSummaryRepository.findPaginatedByCampaignId(
           campaignId,
           undefined,
-          { search: 'La ' }
+          { search: 'La ' },
         );
 
         // then
@@ -546,7 +546,7 @@ describe('Integration | Repository | Campaign Profiles Collection Participation 
         const results = await campaignProfilesCollectionParticipationSummaryRepository.findPaginatedByCampaignId(
           campaignId,
           undefined,
-          { search: 'Laa-Laa Tel' }
+          { search: 'Laa-Laa Tel' },
         );
 
         // then
@@ -598,13 +598,69 @@ describe('Integration | Repository | Campaign Profiles Collection Participation 
         const results = await campaignProfilesCollectionParticipationSummaryRepository.findPaginatedByCampaignId(
           campaignId,
           undefined,
-          { search: 'Teletub' }
+          { search: 'Teletub' },
         );
 
         // then
         expect(results.data.length).to.equal(2);
         expect(results.data[0].firstName).to.equal('Dipsy');
         expect(results.data[1].firstName).to.equal('Laa-Laa');
+      });
+    });
+
+    describe('when there is a filter on certificability', function () {
+      it('returns certifiable participants', async function () {
+        // given
+        databaseBuilder.factory.buildCampaignParticipationWithOrganizationLearner(
+          { organizationId },
+          { participantExternalId: 'Certifiable', campaignId, isCertifiable: true },
+        );
+
+        databaseBuilder.factory.buildCampaignParticipationWithOrganizationLearner(
+          { organizationId },
+          { participantExternalId: 'Not certifiable', campaignId, isCertifiable: false },
+        );
+
+        await databaseBuilder.commit();
+
+        // when
+        const results = await campaignProfilesCollectionParticipationSummaryRepository.findPaginatedByCampaignId(
+          campaignId,
+          undefined,
+          { certificability: true },
+        );
+
+        const participantExternalIds = results.data.map((result) => result.participantExternalId);
+
+        // then
+        expect(participantExternalIds).to.deep.equal(['Certifiable']);
+      });
+
+      it('returns not certifiable participants', async function () {
+        // given
+        databaseBuilder.factory.buildCampaignParticipationWithOrganizationLearner(
+          { organizationId },
+          { participantExternalId: 'Certifiable', campaignId, isCertifiable: true },
+        );
+
+        databaseBuilder.factory.buildCampaignParticipationWithOrganizationLearner(
+          { organizationId },
+          { participantExternalId: 'Not certifiable', campaignId, isCertifiable: false },
+        );
+
+        await databaseBuilder.commit();
+
+        // when
+        const results = await campaignProfilesCollectionParticipationSummaryRepository.findPaginatedByCampaignId(
+          campaignId,
+          undefined,
+          { certificability: false },
+        );
+
+        const participantExternalIds = results.data.map((result) => result.participantExternalId);
+
+        // then
+        expect(participantExternalIds).to.deep.equal(['Not certifiable']);
       });
     });
   });

@@ -1,6 +1,6 @@
 import { module, test } from 'qunit';
 import { render } from '@ember/test-helpers';
-import hbs from 'htmlbars-inline-precompile';
+import { hbs } from 'ember-cli-htmlbars';
 import setupIntlRenderingTest from '../../../helpers/setup-intl-rendering';
 
 module('Integration | Component | Ui::EmptyState', function (hooks) {
@@ -12,7 +12,7 @@ module('Integration | Component | Ui::EmptyState', function (hooks) {
     this.set('actionText', 'L’administrateur doit importer la base élèves en cliquant sur le bouton importer.');
 
     //when
-    await render(hbs`<Ui::EmptyState @infoText={{this.infoText}} @actionText={{this.actionText}}/>`);
+    await render(hbs`<Ui::EmptyState @infoText={{this.infoText}} @actionText={{this.actionText}} />`);
 
     //then
     assert.contains("Aucun participant pour l'instant !");

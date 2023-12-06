@@ -1,12 +1,10 @@
 import Component from '@glimmer/component';
 import { tracked } from '@glimmer/tracking';
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 import { action } from '@ember/object';
 import { TOOLTIP_CONFIG, LEGEND_CONFIG } from '../../ui/chart';
 import maxBy from 'lodash/maxBy';
 import minBy from 'lodash/minBy';
-
-import locales from 'date-fns/locale';
 
 export default class ParticipantsByDay extends Component {
   @service store;
@@ -82,8 +80,6 @@ export default class ParticipantsByDay extends Component {
   }
 
   get options() {
-    const locale = locales[this.intl.locale[0]];
-
     return {
       parsing: {
         xAxisKey: 'day',
@@ -94,7 +90,7 @@ export default class ParticipantsByDay extends Component {
       maintainAspectRatio: false,
       locale: this.intl.locale[0],
       scales: {
-        xAxes: {
+        x: {
           grid: {
             display: false,
           },
@@ -102,15 +98,14 @@ export default class ParticipantsByDay extends Component {
           time: {
             minUnit: 'day',
             unit: this.days > 90 ? 'month' : false,
-            tooltipFormat: 'dd LLLL',
-          },
-          adapters: {
-            date: {
-              locale,
+            tooltipFormat: 'DD MMMM',
+            displayFormats: {
+              month: 'MMM YYYY',
+              day: 'DD MMM',
             },
           },
         },
-        yAxes: {
+        y: {
           grid: {
             borderDash: [4, 4],
           },

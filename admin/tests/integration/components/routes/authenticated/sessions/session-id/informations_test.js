@@ -1,7 +1,7 @@
 import { module, test } from 'qunit';
 import { setupApplicationTest } from 'ember-qunit';
 import { currentURL } from '@ember/test-helpers';
-import setupMirage from 'ember-cli-mirage/test-support/setup-mirage';
+import { setupMirage } from 'ember-cli-mirage/test-support';
 import { visit } from '@1024pix/ember-testing-library';
 import { statusToDisplayName } from 'pix-admin/models/session';
 import { authenticateAdminMemberWithRole } from 'pix-admin/tests/helpers/test-init';
@@ -165,7 +165,7 @@ module('Integration | Component | routes/authenticated/sessions/session | inform
         await authenticateAdminMemberWithRole({ isSuperAdmin: true })(server);
         const session = _buildSessionWithTwoJuryCertificationSummary(
           { resultsSentToPrescriberAt: new Date('2022-02-22') },
-          server
+          server,
         );
 
         // when

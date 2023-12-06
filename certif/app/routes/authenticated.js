@@ -1,5 +1,5 @@
 import Route from '@ember/routing/route';
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 import get from 'lodash/get';
 
 export default class AuthenticatedRoute extends Route {
@@ -20,7 +20,7 @@ export default class AuthenticatedRoute extends Route {
 
     const pixCertifTermsOfServiceAccepted = get(
       this.currentUser,
-      'certificationPointOfContact.pixCertifTermsOfServiceAccepted'
+      'certificationPointOfContact.pixCertifTermsOfServiceAccepted',
     );
     if (!pixCertifTermsOfServiceAccepted) {
       this.router.replaceWith('terms-of-service');

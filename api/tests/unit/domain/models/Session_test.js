@@ -1,7 +1,6 @@
-const Session = require('../../../../lib/domain/models/Session');
-const { expect } = require('../../../test-helper');
-const _ = require('lodash');
-const { domainBuilder } = require('../../../test-helper');
+import { Session } from '../../../../lib/domain/models/Session.js';
+import { expect, sinon, domainBuilder } from '../../../test-helper.js';
+import _ from 'lodash';
 
 const SESSION_PROPS = [
   'id',
@@ -23,6 +22,7 @@ const SESSION_PROPS = [
   'certificationCenterId',
   'assignedCertificationOfficerId',
   'supervisorPassword',
+  'version',
 ];
 
 describe('Unit | Domain | Models | Session', function () {
@@ -61,6 +61,15 @@ describe('Unit | Domain | Models | Session', function () {
     expect(_.keys(session)).to.have.deep.members(SESSION_PROPS);
   });
 
+  it('should default a supervisor password property containing 5 digits/letters except 0, 1 and vowels', async function () {
+    // given
+    // when
+    const session = new Session();
+
+    // then
+    expect(session.supervisorPassword).to.match(/^[2346789BCDFGHJKMPQRTVWXY]{5}$/);
+  });
+
   context('#areResultsFlaggedAsSent', function () {
     context('when session resultsSentToPrescriberAt timestamp is defined', function () {
       it('should return true', function () {
@@ -74,6 +83,7 @@ describe('Unit | Domain | Models | Session', function () {
         expect(areResultsFlaggedAsSent).to.be.true;
       });
     });
+
     context('when session resultsSentToPrescriberAt timestamp is falsy', function () {
       it('should return false', function () {
         // given
@@ -215,7 +225,6 @@ describe('Unit | Domain | Models | Session', function () {
     it('should return true when the supervisor password match', function () {
       // given
       const session = domainBuilder.buildSession.created();
-      session.generateSupervisorPassword();
 
       // when
       const isSupervisable = session.isSupervisable(session.supervisorPassword);
@@ -236,13 +245,13 @@ describe('Unit | Domain | Models | Session', function () {
     });
   });
 
-  context('#canEnrollCandidate', function () {
+  context('#canEnrolCandidate', function () {
     it('should return true when session is not finalized', function () {
       // given
       const session = domainBuilder.buildSession.created();
 
       // when
-      const result = session.canEnrollCandidate();
+      const result = session.canEnrolCandidate();
 
       // then
       expect(result).to.be.true;
@@ -253,21 +262,61 @@ describe('Unit | Domain | Models | Session', function () {
       const session = domainBuilder.buildSession.finalized();
 
       // when
-      const result = session.canEnrollCandidate();
+      const result = session.canEnrolCandidate();
 
       // then
       expect(result).to.be.false;
     });
   });
-});
 
-context('#generateSupervisorPassword', function () {
-  it('should return a supervisor password containing 5 digits/letters except 0, 1 and vowels', async function () {
-    // when
-    const session = domainBuilder.buildSession();
-    session.generateSupervisorPassword();
+  context('static #generateSupervisorPassword', function () {
+    it('should return a supervisor password containing 5 digits/letters except 0, 1 and vowels', async function () {
+      // given
+      // when
+      const supervisorPassword = Session.generateSupervisorPassword();
 
-    // then
-    expect(session.supervisorPassword).to.match(/^[2346789BCDFGHJKMPQRTVWXY]{5}$/);
+      // then
+      expect(supervisorPassword).to.match(/^[2346789BCDFGHJKMPQRTVWXY]{5}$/);
+    });
+  });
+
+  context('#isSessionScheduledInThePast', function () {
+    let clock;
+    beforeEach(function () {
+      clock = sinon.useFakeTimers({
+        now: new Date('2023-01-01'),
+        toFake: ['Date'],
+      });
+    });
+
+    afterEach(async function () {
+      clock.restore();
+    });
+
+    context('when session is scheduled in the past', function () {
+      it('should return true', async function () {
+        // given
+        const session = domainBuilder.buildSession({ date: '2022-01-01' });
+
+        // when
+        const isSessionScheduledInThePast = session.isSessionScheduledInThePast();
+
+        // then
+        expect(isSessionScheduledInThePast).to.be.true;
+      });
+    });
+
+    context('when session is not scheduled in the past', function () {
+      it('should return false', async function () {
+        // given
+        const session = domainBuilder.buildSession({ date: '2024-01-01' });
+
+        // when
+        const isSessionScheduledInThePast = session.isSessionScheduledInThePast();
+
+        // then
+        expect(isSessionScheduledInThePast).to.be.false;
+      });
+    });
   });
 });

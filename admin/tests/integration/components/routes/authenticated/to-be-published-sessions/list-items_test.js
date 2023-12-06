@@ -1,7 +1,7 @@
 import { module, test } from 'qunit';
 import { setupRenderingTest } from 'ember-qunit';
 import { render, clickByName } from '@1024pix/ember-testing-library';
-import hbs from 'htmlbars-inline-precompile';
+import { hbs } from 'ember-cli-htmlbars';
 import sinon from 'sinon';
 import Service from '@ember/service';
 
@@ -40,7 +40,7 @@ module('Integration | Component | routes/authenticated/to-be-published-sessions 
 
     // when
     const screen = await render(
-      hbs`<ToBePublishedSessions::ListItems @toBePublishedSessions={{this.toBePublishedSessions}} />`
+      hbs`<ToBePublishedSessions::ListItems @toBePublishedSessions={{this.toBePublishedSessions}} />`,
     );
 
     // then
@@ -61,7 +61,7 @@ module('Integration | Component | routes/authenticated/to-be-published-sessions 
 
     // when
     const screen = await render(
-      hbs`<ToBePublishedSessions::ListItems @toBePublishedSessions={{this.toBePublishedSessions}} />`
+      hbs`<ToBePublishedSessions::ListItems @toBePublishedSessions={{this.toBePublishedSessions}} />`,
     );
 
     // then
@@ -87,7 +87,7 @@ module('Integration | Component | routes/authenticated/to-be-published-sessions 
 
       // when
       const screen = await render(
-        hbs`<ToBePublishedSessions::ListItems @toBePublishedSessions={{this.toBePublishedSessions}} />`
+        hbs`<ToBePublishedSessions::ListItems @toBePublishedSessions={{this.toBePublishedSessions}} />`,
       );
 
       // then
@@ -111,7 +111,7 @@ module('Integration | Component | routes/authenticated/to-be-published-sessions 
       };
       this.toBePublishedSessions = [session];
       const screen = await render(
-        hbs`<ToBePublishedSessions::ListItems @toBePublishedSessions={{this.toBePublishedSessions}} />`
+        hbs`<ToBePublishedSessions::ListItems @toBePublishedSessions={{this.toBePublishedSessions}} />`,
       );
 
       // when
@@ -141,7 +141,7 @@ module('Integration | Component | routes/authenticated/to-be-published-sessions 
         hbs`<ToBePublishedSessions::ListItems
   @toBePublishedSessions={{this.toBePublishedSessions}}
   @publishSession={{this.publishSession}}
-/>`
+/>`,
       );
       await clickByName('Publier la session numéro 1');
 

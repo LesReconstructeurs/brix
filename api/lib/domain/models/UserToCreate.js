@@ -1,4 +1,5 @@
-const _ = require('lodash');
+import _ from 'lodash';
+import * as localeService from '../services/locale-service.js';
 
 class UserToCreate {
   constructor({
@@ -11,13 +12,19 @@ class UserToCreate {
     mustValidateTermsOfService = false,
     lastTermsOfServiceValidatedAt = null,
     lang = 'fr',
+    locale,
     hasSeenNewDashboardInfo = false,
     isAnonymous = false,
     hasSeenFocusedChallengeTooltip = false,
     hasSeenOtherChallengesTooltip = false,
     createdAt,
     updatedAt,
+    dependencies = { localeService },
   } = {}) {
+    if (locale) {
+      locale = dependencies.localeService.getCanonicalLocale(locale);
+    }
+
     this.firstName = firstName;
     this.lastName = lastName;
     this.email = email;
@@ -27,6 +34,7 @@ class UserToCreate {
     this.mustValidateTermsOfService = mustValidateTermsOfService;
     this.lastTermsOfServiceValidatedAt = lastTermsOfServiceValidatedAt;
     this.lang = lang;
+    this.locale = locale;
     this.hasSeenNewDashboardInfo = hasSeenNewDashboardInfo;
     this.isAnonymous = isAnonymous;
     this.hasSeenFocusedChallengeTooltip = hasSeenFocusedChallengeTooltip;
@@ -67,4 +75,4 @@ class UserToCreate {
   }
 }
 
-module.exports = UserToCreate;
+export { UserToCreate };

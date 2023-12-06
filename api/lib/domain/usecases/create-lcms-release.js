@@ -1,7 +1,9 @@
-const lcms = require('../../infrastructure/lcms');
-const cache = require('../../infrastructure/caches/learning-content-cache');
+import { lcms } from '../../infrastructure/lcms.js';
+import { learningContentCache } from '../../infrastructure/caches/learning-content-cache.js';
 
-module.exports = async function createLcmsRelease() {
+const createLcmsRelease = async function () {
   const learningContent = await lcms.createRelease();
-  cache.set(learningContent);
+  learningContentCache.set(learningContent);
 };
+
+export { createLcmsRelease };

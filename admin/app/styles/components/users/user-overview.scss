@@ -1,0 +1,33 @@
+.user-detail-personal-information-section {
+  &__content {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    max-width: 600px;
+  }
+
+  &__infogroup {
+    margin-bottom: 1rem;
+  }
+
+  &__user-informations {
+    margin-bottom: 5px;
+  }
+
+  &__anonymisation-message {
+    max-width: 600px;
+    margin-bottom: 16px;
+  }
+
+  .pix-select {
+    &__label {
+      margin: 0;
+      font-weight: 600;
+      font-size: 1rem;
+    }
+  }
+
+  .form-actions {
+    margin-top: 20px;
+  }
+}

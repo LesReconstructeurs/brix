@@ -1,6 +1,6 @@
-const logger = require('../../infrastructure/logger');
-const Answer = require('./Answer');
-const AnswerStatus = require('./AnswerStatus');
+import { logger } from '../../infrastructure/logger.js';
+import { Answer } from './Answer.js';
+import { AnswerStatus } from './AnswerStatus.js';
 
 /**
  * Traduction: Correcteur
@@ -45,7 +45,7 @@ class Examiner {
         },
         `Received an answer whose isFocusedOut is %s whereas a %s focusedout event has already been received`,
         answer.isFocusedOut,
-        hasLastQuestionBeenFocusedOut ? 'a' : 'no'
+        hasLastQuestionBeenFocusedOut ? 'a' : 'no',
       );
     }
 
@@ -63,7 +63,7 @@ class Examiner {
           challengeId: answer.challengeId,
           assessmentId: answer.assessmentId,
         },
-        'A non focused challenge received a focused out answer'
+        'A non focused challenge received a focused out answer',
       );
     }
 
@@ -76,4 +76,4 @@ class Examiner {
   }
 }
 
-module.exports = Examiner;
+export { Examiner };

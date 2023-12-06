@@ -1,7 +1,7 @@
-const _ = require('lodash');
-const authenticationMethodRepository = require('../../infrastructure/repositories/authentication-method-repository');
-const AuthenticationMethod = require('../models/AuthenticationMethod');
-const { NotFoundError } = require('../errors');
+import _ from 'lodash';
+import * as authenticationMethodRepository from '../../infrastructure/repositories/authentication-method-repository.js';
+import { NON_OIDC_IDENTITY_PROVIDERS } from '../constants/identity-providers.js';
+import { NotFoundError } from '../errors.js';
 
 const CONNEXION_TYPES = {
   username: 'username',
@@ -14,10 +14,10 @@ const EMAIL_SEPARATOR = '@';
 
 const TWO_PARTS = 2;
 
-async function getUserAuthenticationMethodWithObfuscation(user) {
-  const garAuthenticationMethod = await authenticationMethodRepository.findOneByUserIdAndIdentityProvider({
+async function getUserAuthenticationMethodWithObfuscation(user, dependencies = { authenticationMethodRepository }) {
+  const garAuthenticationMethod = await dependencies.authenticationMethodRepository.findOneByUserIdAndIdentityProvider({
     userId: user.id,
-    identityProvider: AuthenticationMethod.identityProviders.GAR,
+    identityProvider: NON_OIDC_IDENTITY_PROVIDERS.GAR.code,
   });
   if (garAuthenticationMethod) return { authenticatedBy: CONNEXION_TYPES.samlId, value: null };
 
@@ -42,12 +42,8 @@ function usernameObfuscation(username) {
   const parts = _.split(username, USERNAME_SEPARATOR, TWO_PARTS);
   const name = _.last(parts);
   return `${_.first(username)}${ASTERISK_OBFUSCATION}${USERNAME_SEPARATOR}${_.first(
-    name
+    name,
   )}${ASTERISK_OBFUSCATION}${_.last(name)}`;
 }
 
-module.exports = {
-  usernameObfuscation,
-  emailObfuscation,
-  getUserAuthenticationMethodWithObfuscation,
-};
+export { usernameObfuscation, emailObfuscation, getUserAuthenticationMethodWithObfuscation };

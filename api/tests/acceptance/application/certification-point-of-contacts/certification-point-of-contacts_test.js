@@ -1,5 +1,5 @@
-const { expect, databaseBuilder, generateValidRequestAuthorizationHeader } = require('../../../test-helper');
-const createServer = require('../../../../server');
+import { expect, databaseBuilder, generateValidRequestAuthorizationHeader } from '../../../test-helper.js';
+import { createServer } from '../../../../server.js';
 
 describe('Acceptance | Route | CertificationPointOfContact', function () {
   let server;
@@ -30,7 +30,7 @@ describe('Acceptance | Route | CertificationPointOfContact', function () {
       // then
       expect(response.statusCode).to.equal(200);
       expect(response.result.data.id).to.equal(userId.toString());
-      expect(response.result.included[0].attributes['is-end-test-screen-removal-enabled']).to.be.false;
+      expect(response.result.data.attributes.lang).to.equal('fr');
     });
   });
 });

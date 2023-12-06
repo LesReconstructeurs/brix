@@ -1,87 +1,97 @@
-const { expect, sinon, hFake } = require('../../../test-helper');
-const AssessmentAuthorization = require('../../../../lib/application/preHandlers/assessment-authorization');
-const tokenService = require('../../../../lib/domain/services/token-service');
-const assessmentRepository = require('../../../../lib/infrastructure/repositories/assessment-repository');
+import { expect, sinon, hFake } from '../../../test-helper.js';
+import { assessmentAuthorization } from '../../../../lib/application/preHandlers/assessment-authorization.js';
 
 describe('Unit | Pre-handler | Assessment Authorization', function () {
-  describe('#verify', function () {
-    const request = {
-      headers: { authorization: 'VALID_TOKEN' },
-      params: {
-        id: 8,
-      },
+  let assessmentRepository;
+  let requestResponseUtils;
+  let validationErrorSerializer;
+
+  beforeEach(function () {
+    assessmentRepository = {
+      getByAssessmentIdAndUserId: sinon.stub(),
     };
+    requestResponseUtils = { extractUserIdFromRequest: sinon.stub() };
+    validationErrorSerializer = {
+      serialize: sinon.stub(),
+    };
+  });
 
-    beforeEach(function () {
-      sinon.stub(tokenService, 'extractTokenFromAuthChain');
-      sinon.stub(tokenService, 'extractUserId');
-      sinon.stub(assessmentRepository, 'getByAssessmentIdAndUserId');
-    });
-
-    it('should get userId from token', function () {
-      // given
-      tokenService.extractTokenFromAuthChain.returns('VALID_TOKEN');
-      tokenService.extractUserId.returns('userId');
-      assessmentRepository.getByAssessmentIdAndUserId.resolves();
-
-      // when
-      const promise = AssessmentAuthorization.verify(request, hFake);
-
-      // then
-      return promise.then(() => {
-        sinon.assert.calledOnce(tokenService.extractUserId);
-        sinon.assert.calledWith(tokenService.extractUserId, request.headers.authorization);
-      });
-    });
-
-    describe('When assessment is linked to userId (userId exist)', function () {
-      it('should reply with assessment', async function () {
+  describe('#verify', function () {
+    describe('When user is the owner of the assessment', function () {
+      it('should return the assessment', async function () {
         // given
+        const request = {
+          headers: { authorization: 'VALID_TOKEN' },
+          params: {
+            id: 8,
+          },
+        };
         const fetchedAssessment = {};
-        const extractedUserId = 'userId';
-        tokenService.extractUserId.returns(extractedUserId);
+        const extractedUserId = 100;
+        requestResponseUtils.extractUserIdFromRequest.returns(extractedUserId);
         assessmentRepository.getByAssessmentIdAndUserId.resolves(fetchedAssessment);
 
         // when
-        const response = await AssessmentAuthorization.verify(request, hFake);
+        const response = await assessmentAuthorization.verify(request, hFake, {
+          requestResponseUtils,
+          assessmentRepository,
+          validationErrorSerializer,
+        });
 
         // then
-        sinon.assert.calledOnce(assessmentRepository.getByAssessmentIdAndUserId);
-        sinon.assert.calledWith(assessmentRepository.getByAssessmentIdAndUserId, request.params.id, extractedUserId);
-        expect(response).to.deep.equal(fetchedAssessment);
+        sinon.assert.calledWith(assessmentRepository.getByAssessmentIdAndUserId, 8, 100);
+        expect(response).to.deep.equal({});
       });
     });
 
-    describe('When assessment is linked a null userId', function () {
-      it('should reply with assessment', async function () {
+    describe('When the assessment has no owner', function () {
+      it('should return the assessment', async function () {
         // given
+        const request = {
+          headers: { authorization: 'VALID_TOKEN' },
+          params: {
+            id: 8,
+          },
+        };
         const fetchedAssessment = {};
         const extractedUserId = null;
-        tokenService.extractUserId.returns(extractedUserId);
+        requestResponseUtils.extractUserIdFromRequest.returns(extractedUserId);
         assessmentRepository.getByAssessmentIdAndUserId.resolves(fetchedAssessment);
 
         // when
-        const response = await AssessmentAuthorization.verify(request, hFake);
+        const response = await assessmentAuthorization.verify(request, hFake, {
+          requestResponseUtils,
+          assessmentRepository,
+          validationErrorSerializer,
+        });
 
         // then
-        sinon.assert.calledOnce(assessmentRepository.getByAssessmentIdAndUserId);
-        sinon.assert.calledWith(assessmentRepository.getByAssessmentIdAndUserId, request.params.id, extractedUserId);
-        expect(response).to.deep.equal(fetchedAssessment);
+        sinon.assert.calledWith(assessmentRepository.getByAssessmentIdAndUserId, 8, null);
+        expect(response).to.deep.equal({});
       });
     });
 
-    describe('When userId (from token) is not linked to assessment', function () {
-      it('should take over the request and response with 401 status code', async function () {
+    describe('When user is not the owner of the assessment', function () {
+      it('should return a status 401', async function () {
         // given
-        const extractedUserId = null;
-        tokenService.extractUserId.returns(extractedUserId);
+        const request = {
+          params: {
+            id: 8,
+          },
+        };
+        const extractedUserId = 101;
+        requestResponseUtils.extractUserIdFromRequest.returns(extractedUserId);
         assessmentRepository.getByAssessmentIdAndUserId.rejects();
+
         // when
-        const response = await AssessmentAuthorization.verify(request, hFake);
+        const response = await assessmentAuthorization.verify(request, hFake, {
+          requestResponseUtils,
+          assessmentRepository,
+          validationErrorSerializer,
+        });
 
         // then
         expect(response.statusCode).to.equal(401);
-        expect(response.isTakeOver).to.be.true;
       });
     });
   });

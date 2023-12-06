@@ -1,7 +1,6 @@
-const { expect, HttpTestServer, sinon } = require('../../../test-helper');
-
-const securityPreHandlers = require('../../../../lib/application/security-pre-handlers');
-const moduleUnderTest = require('../../../../lib/application/assessment-results');
+import { expect, HttpTestServer, sinon } from '../../../test-helper.js';
+import { securityPreHandlers } from '../../../../lib/application/security-pre-handlers.js';
+import * as moduleUnderTest from '../../../../lib/application/assessment-results/index.js';
 
 describe('Unit | Application | Assessmnet results | Route', function () {
   describe('POST /api/admin/assessment-results', function () {
@@ -19,7 +18,7 @@ describe('Unit | Application | Assessmnet results | Route', function () {
             h
               .response({ errors: new Error('forbidden') })
               .code(403)
-              .takeover()
+              .takeover(),
         );
       const httpTestServer = new HttpTestServer();
       await httpTestServer.register(moduleUnderTest);

@@ -1,4 +1,9 @@
 {{page-title (t "pages.sign-up.title")}}
-<div class="sign-form-page">
-  <SignupForm @user={{@model}} />
-</div>
+<main class="sign-form-page" role="main">
+  <section class="sign-form-page__container">
+    <SignupForm @user={{@model}} />
+    {{#if this.isInternationalDomain}}
+      <LanguageSwitcher @selectedLanguage={{this.selectedLanguage}} @onLanguageChange={{this.onLanguageChange}} />
+    {{/if}}
+  </section>
+</main>

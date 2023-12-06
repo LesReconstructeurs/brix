@@ -1,12 +1,15 @@
-const {
+import {
   CampaignCodeError,
   OrganizationLearnerNotFound,
   OrganizationLearnerAlreadyLinkedToUserError,
-} = require('../errors');
-const { STUDENT_RECONCILIATION_ERRORS } = require('../constants');
-const { find, get } = require('lodash');
+} from '../errors.js';
 
-module.exports = async function generateUsername({
+import { STUDENT_RECONCILIATION_ERRORS } from '../constants.js';
+import lodash from 'lodash';
+
+const { find, get } = lodash;
+
+const generateUsername = async function ({
   studentInformation,
   campaignCode,
   campaignRepository,
@@ -31,11 +34,11 @@ module.exports = async function generateUsername({
   await checkIfStudentIsAlreadyReconciledOnTheSameOrganization(
     matchedOrganizationLearner,
     userRepository,
-    obfuscationService
+    obfuscationService,
   );
 
   const student = await studentRepository.getReconciledStudentByNationalStudentId(
-    matchedOrganizationLearner.nationalStudentId
+    matchedOrganizationLearner.nationalStudentId,
   );
   await checkIfStudentHasAlreadyAccountsReconciledInOtherOrganizations(student, userRepository, obfuscationService);
 
@@ -47,6 +50,8 @@ module.exports = async function generateUsername({
 
   return userReconciliationService.createUsernameByUser({ user: studentInformation, userRepository });
 };
+
+export { generateUsername };
 
 async function findMatchedOrganizationLearnerForGivenOrganizationIdAndStudentInfo({
   organizationId,
@@ -61,13 +66,13 @@ async function findMatchedOrganizationLearnerForGivenOrganizationIdAndStudentInf
 
   if (organizationLearners.length === 0) {
     throw new OrganizationLearnerNotFound(
-      'There were no organizationLearners matching with organization and birthdate'
+      'There were no organizationLearners matching with organization and birthdate',
     );
   }
 
   const organizationLearnerId = await userReconciliationService.findMatchingCandidateIdForGivenUser(
     organizationLearners,
-    { firstName, lastName }
+    { firstName, lastName },
   );
 
   if (!organizationLearnerId) {
@@ -80,7 +85,7 @@ async function findMatchedOrganizationLearnerForGivenOrganizationIdAndStudentInf
 async function checkIfStudentIsAlreadyReconciledOnTheSameOrganization(
   matchingOrganizationLearner,
   userRepository,
-  obfuscationService
+  obfuscationService,
 ) {
   if (get(matchingOrganizationLearner, 'userId')) {
     const userId = matchingOrganizationLearner.userId;
@@ -98,7 +103,7 @@ async function checkIfStudentIsAlreadyReconciledOnTheSameOrganization(
 async function checkIfStudentHasAlreadyAccountsReconciledInOtherOrganizations(
   student,
   userRepository,
-  obfuscationService
+  obfuscationService,
 ) {
   if (get(student, 'account')) {
     const userId = student.account.userId;

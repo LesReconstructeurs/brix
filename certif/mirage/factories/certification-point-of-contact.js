@@ -1,4 +1,4 @@
-import { Factory } from 'ember-cli-mirage';
+import { Factory } from 'miragejs';
 
 export default Factory.extend({
   firstName() {
@@ -11,6 +11,10 @@ export default Factory.extend({
 
   email() {
     return 'laura.passtacertif@example.net';
+  },
+
+  lang() {
+    return 'fr';
   },
 
   pixCertifTermsOfServiceAccepted() {

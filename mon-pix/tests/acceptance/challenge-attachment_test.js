@@ -1,6 +1,7 @@
+// eslint-disable-next-line no-restricted-imports
 import { find, click } from '@ember/test-helpers';
 import { module, test } from 'qunit';
-import { visit } from '@ember/test-helpers';
+import { visit } from '@1024pix/ember-testing-library';
 import { setupApplicationTest } from 'ember-qunit';
 import { setupMirage } from 'ember-cli-mirage/test-support';
 
@@ -27,14 +28,10 @@ module('Acceptance | Download an attachment from a challenge', function (hooks) 
 
     test('should expose the correct attachment link', function (assert) {
       assert.ok(find('.challenge-statement__action-link').textContent.includes('Télécharger'));
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(challengeWithAttachment.attachments.length, 1);
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(
+      assert.strictEqual(challengeWithAttachment.attachments.length, 1);
+      assert.strictEqual(
         find('.challenge-statement__action-link').getAttribute('href'),
-        challengeWithAttachment.attachments[0]
+        challengeWithAttachment.attachments[0],
       );
     });
 

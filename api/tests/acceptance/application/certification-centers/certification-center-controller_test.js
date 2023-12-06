@@ -1,14 +1,14 @@
-const _ = require('lodash');
+import _ from 'lodash';
 
-const {
+import {
   databaseBuilder,
   expect,
   generateValidRequestAuthorizationHeader,
   insertUserWithRoleSuperAdmin,
   knex,
-} = require('../../../test-helper');
+} from '../../../test-helper.js';
 
-const createServer = require('../../../../server');
+import { createServer } from '../../../../server.js';
 
 describe('Acceptance | API | Certification Center', function () {
   let server, request;
@@ -20,6 +20,8 @@ describe('Acceptance | API | Certification Center', function () {
 
   afterEach(async function () {
     await knex('data-protection-officers').delete();
+    await knex('certification-candidates').delete();
+    await knex('sessions').delete();
   });
 
   describe('GET /api/certification-centers', function () {
@@ -42,7 +44,6 @@ describe('Acceptance | API | Certification Center', function () {
           name: 'Centres des tests jolis',
           type: 'SUP',
           externalId: '12345',
-          isSupervisorAccessEnabled: true,
           createdAt: new Date('2020-01-01'),
         });
         databaseBuilder.factory.buildCertificationCenter({
@@ -50,7 +51,6 @@ describe('Acceptance | API | Certification Center', function () {
           name: 'Centres des tests pas moches',
           type: 'SCO',
           externalId: '222',
-          isSupervisorAccessEnabled: false,
           createdAt: new Date('2020-01-05'),
         });
         databaseBuilder.factory.buildComplementaryCertification({
@@ -79,14 +79,13 @@ describe('Acceptance | API | Certification Center', function () {
                 'external-id': '12345',
                 name: 'Centres des tests jolis',
                 type: 'SUP',
-                'is-supervisor-access-enabled': true,
               },
               relationships: {
                 habilitations: {
                   data: [
                     {
                       id: '12',
-                      type: 'habilitations',
+                      type: 'complementary-certifications',
                     },
                   ],
                 },
@@ -105,7 +104,6 @@ describe('Acceptance | API | Certification Center', function () {
                 'external-id': '222',
                 name: 'Centres des tests pas moches',
                 type: 'SCO',
-                'is-supervisor-access-enabled': false,
               },
               relationships: {
                 habilitations: {
@@ -122,7 +120,7 @@ describe('Acceptance | API | Certification Center', function () {
           included: [
             {
               id: '12',
-              type: 'habilitations',
+              type: 'complementary-certifications',
               attributes: {
                 label: 'Pix+Edu 1er degré',
                 key: 'EDU_1ER_DEGRE',
@@ -192,14 +190,13 @@ describe('Acceptance | API | Certification Center', function () {
               attributes: {
                 name: 'Nouveau Centre de Certif',
                 type: 'SCO',
-                'is-supervisor-access-enabled': true,
                 'data-protection-officer-email': 'adrienne.quepourra@example.net',
               },
               relationships: {
                 habilitations: {
                   data: [
                     {
-                      type: 'habilitations',
+                      type: 'complementary-certifications',
                       id: `${complementaryCertification.id}`,
                     },
                   ],
@@ -212,9 +209,8 @@ describe('Acceptance | API | Certification Center', function () {
         // then
         expect(response.statusCode).to.equal(200);
         expect(response.result.data.attributes.name).to.equal('Nouveau Centre de Certif');
-        expect(response.result.data.attributes['is-supervisor-access-enabled']).to.equal(true);
         expect(response.result.data.attributes['data-protection-officer-email']).to.equal(
-          'adrienne.quepourra@example.net'
+          'adrienne.quepourra@example.net',
         );
         expect(response.result.data.id).to.be.ok;
       });
@@ -233,13 +229,12 @@ describe('Acceptance | API | Certification Center', function () {
               attributes: {
                 name: 'Nouveau Centre de Certif',
                 type: 'SCO',
-                'is-supervisor-access-enabled': true,
               },
               relationships: {
                 habilitations: {
                   data: [
                     {
-                      type: 'habilitations',
+                      type: 'complementary-certifications',
                       id: `${complementaryCertification.id}`,
                     },
                   ],
@@ -341,7 +336,7 @@ describe('Acceptance | API | Certification Center', function () {
         { id: 2, division: '2ndA', firstName: 'Laura', lastName: 'Booooo' },
         { id: 3, division: '2ndA', firstName: 'Laura', lastName: 'aaaaa' },
         { id: 4, division: '2ndA', firstName: 'Bart', lastName: 'Coucou' },
-        { id: 5, division: '2ndA', firstName: 'Arthur', lastName: 'Coucou' }
+        { id: 5, division: '2ndA', firstName: 'Arthur', lastName: 'Coucou' },
       );
       await databaseBuilder.commit();
 
@@ -417,7 +412,7 @@ describe('Acceptance | API | Certification Center', function () {
           { id: 2, division: '2ndA', firstName: 'Laura', lastName: 'Booooo' },
           { id: 3, division: '2ndA', firstName: 'Laura', lastName: 'aaaaa' },
           { id: 4, division: '2ndA', firstName: 'Bart', lastName: 'Coucou' },
-          { id: 5, division: '2ndA', firstName: 'Arthur', lastName: 'Coucou' }
+          { id: 5, division: '2ndA', firstName: 'Arthur', lastName: 'Coucou' },
         );
         await databaseBuilder.commit();
 
@@ -446,7 +441,7 @@ describe('Acceptance | API | Certification Center', function () {
 
         request = _buildOrganizationLearnersNotConnectedUserRequest(
           certificationCenterWhereUserDoesNotHaveAccess,
-          session
+          session,
         );
 
         // when
@@ -510,12 +505,12 @@ describe('Acceptance | API | Certification Center', function () {
         // then
         expect(response.result.data[0].id).to.equal(certificationCenterMembership1.id.toString());
         expect(response.result.data[0].attributes['created-at']).to.deep.equal(
-          certificationCenterMembership1.createdAt
+          certificationCenterMembership1.createdAt,
         );
 
         expect(response.result.data[1].id).to.equal(certificationCenterMembership2.id.toString());
         expect(response.result.data[1].attributes['created-at']).to.deep.equal(
-          certificationCenterMembership2.createdAt
+          certificationCenterMembership2.createdAt,
         );
 
         const expectedIncluded = [
@@ -759,6 +754,103 @@ describe('Acceptance | API | Certification Center', function () {
     });
   });
 
+  describe('POST /api/certification-centers/{certificationCenterId}/session', function () {
+    describe('when certification center is not V3 certification pilot center', function () {
+      it('should return a 200 HTTP status with a V2 session', async function () {
+        // given
+        const userId = databaseBuilder.factory.buildUser().id;
+        const certificationCenterId = databaseBuilder.factory.buildCertificationCenter().id;
+        databaseBuilder.factory.buildCertificationCenterMembership({
+          userId,
+          certificationCenterId,
+        });
+        await databaseBuilder.commit();
+
+        const payload = {
+          data: {
+            attributes: {
+              address: 'site',
+              'access-code': null,
+              date: '2023-06-17',
+              time: '12:00',
+              description: null,
+              examiner: 'surveillant',
+              room: 'salle',
+              'certification-center-id': certificationCenterId,
+            },
+            type: 'sessions',
+          },
+        };
+
+        const options = {
+          method: 'POST',
+          url: `/api/certification-centers/${certificationCenterId}/session`,
+          payload,
+          headers: { authorization: generateValidRequestAuthorizationHeader(userId) },
+        };
+
+        // when
+        const response = await server.inject(options);
+
+        // then
+        expect(response.statusCode).to.equal(200);
+        const [session] = await knex('sessions');
+        expect(session.version).to.equal(2);
+      });
+    });
+
+    describe('when certification center is a V3 certification pilot center', function () {
+      it('should return a 200 HTTP status with a V3 session', async function () {
+        // given
+        const userId = databaseBuilder.factory.buildUser().id;
+        const certificationCenterId = databaseBuilder.factory.buildCertificationCenter({ isV3Pilot: true }).id;
+        databaseBuilder.factory.buildCertificationCenterMembership({
+          userId,
+          certificationCenterId,
+        });
+        await databaseBuilder.commit();
+
+        const payload = {
+          data: {
+            attributes: {
+              address: 'site',
+              'access-code': null,
+              date: '2023-06-17',
+              time: '12:00',
+              description: null,
+              examiner: 'surveillant',
+              room: 'salle',
+              status: null,
+              'examiner-global-comment': null,
+              'supervisor-password': null,
+              'has-supervisor-access': false,
+              'has-some-clea-acquired': false,
+              'has-incident': false,
+              'has-joining-issue': false,
+              'certification-center-id': certificationCenterId,
+            },
+            type: 'sessions',
+          },
+        };
+
+        const options = {
+          method: 'POST',
+          url: `/api/certification-centers/${certificationCenterId}/session`,
+          payload,
+          headers: { authorization: generateValidRequestAuthorizationHeader(userId) },
+        };
+
+        // when
+        const response = await server.inject(options);
+
+        // then
+        expect(response.statusCode).to.equal(200);
+        const [session] = await knex('sessions');
+        expect(session.version).to.equal(3);
+      });
+    });
+  });
+
   function _buildOrganizationLearners(organization, ...students) {
     const AFTER_BEGINNING_OF_THE_2020_SCHOOL_YEAR = '2020-10-15';
     return students.map((student) =>
@@ -766,7 +858,7 @@ describe('Acceptance | API | Certification Center', function () {
         organizationId: organization.id,
         ...student,
         updatedAt: AFTER_BEGINNING_OF_THE_2020_SCHOOL_YEAR,
-      })
+      }),
     );
   }
 

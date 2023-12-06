@@ -1,62 +1,72 @@
-.correction-qrocm {
-
-  &__text {
-    display: inline-block;
+.correction-qrocm__answer {
+  &--paragraph {
+    display: block;
     width: 100%;
-    color: $pix-neutral-80;
-    font-size: 1rem;
-    line-height: 1.75rem;
   }
 
-  &__answer {
-    padding: 0 10px;
-    line-height: 1.625rem;
-    background-color: $pix-neutral-0;
-    border: solid 1px $pix-neutral-20;
-    border-radius: 3px;
-    box-shadow: inset 0 1px 3px 0 rgb(0 0 0 / 15%);
+  &--sentence {
+    display: block;
+    width: 100%;
+  }
 
-    &-wrapper {
-      display: inline-block;
-      width: 100%;
-      vertical-align: top;
-    }
+  &--input {
+    display: inline-block;
+    padding: $pix-spacing-xxs $pix-spacing-xxs $pix-spacing-xxs 0;
+    vertical-align: 0;
 
-    &--paragraph {
-      display: block;
-      width: 100%;
-    }
-
-    &--sentence {
-      display: block;
-      width: 100%;
-    }
-
-    &--input {
-      display: inline-block;
-      max-width: 100%;
-      height: 26px;
+    &:not(:last-child) {
+      padding-left: 0;
     }
   }
 
-  &__solution {
-    display: flex;
-    align-items: center;
+  &.correction-qroc-box-answer--wrong,
+  &.correction-qroc-box-answer--aband {
+    vertical-align: -2.5em;
+  }
+}
 
-    &-text {
-      margin-top: 3px;
-      margin-left: 10px;
-      padding-bottom: 1px;
-      color: $pix-success-70;
-      font-weight: $font-bold;
-      font-size: 1rem;
+.correction-qrocm-answer {
+  &__input-paragraph {
+    display: block;
+    width: 100%;
+  }
+
+  &-answer__input-sentence {
+    display: block;
+    width: 100%;
+  }
+
+  &-answer__input {
+    display: inline-block;
+    width: auto;
+    max-width: 100%;
+  }
+}
+
+.correction-qrocm__text {
+  padding-inline: 12px;
+}
+
+.correction-qrocm-text {
+  &__label {
+    display: inline;
+    padding: $pix-spacing-xxs $pix-spacing-xxs $pix-spacing-xxs 0;
+
+    &:not(:last-child) {
+      padding-left: 0;
     }
   }
 }
 
-.correction-qrocm-text {
+.correction-qrocm__solution {
+  display: flex;
+  align-items: center;
 
-  &__label {
-    display: block;
+  &-text {
+    @extend %pix-body-m;
+
+    margin: $pix-spacing-xxs 0 $pix-spacing-xs;
+    color: $pix-success-70;
+    font-weight: $font-bold;
   }
 }

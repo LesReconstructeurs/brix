@@ -1,9 +1,10 @@
+{{!-- template-lint-disable  --}}
 {{page-title "Profil " @model.id " | Pix Admin" replace=true}}
 <header class="page-header">
   <div class="page-title">
     <LinkTo @route="authenticated.target-profiles.list">Tous les profils cibles</LinkTo>
     <span class="wire">&nbsp;>&nbsp;</span>
-    {{@model.name}}
+    <h1>{{@model.name}}</h1>
   </div>
 </header>
 
@@ -15,36 +16,39 @@
   {{else}}
     <section class="page-section">
       <div class="page-section__header">
-        <h1 class="page-section__title target-profile__title">{{@model.name}}</h1>
+        <h2 class="page-section__title target-profile__title">{{@model.name}}</h2>
         <TargetProfiles::Category @category={{@model.category}} />
       </div>
       <div class="page-section__container">
-        <div class="page-section__content">
-          <div>ID : {{@model.id}}</div>
-          <div>Date de création : {{format-date @model.createdAt}}</div>
-          <div>Public : {{this.isPublic}}</div>
-          <div>Parcours Accès Simplifié : {{this.isSimplifiedAccess}}</div>
-          <div>Obsolète : {{this.isOutdated}}</div>
-          <div>Organisation de référence :
+        <ul>
+          <li><span class="bold">ID : </span>{{@model.id}}</li>
+          <li><span class="bold">Date de création : </span>{{format-date @model.createdAt}}</li>
+          <li><span class="bold">Public : </span>{{this.isPublic}}</li>
+          <li><span class="bold">Parcours Accès Simplifié : </span>{{this.isSimplifiedAccess}}</li>
+          <li><span class="bold">Obsolète : </span>{{this.isOutdated}}</li>
+          <li><span class="bold">Est associé à une campagne : </span>{{this.hasLinkedCampaign}}</li>
+          <li><span class="bold">Organisation de référence : </span>
             <LinkTo @route="authenticated.organizations.get" @model={{@model.ownerOrganizationId}}>
               {{@model.ownerOrganizationId}}
             </LinkTo>
-          </div>
-        </div>
-        <div class="page-section__content">
+          </li>
+          <li><span class="bold">{{t "pages.target-profiles.resettable-checkbox.label"}} : </span>{{this.areKnowledgeElementsResettable}}</li>
           {{#if @model.description}}
-            <div>
-              Description :
+            <li>
+              <span class="bold">Description : </span>
               <MarkdownToHtml @markdown={{@model.description}} />
-            </div>
+            </li>
           {{/if}}
           {{#if @model.comment}}
-            <div>
-              Commentaire (usage interne) :
+            <li>
+              <span class="bold">Commentaire (usage interne) : </span>
               <MarkdownToHtml @markdown={{@model.comment}} />
-            </div>
+            </li>
           {{/if}}
-        </div>
+        </ul>
+
+        {{! template-lint-disable no-redundant-role }}
+        <img src={{@model.imageUrl}} role="img" alt="Profil cible" />
       </div>
       <div class="target-profile__actions">
         <PixButton
@@ -55,9 +59,7 @@
         >
           Éditer
         </PixButton>
-        {{#if this.displayActionsSeparator}}
-          <div class="target-profile__actions-separator"></div>
-        {{/if}}
+        <div class="target-profile__actions-separator"></div>
         {{#unless @model.isSimplifiedAccess}}
           <PixButton
             @size="small"
@@ -68,21 +70,19 @@
             Marquer comme accès simplifié
           </PixButton>
         {{/unless}}
-        {{#if @model.isNewFormat}}
-          <PixButtonLink
-            @size="small"
-            @backgroundColor="green"
-            @href={{@model.urlToJsonContent}}
-            target="_blank"
-            rel="noopener noreferrer"
-            download
-          >
-            Télécharger le profil cible (JSON)
-          </PixButtonLink>
-          <PixButton @triggerAction={{this.toggleDisplayPdfParametersModal}} @size="small" @backgroundColor="green">
-            Télécharger le profil cible (PDF)
-          </PixButton>
-        {{/if}}
+        <PixButtonLink
+          @size="small"
+          @backgroundColor="green"
+          @href={{@model.urlToJsonContent}}
+          target="_blank"
+          rel="noopener noreferrer"
+          download
+        >
+          Télécharger le profil cible (JSON)
+        </PixButtonLink>
+        <PixButton @triggerAction={{this.toggleDisplayPdfParametersModal}} @size="small" @backgroundColor="green">
+          Télécharger le profil cible (PDF)
+        </PixButton>
         {{#unless @model.outdated}}
           <div class="target-profile__actions-spacer"></div>
           <PixButton @size="small" @backgroundColor="red" @triggerAction={{this.toggleDisplayConfirm}}>
@@ -108,6 +108,14 @@
     </LinkTo>
     <LinkTo @route="authenticated.target-profiles.target-profile.insights" @model={{@model}} class="navbar-item">
       Clés de lecture
+    </LinkTo>
+    <LinkTo
+      @route="authenticated.target-profiles.target-profile.training-summaries"
+      @model={{@model}}
+      class="navbar-item"
+      aria-label="Contenus formatifs du profil cible"
+    >
+      Contenus formatifs
     </LinkTo>
   </nav>
 

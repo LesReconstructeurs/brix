@@ -1,6 +1,7 @@
 import { module, test } from 'qunit';
 import { setupApplicationTest } from 'ember-qunit';
-import { visit, fillIn, currentURL } from '@ember/test-helpers';
+import { fillIn, currentURL } from '@ember/test-helpers';
+import { visit } from '@1024pix/ember-testing-library';
 import { setupMirage } from 'ember-cli-mirage/test-support';
 import { clickByLabel } from '../helpers/click-by-label';
 import setupIntl from '../helpers/setup-intl';
@@ -20,9 +21,7 @@ module('Acceptance | Certificate verification', function (hooks) {
       await clickByLabel(this.intl.t('pages.fill-in-certificate-verification-code.verify'));
 
       // Then
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(currentURL(), '/partage-certificat/200');
+      assert.strictEqual(currentURL(), '/partage-certificat/200');
     });
   });
 
@@ -36,9 +35,7 @@ module('Acceptance | Certificate verification', function (hooks) {
       await clickByLabel(this.intl.t('pages.fill-in-certificate-verification-code.verify'));
 
       // Then
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(currentURL(), '/verification-certificat');
+      assert.strictEqual(currentURL(), '/verification-certificat');
     });
 
     test('shows error message', async function (assert) {
@@ -60,9 +57,7 @@ module('Acceptance | Certificate verification', function (hooks) {
       await visit('/partage-certificat/200');
 
       // Then
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(currentURL(), '/verification-certificat');
+      assert.strictEqual(currentURL(), '/verification-certificat');
     });
   });
 });

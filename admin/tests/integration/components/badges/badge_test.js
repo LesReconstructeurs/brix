@@ -1,7 +1,7 @@
 import { module, test } from 'qunit';
 import { setupRenderingTest } from 'ember-qunit';
 import { render } from '@1024pix/ember-testing-library';
-import hbs from 'htmlbars-inline-precompile';
+import { hbs } from 'ember-cli-htmlbars';
 
 module('Integration | Component | Badges::Badge', function (hooks) {
   setupRenderingTest(hooks);
@@ -40,20 +40,18 @@ module('Integration | Component | Badges::Badge', function (hooks) {
     // given
     const store = this.owner.lookup('service:store');
     const targetProfile = store.createRecord('target-profile', {
-      newAreas: [],
+      areas: [],
     });
     const criterionCampaignParticipation = store.createRecord('badge-criterion', {
       id: 123,
       threshold: 25,
       scope: 'CampaignParticipation',
-      skillSets: [],
       cappedTubes: [],
     });
     const criterionCappedTubes = store.createRecord('badge-criterion', {
       id: 456,
       threshold: 95,
       scope: 'CappedTubes',
-      skillSets: [],
       cappedTubes: [],
     });
     const badge = store.createRecord('badge', {
@@ -76,11 +74,11 @@ module('Integration | Component | Badges::Badge', function (hooks) {
     // then
     assert.deepEqual(
       screen.getByTestId('triste').innerText,
-      'L‘évalué doit obtenir 25% sur l‘ensemble des sujets du profil cible.'
+      'L‘évalué doit obtenir 25% sur l‘ensemble des sujets du profil cible.',
     );
     assert.deepEqual(
       screen.getByTestId('toujourstriste').innerText,
-      "L'évalué doit obtenir 95% sur tous les sujets plafonnés par niveau suivants :"
+      "L'évalué doit obtenir 95% sur tous les sujets plafonnés par niveau suivants :",
     );
   });
 });

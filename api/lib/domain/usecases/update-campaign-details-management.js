@@ -1,7 +1,6 @@
-const campaignValidator = require('../validators/campaign-validator');
-const { EntityValidationError } = require('../errors');
+import { EntityValidationError } from '../errors.js';
 
-module.exports = async function updateCampaignDetailsManagement({
+const updateCampaignDetailsManagement = async function ({
   campaignId,
   name,
   title,
@@ -11,6 +10,7 @@ module.exports = async function updateCampaignDetailsManagement({
   customResultPageButtonUrl,
   multipleSendings,
   campaignManagementRepository,
+  campaignValidator,
 }) {
   const campaign = await campaignManagementRepository.get(campaignId);
   campaign.name = name;
@@ -42,3 +42,5 @@ module.exports = async function updateCampaignDetailsManagement({
   };
   return campaignManagementRepository.update({ campaignId, campaignAttributes });
 };
+
+export { updateCampaignDetailsManagement };

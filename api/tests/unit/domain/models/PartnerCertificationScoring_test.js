@@ -1,6 +1,6 @@
-const PartnerCertificationScoring = require('../../../../lib/domain/models/PartnerCertificationScoring');
-const { expect } = require('../../../test-helper');
-const { ObjectValidationError } = require('../../../../lib/domain/errors');
+import { PartnerCertificationScoring } from '../../../../lib/domain/models/PartnerCertificationScoring.js';
+import { expect } from '../../../test-helper.js';
+import { ObjectValidationError } from '../../../../lib/domain/errors.js';
 
 describe('Unit | Domain | Models | PartnerCertificationScoring', function () {
   describe('constructor', function () {
@@ -21,14 +21,14 @@ describe('Unit | Domain | Models | PartnerCertificationScoring', function () {
     it('should throw an ObjectValidationError when complementaryCertificationCourseId is not valid', function () {
       // when
       expect(
-        () => new PartnerCertificationScoring({ ...validArguments, complementaryCertificationCourseId: 'coucou' })
+        () => new PartnerCertificationScoring({ ...validArguments, complementaryCertificationCourseId: 'coucou' }),
       ).to.throw(ObjectValidationError);
     });
 
     it('should not throw an ObjectValidationError when partnerKey is null', function () {
       // when
       expect(() => new PartnerCertificationScoring({ ...validArguments, partnerKey: null })).to.not.throw(
-        ObjectValidationError
+        ObjectValidationError,
       );
     });
   });

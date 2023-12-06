@@ -1,0 +1,79 @@
+.training-trigger {
+  &__link {
+    color: $pix-primary;
+
+    svg {
+      height: 0.75em;
+      margin-left: 2px;
+      vertical-align: -0.05em;
+    }
+  }
+}
+
+.trigger-card {
+  &__title {
+    @extend %pix-body-l;
+
+    display: flex;
+    align-items: baseline;
+    margin-bottom: $pix-spacing-xs;
+    font-weight: 500;
+  }
+
+  &__threshold {
+    margin-left: $pix-spacing-s;
+    color: $pix-neutral-90;
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+
+  &__tubes-count {
+    margin-left: auto;
+  }
+
+  &__description {
+    @extend %pix-body-m;
+
+    margin-bottom: $pix-spacing-s;
+  }
+
+  &__toggler {
+    display: inline-flex;
+
+    svg {
+      margin-right: $pix-spacing-xs;
+    }
+  }
+}
+
+.edit-training-trigger {
+  counter-reset: title;
+
+  &__actions {
+    display: flex;
+    gap: $pix-spacing-m;
+    margin: $pix-spacing-m 0;
+  }
+
+  &__threshold {
+    margin-bottom: $pix-spacing-m;
+  }
+
+  .card__title {
+    counter-increment: title;
+
+    &::before {
+      content: counter(title) '.\00a0';
+    }
+  }
+}
+
+.edit-training-trigger-threshold {
+  &__description {
+    margin-bottom: $pix-spacing-s;
+  }
+
+  &__input {
+    max-width: 8.75rem;
+  }
+}

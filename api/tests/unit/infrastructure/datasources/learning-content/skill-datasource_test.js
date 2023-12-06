@@ -1,12 +1,12 @@
-const { expect, sinon } = require('../../../../test-helper');
-const _ = require('lodash');
-const skillDatasource = require('../../../../../lib/infrastructure/datasources/learning-content/skill-datasource');
-const lcms = require('../../../../../lib/infrastructure/lcms');
-const cache = require('../../../../../lib/infrastructure/caches/learning-content-cache');
+import { expect, sinon } from '../../../../test-helper.js';
+import _ from 'lodash';
+import { skillDatasource } from '../../../../../lib/infrastructure/datasources/learning-content/skill-datasource.js';
+import { lcms } from '../../../../../lib/infrastructure/lcms.js';
+import { learningContentCache } from '../../../../../lib/infrastructure/caches/learning-content-cache.js';
 
 describe('Unit | Infrastructure | Datasource | LearningContent | SkillDatasource', function () {
   beforeEach(function () {
-    sinon.stub(cache, 'get').callsFake((generator) => generator());
+    sinon.stub(learningContentCache, 'get').callsFake((generator) => generator());
   });
 
   describe('#findOperativeByRecordIds', function () {
@@ -46,6 +46,39 @@ describe('Unit | Infrastructure | Datasource | LearningContent | SkillDatasource
       // then
       expect(foundSkills).to.be.an('array');
       expect(_.map(foundSkills, 'id')).to.deep.equal([rawSkill1.id, rawSkill2.id, rawSkill4.id]);
+    });
+  });
+
+  describe('#findAllByName', function () {
+    it('should return the corresponding skills', async function () {
+      // given
+      const rawSkill1 = { id: 'recSkill1', name: '@rechercher_didacticiel1' };
+      const rawSkill2 = { id: 'recSkill2', name: '@rechercher_didacticiel1' };
+      const rawSkill3 = { id: 'recSkill3', name: '@rechercher_entrainement1' };
+      const rawSkill4 = { id: 'recSkill4', name: '@rechercher_didacticiel2' };
+      const rawSkill5 = { id: 'recSkill5', name: '@rechercher_didacticiel12' };
+      sinon
+        .stub(lcms, 'getLatestRelease')
+        .resolves({ skills: [rawSkill1, rawSkill2, rawSkill3, rawSkill4, rawSkill5] });
+
+      // when
+      const result = await skillDatasource.findAllByName('@rechercher_didacticiel1');
+
+      // then
+      expect(result).to.deep.equal([rawSkill1, rawSkill2]);
+    });
+
+    context('when there is no skill found', function () {
+      it('should return an empty array', async function () {
+        // given
+        sinon.stub(lcms, 'getLatestRelease').resolves({ skills: [] });
+
+        // when
+        const result = await skillDatasource.findAllByName('@rechercher_validation');
+
+        // then
+        expect(result).to.deep.equal([]);
+      });
     });
   });
 

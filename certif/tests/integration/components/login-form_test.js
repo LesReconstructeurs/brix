@@ -1,7 +1,7 @@
 import { module, test } from 'qunit';
 import { click, fillIn } from '@ember/test-helpers';
 import { render as renderScreen } from '@1024pix/ember-testing-library';
-import hbs from 'htmlbars-inline-precompile';
+import { hbs } from 'ember-cli-htmlbars';
 import Service from '@ember/service';
 import { reject, resolve } from 'rsvp';
 import sinon from 'sinon';
@@ -26,7 +26,7 @@ module('Integration | Component | login-form', function (hooks) {
 
   test('it should display login form', async function (assert) {
     // when
-    const screen = await renderScreen(hbs`{{login-form}}`);
+    const screen = await renderScreen(hbs`<LoginForm />`);
 
     // then
     assert.dom(screen.getByRole('img', { name: 'Pix Certif' })).exists();
@@ -46,7 +46,7 @@ module('Integration | Component | login-form', function (hooks) {
       return resolve();
     });
     const sessionServiceObserver = this.owner.lookup('service:session');
-    const screen = await renderScreen(hbs`{{login-form}}`);
+    const screen = await renderScreen(hbs`<LoginForm />`);
     await fillIn(screen.getByRole('textbox', { name: 'Adresse e-mail' }), 'pix@example.net');
     await fillIn(screen.getByLabelText('Mot de passe'), 'JeMeLoggue1024');
 
@@ -76,7 +76,7 @@ module('Integration | Component | login-form', function (hooks) {
     };
 
     sessionStub.authenticate.callsFake(() => reject(invalidCredentialsErrorMessage));
-    const screen = await renderScreen(hbs`{{login-form}}`);
+    const screen = await renderScreen(hbs`<LoginForm />`);
     await fillIn(screen.getByRole('textbox', { name: 'Adresse e-mail' }), 'pix@example.net');
     await fillIn(screen.getByLabelText('Mot de passe'), 'Mauvais mot de passe');
 
@@ -94,9 +94,11 @@ module('Integration | Component | login-form', function (hooks) {
         errors: [{ status: '401', code: 'SHOULD_CHANGE_PASSWORD' }],
       },
     };
+    const service = this.owner.lookup('service:url');
+    service.currentDomain = { getExtension: sinon.stub().returns('fr') };
 
     sessionStub.authenticate.callsFake(() => reject(errorResponse));
-    const screen = await renderScreen(hbs`{{login-form}}`);
+    const screen = await renderScreen(hbs`<LoginForm />`);
     await fillIn(screen.getByRole('textbox', { name: 'Adresse e-mail' }), 'pix@example.net');
     await fillIn(screen.getByLabelText('Mot de passe'), 'Mauvais mot de passe');
 
@@ -104,18 +106,19 @@ module('Integration | Component | login-form', function (hooks) {
     await click(screen.getByRole('button', { name: 'Je me connecte' }));
 
     // then
-    const expectedErrorMessage = this.intl.t('pages.login-form.errors.should-change-password', {
-      url: 'https://app.pix.localhost/mot-de-passe-oublie',
+    const expectedErrorMessage = this.intl.t('pages.login.errors.should-change-password', {
+      url: 'https://app.pix.fr/mot-de-passe-oublie',
       htmlSafe: true,
     });
+
     assert
       .dom(
         screen.getByText((content, node) => {
-          const hasText = (node) => node.innerHTML.trim() === expectedErrorMessage.string;
+          const hasText = (node) => node.innerHTML.trim() === `${expectedErrorMessage}`;
           const nodeHasText = hasText(node);
           const childrenDontHaveText = Array.from(node.children).every((child) => !hasText(child));
           return nodeHasText && childrenDontHaveText;
-        })
+        }),
       )
       .exists();
   });
@@ -136,7 +139,7 @@ module('Integration | Component | login-form', function (hooks) {
     };
 
     sessionStub.authenticate.callsFake(() => reject(notLinkedToOrganizationErrorMessage));
-    const screen = await renderScreen(hbs`{{login-form}}`);
+    const screen = await renderScreen(hbs`<LoginForm />`);
     await fillIn(screen.getByRole('textbox', { name: 'Adresse e-mail' }), 'pix@example.net');
     await fillIn(screen.getByLabelText('Mot de passe'), 'JeMeLoggue1024');
 
@@ -163,7 +166,7 @@ module('Integration | Component | login-form', function (hooks) {
     };
 
     sessionStub.authenticate.callsFake(() => reject(gatewayTimeoutErrorMessage));
-    const screen = await renderScreen(hbs`{{login-form}}`);
+    const screen = await renderScreen(hbs`<LoginForm />`);
     await fillIn(screen.getByRole('textbox', { name: 'Adresse e-mail' }), 'pix@example.net');
     await fillIn(screen.getByLabelText('Mot de passe'), 'JeMeLoggue1024');
 
@@ -178,11 +181,11 @@ module('Integration | Component | login-form', function (hooks) {
     // given
     const msgErrorNotLinkedCertification = {
       status: Number(ApiErrorMessages.GATEWAY_TIMEOUT.CODE),
-      errors: [{ status: '502', title: 'Bad Gateway', detail: 'Bad gateway occured' }],
+      errors: [{ status: '502', title: 'Bad Gateway', detail: 'Bad gateway occurred' }],
     };
 
     sessionStub.authenticate.callsFake(() => reject(msgErrorNotLinkedCertification));
-    const screen = await renderScreen(hbs`{{login-form}}`);
+    const screen = await renderScreen(hbs`<LoginForm />`);
     await fillIn(screen.getByRole('textbox', { name: 'Adresse e-mail' }), 'pix@example.net');
     await fillIn(screen.getByLabelText('Mot de passe'), 'JeMeLoggue1024');
 
@@ -205,7 +208,7 @@ module('Integration | Component | login-form', function (hooks) {
             return (
               content === 'Cette invitation n’est plus valide.Contactez l’administrateur de votre espace Pix Certif.'
             );
-          })
+          }),
         )
         .exists();
     });
@@ -224,7 +227,7 @@ module('Integration | Component | login-form', function (hooks) {
               content ===
               'Cette invitation a déjà été acceptée.Connectez-vous ou contactez l’administrateur de votre espace Pix Certif.'
             );
-          })
+          }),
         )
         .exists();
     });

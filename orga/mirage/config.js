@@ -66,6 +66,7 @@ export default function () {
       id: user.id,
       firstName: user.firstName,
       lastName: user.lastName,
+      lang: 'fr',
     });
 
     return user;
@@ -74,6 +75,12 @@ export default function () {
   this.patch('/users/:id/pix-orga-terms-of-service-acceptance', (schema, request) => {
     const user = schema.users.find(request.params.id);
     user.update({ pixOrgaTermsOfServiceAccepted: true });
+    return user;
+  });
+
+  this.patch('/users/:id/lang/:lang', (schema, request) => {
+    const user = schema.users.find(request.params.id);
+    user.update({ lang: request.params.lang });
     return user;
   });
 
@@ -91,7 +98,7 @@ export default function () {
       results = schema.campaigns.all();
     } else if (ownerName && !campaignName) {
       results = schema.campaigns.where(
-        ({ ownerFirstName, ownerLastName }) => ownerFirstName.includes(ownerName) || ownerLastName.includes(ownerName)
+        ({ ownerFirstName, ownerLastName }) => ownerFirstName.includes(ownerName) || ownerLastName.includes(ownerName),
       );
     } else if (!ownerName && campaignName) {
       results = schema.campaigns.where(({ name }) => name.includes(campaignName));
@@ -104,7 +111,7 @@ export default function () {
     } else {
       results = schema.campaigns.where(
         ({ ownerFirstName, ownerLastName, name }) =>
-          (ownerFirstName.includes(ownerName) || ownerLastName.includes(ownerName)) && name.includes(campaignName)
+          (ownerFirstName.includes(ownerName) || ownerLastName.includes(ownerName)) && name.includes(campaignName),
       );
     }
     const json = this.serializerOrRegistry.serialize(results, request);
@@ -182,6 +189,9 @@ export default function () {
     });
 
     prescriber.memberships = [membership];
+    if (code === 'ENGLISH_USER_INVITATION_CODE') {
+      prescriber.lang = 'en';
+    }
     prescriber.save();
 
     const organization = schema.organizations.find(organizationInvitation.organizationId);
@@ -212,7 +222,7 @@ export default function () {
                 "L'UAI/RNE de l'établissement ne correspond à aucun établissement dans la base de données Pix. Merci de contacter le support.",
             },
           ],
-        }
+        },
       );
     }
 
@@ -229,7 +239,7 @@ export default function () {
                 "Nous n'avons pas d'adresse e-mail de contact associé à votre établissement, merci de contacter le support pour récupérer votre accès.",
             },
           ],
-        }
+        },
       );
     }
 
@@ -251,6 +261,18 @@ export default function () {
 
   this.get('/organizations/:id/participants', findFilteredPaginatedOrganizationParticipants);
 
+  this.get('/organization-learners/:id', (schema, request) => {
+    const participantId = request.params.id;
+
+    return { data: { id: participantId, type: 'organization-learner' } };
+  });
+
+  this.get('/organization-learners/:id/activity', (schema, request) => {
+    const participantId = request.params.id;
+
+    return { data: { id: `${participantId}-activity`, type: 'organization-learner-activity' } };
+  });
+
   this.post('/organizations/:id/sco-organization-learners/import-siecle', (schema, request) => {
     const type = request.requestBody.type;
 
@@ -260,8 +282,8 @@ export default function () {
           new Response(
             422,
             {},
-            { errors: [{ status: '422', detail: '422 - Le détail affiché est envoyé par le back' }] }
-          )
+            { errors: [{ status: '422', detail: '422 - Le détail affiché est envoyé par le back' }] },
+          ),
         );
       });
     } else if (type === 'valid-file') {
@@ -283,8 +305,8 @@ export default function () {
         new Response(
           200,
           {},
-          { data: { attributes: { warnings: [{ field: 'diploma', value: 'BAD', code: 'unknown' }] } } }
-        )
+          { data: { attributes: { warnings: [{ field: 'diploma', value: 'BAD', code: 'unknown' }] } } },
+        ),
       );
     } else if (type === 'invalid-file') {
       return new Promise((resolve) => {
@@ -358,7 +380,7 @@ export default function () {
 
   this.get(
     '/campaigns/:id/profiles-collection-participations',
-    findPaginatedCampaignProfilesCollectionParticipationSummaries
+    findPaginatedCampaignProfilesCollectionParticipationSummaries,
   );
 
   this.get('/campaign-participations/:id/analyses', (schema, request) => {
@@ -369,6 +391,15 @@ export default function () {
     return schema.dependentUsers.create({
       generatedPassword: 'Passw0rd',
     });
+  });
+
+  this.post('/sco-organization-learners/password-reset', () => {
+    const headers = {
+      'Content-Type': 'text/csv;charset=utf-8',
+      'Content-Disposition': 'attachment; filename=content.csv',
+    };
+    const csvContent = 'Identifiant;Mot de passe;Classe\nuser1;password1;1A\n';
+    return new Response(200, headers, csvContent);
   });
 
   this.post('/sco-organization-learners/username-password-generation', (schema) => {
@@ -462,9 +493,8 @@ export default function () {
     return new Response(204);
   });
 
-  this.get('/frameworks/pix/areas', (schema, request) => {
-    request.queryParams.include = ['competences.thematics', 'competences.thematics.tubes'].join(',');
-    return schema.areas.all();
+  this.get('/frameworks/for-target-profile-submission', (schema) => {
+    return schema.frameworks.all();
   });
 
   this.delete('/campaigns/:campaignId/campaign-participations/:campaignParticipationId', (schema, request) => {

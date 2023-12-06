@@ -1,20 +1,31 @@
 .login-or-register {
-  margin: 20px 0;
+  margin: $pix-spacing-m 0;
+
+  @include device-is('mobile') {
+    margin: 12px 0;
+  }
+
+  &__language-switcher {
+    @include device-is('mobile') {
+      margin-left: 22px;
+    }
+  }
 
   &__panel {
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
-    border-radius: 10px;
     align-items: center;
+    justify-content: space-between;
+    margin-bottom: $pix-spacing-s;
     padding: 20px 2px;
+    border-radius: 10px;
 
     @include device-is('tablet') {
       padding: 20px;
     }
 
     @include device-is('large-screen') {
-      padding: 40px 100px;
+      padding: $pix-spacing-xl 100px;
     }
   }
 }
@@ -26,20 +37,20 @@
   }
 
   &__invitation {
-    font-family: $font-roboto;
-    font-size: 1.125rem;
-    font-weight: 500;
-    color: $pix-neutral-100;
-    text-align: center;
     margin-top: 24px;
+    color: $pix-neutral-100;
+    font-weight: 500;
+    font-size: 1.125rem;
+    font-family: $font-roboto;
+    text-align: center;
   }
 
   &__forms-container {
     display: flex;
-    margin-top: 10px;
-    min-height: 500px;
     flex-flow: row;
     justify-content: space-around;
+    min-height: 500px;
+    margin-top: 10px;
 
     @include device-is('large-screen') {
       flex-flow: row;
@@ -58,6 +69,14 @@
 
     @include device-is('tablet') {
       min-width: 360px;
+    }
+
+    .form-title {
+      margin: $pix-spacing-m 0;
+
+      @include device-is('mobile') {
+        text-align: center;
+      }
     }
   }
 

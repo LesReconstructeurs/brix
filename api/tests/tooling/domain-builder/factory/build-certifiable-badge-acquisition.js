@@ -1,4 +1,4 @@
-const CertifiableBadgeAcquisition = require('../../../../lib/domain/models/CertifiableBadgeAcquisition');
+import { CertifiableBadgeAcquisition } from '../../../../lib/domain/models/CertifiableBadgeAcquisition.js';
 
 const buildCertifiableBadgeAcquisition = function ({
   badgeId = 123,
@@ -8,7 +8,7 @@ const buildCertifiableBadgeAcquisition = function ({
   complementaryCertificationKey = 'PIX_DROIT',
   complementaryCertificationBadgeId = 159,
   complementaryCertificationBadgeImageUrl = 'image/droit.svg',
-  complementaryCertificationBadgeLabel = 'Pix+ droit maitre',
+  complementaryCertificationBadgeLabel = 'Pix+ droit avance',
 } = {}) {
   return new CertifiableBadgeAcquisition({
     badgeId,
@@ -22,4 +22,4 @@ const buildCertifiableBadgeAcquisition = function ({
   });
 };
 
-module.exports = buildCertifiableBadgeAcquisition;
+export { buildCertifiableBadgeAcquisition };

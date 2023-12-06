@@ -1,12 +1,11 @@
-const { expect, sinon, domainBuilder, catchErr } = require('../../../test-helper');
+import { expect, sinon, domainBuilder, catchErr } from '../../../test-helper.js';
+import { enrolStudentsToSession } from '../../../../lib/domain/usecases/enrol-students-to-session.js';
+import { SCOCertificationCandidate } from '../../../../lib/domain/models/SCOCertificationCandidate.js';
+import { ForbiddenAccess, UnknownCountryForStudentEnrolmentError } from '../../../../lib/domain/errors.js';
 
-const enrollStudentsToSession = require('../../../../lib/domain/usecases/enroll-students-to-session');
-const SCOCertificationCandidate = require('../../../../lib/domain/models/SCOCertificationCandidate');
-const { ForbiddenAccess, UnknownCountryForStudentEnrollmentError } = require('../../../../lib/domain/errors');
-
-describe('Unit | UseCase | enroll-students-to-session', function () {
+describe('Unit | UseCase | enrol-students-to-session', function () {
   context('when referent is allowed to Pix Certif', function () {
-    it('enrolls n students to a session', async function () {
+    it('enrols n students to a session', async function () {
       // given
       const { session, certificationCenterMemberships } = _buildMatchingSessionAndCertificationCenterMembership();
       const sessionId = session.id;
@@ -54,7 +53,7 @@ describe('Unit | UseCase | enroll-students-to-session', function () {
         .resolves(organizationForReferent.id);
 
       // when
-      await enrollStudentsToSession({
+      await enrolStudentsToSession({
         sessionId,
         studentIds,
         referentId,
@@ -68,12 +67,12 @@ describe('Unit | UseCase | enroll-students-to-session', function () {
 
       // then
       expect(scoCertificationCandidateRepository.findBySessionId(sessionId)).to.deep.equal(
-        expectedCertificationCandidates
+        expectedCertificationCandidates,
       );
       expect(scoCertificationCandidateRepository.findBySessionId(anotherSessionId)).to.deep.equal(undefined);
     });
 
-    it('enrolls a student by trimming his first name and last name', async function () {
+    it('enrols a student by trimming his first name and last name', async function () {
       // given
       const { session, certificationCenterMemberships } = _buildMatchingSessionAndCertificationCenterMembership();
       const sessionId = session.id;
@@ -125,7 +124,7 @@ describe('Unit | UseCase | enroll-students-to-session', function () {
         .resolves(organizationForReferent.id);
 
       // when
-      await enrollStudentsToSession({
+      await enrolStudentsToSession({
         sessionId,
         studentIds: [1],
         referentId,
@@ -143,7 +142,7 @@ describe('Unit | UseCase | enroll-students-to-session', function () {
       ]);
     });
 
-    it('rejects enrollment if students do not belong to same organization as referent', async function () {
+    it('rejects enrolment if students do not belong to same organization as referent', async function () {
       // given
       const { session, certificationCenterMemberships } = _buildMatchingSessionAndCertificationCenterMembership();
 
@@ -167,7 +166,7 @@ describe('Unit | UseCase | enroll-students-to-session', function () {
         .resolves(organizationForReferent.id);
 
       // when
-      const error = await catchErr(enrollStudentsToSession)({
+      const error = await catchErr(enrolStudentsToSession)({
         sessionId: session.id,
         studentIds,
         referentId,
@@ -181,7 +180,7 @@ describe('Unit | UseCase | enroll-students-to-session', function () {
       expect(error).to.be.instanceof(ForbiddenAccess);
     });
 
-    it('rejects enrollment if session does not belong to same certification center as referent', async function () {
+    it('rejects enrolment if session does not belong to same certification center as referent', async function () {
       // given
       const { session, certificationCenterMemberships } = _buildNonMatchingSessionAndCertificationCenterMembership();
       const referentId = Symbol('a referent id');
@@ -195,7 +194,7 @@ describe('Unit | UseCase | enroll-students-to-session', function () {
       sessionRepository.get.withArgs(session.id).resolves(session);
 
       // when
-      const error = await catchErr(enrollStudentsToSession)({
+      const error = await catchErr(enrolStudentsToSession)({
         sessionId: session.id,
         studentIds,
         referentId,
@@ -209,7 +208,7 @@ describe('Unit | UseCase | enroll-students-to-session', function () {
       expect(error).to.be.an.instanceOf(ForbiddenAccess);
     });
 
-    it('rejects enrollment if a student birth country is not found', async function () {
+    it('rejects enrolment if a student birth country is not found', async function () {
       // given
       const { session, certificationCenterMemberships } = _buildMatchingSessionAndCertificationCenterMembership();
       const sessionId = session.id;
@@ -241,7 +240,7 @@ describe('Unit | UseCase | enroll-students-to-session', function () {
         .resolves(organizationForReferent.id);
 
       // when
-      const error = await catchErr(enrollStudentsToSession)({
+      const error = await catchErr(enrolStudentsToSession)({
         sessionId,
         studentIds,
         referentId,
@@ -254,7 +253,7 @@ describe('Unit | UseCase | enroll-students-to-session', function () {
       });
 
       // then
-      expect(error).to.be.an.instanceOf(UnknownCountryForStudentEnrollmentError);
+      expect(error).to.be.an.instanceOf(UnknownCountryForStudentEnrolmentError);
       expect(error.message).to.contains(`${organizationLearners[0].firstName} ${organizationLearners[0].lastName}`);
     });
 
@@ -288,7 +287,7 @@ describe('Unit | UseCase | enroll-students-to-session', function () {
         .resolves(organizationForReferent.id);
 
       // when
-      await enrollStudentsToSession({
+      await enrolStudentsToSession({
         sessionId,
         studentIds,
         referentId,

@@ -29,7 +29,7 @@ module('Unit | Component | qrocm-ind-solution-panel', function (hooks) {
         {
           input: 'smiley1',
           text: 'content : ',
-          ariaLabel: null,
+          ariaLabel: 'La réponse donnée est valide',
           showText: false,
           inputClass: 'correction-qroc-box-answer--correct',
           answer: ':)',
@@ -38,11 +38,12 @@ module('Unit | Component | qrocm-ind-solution-panel', function (hooks) {
           placeholder: null,
           autoAriaLabel: false,
           type: 'input',
+          defaultValue: null,
         },
         {
           input: 'smiley2',
           text: '<br/><br/>triste : ',
-          ariaLabel: null,
+          ariaLabel: 'La réponse donnée est valide',
           showText: false,
           inputClass: 'correction-qroc-box-answer--correct',
           answer: ':(',
@@ -51,11 +52,12 @@ module('Unit | Component | qrocm-ind-solution-panel', function (hooks) {
           autoAriaLabel: false,
           placeholder: null,
           type: 'input',
+          defaultValue: null,
         },
       ];
 
       //When
-      const component = createGlimmerComponent('component:qrocm-ind-solution-panel', {
+      const component = createGlimmerComponent('qrocm-ind-solution-panel', {
         challenge,
         answer,
         solution,
@@ -74,7 +76,7 @@ module('Unit | Component | qrocm-ind-solution-panel', function (hooks) {
         {
           input: 'num1',
           text: 'Clé USB : ',
-          ariaLabel: null,
+          ariaLabel: 'La réponse donnée est fausse',
           showText: false,
           inputClass: 'correction-qroc-box-answer--wrong',
           answer: '1',
@@ -83,11 +85,12 @@ module('Unit | Component | qrocm-ind-solution-panel', function (hooks) {
           autoAriaLabel: false,
           placeholder: null,
           type: 'input',
+          defaultValue: null,
         },
         {
           input: 'num2',
           text: '<br/><br/>Carte mémoire (SD) : ',
-          ariaLabel: null,
+          ariaLabel: 'La réponse donnée est fausse',
           showText: false,
           inputClass: 'correction-qroc-box-answer--wrong',
           answer: '2',
@@ -96,11 +99,12 @@ module('Unit | Component | qrocm-ind-solution-panel', function (hooks) {
           autoAriaLabel: false,
           placeholder: null,
           type: 'input',
+          defaultValue: null,
         },
       ];
 
       //When
-      const component = createGlimmerComponent('component:qrocm-ind-solution-panel', {
+      const component = createGlimmerComponent('qrocm-ind-solution-panel', {
         challenge,
         answer,
         solution,
@@ -120,7 +124,7 @@ module('Unit | Component | qrocm-ind-solution-panel', function (hooks) {
         {
           input: 'num1',
           text: 'Clé USB : ',
-          ariaLabel: null,
+          ariaLabel: 'Question passée',
           showText: false,
           inputClass: 'correction-qroc-box-answer--aband',
           answer: 'Pas de réponse',
@@ -129,11 +133,12 @@ module('Unit | Component | qrocm-ind-solution-panel', function (hooks) {
           autoAriaLabel: false,
           placeholder: null,
           type: 'input',
+          defaultValue: null,
         },
         {
           input: 'num2',
           text: '<br/><br/>Carte mémoire (SD) : ',
-          ariaLabel: null,
+          ariaLabel: 'La réponse donnée est fausse',
           showText: false,
           inputClass: 'correction-qroc-box-answer--wrong',
           answer: '2',
@@ -142,11 +147,12 @@ module('Unit | Component | qrocm-ind-solution-panel', function (hooks) {
           autoAriaLabel: false,
           placeholder: null,
           type: 'input',
+          defaultValue: null,
         },
       ];
 
       //When
-      const component = createGlimmerComponent('component:qrocm-ind-solution-panel', {
+      const component = createGlimmerComponent('qrocm-ind-solution-panel', {
         challenge,
         answer,
         solution,
@@ -169,7 +175,7 @@ module('Unit | Component | qrocm-ind-solution-panel', function (hooks) {
         {
           input: 'num1',
           text: '<br/>- alain@pix.fr : ',
-          ariaLabel: null,
+          ariaLabel: 'La réponse donnée est fausse',
           showText: false,
           inputClass: 'correction-qroc-box-answer--wrong',
           answer: '1',
@@ -178,11 +184,12 @@ module('Unit | Component | qrocm-ind-solution-panel', function (hooks) {
           autoAriaLabel: false,
           placeholder: null,
           type: 'input',
+          defaultValue: null,
         },
         {
           input: 'num2',
           text: '<br/><br/>- leonie@pix.fr : ',
-          ariaLabel: null,
+          ariaLabel: 'La réponse donnée est fausse',
           showText: false,
           inputClass: 'correction-qroc-box-answer--wrong',
           answer: '2',
@@ -191,11 +198,12 @@ module('Unit | Component | qrocm-ind-solution-panel', function (hooks) {
           autoAriaLabel: false,
           placeholder: null,
           type: 'input',
+          defaultValue: null,
         },
       ];
 
       //When
-      const component = createGlimmerComponent('component:qrocm-ind-solution-panel', {
+      const component = createGlimmerComponent('qrocm-ind-solution-panel', {
         challenge,
         answer,
         solution,
@@ -218,7 +226,7 @@ module('Unit | Component | qrocm-ind-solution-panel', function (hooks) {
         {
           input: 'Num1',
           text: '<br/>- Combien le dossier "projet PIX" contient-il de dossiers ? ',
-          ariaLabel: null,
+          ariaLabel: 'La réponse donnée est fausse',
           showText: false,
           inputClass: 'correction-qroc-box-answer--wrong',
           answer: '2',
@@ -227,11 +235,12 @@ module('Unit | Component | qrocm-ind-solution-panel', function (hooks) {
           autoAriaLabel: false,
           placeholder: null,
           type: 'input',
+          defaultValue: null,
         },
         {
           input: 'Num2',
           text: '<br/><br/>- Combien le dossier "images" contient-il de fichiers ? ',
-          ariaLabel: null,
+          ariaLabel: 'La réponse donnée est fausse',
           showText: false,
           inputClass: 'correction-qroc-box-answer--wrong',
           answer: '3',
@@ -240,11 +249,12 @@ module('Unit | Component | qrocm-ind-solution-panel', function (hooks) {
           autoAriaLabel: false,
           placeholder: null,
           type: 'input',
+          defaultValue: null,
         },
       ];
 
       //When
-      const component = createGlimmerComponent('component:qrocm-ind-solution-panel', {
+      const component = createGlimmerComponent('qrocm-ind-solution-panel', {
         challenge,
         answer,
         solution,
@@ -254,7 +264,7 @@ module('Unit | Component | qrocm-ind-solution-panel', function (hooks) {
       assert.deepEqual(component.blocks, result);
     });
 
-    test('it should return "Pas de réponse" in each answer if the question was passed', function (assert) {
+    test('it should return "Pas de réponse" in each answer if the question was skipped', function (assert) {
       // given
       challenge = EmberObject.create({ proposals: 'Clé USB : ${num1}\n\nCarte mémoire (SD) : ${num2}' });
       answer = { value: '#ABAND#', resultDetails: 'num1: false\nnum2: false' };
@@ -264,7 +274,7 @@ module('Unit | Component | qrocm-ind-solution-panel', function (hooks) {
         {
           input: 'num1',
           text: 'Clé USB : ',
-          ariaLabel: null,
+          ariaLabel: 'Question passée',
           showText: false,
           inputClass: 'correction-qroc-box-answer--aband',
           answer: 'Pas de réponse',
@@ -273,11 +283,12 @@ module('Unit | Component | qrocm-ind-solution-panel', function (hooks) {
           autoAriaLabel: false,
           placeholder: null,
           type: 'input',
+          defaultValue: null,
         },
         {
           input: 'num2',
           text: '<br/><br/>Carte mémoire (SD) : ',
-          ariaLabel: null,
+          ariaLabel: 'Question passée',
           showText: false,
           inputClass: 'correction-qroc-box-answer--aband',
           answer: 'Pas de réponse',
@@ -286,11 +297,12 @@ module('Unit | Component | qrocm-ind-solution-panel', function (hooks) {
           autoAriaLabel: false,
           placeholder: null,
           type: 'input',
+          defaultValue: null,
         },
       ];
 
       //When
-      const component = createGlimmerComponent('component:qrocm-ind-solution-panel', {
+      const component = createGlimmerComponent('qrocm-ind-solution-panel', {
         challenge,
         answer,
         solution,
@@ -314,8 +326,9 @@ module('Unit | Component | qrocm-ind-solution-panel', function (hooks) {
         {
           input: 'num1',
           text: 'Clé USB : ',
-          ariaLabel: null,
+          ariaLabel: 'La réponse donnée est valide',
           type: 'input',
+          defaultValue: null,
           showText: false,
           inputClass: 'correction-qroc-box-answer--correct',
           answer: '2',
@@ -327,7 +340,7 @@ module('Unit | Component | qrocm-ind-solution-panel', function (hooks) {
       ];
 
       //When
-      const component = createGlimmerComponent('component:qrocm-ind-solution-panel', {
+      const component = createGlimmerComponent('qrocm-ind-solution-panel', {
         challenge,
         answer,
         solution,

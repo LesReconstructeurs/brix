@@ -1,17 +1,32 @@
-'use strict';
-require('dotenv').config();
+import dotenv from 'dotenv';
 
-const fs = require('fs');
-const bluebird = require('bluebird');
-const isEmpty = require('lodash/isEmpty');
-const compact = require('lodash/compact');
-const logger = require('../../lib/infrastructure/logger');
-const certificateRepository = require('../../lib/infrastructure/repositories/certificate-repository');
-const certificationCourseRepository = require('../../lib/infrastructure/repositories/certification-course-repository');
-const certificationAttestationPdf = require('../../lib/infrastructure/utils/pdf/certification-attestation-pdf');
-const { NotFoundError } = require('../../lib/domain/errors');
-const cache = require('../../lib/infrastructure/caches/learning-content-cache');
-const { disconnect } = require('../../db/knex-database-connection');
+dotenv.config();
+
+import fs from 'fs';
+import bluebird from 'bluebird';
+import lodash from 'lodash';
+
+const { isEmpty, compact } = lodash;
+import { logger } from '../../lib/infrastructure/logger.js';
+import * as certificateRepository from '../../lib/infrastructure/repositories/certificate-repository.js';
+import * as certificationCourseRepository from '../../lib/infrastructure/repositories/certification-course-repository.js';
+import * as certificationAttestationPdf from '../../lib/infrastructure/utils/pdf/certification-attestation-pdf.js';
+import { NotFoundError } from '../../lib/domain/errors.js';
+import { learningContentCache as cache } from '../../lib/infrastructure/caches/learning-content-cache.js';
+import { disconnect } from '../../db/knex-database-connection.js';
+import * as url from 'url';
+import i18n from 'i18n';
+import path from 'path';
+const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
+
+const directory = path.resolve(path.join(__dirname, '../../translations'));
+i18n.configure({
+  locales: ['fr', 'en'],
+  defaultLocale: 'fr',
+  directory,
+  objectNotation: true,
+  updateFiles: false,
+});
 
 /**
  * Avant de lancer le script, remplacer la variable DATABASE_URL par l'url de la base de réplication
@@ -22,7 +37,7 @@ async function main() {
 
   if (process.argv.length <= 2) {
     logger.info(
-      'Usage: NODE_TLS_REJECT_UNAUTHORIZED="0" PGSSLMODE=require node scripts/generate-certification-attestations-by-session-id.js 1234,5678,9012'
+      'Usage: NODE_TLS_REJECT_UNAUTHORIZED="0" PGSSLMODE=require node scripts/generate-certification-attestations-by-session-id.js 1234,5678,9012',
     );
     return;
   }
@@ -46,7 +61,7 @@ async function main() {
             throw error;
           }
         }
-      })
+      }),
     );
 
     if (isEmpty(certificationAttestations)) {
@@ -58,6 +73,7 @@ async function main() {
 
     const { buffer } = await certificationAttestationPdf.getCertificationAttestationsPdfBuffer({
       certificates: certificationAttestations,
+      i18n,
     });
 
     const filename = `attestation-pix-session-${sessionId}.pdf`;
@@ -69,8 +85,10 @@ async function main() {
   logger.info('Fin du script.');
 }
 
+const modulePath = url.fileURLToPath(import.meta.url);
+const isLaunchedFromCommandLine = process.argv[1] === modulePath;
 (async () => {
-  if (require.main === module) {
+  if (isLaunchedFromCommandLine) {
     try {
       await main();
     } catch (error) {

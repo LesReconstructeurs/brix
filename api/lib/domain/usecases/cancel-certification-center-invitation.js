@@ -1,14 +1,16 @@
-const { UncancellableCertificationCenterInvitationError } = require('../../domain/errors');
+import { UncancellableCertificationCenterInvitationError } from '../../domain/errors.js';
 
-module.exports = async function cancelCertificationCenterInvitation({
+const cancelCertificationCenterInvitation = async function ({
   certificationCenterInvitationId,
   certificationCenterInvitationRepository,
 }) {
   const foundCertificationCenterInvitation = await certificationCenterInvitationRepository.get(
-    certificationCenterInvitationId
+    certificationCenterInvitationId,
   );
   if (!foundCertificationCenterInvitation.isPending) {
     throw new UncancellableCertificationCenterInvitationError();
   }
   return await certificationCenterInvitationRepository.markAsCancelled({ id: foundCertificationCenterInvitation.id });
 };
+
+export { cancelCertificationCenterInvitation };

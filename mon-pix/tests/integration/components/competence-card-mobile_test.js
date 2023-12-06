@@ -1,8 +1,10 @@
 import { module, test } from 'qunit';
 import EmberObject from '@ember/object';
 import setupIntlRenderingTest from '../../helpers/setup-intl-rendering';
-import { find, render } from '@ember/test-helpers';
-import hbs from 'htmlbars-inline-precompile';
+// eslint-disable-next-line no-restricted-imports
+import { find } from '@ember/test-helpers';
+import { render } from '@1024pix/ember-testing-library';
+import { hbs } from 'ember-cli-htmlbars';
 
 module('Integration | Component | competence-card-mobile', function (hooks) {
   setupIntlRenderingTest(hooks);
@@ -23,7 +25,7 @@ module('Integration | Component | competence-card-mobile', function (hooks) {
       this.set('scorecard', scorecard);
 
       // when
-      await render(hbs`{{competence-card-mobile scorecard=this.scorecard}}`);
+      await render(hbs`<CompetenceCardMobile @scorecard={{this.scorecard}} />`);
 
       // then
       assert.dom('.competence-card').exists();
@@ -35,7 +37,7 @@ module('Integration | Component | competence-card-mobile', function (hooks) {
       this.set('scorecard', scorecard);
 
       // when
-      await render(hbs`{{competence-card-mobile scorecard=this.scorecard}}`);
+      await render(hbs`<CompetenceCardMobile @scorecard={{this.scorecard}} />`);
 
       // then
       assert.ok(find('.competence-card__wrapper').getAttribute('class').includes('competence-card__wrapper--jaffa'));
@@ -47,12 +49,10 @@ module('Integration | Component | competence-card-mobile', function (hooks) {
       this.set('scorecard', scorecard);
 
       // when
-      await render(hbs`{{competence-card-mobile scorecard=this.scorecard}}`);
+      await render(hbs`<CompetenceCardMobile @scorecard={{this.scorecard}} />`);
 
       // then
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(find('.competence-card__area-name').textContent, scorecard.area.title);
+      assert.strictEqual(find('.competence-card__area-name').textContent, scorecard.area.title);
     });
 
     test('should display the competence name', async function (assert) {
@@ -61,12 +61,10 @@ module('Integration | Component | competence-card-mobile', function (hooks) {
       this.set('scorecard', scorecard);
 
       // when
-      await render(hbs`{{competence-card-mobile scorecard=this.scorecard}}`);
+      await render(hbs`<CompetenceCardMobile @scorecard={{this.scorecard}} />`);
 
       // then
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(find('.competence-card__competence-name').textContent, scorecard.name);
+      assert.strictEqual(find('.competence-card__competence-name').textContent, scorecard.name);
     });
 
     test('should display the level', async function (assert) {
@@ -75,17 +73,13 @@ module('Integration | Component | competence-card-mobile', function (hooks) {
       this.set('scorecard', scorecard);
 
       // when
-      await render(hbs`{{competence-card-mobile scorecard=this.scorecard}}`);
+      await render(hbs`<CompetenceCardMobile @scorecard={{this.scorecard}} />`);
 
       // then
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(find('.score-value').textContent, scorecard.level.toString());
+      assert.strictEqual(find('.score-value').textContent, scorecard.level.toString());
     });
 
-    // TODO: Fix this the next time the file is edited.
-    // eslint-disable-next-line qunit/no-async-module-callbacks
-    module('when user can continue the competence', async function () {
+    module('when user can continue the competence', function () {
       module('and the user has reached the maximum level', function (hooks) {
         hooks.beforeEach(async function () {
           // given
@@ -93,7 +87,7 @@ module('Integration | Component | competence-card-mobile', function (hooks) {
           this.set('scorecard', scorecard);
 
           // when
-          await render(hbs`{{competence-card-mobile scorecard=this.scorecard}}`);
+          await render(hbs`<CompetenceCardMobile @scorecard={{this.scorecard}} />`);
         });
 
         test('should not show congrats design', function (assert) {
@@ -103,9 +97,7 @@ module('Integration | Component | competence-card-mobile', function (hooks) {
       });
     });
 
-    // TODO: Fix this the next time the file is edited.
-    // eslint-disable-next-line qunit/no-async-module-callbacks
-    module('when user has finished the competence', async function () {
+    module('when user has finished the competence', function () {
       module('and the user has reached the maximum level', function (hooks) {
         hooks.beforeEach(async function () {
           // given
@@ -113,7 +105,7 @@ module('Integration | Component | competence-card-mobile', function (hooks) {
           this.set('scorecard', scorecard);
 
           // when
-          await render(hbs`{{competence-card-mobile scorecard=this.scorecard}}`);
+          await render(hbs`<CompetenceCardMobile @scorecard={{this.scorecard}} />`);
         });
 
         test('should show congrats design', function (assert) {

@@ -1,11 +1,12 @@
-const { UserNotAuthorizedToAccessEntityError } = require('../errors');
-const Scorecard = require('../models/Scorecard');
+import { UserNotAuthorizedToAccessEntityError } from '../errors.js';
+import { Scorecard } from '../models/Scorecard.js';
 
-module.exports = async function getScorecard({
+const getScorecard = async function ({
   authenticatedUserId,
   scorecardId,
   scorecardService,
   competenceRepository,
+  areaRepository,
   competenceEvaluationRepository,
   knowledgeElementRepository,
   locale,
@@ -20,8 +21,11 @@ module.exports = async function getScorecard({
     userId: authenticatedUserId,
     competenceId,
     competenceRepository,
+    areaRepository,
     competenceEvaluationRepository,
     knowledgeElementRepository,
     locale,
   });
 };
+
+export { getScorecard };

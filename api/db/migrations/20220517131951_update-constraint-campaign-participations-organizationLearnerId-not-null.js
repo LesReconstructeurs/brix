@@ -6,7 +6,7 @@ const ORGANIZATIONLEARNERID_COLUMN = 'organizationLearnerId';
 const CAMPAIGNID_COLUMN = 'campaignId';
 const NEW_CONSTRAINT_NAME = 'one_active_participation_by_learner';
 
-exports.up = async (knex) => {
+const up = async function (knex) {
   await knex.schema.alterTable(CAMPAIGN_PARTICIPATIONS_TABLE, function (table) {
     table.integer(ORGANIZATIONLEARNERID_COLUMN).notNullable().alter();
   });
@@ -21,11 +21,11 @@ exports.up = async (knex) => {
       isImproved: ISIMPROVED_COLUMN,
       deletedAt: DELETEDAT_COLUMN,
       deletedBy: DELETEDBY_COLUMN,
-    }
+    },
   );
 };
 
-exports.down = async (knex) => {
+const down = async function (knex) {
   await knex.schema.alterTable(CAMPAIGN_PARTICIPATIONS_TABLE, function (table) {
     table.integer(ORGANIZATIONLEARNERID_COLUMN).nullable().alter();
   });
@@ -33,3 +33,5 @@ exports.down = async (knex) => {
   // eslint-disable-next-line knex/avoid-injections
   return knex.raw(`DROP INDEX ${NEW_CONSTRAINT_NAME};`);
 };
+
+export { up, down };

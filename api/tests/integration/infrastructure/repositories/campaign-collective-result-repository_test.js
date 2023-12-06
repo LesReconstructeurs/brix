@@ -1,8 +1,8 @@
-const _ = require('lodash');
-const { expect, databaseBuilder, domainBuilder, knex } = require('../../../test-helper');
-const campaignCollectiveResultRepository = require('../../../../lib/infrastructure/repositories/campaign-collective-result-repository');
-const CampaignCollectiveResult = require('../../../../lib/domain/read-models/CampaignCollectiveResult');
-const CampaignParticipationStatuses = require('../../../../lib/domain/models/CampaignParticipationStatuses');
+import _ from 'lodash';
+import { expect, databaseBuilder, domainBuilder, knex } from '../../../test-helper.js';
+import * as campaignCollectiveResultRepository from '../../../../lib/infrastructure/repositories/campaign-collective-result-repository.js';
+import { CampaignCollectiveResult } from '../../../../lib/domain/read-models/CampaignCollectiveResult.js';
+import { CampaignParticipationStatuses } from '../../../../lib/domain/models/CampaignParticipationStatuses.js';
 
 const { STARTED } = CampaignParticipationStatuses;
 
@@ -112,18 +112,21 @@ describe('Integration | Repository | Campaign collective result repository', fun
               tubes: [tubeA],
               name: 'Competence A',
               index: '1.1',
+              areaId: 'recArea1',
             }),
             domainBuilder.buildCompetence({
               id: 'recCompetenceB',
               tubes: [tubeB],
               name: 'Competence B',
               index: '1.2',
+              areaId: 'recArea1',
             }),
             domainBuilder.buildCompetence({
               id: 'recCompetenceC',
               tubes: [tubeC],
               name: 'Competence C',
               index: '1.3',
+              areaId: 'recArea1',
             }),
           ],
           color: 'jaffa',
@@ -138,12 +141,14 @@ describe('Integration | Repository | Campaign collective result repository', fun
               tubes: [tubeE],
               name: 'Competence E',
               index: '2.2',
+              areaId: 'recArea2',
             }),
             domainBuilder.buildCompetence({
               id: 'recCompetenceF',
               tubes: [tubeF],
               name: 'Competence F',
               index: '2.3',
+              areaId: 'recArea2',
             }),
           ],
         });
@@ -161,7 +166,7 @@ describe('Integration | Repository | Campaign collective result repository', fun
           // when
           const result = await campaignCollectiveResultRepository.getCampaignCollectiveResult(
             campaignId,
-            learningContent
+            learningContent,
           );
 
           // then
@@ -246,7 +251,7 @@ describe('Integration | Repository | Campaign collective result repository', fun
           // when
           const result = await campaignCollectiveResultRepository.getCampaignCollectiveResult(
             campaignId,
-            learningContent
+            learningContent,
           );
 
           // then
@@ -311,7 +316,7 @@ describe('Integration | Repository | Campaign collective result repository', fun
             'Fred',
             campaignId,
             new Date('2019-02-10'),
-            new Date('2022-01-01')
+            new Date('2022-01-01'),
           );
 
           databaseBuilder.factory.buildKnowledgeElement({
@@ -329,7 +334,7 @@ describe('Integration | Repository | Campaign collective result repository', fun
           // when
           const result = await campaignCollectiveResultRepository.getCampaignCollectiveResult(
             campaignId,
-            learningContent
+            learningContent,
           );
 
           // then
@@ -396,7 +401,7 @@ describe('Integration | Repository | Campaign collective result repository', fun
             'Fred',
             campaignId,
             new Date(),
-            false
+            false,
           );
           const fredId = userWithCampaignParticipationFred.userId;
 
@@ -475,7 +480,7 @@ describe('Integration | Repository | Campaign collective result repository', fun
             ],
             (knowledgeElement) => {
               databaseBuilder.factory.buildKnowledgeElement(knowledgeElement);
-            }
+            },
           );
 
           return databaseBuilder.commit();
@@ -485,7 +490,7 @@ describe('Integration | Repository | Campaign collective result repository', fun
           // when
           const result = await campaignCollectiveResultRepository.getCampaignCollectiveResult(
             campaignId,
-            learningContent
+            learningContent,
           );
 
           // then
@@ -517,7 +522,7 @@ describe('Integration | Repository | Campaign collective result repository', fun
             'Alice',
             campaignId,
             campaignParticipationShareDate,
-            false
+            false,
           );
           const aliceId = userWithCampaignParticipationAlice.userId;
 
@@ -526,7 +531,7 @@ describe('Integration | Repository | Campaign collective result repository', fun
             'Bob',
             campaignId,
             campaignParticipationShareDate,
-            false
+            false,
           );
           const bobId = userWithCampaignParticipationBob.userId;
 
@@ -535,7 +540,7 @@ describe('Integration | Repository | Campaign collective result repository', fun
             'Charlie',
             campaignId,
             campaignParticipationShareDate,
-            false
+            false,
           );
           const charlieId = userWithCampaignParticipationCharlie.userId;
 
@@ -549,7 +554,7 @@ describe('Integration | Repository | Campaign collective result repository', fun
             'Elo',
             anotherCampaignId,
             campaignParticipationShareDate,
-            false
+            false,
           );
           const eloId = userWithCampaignParticipationElo.id;
 
@@ -889,7 +894,7 @@ describe('Integration | Repository | Campaign collective result repository', fun
             ],
             (knowledgeElement) => {
               databaseBuilder.factory.buildKnowledgeElement(knowledgeElement);
-            }
+            },
           );
 
           return databaseBuilder.commit();
@@ -899,7 +904,7 @@ describe('Integration | Repository | Campaign collective result repository', fun
           // when
           const result = await campaignCollectiveResultRepository.getCampaignCollectiveResult(
             campaignId,
-            learningContent
+            learningContent,
           );
 
           // then
@@ -949,7 +954,7 @@ describe('Integration | Repository | Campaign collective result repository', fun
           // when
           const result = await campaignCollectiveResultRepository.getCampaignCollectiveResult(
             campaignId,
-            learningContent
+            learningContent,
           );
 
           // then
@@ -971,7 +976,7 @@ describe('Integration | Repository | Campaign collective result repository', fun
             'Alice',
             campaignId,
             campaignParticipationShareDate,
-            false
+            false,
           );
           const aliceId = userWithCampaignParticipationAlice.userId;
 
@@ -980,7 +985,7 @@ describe('Integration | Repository | Campaign collective result repository', fun
             'Bob',
             campaignId,
             campaignParticipationShareDate,
-            false
+            false,
           );
           const bobId = userWithCampaignParticipationBob.userId;
 
@@ -1022,7 +1027,7 @@ describe('Integration | Repository | Campaign collective result repository', fun
             ],
             (knowledgeElement) => {
               databaseBuilder.factory.buildKnowledgeElement(knowledgeElement);
-            }
+            },
           );
 
           return databaseBuilder.commit();
@@ -1032,7 +1037,7 @@ describe('Integration | Repository | Campaign collective result repository', fun
           // when
           const result = await campaignCollectiveResultRepository.getCampaignCollectiveResult(
             campaignId,
-            learningContent
+            learningContent,
           );
 
           // then

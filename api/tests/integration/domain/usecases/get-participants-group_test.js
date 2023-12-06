@@ -1,6 +1,8 @@
-const { expect, databaseBuilder, catchErr } = require('../../../test-helper');
-const { getParticipantsGroup } = require('../../../../lib/domain/usecases/index');
-const { ForbiddenAccess } = require('../../../../lib/domain/errors');
+import { expect, databaseBuilder, catchErr } from '../../../test-helper.js';
+import { usecases } from '../../../../lib/domain/usecases/index.js';
+import { ForbiddenAccess } from '../../../../lib/domain/errors.js';
+
+const { getParticipantsGroup } = usecases;
 
 describe('Integration | UseCase | get-participants-group', function () {
   context('when the use has access to the campaign', function () {
@@ -10,7 +12,7 @@ describe('Integration | UseCase | get-participants-group', function () {
       const user = databaseBuilder.factory.buildUser.withMembership({ organizationId: campaign.organizationId });
       databaseBuilder.factory.buildCampaignParticipationWithOrganizationLearner(
         { organizationId: campaign.organizationId, group: group },
-        { campaignId: campaign.id }
+        { campaignId: campaign.id },
       );
       await databaseBuilder.commit();
 
@@ -27,7 +29,7 @@ describe('Integration | UseCase | get-participants-group', function () {
       const user = databaseBuilder.factory.buildUser();
       databaseBuilder.factory.buildCampaignParticipationWithOrganizationLearner(
         { organizationId: campaign.organizationId, group: group },
-        { campaignId: campaign.id }
+        { campaignId: campaign.id },
       );
       await databaseBuilder.commit();
 

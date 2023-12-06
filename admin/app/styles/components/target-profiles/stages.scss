@@ -1,31 +1,26 @@
 .stages-table {
-
-  &__id {
-    width: 110px;
-  }
-
   &__type {
-    width: 150px;
+    width: 130px;
   }
 
   &__title {
     width: 250px;
   }
 
-  &__image {
-    width: 130px;
+  &__prescriber-title {
+    width: 140px;
+  }
 
-    img {
-      width: 90px;
-    }
+  &__prescriber-description {
+    width: 140px;
   }
 
   &__actions {
-    width: 134px;
+    width: 160px;
   }
 
-  .btn {
-    font-size: 0.9rem;
+  &__level-select {
+    width: calc(100% - 8px);
   }
 }
 
@@ -33,11 +28,19 @@
   margin-bottom: 0;
 }
 
-.stages-new-stage {
-  margin: 10px 0;
+.add-stage-actions {
+  display: flex;
+
+  .stages-new-stage {
+    margin: 10px 8px 10px 0;
+  }
 }
 
 .stages-actions {
   display: flex;
   text-align: right;
+}
+
+.stages-table-actions-delete {
+  margin-top: $pix-spacing-xs;
 }

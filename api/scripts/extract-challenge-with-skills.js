@@ -1,7 +1,7 @@
-const _ = require('lodash');
-const challengeRepository = require('../lib/infrastructure/repositories/challenge-repository');
-const skillsRepository = require('../lib/infrastructure/repositories/skill-repository');
-const competencesRepository = require('../lib/infrastructure/repositories/competence-repository');
+import _ from 'lodash';
+import * as challengeRepository from '../lib/infrastructure/repositories/challenge-repository.js';
+import * as skillsRepository from '../lib/infrastructure/repositories/skill-repository.js';
+import * as competencesRepository from '../lib/infrastructure/repositories/competence-repository.js';
 
 async function findChallengesWithSkills() {
   const [challenges, skillsFromDb] = await _getReferentialData();
@@ -16,23 +16,23 @@ async function findChallengesWithSkills() {
 
     const knowledgeElementsValidatedDirect = _.map(skillsOfChallenges, (skill) => _createObjectValidatedDirect(skill));
     const knowledgeElementsValidatedInferred = _.map(skillsValidatedIfChallengeIsSuccessful, (skill) =>
-      _createObjectValidatedInferred(skill)
+      _createObjectValidatedInferred(skill),
     );
 
     const knowledgeElementsInvalidatedDirect = _.map(skillsOfChallenges, (skill) =>
-      _createObjectInvalidatedDirect(skill)
+      _createObjectInvalidatedDirect(skill),
     );
     const knowledgeElementsInvalidatedInferred = _.map(skillsInvalidatedIfChallengeIsFailed, (skill) =>
-      _createObjectInvalidatedInferred(skill)
+      _createObjectInvalidatedInferred(skill),
     );
 
     knowledgeElementsToCreateForEachChallenges[challenge.id]['validated'] = _.concat(
       knowledgeElementsValidatedDirect,
-      knowledgeElementsValidatedInferred
+      knowledgeElementsValidatedInferred,
     );
     knowledgeElementsToCreateForEachChallenges[challenge.id]['invalidated'] = _.concat(
       knowledgeElementsInvalidatedDirect,
-      knowledgeElementsInvalidatedInferred
+      knowledgeElementsInvalidatedInferred,
     );
   });
 
@@ -51,8 +51,9 @@ async function _getReferentialData() {
   // Récupération des acquis par compétences
   let skills = await Promise.all(
     _.map(competences, (competence) => {
+      // eslint-disable-next-line import/namespace
       return skillsRepository.findByCompetenceId(competence.id);
-    })
+    }),
   );
 
   skills = _.flatten(skills);
@@ -144,4 +145,4 @@ function _createObjectInvalidatedInferred(skill) {
   };
 }
 
-module.exports = findChallengesWithSkills;
+export { findChallengesWithSkills };

@@ -1,7 +1,7 @@
-const { expect, domainBuilder } = require('../../../../test-helper');
-const CampaignAssessmentParticipationResult = require('../../../../../lib/domain/read-models/CampaignAssessmentParticipationResult');
-const CampaignParticipationStatuses = require('../../../../../lib/domain/models/CampaignParticipationStatuses');
-const serializer = require('../../../../../lib/infrastructure/serializers/jsonapi/campaign-assessment-participation-result-serializer');
+import { expect, domainBuilder } from '../../../../test-helper.js';
+import { CampaignAssessmentParticipationResult } from '../../../../../lib/domain/read-models/CampaignAssessmentParticipationResult.js';
+import { CampaignParticipationStatuses } from '../../../../../lib/domain/models/CampaignParticipationStatuses.js';
+import * as serializer from '../../../../../lib/infrastructure/serializers/jsonapi/campaign-assessment-participation-result-serializer.js';
 
 const { SHARED } = CampaignParticipationStatuses;
 
@@ -11,7 +11,6 @@ describe('Unit | Serializer | JSONAPI | campaign-assessment-participation-result
     let expectedJsonApi;
 
     beforeEach(function () {
-      const area = domainBuilder.buildArea({ id: 'area1' });
       const tube = domainBuilder.buildTube({
         id: 'recTube1',
         skills: ['oneSkill'],
@@ -19,8 +18,12 @@ describe('Unit | Serializer | JSONAPI | campaign-assessment-participation-result
       const competence = domainBuilder.buildCompetence({
         id: 'competence1',
         tubes: [tube],
-        area,
+        areaId: 'area1',
       });
+      const area = domainBuilder.buildArea({ id: 'area1', competences: [competence] });
+      const framework = domainBuilder.buildFramework({ areas: [area] });
+      const campaignLearningContent = domainBuilder.buildCampaignLearningContent.fromFrameworks([framework]);
+
       expectedJsonApi = {
         data: {
           type: 'campaign-assessment-participation-results',
@@ -54,7 +57,7 @@ describe('Unit | Serializer | JSONAPI | campaign-assessment-participation-result
       };
 
       modelCampaignAssessmentParticipationResult = new CampaignAssessmentParticipationResult({
-        competences: [competence],
+        campaignLearningContent,
         campaignParticipationId: 1,
         campaignId: 2,
         validatedTargetedKnowledgeElementsCountByCompetenceId: { [competence.id]: 1 },

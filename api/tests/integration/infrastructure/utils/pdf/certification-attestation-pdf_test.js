@@ -1,13 +1,15 @@
-const { domainBuilder, expect, nock, catchErr } = require('../../../../test-helper');
-const dayjs = require('dayjs');
-const { isSameBinary } = require('../../../../tooling/binary-comparator');
-const {
-  getCertificationAttestationsPdfBuffer,
-} = require('../../../../../lib/infrastructure/utils/pdf/certification-attestation-pdf');
-const { CertificationAttestationGenerationError } = require('../../../../../lib/domain/errors');
-const fs = require('fs');
+import { domainBuilder, expect, nock, catchErr, sinon } from '../../../../test-helper.js';
+import dayjs from 'dayjs';
+import { isSameBinary } from '../../../../tooling/binary-comparator.js';
+import { getCertificationAttestationsPdfBuffer } from '../../../../../lib/infrastructure/utils/pdf/certification-attestation-pdf.js';
+import { CertificationAttestationGenerationError } from '../../../../../lib/domain/errors.js';
+import fs from 'fs';
+import pdfLibUtils from 'pdf-lib/cjs/utils/index.js';
+import { writeFile } from 'fs/promises';
+import * as url from 'url';
+import { getI18n } from '../../../../tooling/i18n/i18n.js';
 
-const { addRandomSuffix } = require('pdf-lib/cjs/utils');
+const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 
 describe('Integration | Infrastructure | Utils | Pdf | Certification Attestation Pdf', function () {
   beforeEach(async function () {
@@ -17,19 +19,15 @@ describe('Integration | Infrastructure | Utils | Pdf | Certification Attestation
       .get('/stickers/macaron_clea.pdf')
       // eslint-disable-next-line no-sync
       .reply(200, () => fs.readFileSync(`${__dirname}/stickers/macaron_clea.pdf`))
-      .get('/stickers/macaron_droit_maitre.pdf')
+      .get('/stickers/macaron_droit_avance.pdf')
       // eslint-disable-next-line no-sync
-      .reply(200, () => fs.readFileSync(`${__dirname}/stickers/macaron_droit_maitre.pdf`))
+      .reply(200, () => fs.readFileSync(`${__dirname}/stickers/macaron_droit_avance.pdf`))
       .get('/stickers/macaron_edu_2nd_initie.pdf')
       // eslint-disable-next-line no-sync
       .reply(200, () => fs.readFileSync(`${__dirname}/stickers/macaron_edu_2nd_initie.pdf`))
       .get('/stickers/macaron_droit_expert.pdf')
       // eslint-disable-next-line no-sync
       .reply(200, () => fs.readFileSync(`${__dirname}/stickers/macaron_droit_expert.pdf`));
-  });
-
-  afterEach(function () {
-    _restorePdfLib();
   });
 
   it('should generate full attestation (non-regression test)', async function () {
@@ -46,16 +44,19 @@ describe('Integration | Infrastructure | Utils | Pdf | Certification Attestation
           message: null,
         },
         {
-          stickerUrl: 'https://images.pix.fr/stickers/macaron_droit_maitre.pdf',
+          stickerUrl: 'https://images.pix.fr/stickers/macaron_droit_avance.pdf',
           message: null,
         },
       ],
     });
     const referencePdfPath = 'certification-attestation-pdf_test_full.pdf';
+    const i18n = getI18n();
 
     // when
     const { buffer } = await getCertificationAttestationsPdfBuffer({
       certificates: [certificate],
+      isFrenchDomainExtension: true,
+      i18n,
       creationDate: new Date('2021-01-01'),
     });
 
@@ -64,7 +65,7 @@ describe('Integration | Infrastructure | Utils | Pdf | Certification Attestation
     // then
     expect(
       await isSameBinary(`${__dirname}/${referencePdfPath}`, buffer),
-      referencePdfPath + ' is not generated as expected'
+      referencePdfPath + ' is not generated as expected',
     ).to.be.true;
   });
 
@@ -85,10 +86,13 @@ describe('Integration | Infrastructure | Utils | Pdf | Certification Attestation
       ],
     });
     const referencePdfPath = 'certification-attestation-pdf_test_full_edu_temporary.pdf';
+    const i18n = getI18n();
 
     // when
     const { buffer } = await getCertificationAttestationsPdfBuffer({
       certificates: [certificate],
+      isFrenchDomainExtension: true,
+      i18n,
       creationDate: new Date('2021-01-01'),
     });
 
@@ -97,7 +101,7 @@ describe('Integration | Infrastructure | Utils | Pdf | Certification Attestation
     // then
     expect(
       await isSameBinary(`${__dirname}/${referencePdfPath}`, buffer),
-      referencePdfPath + ' is not generated as expected'
+      referencePdfPath + ' is not generated as expected',
     ).to.be.true;
   });
 
@@ -118,10 +122,13 @@ describe('Integration | Infrastructure | Utils | Pdf | Certification Attestation
       ],
     });
     const referencePdfPath = 'certification-attestation-pdf_test_full_edu.pdf';
+    const i18n = getI18n();
 
     // when
     const { buffer } = await getCertificationAttestationsPdfBuffer({
       certificates: [certificate],
+      isFrenchDomainExtension: true,
+      i18n,
       creationDate: new Date('2021-01-01'),
     });
 
@@ -130,7 +137,7 @@ describe('Integration | Infrastructure | Utils | Pdf | Certification Attestation
     // then
     expect(
       await isSameBinary(`${__dirname}/${referencePdfPath}`, buffer),
-      referencePdfPath + ' is not generated as expected'
+      referencePdfPath + ' is not generated as expected',
     ).to.be.true;
   });
 
@@ -171,7 +178,7 @@ describe('Integration | Infrastructure | Utils | Pdf | Certification Attestation
             message: null,
           },
           {
-            stickerUrl: 'https://images.pix.fr/stickers/macaron_droit_maitre.pdf',
+            stickerUrl: 'https://images.pix.fr/stickers/macaron_droit_avance.pdf',
             message: null,
           },
         ],
@@ -200,6 +207,7 @@ describe('Integration | Infrastructure | Utils | Pdf | Certification Attestation
         deliveredAt: deliveredAfterStartDate,
       });
     const referencePdfPath = 'certification-attestation-pdf_several_pages.pdf';
+    const i18n = getI18n();
 
     // when
     const { buffer } = await getCertificationAttestationsPdfBuffer({
@@ -210,6 +218,7 @@ describe('Integration | Infrastructure | Utils | Pdf | Certification Attestation
         certificateComplementaryCertificationsAndWithProfessionalizingMessage,
       ],
       isFrenchDomainExtension: true,
+      i18n,
       creationDate: new Date('2021-01-01'),
     });
 
@@ -218,7 +227,7 @@ describe('Integration | Infrastructure | Utils | Pdf | Certification Attestation
     // then
     expect(
       await isSameBinary(`${__dirname}/${referencePdfPath}`, buffer),
-      referencePdfPath + ' is not generated as expected'
+      referencePdfPath + ' is not generated as expected',
     ).to.be.true;
   });
 
@@ -238,22 +247,55 @@ describe('Integration | Infrastructure | Utils | Pdf | Certification Attestation
         },
       ],
     });
+    const i18n = getI18n();
 
     // when
     const error = await catchErr(getCertificationAttestationsPdfBuffer)({
       certificates: [certificate],
+      isFrenchDomainExtension: true,
+      i18n,
       creationDate: new Date('2021-01-01'),
     });
 
     // then
     expect(error).to.be.an.instanceOf(CertificationAttestationGenerationError);
   });
+
+  it('should generate certification confirmation in english', async function () {
+    // given
+    const resultCompetenceTree = domainBuilder.buildResultCompetenceTree();
+    const certificate = domainBuilder.buildCertificationAttestation({
+      id: 1,
+      firstName: 'Jean',
+      lastName: 'Bon',
+      resultCompetenceTree,
+      certifiedBadges: [],
+    });
+    const referencePdfPath = 'EN-certification-confirmation-pdf_test.pdf';
+    const i18n = getI18n();
+    i18n.setLocale('en');
+
+    // when
+    const { buffer } = await getCertificationAttestationsPdfBuffer({
+      certificates: [certificate],
+      isFrenchDomainExtension: false,
+      i18n,
+      creationDate: new Date('2021-01-01'),
+    });
+
+    await _writeFile(buffer, referencePdfPath);
+
+    // then
+    expect(
+      await isSameBinary(`${__dirname}/${referencePdfPath}`, buffer),
+      referencePdfPath + ' is not generated as expected',
+    ).to.be.true;
+  });
 });
 
 async function _writeFile(buffer, outputFilename, dryRun = true) {
-  // Note: to update the reference pdf, set dryRun to false.
+  // Note: to update or create the reference pdf, set dryRun to false.
   if (!dryRun) {
-    const { writeFile } = require('fs/promises');
     await writeFile(`${__dirname}/${outputFilename}`, buffer);
   }
 }
@@ -273,9 +315,5 @@ function _makePdfLibPredictable() {
     return prefix + '-' + Math.floor(suffix);
   }
 
-  require('pdf-lib/cjs/utils').addRandomSuffix = autoIncrementSuffixByPrefix;
-}
-
-function _restorePdfLib() {
-  require('pdf-lib/cjs/utils').addRandomSuffix = addRandomSuffix;
+  sinon.stub(pdfLibUtils, 'addRandomSuffix').callsFake(autoIncrementSuffixByPrefix);
 }

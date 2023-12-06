@@ -3,8 +3,9 @@
     <p>
       <LinkTo @route="authenticated.target-profiles.target-profile.insights">{{@targetProfile.name}}</LinkTo>
       <span class="wire">&nbsp;>&nbsp;</span>
-      Résultat thématique
-      {{@badge.id}}
+      <h1>Résultat thématique
+        {{@badge.id}}
+      </h1>
     </p>
   </div>
 </header>
@@ -12,10 +13,11 @@
 <main class="page-body">
   <section class="page-section">
     <div class="page-section__header">
-      <h1 class="page-section__title">{{@badge.name}}</h1>
+      <h2 class="page-section__title">{{@badge.name}}</h2>
     </div>
     <div class="page-section__details badge-data">
       <div class="badge-data__image">
+        {{! template-lint-disable no-redundant-role }}
         <img src={{@badge.imageUrl}} alt="" role="presentation" width="90px" /><br />
       </div>
       {{#if this.editMode}}
@@ -129,9 +131,6 @@
       {{#each @badge.criteria as |criterion|}}
         {{#if criterion.isCampaignScope}}
           <Badges::CampaignCriterion @criterion={{criterion}} />
-        {{/if}}
-        {{#if criterion.isSkillSetScope}}
-          <Badges::SkillSetCriterion @criterion={{criterion}} @targetProfile={{@targetProfile}} />
         {{/if}}
         {{#if criterion.isCappedTubesScope}}
           <Badges::CappedTubesCriterion @criterion={{criterion}} @targetProfile={{@targetProfile}} />

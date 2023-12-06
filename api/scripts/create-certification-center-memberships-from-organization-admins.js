@@ -1,13 +1,10 @@
-'use strict';
+import _ from 'lodash';
+import bluebird from 'bluebird';
 
-const _ = require('lodash');
-const bluebird = require('bluebird');
-
-const { parseCsvWithHeader } = require('./helpers/csvHelpers');
-
-const Membership = require('../lib/domain/models/Membership');
-
-const { knex, disconnect } = require('../db/knex-database-connection');
+import { parseCsvWithHeader } from './helpers/csvHelpers.js';
+import { Membership } from '../lib/domain/models/Membership.js';
+import { knex, disconnect } from '../db/knex-database-connection.js';
+import * as url from 'url';
 
 async function getCertificationCenterIdWithMembershipsUserIdByExternalId(externalId) {
   const certificationCenterIdWithMemberships = await knex('certification-centers')
@@ -15,7 +12,7 @@ async function getCertificationCenterIdWithMembershipsUserIdByExternalId(externa
     .leftJoin(
       'certification-center-memberships',
       'certification-centers.id',
-      'certification-center-memberships.certificationCenterId'
+      'certification-center-memberships.certificationCenterId',
     )
     .where('certification-centers.externalId', '=', externalId);
 
@@ -64,7 +61,7 @@ async function prepareDataForInsert(rawExternalIds) {
   const externalIds = _.uniq(_.map(rawExternalIds, 'externalId'));
   const certificationCenterMembershipsLists = await bluebird.mapSeries(
     externalIds,
-    fetchCertificationCenterMembershipsByExternalId
+    fetchCertificationCenterMembershipsByExternalId,
   );
   return certificationCenterMembershipsLists.flat();
 }
@@ -73,7 +70,8 @@ async function createCertificationCenterMemberships(certificationCenterMembershi
   return knex.batchInsert('certification-center-memberships', certificationCenterMemberships);
 }
 
-const isLaunchedFromCommandLine = require.main === module;
+const modulePath = url.fileURLToPath(import.meta.url);
+const isLaunchedFromCommandLine = process.argv[1] === modulePath;
 
 async function main() {
   console.log('Starting creating Certification Center memberships with a list of ExternalIds.');
@@ -106,7 +104,7 @@ async function main() {
   }
 })();
 
-module.exports = {
+export {
   getCertificationCenterIdWithMembershipsUserIdByExternalId,
   getAdminMembershipsUserIdByOrganizationExternalId,
   buildCertificationCenterMemberships,

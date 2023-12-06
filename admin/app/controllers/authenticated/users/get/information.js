@@ -1,6 +1,6 @@
 import Controller from '@ember/controller';
 import { action } from '@ember/object';
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 
 export default class UserInformationController extends Controller {
   @service notifications;
@@ -11,6 +11,7 @@ export default class UserInformationController extends Controller {
     STATUS_422: {
       POLE_EMPLOI: "L'utilisateur a déjà une méthode de connexion Pôle Emploi.",
       GAR: "L'utilisateur a déjà une méthode de connexion Médiacentre.",
+      CNAV: "L'utilisateur a déjà une méthode de connexion CNAV.",
     },
     STATUS_400: 'Cette requête est impossible',
     STATUS_404: "Cet utilisateur n'existe pas.",
@@ -46,7 +47,7 @@ export default class UserInformationController extends Controller {
       });
       this.notifications.success(`La méthode de connexion a bien été déplacé vers l'utilisateur ${targetUserId}`);
       this.notifications.success(
-        `L'utilisateur n'a plus de méthode de connexion ${reassignedAuthenticationMethodLabel}`
+        `L'utilisateur n'a plus de méthode de connexion ${reassignedAuthenticationMethodLabel}`,
       );
     } catch (errors) {
       authenticationMethod.rollbackAttributes();

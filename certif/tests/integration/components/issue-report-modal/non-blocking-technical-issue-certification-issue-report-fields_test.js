@@ -1,14 +1,14 @@
 import { module, test } from 'qunit';
-import { setupRenderingTest } from 'ember-qunit';
 import { click } from '@ember/test-helpers';
 import { render as renderScreen } from '@1024pix/ember-testing-library';
 import { hbs } from 'ember-cli-htmlbars';
 import sinon from 'sinon';
+import setupIntlRenderingTest from '../../../helpers/setup-intl-rendering';
 
 module(
   'Integration | Component | issue-report-modal/non-blocking-technical-issue-certification-issue-report-fields',
   function (hooks) {
-    setupRenderingTest(hooks);
+    setupIntlRenderingTest(hooks);
 
     test('it should call toggle function on click radio button', async function (assert) {
       // given
@@ -33,9 +33,11 @@ module(
     test('it should show textarea if category is checked', async function (assert) {
       // given
       const toggleOnCategory = sinon.stub();
+      const updateNonBlockingTechnicalIssueCategory = sinon.stub();
       const nonBlockingTechnicalIssueCategory = { isChecked: true };
       this.set('toggleOnCategory', toggleOnCategory);
       this.set('nonBlockingTechnicalIssueCategory', nonBlockingTechnicalIssueCategory);
+      this.set('updateNonBlockingTechnicalIssueCategory', updateNonBlockingTechnicalIssueCategory);
 
       // when
       const screen = await renderScreen(hbs`
@@ -43,6 +45,7 @@ module(
         @nonBlockingTechnicalIssueCategory={{this.nonBlockingTechnicalIssueCategory}}
         @toggleOnCategory={{this.toggleOnCategory}}
         @maxlength={{500}}
+        @updateNonBlockingTechnicalIssueCategoryDescription={{this.updateNonBlockingTechnicalIssueCategory}}
       />`);
       await click(screen.getByRole('radio'));
 
@@ -53,9 +56,11 @@ module(
     test('it should show information message if category is checked', async function (assert) {
       // given
       const toggleOnCategory = sinon.stub();
+      const updateNonBlockingTechnicalIssueCategory = sinon.stub();
       const nonBlockingTechnicalIssueCategory = { isChecked: true };
       this.set('toggleOnCategory', toggleOnCategory);
       this.set('nonBlockingTechnicalIssueCategory', nonBlockingTechnicalIssueCategory);
+      this.set('updateNonBlockingTechnicalIssueCategory', updateNonBlockingTechnicalIssueCategory);
 
       // when
       const screen = await renderScreen(hbs`
@@ -63,6 +68,7 @@ module(
         @nonBlockingTechnicalIssueCategory={{this.nonBlockingTechnicalIssueCategory}}
         @toggleOnCategory={{this.toggleOnCategory}}
         @maxlength={{500}}
+        @updateNonBlockingTechnicalIssueCategoryDescription={{this.updateNonBlockingTechnicalIssueCategory}}
       />`);
       await click(screen.getByRole('radio'));
 
@@ -70,10 +76,10 @@ module(
       assert
         .dom(
           screen.getByText(
-            "Signalement à titre informatif, le problème rencontré n'a pas empêché le candidat de continuer à répondre aux questions. En cas d’incident sur une question focus, merci de vous reporter à la catégorie E10."
-          )
+            "Signalement à titre informatif, le problème rencontré n'a pas empêché le candidat de continuer à répondre aux questions. En cas d’incident sur une question focus, merci de vous reporter à la catégorie E10.",
+          ),
         )
         .exists();
     });
-  }
+  },
 );

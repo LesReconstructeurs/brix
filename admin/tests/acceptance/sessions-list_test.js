@@ -4,7 +4,7 @@ import { visit, fillByLabel } from '@1024pix/ember-testing-library';
 import { setupApplicationTest } from 'ember-qunit';
 import { authenticateAdminMemberWithRole } from 'pix-admin/tests/helpers/test-init';
 
-import setupMirage from 'ember-cli-mirage/test-support/setup-mirage';
+import { setupMirage } from 'ember-cli-mirage/test-support';
 
 module('Acceptance | Session List', function (hooks) {
   setupApplicationTest(hooks);
@@ -146,7 +146,7 @@ module('Acceptance | Session List', function (hooks) {
           const screen = await visit('/sessions/list');
           await fillByLabel(
             "Filtrer les sessions avec le nom d'un centre de certification",
-            expectedSession.certificationCenterName.toUpperCase()
+            expectedSession.certificationCenterName.toUpperCase(),
           );
 
           // then
@@ -168,13 +168,13 @@ module('Acceptance | Session List', function (hooks) {
           await click(
             screen.getByRole('button', {
               name: 'Filtrer les sessions en sélectionnant un statut',
-            })
+            }),
           );
           await screen.findByRole('listbox');
           await click(
             screen.getByRole('option', {
               name: 'Résultats transmis par Pix',
-            })
+            }),
           );
 
           // then
@@ -208,13 +208,13 @@ module('Acceptance | Session List', function (hooks) {
           await click(
             screen.getByRole('button', {
               name: 'Filtrer les sessions par leurs résultats diffusés ou non diffusés',
-            })
+            }),
           );
           await screen.findByRole('listbox');
           await click(
             screen.getByRole('option', {
               name: 'Résultats diffusés',
-            })
+            }),
           );
 
           // then
@@ -230,13 +230,13 @@ module('Acceptance | Session List', function (hooks) {
           await click(
             screen.getByRole('button', {
               name: 'Filtrer les sessions par leurs résultats diffusés ou non diffusés',
-            })
+            }),
           );
           await screen.findByRole('listbox');
           await click(
             screen.getByRole('option', {
               name: 'Résultats non diffusés',
-            })
+            }),
           );
 
           // then

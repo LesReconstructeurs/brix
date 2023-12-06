@@ -1,5 +1,5 @@
 import Route from '@ember/routing/route';
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 
 export default class SessionsNewRoute extends Route {
   @service currentUser;
@@ -15,11 +15,9 @@ export default class SessionsNewRoute extends Route {
     });
   }
 
-  deactivate() {
-    /* eslint-disable ember/no-controller-access-in-routes*/
-    if (this.controller.model.hasDirtyAttributes) {
-      this.controller.model.deleteRecord();
+  resetController(controller) {
+    if (controller.model.hasDirtyAttributes) {
+      controller.model.deleteRecord();
     }
-    /* eslint-enable ember/no-controller-access-in-routes*/
   }
 }

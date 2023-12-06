@@ -1,8 +1,6 @@
-const { sinon, expect, catchErr } = require('../../../test-helper');
-
-const { UserNotFoundError, UserNotAuthorizedToUpdatePasswordError } = require('../../../../lib/domain/errors');
-
-const updateOrganizationLearnerDependentUserPassword = require('../../../../lib/domain/usecases/update-organization-learner-dependent-user-password');
+import { sinon, expect, catchErr } from '../../../test-helper.js';
+import { UserNotFoundError, UserNotAuthorizedToUpdatePasswordError } from '../../../../lib/domain/errors.js';
+import { updateOrganizationLearnerDependentUserPassword } from '../../../../lib/domain/usecases/update-organization-learner-dependent-user-password.js';
 
 describe('Unit | UseCase | update-organization-learner-dependent-user-password', function () {
   const userId = 1;
@@ -150,7 +148,7 @@ describe('Unit | UseCase | update-organization-learner-dependent-user-password',
       // then
       expect(error).to.be.instanceOf(UserNotAuthorizedToUpdatePasswordError);
       expect(error.message).to.be.equal(
-        `L'utilisateur ${userId} n'est pas autorisé à modifier le mot de passe des élèves de l'organisation ${organizationId} car il n'y appartient pas.`
+        `L'utilisateur ${userId} n'est pas autorisé à modifier le mot de passe des élèves de l'organisation ${organizationId} car il n'y appartient pas.`,
       );
     });
   });

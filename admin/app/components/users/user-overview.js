@@ -1,100 +1,26 @@
-import Object, { action } from '@ember/object';
-// eslint-disable-next-line ember/no-computed-properties-in-native-classes
-import { none } from '@ember/object/computed';
-import { validator, buildValidations } from 'ember-cp-validations';
+import { action } from '@ember/object';
 import Component from '@glimmer/component';
 import { tracked } from '@glimmer/tracking';
-import { getOwner } from '@ember/application';
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 import dayjs from 'dayjs';
 
 import ENV from 'pix-admin/config/environment';
 
-const Validations = buildValidations({
-  firstName: {
-    validators: [
-      validator('presence', {
-        presence: true,
-        ignoreBlank: true,
-        message: 'Le prénom ne peut pas être vide.',
-      }),
-      validator('length', {
-        min: 1,
-        max: 255,
-        message: 'La longueur du prénom ne doit pas excéder 255 caractères.',
-      }),
-    ],
-  },
-  lastName: {
-    validators: [
-      validator('presence', {
-        presence: true,
-        ignoreBlank: true,
-        message: 'Le nom ne peut pas être vide.',
-      }),
-      validator('length', {
-        min: 1,
-        max: 255,
-        message: 'La longueur du nom ne doit pas excéder 255 caractères.',
-      }),
-    ],
-  },
-  email: {
-    validators: [
-      validator('presence', {
-        presence: true,
-        ignoreBlank: true,
-        message: "L'adresse e-mail ne peut pas être vide.",
-        disabled: none('model.email'),
-      }),
-      validator('length', {
-        max: 255,
-        message: "La longueur de l'adresse e-mail ne doit pas excéder 255 caractères.",
-        disabled: none('model.email'),
-      }),
-      validator('format', {
-        ignoreBlank: true,
-        type: 'email',
-        message: "L'adresee e-mail n'a pas le bon format.",
-        disabled: none('model.email'),
-      }),
-    ],
-  },
-  username: {
-    validators: [
-      validator('presence', {
-        presence: true,
-        ignoreBlank: true,
-        message: "L'identifiant ne peut pas être vide.",
-        disabled: none('model.username'),
-      }),
-      validator('length', {
-        min: 1,
-        max: 255,
-        message: 'La longueur du nom ne doit pas excéder 255 caractères.',
-        disabled: none('model.username'),
-      }),
-    ],
-  },
-});
-
-class Form extends Object.extend(Validations) {
-  @tracked firstName;
-  @tracked lastName;
-  @tracked email;
-  @tracked username;
-}
-
 export default class UserOverview extends Component {
-  @tracked isEditionMode = false;
-  @tracked displayAnonymizeModal = false;
-
-  @service notifications;
   @service accessControl;
+  @service notifications;
+  @service references;
+  @service store;
+
+  @tracked displayAnonymizeModal = false;
+  @tracked isEditionMode = false;
+
+  languages = this.references.availableLanguages;
+  locales = this.references.availableLocales;
 
   constructor() {
     super(...arguments);
-    this.form = Form.create(getOwner(this).ownerInjection());
+    this.form = this.store.createRecord('user-form');
   }
 
   get externalURL() {
@@ -127,15 +53,23 @@ export default class UserOverview extends Component {
   get userHasValidatePixOrgaTermsOfService() {
     return this._formatValidatedTermsOfServiceText(
       this.args.user.lastPixOrgaTermsOfServiceValidatedAt,
-      this.args.user.pixOrgaTermsOfServiceAccepted
+      this.args.user.pixOrgaTermsOfServiceAccepted,
     );
   }
 
   get userHasValidatePixCertifTermsOfService() {
     return this._formatValidatedTermsOfServiceText(
       this.args.user.lastPixCertifTermsOfServiceValidatedAt,
-      this.args.user.pixCertifTermsOfServiceAccepted
+      this.args.user.pixCertifTermsOfServiceAccepted,
     );
+  }
+
+  get languageOptions() {
+    return this.languages;
+  }
+
+  get localeOptions() {
+    return this.locales;
   }
 
   _formatValidatedTermsOfServiceText(date, hasValidatedTermsOfService) {
@@ -148,6 +82,8 @@ export default class UserOverview extends Component {
     this.form.lastName = this.args.user.lastName;
     this.form.email = this.args.user.email;
     this.form.username = this.args.user.username;
+    this.form.lang = this.args.user.lang;
+    this.form.locale = this.args.user.locale;
   }
 
   @action
@@ -175,6 +111,8 @@ export default class UserOverview extends Component {
     this.args.user.lastName = this.form.lastName.trim();
     this.args.user.email = !this.form.email ? null : this.form.email.trim();
     this.args.user.username = !this.form.username ? null : this.form.username.trim();
+    this.args.user.lang = this.form.lang;
+    this.args.user.locale = this.form.locale;
 
     try {
       await this.args.user.save();
@@ -207,5 +145,15 @@ export default class UserOverview extends Component {
   async unblockUserAccount() {
     const userLogin = await this.args.user.userLogin;
     await userLogin.save({ adapterOptions: { unblockUserAccount: true, userId: this.args.user.id } });
+  }
+
+  @action
+  onChangeLanguage(language) {
+    this.form.lang = language;
+  }
+
+  @action
+  onLocaleChange(locale) {
+    this.form.locale = locale;
   }
 }

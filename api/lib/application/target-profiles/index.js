@@ -1,11 +1,11 @@
-const Joi = require('joi');
+import Joi from 'joi';
 
-const { sendJsonApiError, BadRequestError } = require('../http-errors');
-const securityPreHandlers = require('../security-pre-handlers');
-const targetProfileController = require('./target-profile-controller');
-const identifiersType = require('../../domain/types/identifiers-type');
+import { BadRequestError, sendJsonApiError } from '../http-errors.js';
+import { securityPreHandlers } from '../security-pre-handlers.js';
+import { targetProfileController } from './target-profile-controller.js';
+import { identifiersType } from '../../domain/types/identifiers-type.js';
 
-exports.register = async (server) => {
+const register = async function (server) {
   server.route([
     {
       method: 'GET',
@@ -75,34 +75,6 @@ exports.register = async (server) => {
     },
     {
       method: 'GET',
-      path: '/api/admin/target-profiles/{id}/stages',
-      config: {
-        pre: [
-          {
-            method: (request, h) =>
-              securityPreHandlers.adminMemberHasAtLeastOneAccessOf([
-                securityPreHandlers.checkAdminMemberHasRoleSuperAdmin,
-                securityPreHandlers.checkAdminMemberHasRoleSupport,
-                securityPreHandlers.checkAdminMemberHasRoleMetier,
-              ])(request, h),
-            assign: 'hasAuthorizationToAccessAdminScope',
-          },
-        ],
-        validate: {
-          params: Joi.object({
-            id: identifiersType.targetProfileId,
-          }),
-        },
-        handler: targetProfileController.findStages,
-        tags: ['api', 'admin', 'target-profiles', 'stages'],
-        notes: [
-          "- **Cette route est restreinte aux utilisateurs authentifiés ayant les droits d'accès**\n" +
-            '- Elle permet de récupérer les paliers attachés au profil cible',
-        ],
-      },
-    },
-    {
-      method: 'GET',
       path: '/api/admin/target-profiles/{id}/organizations',
       config: {
         pre: [
@@ -156,6 +128,34 @@ exports.register = async (server) => {
       },
     },
     {
+      method: 'GET',
+      path: '/api/admin/target-profiles/{id}/training-summaries',
+      config: {
+        pre: [
+          {
+            method: (request, h) =>
+              securityPreHandlers.adminMemberHasAtLeastOneAccessOf([
+                securityPreHandlers.checkAdminMemberHasRoleSuperAdmin,
+                securityPreHandlers.checkAdminMemberHasRoleSupport,
+                securityPreHandlers.checkAdminMemberHasRoleMetier,
+              ])(request, h),
+            assign: 'hasAuthorizationToAccessAdminScope',
+          },
+        ],
+        validate: {
+          params: Joi.object({
+            id: identifiersType.targetProfileId,
+          }),
+        },
+        handler: targetProfileController.findPaginatedTrainings,
+        tags: ['api', 'admin', 'target-profiles', 'trainings'],
+        notes: [
+          "- **Cette route est restreinte aux utilisateurs authentifiés ayant les droits d'accès**\n" +
+            '- Elle permet de récupérer les résumés des contenus formatifs liés au profil cible',
+        ],
+      },
+    },
+    {
       method: 'POST',
       path: '/api/admin/target-profiles',
       config: {
@@ -190,6 +190,7 @@ exports.register = async (server) => {
                     level: Joi.number().required(),
                   })
                   .required(),
+                'are-knowledge-elements-resettable': Joi.boolean().required(),
               },
             },
           }),
@@ -395,9 +396,11 @@ exports.register = async (server) => {
             data: {
               attributes: {
                 name: Joi.string().required().min(1),
+                'image-url': Joi.string().required(),
                 description: Joi.string().required().allow(null).max(500),
                 comment: Joi.string().required().allow(null).max(500),
                 category: Joi.string().required(),
+                'are-knowledge-elements-resettable': Joi.boolean().required(),
               },
             },
           }).options({ allowUnknown: true }),
@@ -445,4 +448,5 @@ exports.register = async (server) => {
   ]);
 };
 
-exports.name = 'target-profiles-api';
+const name = 'target-profiles-api';
+export { register, name };

@@ -1,53 +1,36 @@
-const AuthenticationMethod = require('../models/AuthenticationMethod');
-const { UserNotAuthorizedToRemoveAuthenticationMethod } = require('../errors');
-const OidcIdentityProviders = require('../constants/oidc-identity-providers');
+import { NON_OIDC_IDENTITY_PROVIDERS } from '../constants/identity-providers.js';
+import { UserNotAuthorizedToRemoveAuthenticationMethod } from '../errors.js';
+import * as OidcIdentityProviders from '../constants/oidc-identity-providers.js';
 
-module.exports = async function removeAuthenticationMethod({
-  userId,
-  type,
-  userRepository,
-  authenticationMethodRepository,
-}) {
+const removeAuthenticationMethod = async function ({ userId, type, userRepository, authenticationMethodRepository }) {
   const user = await userRepository.get(userId);
 
-  if (type === 'EMAIL') {
-    if (!user.username) {
-      await _removeAuthenticationMethod(
-        userId,
-        AuthenticationMethod.identityProviders.PIX,
-        authenticationMethodRepository
-      );
-    }
-    await userRepository.updateEmail({ id: userId, email: null });
-  }
-
-  if (type === 'USERNAME') {
-    if (!user.email) {
-      await _removeAuthenticationMethod(
-        userId,
-        AuthenticationMethod.identityProviders.PIX,
-        authenticationMethodRepository
-      );
-    }
-    await userRepository.updateUsername({ id: userId, username: null });
-  }
-
-  if (type === 'GAR') {
-    await _removeAuthenticationMethod(
-      userId,
-      AuthenticationMethod.identityProviders.GAR,
-      authenticationMethodRepository
-    );
-  }
-
-  if (type === OidcIdentityProviders.POLE_EMPLOI.code) {
-    await _removeAuthenticationMethod(userId, OidcIdentityProviders.POLE_EMPLOI.code, authenticationMethodRepository);
-  }
-
-  if (type === OidcIdentityProviders.CNAV.code) {
-    await _removeAuthenticationMethod(userId, OidcIdentityProviders.CNAV.code, authenticationMethodRepository);
+  switch (type) {
+    case 'EMAIL':
+      if (!user.username) {
+        await _removeAuthenticationMethod(userId, NON_OIDC_IDENTITY_PROVIDERS.PIX.code, authenticationMethodRepository);
+      }
+      await userRepository.updateEmail({ id: userId, email: null });
+      break;
+    case 'USERNAME':
+      if (!user.email) {
+        await _removeAuthenticationMethod(userId, NON_OIDC_IDENTITY_PROVIDERS.PIX.code, authenticationMethodRepository);
+      }
+      await userRepository.updateUsername({ id: userId, username: null });
+      break;
+    case 'GAR':
+      await _removeAuthenticationMethod(userId, NON_OIDC_IDENTITY_PROVIDERS.GAR.code, authenticationMethodRepository);
+      break;
+    case OidcIdentityProviders.POLE_EMPLOI.code:
+      await _removeAuthenticationMethod(userId, OidcIdentityProviders.POLE_EMPLOI.code, authenticationMethodRepository);
+      break;
+    case OidcIdentityProviders.CNAV.code:
+      await _removeAuthenticationMethod(userId, OidcIdentityProviders.CNAV.code, authenticationMethodRepository);
+      break;
   }
 };
+
+export { removeAuthenticationMethod };
 
 async function _removeAuthenticationMethod(userId, identityProvider, authenticationMethodRepository) {
   const authenticationMethods = await authenticationMethodRepository.findByUserId({ userId });

@@ -1,11 +1,16 @@
-const { expect, sinon, domainBuilder } = require('../../../test-helper');
-const PoleEmploiSending = require('../../../../lib/domain/models/PoleEmploiSending');
-const PoleEmploiPayload = require('../../../../lib/infrastructure/externals/pole-emploi/PoleEmploiPayload');
-const sendSharedParticipationResultsToPoleEmploi = require('../../../../lib/domain/usecases/send-shared-participation-results-to-pole-emploi');
+import { expect, sinon, domainBuilder } from '../../../test-helper.js';
+import { PoleEmploiSending } from '../../../../lib/domain/models/PoleEmploiSending.js';
+import { PoleEmploiPayload } from '../../../../lib/infrastructure/externals/pole-emploi/PoleEmploiPayload.js';
+import { sendSharedParticipationResultsToPoleEmploi } from '../../../../lib/domain/usecases/send-shared-participation-results-to-pole-emploi.js';
+import { httpAgent } from '../../../../lib/infrastructure/http/http-agent.js';
+import * as httpErrorsHelper from '../../../../lib/infrastructure/http/errors-helper.js';
+import * as monitoringTools from '../../../../lib/infrastructure/monitoring-tools.js';
 
 describe('Unit | Domain | UseCase | send-shared-participation-results-to-pole-emploi', function () {
   let dependencies, expectedResults;
   let campaignRepository,
+    badgeRepository,
+    badgeAcquisitionRepository,
     campaignParticipationRepository,
     campaignParticipationResultRepository,
     organizationRepository,
@@ -13,9 +18,12 @@ describe('Unit | Domain | UseCase | send-shared-participation-results-to-pole-em
     userRepository,
     poleEmploiNotifier,
     poleEmploiSendingRepository;
-  let campaignId, campaignParticipationId, userId, organizationId;
+  let campaignId, campaignParticipationId, userId, organizationId, badges, badgeAcquiredIds;
+  let authenticationMethodRepository;
 
   beforeEach(function () {
+    badgeRepository = { findByCampaignId: sinon.stub() };
+    badgeAcquisitionRepository = { getAcquiredBadgeIds: sinon.stub() };
     campaignRepository = { get: sinon.stub() };
     campaignParticipationRepository = { get: sinon.stub() };
     campaignParticipationResultRepository = { getByParticipationId: sinon.stub() };
@@ -24,8 +32,15 @@ describe('Unit | Domain | UseCase | send-shared-participation-results-to-pole-em
     userRepository = { get: sinon.stub() };
     poleEmploiNotifier = { notify: sinon.stub() };
     poleEmploiSendingRepository = { create: sinon.stub() };
+    authenticationMethodRepository = {
+      findOneByUserIdAndIdentityProvider: sinon.stub(),
+      updateAuthenticationComplementByUserIdAndIdentityProvider: sinon.stub(),
+    };
 
     dependencies = {
+      authenticationMethodRepository,
+      badgeRepository,
+      badgeAcquisitionRepository,
       campaignRepository,
       campaignParticipationRepository,
       campaignParticipationResultRepository,
@@ -88,15 +103,34 @@ describe('Unit | Domain | UseCase | send-shared-participation-results-to-pole-em
           },
         ],
       },
+      badges: [
+        {
+          cle: 1,
+          titre: 'titre',
+          message: 'message',
+          imageUrl: 'imageUrl',
+          messageAlternatif: 'messageAlternatif',
+          certifiable: true,
+          obtenu: true,
+        },
+      ],
     });
+    badges = [
+      {
+        id: 1,
+        key: 1,
+        title: 'titre',
+        message: 'message',
+        imageUrl: 'imageUrl',
+        altMessage: 'messageAlternatif',
+        isCertifiable: true,
+      },
+    ];
+    badgeAcquiredIds = [1];
     campaignId = Symbol('campaignId');
     campaignParticipationId = 55667788;
     userId = Symbol('userId');
     organizationId = Symbol('organizationId');
-  });
-
-  afterEach(function () {
-    sinon.restore();
   });
 
   context('when campaign is of type ASSESSMENT and organization is Pole Emploi', function () {
@@ -123,7 +157,7 @@ describe('Unit | Domain | UseCase | send-shared-participation-results-to-pole-em
           userId,
           sharedAt: new Date('2020-01-03'),
           createdAt: new Date('2020-01-02'),
-        })
+        }),
       );
       campaignRepository.get.withArgs(campaignId).resolves(campaign);
       campaignParticipationResultRepository.getByParticipationId.withArgs(campaignParticipationId).resolves(
@@ -146,14 +180,23 @@ describe('Unit | Domain | UseCase | send-shared-participation-results-to-pole-em
               validatedSkillsCount: 3,
             }),
           ],
-        })
+        }),
       );
+      badgeRepository.findByCampaignId.withArgs(campaignId).resolves(badges);
+      badgeAcquisitionRepository.getAcquiredBadgeIds.withArgs({ badgeIds: [1], userId }).resolves(badgeAcquiredIds);
     });
 
     it('should notify pole emploi and create pole emploi sending accordingly', async function () {
       // given
       const expectedResponse = { isSuccessful: 'someValue', code: 'someCode' };
-      poleEmploiNotifier.notify.withArgs(userId, expectedResults).resolves(expectedResponse);
+      poleEmploiNotifier.notify
+        .withArgs(userId, expectedResults, {
+          authenticationMethodRepository,
+          httpAgent,
+          httpErrorsHelper,
+          monitoringTools,
+        })
+        .resolves(expectedResponse);
       const poleEmploiSending = Symbol('Pole emploi sending');
       sinon
         .stub(PoleEmploiSending, 'buildForParticipationShared')
@@ -190,7 +233,7 @@ describe('Unit | Domain | UseCase | send-shared-participation-results-to-pole-em
           userId,
           sharedAt: new Date('2020-01-03'),
           createdAt: new Date('2020-01-02'),
-        })
+        }),
       );
       campaignRepository.get.withArgs(campaignId).resolves(campaign);
       organizationRepository.get.withArgs(organizationId).resolves({ isPoleEmploi: false });
@@ -218,7 +261,7 @@ describe('Unit | Domain | UseCase | send-shared-participation-results-to-pole-em
           userId,
           sharedAt: new Date('2020-01-03'),
           createdAt: new Date('2020-01-02'),
-        })
+        }),
       );
       campaignRepository.get.withArgs(campaignId).resolves(campaign);
       organizationRepository.get

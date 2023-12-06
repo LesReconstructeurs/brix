@@ -1,14 +1,17 @@
-const _ = require('lodash');
-const moment = require('moment');
-const bluebird = require('bluebird');
+import _ from 'lodash';
+import bluebird from 'bluebird';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc.js';
+import timezone from 'dayjs/plugin/timezone.js';
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
-const constants = require('../../infrastructure/constants');
-const { UserNotAuthorizedToGetCampaignResultsError, CampaignTypeError } = require('../errors');
-const csvSerializer = require('../../infrastructure/serializers/csv/csv-serializer');
-const CampaignLearningContent = require('../models/CampaignLearningContent');
-const CampaignStages = require('../read-models/campaign/CampaignStages');
+import { CONCURRENCY_HEAVY_OPERATIONS, CHUNK_SIZE_CAMPAIGN_RESULT_PROCESSING } from '../../infrastructure/constants.js';
+import { UserNotAuthorizedToGetCampaignResultsError, CampaignTypeError } from '../errors.js';
+import * as csvSerializer from '../../infrastructure/serializers/csv/csv-serializer.js';
+import { CampaignLearningContent } from '../models/CampaignLearningContent.js';
 
-module.exports = async function startWritingCampaignAssessmentResultsToStream({
+const startWritingCampaignAssessmentResultsToStream = async function ({
   userId,
   campaignId,
   writableStream,
@@ -22,6 +25,7 @@ module.exports = async function startWritingCampaignAssessmentResultsToStream({
   campaignCsvExportService,
   targetProfileRepository,
   learningContentRepository,
+  stageCollectionRepository,
 }) {
   const campaign = await campaignRepository.get(campaignId);
   const translate = i18n.__;
@@ -34,8 +38,7 @@ module.exports = async function startWritingCampaignAssessmentResultsToStream({
 
   const targetProfile = await targetProfileRepository.getByCampaignId(campaign.id);
   const learningContent = await learningContentRepository.findByCampaignId(campaign.id, i18n.getLocale());
-  const stages = await campaignRepository.findStages({ campaignId });
-  const campaignStages = new CampaignStages({ stages });
+  const stageCollection = await stageCollectionRepository.findStageCollection({ campaignId });
   const campaignLearningContent = new CampaignLearningContent(learningContent);
 
   const organization = await organizationRepository.get(campaign.organizationId);
@@ -48,7 +51,7 @@ module.exports = async function startWritingCampaignAssessmentResultsToStream({
     organization,
     translate,
     campaignLearningContent,
-    campaignStages
+    stageCollection,
   );
 
   // WHY: add \uFEFF the UTF-8 BOM at the start of the text, see:
@@ -62,10 +65,7 @@ module.exports = async function startWritingCampaignAssessmentResultsToStream({
   // after this function's returned promise resolves. If we await the map
   // function, node will keep all the data in memory until the end of the
   // complete operation.
-  const campaignParticipationInfoChunks = _.chunk(
-    campaignParticipationInfos,
-    constants.CHUNK_SIZE_CAMPAIGN_RESULT_PROCESSING
-  );
+  const campaignParticipationInfoChunks = _.chunk(campaignParticipationInfos, CHUNK_SIZE_CAMPAIGN_RESULT_PROCESSING);
   bluebird
     .map(
       campaignParticipationInfoChunks,
@@ -73,18 +73,18 @@ module.exports = async function startWritingCampaignAssessmentResultsToStream({
         const userIdsAndDates = Object.fromEntries(
           campaignParticipationInfoChunk.map((campaignParticipationInfo) => {
             return [campaignParticipationInfo.userId, campaignParticipationInfo.sharedAt];
-          })
+          }),
         );
         const knowledgeElementsByUserIdAndCompetenceId =
           await knowledgeElementRepository.findGroupedByCompetencesForUsersWithinLearningContent(
             userIdsAndDates,
-            campaignLearningContent
+            campaignLearningContent,
           );
 
         let acquiredBadgesByCampaignParticipations;
         if (targetProfile.hasBadges) {
           const campaignParticipationsIds = campaignParticipationInfoChunk.map(
-            (campaignParticipationInfo) => campaignParticipationInfo.campaignParticipationId
+            (campaignParticipationInfo) => campaignParticipationInfo.campaignParticipationId,
           );
           acquiredBadgesByCampaignParticipations =
             await badgeAcquisitionRepository.getAcquiredBadgesByCampaignParticipations({ campaignParticipationsIds });
@@ -92,17 +92,17 @@ module.exports = async function startWritingCampaignAssessmentResultsToStream({
 
         let csvLines = '';
         for (const [strParticipantId, participantKnowledgeElementsByCompetenceId] of Object.entries(
-          knowledgeElementsByUserIdAndCompetenceId
+          knowledgeElementsByUserIdAndCompetenceId,
         )) {
           const participantId = parseInt(strParticipantId);
           const campaignParticipationInfo = campaignParticipationInfoChunk.find(
-            (campaignParticipationInfo) => campaignParticipationInfo.userId === participantId
+            (campaignParticipationInfo) => campaignParticipationInfo.userId === participantId,
           );
           const acquiredBadges =
             acquiredBadgesByCampaignParticipations &&
             acquiredBadgesByCampaignParticipations[campaignParticipationInfo.campaignParticipationId]
               ? acquiredBadgesByCampaignParticipations[campaignParticipationInfo.campaignParticipationId].map(
-                  (badge) => badge.title
+                  (badge) => badge.title,
                 )
               : [];
           const csvLine = campaignCsvExportService.createOneCsvLine({
@@ -111,7 +111,7 @@ module.exports = async function startWritingCampaignAssessmentResultsToStream({
             campaignParticipationInfo,
             targetProfile,
             learningContent: campaignLearningContent,
-            campaignStages,
+            stageCollection,
             participantKnowledgeElementsByCompetenceId,
             acquiredBadges,
             translate,
@@ -121,7 +121,7 @@ module.exports = async function startWritingCampaignAssessmentResultsToStream({
 
         writableStream.write(csvLines);
       },
-      { concurrency: constants.CONCURRENCY_HEAVY_OPERATIONS }
+      { concurrency: CONCURRENCY_HEAVY_OPERATIONS },
     )
     .then(() => {
       writableStream.end();
@@ -134,28 +134,31 @@ module.exports = async function startWritingCampaignAssessmentResultsToStream({
   const fileName = translate('campaign-export.common.file-name', {
     name: campaign.name,
     id: campaign.id,
-    date: moment.utc().format('YYYY-MM-DD-hhmm'),
+    date: dayjs().tz('Europe/Berlin').format('YYYY-MM-DD-HHmm'),
   });
   return { fileName };
 };
+
+export { startWritingCampaignAssessmentResultsToStream };
 
 async function _checkCreatorHasAccessToCampaignOrganization(userId, organizationId, userRepository) {
   const user = await userRepository.getWithMemberships(userId);
 
   if (!user.hasAccessToOrganization(organizationId)) {
     throw new UserNotAuthorizedToGetCampaignResultsError(
-      `User does not have an access to the organization ${organizationId}`
+      `User does not have an access to the organization ${organizationId}`,
     );
   }
 }
 
-function _createHeaderOfCSV(targetProfile, idPixLabel, organization, translate, learningContent, campaignStages) {
+function _createHeaderOfCSV(targetProfile, idPixLabel, organization, translate, learningContent, stageCollection) {
   const forSupStudents = organization.isSup && organization.isManagingStudents;
   const displayDivision = organization.isSco && organization.isManagingStudents;
 
   return [
     translate('campaign-export.common.organization-name'),
     translate('campaign-export.common.campaign-id'),
+    translate('campaign-export.common.campaign-code'),
     translate('campaign-export.common.campaign-name'),
     translate('campaign-export.assessment.target-profile-name'),
     translate('campaign-export.common.participant-lastname'),
@@ -169,8 +172,8 @@ function _createHeaderOfCSV(targetProfile, idPixLabel, organization, translate, 
     translate('campaign-export.assessment.started-on'),
     translate('campaign-export.assessment.is-shared'),
     translate('campaign-export.assessment.shared-on'),
-    ...(campaignStages.hasReachableStages
-      ? [translate('campaign-export.assessment.success-rate', { value: campaignStages.reachableStages.length })]
+    ...(stageCollection.hasStage
+      ? [translate('campaign-export.assessment.success-rate', { value: stageCollection.totalStages - 1 })]
       : []),
 
     ..._.flatMap(targetProfile.badges, (badge) => [

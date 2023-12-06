@@ -1,18 +1,18 @@
-const _ = require('lodash');
+import _ from 'lodash';
 
 class CampaignCollectiveResult {
-  constructor({ id, learningContent } = {}) {
+  constructor({ id, campaignLearningContent } = {}) {
     this.id = id;
-    const competences = _.sortBy(learningContent.competences, 'index');
+    const competences = _.sortBy(campaignLearningContent.competences, 'index');
 
-    this.campaignCompetenceCollectiveResults = competences.map(
-      (competence) =>
-        new CampaignCompetenceCollectiveResult({
-          campaignId: id,
-          competence,
-          area: competence.area,
-        })
-    );
+    this.campaignCompetenceCollectiveResults = competences.map((competence) => {
+      const area = campaignLearningContent.findAreaOfCompetence(competence);
+      return new CampaignCompetenceCollectiveResult({
+        campaignId: id,
+        competence,
+        area,
+      });
+    });
   }
 
   addValidatedSkillCountToCompetences(participantsKECountByCompetenceId) {
@@ -54,4 +54,4 @@ class CampaignCompetenceCollectiveResult {
   }
 }
 
-module.exports = CampaignCollectiveResult;
+export { CampaignCollectiveResult };

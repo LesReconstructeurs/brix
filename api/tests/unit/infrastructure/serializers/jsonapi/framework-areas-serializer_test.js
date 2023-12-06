@@ -1,5 +1,5 @@
-const { expect, domainBuilder } = require('../../../../test-helper');
-const serializer = require('../../../../../lib/infrastructure/serializers/jsonapi/framework-areas-serializer');
+import { expect, domainBuilder } from '../../../../test-helper.js';
+import * as serializer from '../../../../../lib/infrastructure/serializers/jsonapi/framework-areas-serializer.js';
 
 describe('Unit | Serializer | JSONAPI | pix-framework-serializer', function () {
   describe('#serialize', function () {
@@ -57,13 +57,6 @@ describe('Unit | Serializer | JSONAPI | pix-framework-serializer', function () {
               'practical-description': 'description pratique',
               mobile: true,
               tablet: false,
-            },
-            relationships: {
-              skills: {
-                links: {
-                  related: '/api/admin/tubes/tubeId/skills',
-                },
-              },
             },
           },
           {
@@ -179,7 +172,7 @@ describe('Unit | Serializer | JSONAPI | pix-framework-serializer', function () {
             thematics: [thematicWithTube, thematicWithoutTube],
             areas: [area],
           },
-          { withoutThematics }
+          { withoutThematics },
         );
 
         // then

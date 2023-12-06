@@ -1,5 +1,6 @@
-import Model, { attr } from '@ember-data/model';
+import Model, { attr, hasMany } from '@ember-data/model';
 import formatList from '../utils/format-select-options';
+import { memberAction } from 'ember-api-actions';
 
 export const typeCategories = {
   webinaire: 'Webinaire',
@@ -23,7 +24,7 @@ export default class Training extends Model {
   @attr('string') locale;
   @attr('string') editorName;
   @attr('string') editorLogoUrl;
-
+  @attr('boolean') isRecommendable;
   @attr({
     defaultValue: () => ({
       days: 0,
@@ -32,4 +33,24 @@ export default class Training extends Model {
     }),
   })
   duration;
+
+  @hasMany('training-trigger') trainingTriggers;
+  @hasMany('target-profile-summary') targetProfileSummaries;
+
+  attachTargetProfiles = memberAction({
+    path: 'attach-target-profiles',
+    type: 'post',
+  });
+
+  get prerequisiteTrigger() {
+    return this.trainingTriggers.findBy('type', 'prerequisite');
+  }
+
+  get goalTrigger() {
+    return this.trainingTriggers.findBy('type', 'goal');
+  }
+
+  get sortedTargetProfileSummaries() {
+    return this.targetProfileSummaries.sortBy('id');
+  }
 }

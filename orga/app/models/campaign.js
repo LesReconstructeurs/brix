@@ -1,9 +1,6 @@
-import Model, { belongsTo, hasMany, attr } from '@ember-data/model';
+import Model, { attr, belongsTo, hasMany } from '@ember-data/model';
 import ENV from 'pix-orga/config/environment';
-import { inject as service } from '@ember/service';
-
-const PROFILES_COLLECTION_TEXT = 'Collecte de profils';
-const ASSESSMENT_TEXT = 'Évaluation';
+import { service } from '@ember/service';
 
 export default class Campaign extends Model {
   @service store;
@@ -30,6 +27,8 @@ export default class Campaign extends Model {
   @attr('number') participationsCount;
   @attr('number') sharedParticipationsCount;
   @attr('number') averageResult;
+  @attr('number') totalStage;
+  @attr('number') reachedStage;
 
   @belongsTo('organization') organization;
   @belongsTo('target-profile') targetProfile;
@@ -65,10 +64,6 @@ export default class Campaign extends Model {
     return this.type === 'ASSESSMENT';
   }
 
-  get readableType() {
-    return this.isTypeProfilesCollection ? PROFILES_COLLECTION_TEXT : ASSESSMENT_TEXT;
-  }
-
   get urlToResult() {
     if (this.isTypeAssessment) {
       return `${ENV.APP.API_HOST}/api/campaigns/${this.id}/csv-assessment-results?accessToken=${this.tokenForCampaignResults}`;
@@ -92,5 +87,17 @@ export default class Campaign extends Model {
   async unarchive() {
     await this.store.adapterFor('campaign').unarchive(this);
     return this.store.findRecord('campaign', this.id);
+  }
+
+  setType(type) {
+    if (type === 'ASSESSMENT') {
+      this.multipleSendings = false;
+    }
+    if (type === 'PROFILES_COLLECTION') {
+      this.multipleSendings = true;
+      this.title = null;
+      this.targetProfile = null;
+    }
+    this.type = type;
   }
 }

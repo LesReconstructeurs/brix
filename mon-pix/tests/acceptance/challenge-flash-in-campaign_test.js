@@ -1,6 +1,7 @@
+// eslint-disable-next-line no-restricted-imports
 import { find } from '@ember/test-helpers';
 import { module, test } from 'qunit';
-import { visit } from '@ember/test-helpers';
+import { visit } from '@1024pix/ember-testing-library';
 import { setupApplicationTest } from 'ember-qunit';
 import { setupMirage } from 'ember-cli-mirage/test-support';
 import environment from '../../config/environment';
@@ -30,9 +31,8 @@ module('Acceptance | Flash', function (hooks) {
 
       const progressValue = find('.assessment-progress__value').textContent.replace(/\s+/g, '');
       const maxNbOfQuestions = environment.APP.NUMBER_OF_CHALLENGES_FOR_FLASH_METHOD;
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(progressValue, `1/${maxNbOfQuestions}`);
+
+      assert.strictEqual(progressValue, `1/${maxNbOfQuestions}`);
     });
   });
 });

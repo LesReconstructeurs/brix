@@ -3,7 +3,7 @@ import { click, currentURL } from '@ember/test-helpers';
 import { setupApplicationTest } from 'ember-qunit';
 import { FINALIZED } from 'pix-admin/models/session';
 import { clickByName, fillByLabel, visit } from '@1024pix/ember-testing-library';
-import setupMirage from 'ember-cli-mirage/test-support/setup-mirage';
+import { setupMirage } from 'ember-cli-mirage/test-support';
 import sinon from 'sinon';
 import { authenticateAdminMemberWithRole } from 'pix-admin/tests/helpers/test-init';
 
@@ -118,6 +118,37 @@ module('Acceptance | Session pages', function (hooks) {
       });
 
       module('Buttons section', function () {
+        module('When the session has not been published', function () {
+          test('it show the disabled certificates download button', async function (assert) {
+            // given
+            this.server.create('session');
+
+            // when
+            const screen = await visit('/sessions/2');
+
+            // then
+            assert.dom(screen.getByRole('button', { name: 'Télécharger les attestations' })).hasAttribute('disabled');
+          });
+        });
+
+        module('When the session has been published', function () {
+          test('it shows the certificates download button', async function (assert) {
+            // given
+            const juryCertificationSummary = this.server.create('jury-certification-summary', {
+              isPublished: true,
+            });
+            this.server.create('session', { juryCertificationSummaries: [juryCertificationSummary] });
+
+            // when
+            const screen = await visit('/sessions/2');
+
+            // then
+            assert
+              .dom(screen.getByRole('button', { name: 'Télécharger les attestations' }))
+              .doesNotHaveAttribute('disabled');
+          });
+        });
+
         test('it shows all buttons', async function (assert) {
           // when
           const screen = await visit('/sessions/1');
@@ -129,7 +160,7 @@ module('Acceptance | Session pages', function (hooks) {
         });
 
         module('copy link button', function () {
-          test("it should copy 'http://link-to-results.fr' in navigator clipboard on click", async function (assert) {
+          test("it should copy 'http://link-to-results.fr?lang=fr' in navigator clipboard on click", async function (assert) {
             // given
 
             // We were unable to access clipboard in test environment so we used a stub
@@ -140,7 +171,7 @@ module('Acceptance | Session pages', function (hooks) {
             await clickByName('Lien de téléchargement des résultats');
 
             // then
-            assert.ok(writeTextStub.calledWithExactly('http://link-to-results.fr'));
+            assert.ok(writeTextStub.calledWithExactly('http://link-to-results.fr?lang=fr'));
           });
         });
       });

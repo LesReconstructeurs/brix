@@ -1,6 +1,8 @@
-const uniqBy = require('lodash/uniqBy');
-const remove = require('lodash/remove');
-const EuropeanNumericLevel = require('./EuropeanNumericLevel');
+import lodash from 'lodash';
+
+const { remove, uniqBy } = lodash;
+
+import { EuropeanNumericLevel } from './EuropeanNumericLevel.js';
 
 class EuropeanNumericLevelFactory {
   static buildFromCompetenceMarks(competenceMarks) {
@@ -57,10 +59,10 @@ class EuropeanNumericLevelFactory {
 
     if (_areAtLeastOneCompetenceByDomain(competenceMarks)) {
       const averageGlobalScore = Math.round(
-        europeanNumericLevels.reduce((total, { level }) => total + level, 0) / europeanNumericLevels.length
+        europeanNumericLevels.reduce((total, { level }) => total + level, 0) / europeanNumericLevels.length,
       );
       europeanNumericLevels.push(
-        new EuropeanNumericLevel({ domainCompetenceId: '5', competenceId: '3', level: averageGlobalScore })
+        new EuropeanNumericLevel({ domainCompetenceId: '5', competenceId: '3', level: averageGlobalScore }),
       );
     }
 
@@ -85,7 +87,7 @@ function _buildEuropeanNumericLevelFromMergedCompetenceMarks({
   if (!areAllCompetenceCodesToMergeFound) return null;
 
   const level = Math.round(
-    foundCompetenceMarks.reduce((total, { level }) => total + level, 0) / foundCompetenceMarks.length
+    foundCompetenceMarks.reduce((total, { level }) => total + level, 0) / foundCompetenceMarks.length,
   );
   return EuropeanNumericLevel.from({ competenceCode: mergedCompetenceCode, level });
 }
@@ -94,4 +96,4 @@ function _areAtLeastOneCompetenceByDomain(competenceMarks) {
   return uniqBy(competenceMarks, 'areaCode').length === 5;
 }
 
-module.exports = EuropeanNumericLevelFactory;
+export { EuropeanNumericLevelFactory };

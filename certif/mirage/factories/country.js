@@ -1,12 +1,12 @@
-import { Factory } from 'ember-cli-mirage';
-import faker from 'faker';
+import { Factory } from 'miragejs';
+import { faker } from '@faker-js/faker';
 
 export default Factory.extend({
   name() {
-    return faker.random.word();
+    return faker.lorem.word();
   },
 
   code() {
-    return faker.datatype.number({ min: 99000, max: 99999 });
+    return faker.number.int({ min: 99000, max: 99999 });
   },
 });

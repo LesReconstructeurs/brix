@@ -1,11 +1,17 @@
-const { features } = require('../../config');
-const {
+import { config } from '../../config.js';
+
+import {
   AccountRecoveryDemandExpired,
   MultipleOrganizationLearnersWithDifferentNationalStudentIdError,
   UserNotFoundError,
   UserHasAlreadyLeftSCO,
-} = require('../errors');
-const { uniqBy } = require('lodash');
+} from '../errors.js';
+
+import lodash from 'lodash';
+
+const { uniqBy } = lodash;
+
+const { features } = config;
 
 async function retrieveOrganizationLearner({
   accountRecoveryDemandRepository,
@@ -81,7 +87,7 @@ async function _getUserIdByMatchingStudentInformationWithOrganizationLearner({
 }) {
   const matchingOrganizationLearnerId = await userReconciliationService.findMatchingCandidateIdForGivenUser(
     [latestOrganizationLearner],
-    { firstName: studentInformation.firstName, lastName: studentInformation.lastName }
+    { firstName: studentInformation.firstName, lastName: studentInformation.lastName },
   );
 
   if (!matchingOrganizationLearnerId) {
@@ -100,7 +106,4 @@ async function _checkIfThereAreMultipleUserForTheSameAccount({ userId, organizat
   }
 }
 
-module.exports = {
-  retrieveOrganizationLearner,
-  retrieveAndValidateAccountRecoveryDemand,
-};
+export { retrieveOrganizationLearner, retrieveAndValidateAccountRecoveryDemand };

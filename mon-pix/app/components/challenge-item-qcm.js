@@ -1,5 +1,5 @@
 import { action } from '@ember/object';
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 import ChallengeItemGeneric from './challenge-item-generic';
 
 export default class ChallengeItemQcm extends ChallengeItemGeneric {
@@ -7,7 +7,7 @@ export default class ChallengeItemQcm extends ChallengeItemGeneric {
   checkedValues = new Set();
 
   _hasError() {
-    return this.checkedValues.size < 1;
+    return this.checkedValues.size < 2;
   }
 
   _getAnswerValue() {

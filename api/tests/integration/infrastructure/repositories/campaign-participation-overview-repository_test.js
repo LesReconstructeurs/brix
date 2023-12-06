@@ -1,10 +1,17 @@
-const { expect, databaseBuilder, mockLearningContent, learningContentBuilder } = require('../../../test-helper');
+import {
+  expect,
+  databaseBuilder,
+  mockLearningContent,
+  learningContentBuilder,
+  domainBuilder,
+} from '../../../test-helper.js';
+
 const { campaignParticipationOverviewFactory } = databaseBuilder.factory;
-const Assessment = require('../../../../lib/domain/models/Assessment');
-const campaignParticipationOverviewRepository = require('../../../../lib/infrastructure/repositories/campaign-participation-overview-repository');
-const _ = require('lodash');
-const CampaignParticipationStatuses = require('../../../../lib/domain/models/CampaignParticipationStatuses');
-const CampaignTypes = require('../../../../lib/domain/models/CampaignTypes');
+import { Assessment } from '../../../../lib/domain/models/Assessment.js';
+import * as campaignParticipationOverviewRepository from '../../../../lib/infrastructure/repositories/campaign-participation-overview-repository.js';
+import _ from 'lodash';
+import { CampaignParticipationStatuses } from '../../../../lib/domain/models/CampaignParticipationStatuses.js';
+import { CampaignTypes } from '../../../../lib/domain/models/CampaignTypes.js';
 
 let userId;
 
@@ -33,7 +40,7 @@ describe('Integration | Repository | Campaign Participation Overview', function 
         ],
       },
     ];
-    const learningContentObjects = learningContentBuilder.buildLearningContent.fromAreas(learningContent);
+    const learningContentObjects = learningContentBuilder.fromAreas(learningContent);
     mockLearningContent(learningContentObjects);
     targetProfile = databaseBuilder.factory.buildTargetProfile();
     databaseBuilder.factory.buildStage({ targetProfileId: targetProfile.id });
@@ -554,6 +561,7 @@ describe('Integration | Repository | Campaign Participation Overview', function 
         const { id: campaignParticipationId } = databaseBuilder.factory.buildCampaignParticipation({
           userId,
           campaignId,
+          validatedSkillsCount: 3,
         });
         databaseBuilder.factory.buildAssessment({
           userId,
@@ -569,6 +577,7 @@ describe('Integration | Repository | Campaign Participation Overview', function 
           await campaignParticipationOverviewRepository.findByUserIdWithFilters({ userId });
 
         // then
+        const stageCollection = domainBuilder.buildStageCollectionForUserCampaignResults({ campaignId, stages: [] });
         expect(campaignParticipationOverviews).to.deep.equal([
           {
             campaignCode: 'FLASH',
@@ -581,7 +590,8 @@ describe('Integration | Repository | Campaign Participation Overview', function 
             sharedAt: new Date('2020-01-02T00:00:00Z'),
             status: 'SHARED',
             disabledAt: null,
-            campaignStages: { stages: [] },
+            stageCollection,
+            validatedSkillsCount: 3,
           },
         ]);
       });

@@ -1,5 +1,5 @@
-const { expect, domainBuilder } = require('../../../../test-helper');
-const serializer = require('../../../../../lib/infrastructure/serializers/jsonapi/certification-center-for-admin-serializer');
+import { expect, domainBuilder } from '../../../../test-helper.js';
+import * as serializer from '../../../../../lib/infrastructure/serializers/jsonapi/certification-center-for-admin-serializer.js';
 
 describe('Unit | Serializer | JSONAPI | certification-center-for-admin-serializer', function () {
   describe('#deserialize', function () {
@@ -13,7 +13,6 @@ describe('Unit | Serializer | JSONAPI | certification-center-for-admin-serialize
             name: 'Centre des dés',
             type: 'SCO',
             'external-id': '12345',
-            'is-supervisor-access-enabled': true,
             'created-at': new Date('2018-02-01T01:02:03Z'),
             'data-protection-officer-first-name': 'Justin',
             'data-protection-officer-last-name': 'Ptipeu',
@@ -33,7 +32,6 @@ describe('Unit | Serializer | JSONAPI | certification-center-for-admin-serialize
         type: 'SCO',
         externalId: '12345',
         createdAt: null,
-        isSupervisorAccessEnabled: true,
         habilitations: [],
         dataProtectionOfficerFirstName: 'Justin',
         dataProtectionOfficerLastName: 'Ptipeu',
@@ -58,7 +56,6 @@ describe('Unit | Serializer | JSONAPI | certification-center-for-admin-serialize
         type: 'SCO',
         createdAt: new Date('2018-01-01T05:43:10Z'),
         externalId: '12345',
-        isSupervisorAccessEnabled: true,
         dataProtectionOfficerFirstName: 'Justin',
         dataProtectionOfficerLastName: 'Ptipeu',
         dataProtectionOfficerEmail: 'justin.ptipeu@example.net',
@@ -77,7 +74,6 @@ describe('Unit | Serializer | JSONAPI | certification-center-for-admin-serialize
             name: 'Centre des dés',
             type: 'SCO',
             'external-id': '12345',
-            'is-supervisor-access-enabled': true,
             'data-protection-officer-first-name': 'Justin',
             'data-protection-officer-last-name': 'Ptipeu',
             'data-protection-officer-email': 'justin.ptipeu@example.net',
@@ -93,7 +89,7 @@ describe('Unit | Serializer | JSONAPI | certification-center-for-admin-serialize
               data: [
                 {
                   id: '1',
-                  type: 'habilitations',
+                  type: 'complementary-certifications',
                 },
               ],
             },
@@ -102,7 +98,7 @@ describe('Unit | Serializer | JSONAPI | certification-center-for-admin-serialize
         included: [
           {
             id: '1',
-            type: 'habilitations',
+            type: 'complementary-certifications',
             attributes: {
               key: 'SURF',
               label: 'Pix+surf',

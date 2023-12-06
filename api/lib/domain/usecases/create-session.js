@@ -1,34 +1,39 @@
-const { ForbiddenAccess } = require('../errors');
-const sessionValidator = require('../validators/session-validator');
-const sessionCodeService = require('../services/session-code-service');
-const Session = require('../models/Session');
+import { ForbiddenAccess } from '../errors.js';
+import * as sessionValidator from '../validators/session-validator.js';
+import * as sessionCodeService from '../services/session-code-service.js';
+import { Session } from '../models/Session.js';
+import { CertificationVersion } from '../models/CertificationVersion.js';
 
-module.exports = async function createSession({
+const createSession = async function ({
   userId,
   session,
   certificationCenterRepository,
   sessionRepository,
   userRepository,
+  dependencies = { sessionValidator, sessionCodeService },
 }) {
-  sessionValidator.validate(session);
+  dependencies.sessionValidator.validate(session);
 
   const certificationCenterId = session.certificationCenterId;
   const userWithCertifCenters = await userRepository.getWithCertificationCenterMemberships(userId);
   if (!userWithCertifCenters.hasAccessToCertificationCenter(certificationCenterId)) {
     throw new ForbiddenAccess(
-      "L'utilisateur n'est pas membre du centre de certification dans lequel il souhaite créer une session"
+      "L'utilisateur n'est pas membre du centre de certification dans lequel il souhaite créer une session",
     );
   }
 
-  const accessCode = await sessionCodeService.getNewSessionCode();
-  const { name: certificationCenter } = await certificationCenterRepository.get(certificationCenterId);
+  const accessCode = dependencies.sessionCodeService.getNewSessionCode();
+  const { isV3Pilot, name: certificationCenterName } = await certificationCenterRepository.get(certificationCenterId);
+  const version = isV3Pilot ? CertificationVersion.V3 : CertificationVersion.V2;
+
   const domainSession = new Session({
     ...session,
     accessCode,
-    certificationCenter,
+    certificationCenter: certificationCenterName,
+    version,
   });
-
-  domainSession.generateSupervisorPassword();
 
   return sessionRepository.save(domainSession);
 };
+
+export { createSession };

@@ -26,9 +26,7 @@ module('Acceptance | Session Details', function (hooks) {
       await visit(`/sessions/${session.id}`);
 
       // then
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(currentURL(), '/connexion');
+      assert.strictEqual(currentURL(), '/connexion');
     });
   });
 
@@ -63,16 +61,14 @@ module('Acceptance | Session Details', function (hooks) {
         await visit(`/sessions/${session.id}`);
 
         // then
-        // TODO: Fix this the next time the file is edited.
-        // eslint-disable-next-line qunit/no-assert-equal
-        assert.equal(currentURL(), '/espace-ferme');
+        assert.strictEqual(currentURL(), '/espace-ferme');
       });
     });
 
     test('it should redirect to session list on click on return button', async function (assert) {
       // when
       const screen = await visitScreen(`/sessions/${session.id}`);
-      await click(screen.getByRole('link', { name: 'Retour à la liste des sessions' }));
+      await click(screen.getByRole('link', { name: 'Revenir à la liste des sessions' }));
 
       // then
       assert.deepEqual(currentURL(), '/sessions/liste');
@@ -106,13 +102,20 @@ module('Acceptance | Session Details', function (hooks) {
         const screen = await visit('/sessions/123');
 
         // then
-        assert.dom(screen.getByRole('heading', { name: 'Session 123' })).exists();
+        assert.dom(screen.getByRole('heading', { name: 'Session 123', level: 1 })).exists();
         assert.dom(screen.getByText('123 rue des peupliers')).exists();
         assert.dom(screen.getByText('Salle 101')).exists();
         assert.dom(screen.getByText('Winston')).exists();
         assert.dom(screen.getByText('ABC123')).exists();
+
+        assert.dom(screen.getByRole('heading', { name: 'Heure de début (heure locale)', level: 2 })).exists();
         assert.dom(screen.getByText('lundi 18 févr. 2019')).exists();
+
+        assert.dom(screen.getByRole('heading', { name: 'Date', level: 2 })).exists();
         assert.dom(screen.getByText('14:00')).exists();
+
+        assert.dom(screen.getByRole('link', { name: "Télécharger le PV d'incident" })).exists();
+        assert.dom(screen.getByRole('link', { name: 'Télécharger le kit surveillant' })).exists();
       });
 
       test('it should show issue report sheet download button', async function (assert) {
@@ -124,7 +127,7 @@ module('Acceptance | Session Details', function (hooks) {
         const screen = await visit(`/sessions/${sessionWithCandidates.id}`);
 
         // then
-        assert.dom(screen.getByRole('link', { name: "Télécharger le pv d'incident" })).exists();
+        assert.dom(screen.getByRole('link', { name: "Télécharger le PV d'incident" })).exists();
       });
 
       test('it should show attendance sheet download button when there is one or more candidate', async function (assert) {
@@ -152,54 +155,19 @@ module('Acceptance | Session Details', function (hooks) {
     });
 
     module('when looking at the session details controls', function () {
-      module('when current certification center has access to supervisor space', function (hooks) {
-        hooks.afterEach(function () {
-          allowedCertificationCenterAccess.update({ isEndTestScreenRemovalEnabled: false });
-        });
-
-        test('it should display the supervisor kit download button', async function (assert) {
+      module('when session has clea results and session is published', function () {
+        test('it should show the clea result download section', async function (assert) {
           // given
-          allowedCertificationCenterAccess.update({ isEndTestScreenRemovalEnabled: true });
+          session.update({ publishedAt: '2022-01-01', hasSomeCleaAcquired: true });
 
           // when
           const screen = await visit(`/sessions/${session.id}`);
 
           // then
-          assert.dom(screen.getByRole('link', { name: 'Télécharger le kit surveillant' })).exists();
-        });
-      });
-
-      module('when current certification center has not access to supervisor space', function () {
-        test('it should not display the supervisor kit download button', async function (assert) {
-          // given
-          allowedCertificationCenterAccess.update({ isEndTestScreenRemovalEnabled: false });
-
-          // when
-          const screen = await visit(`/sessions/${session.id}`);
-
-          // then
-          assert.dom(screen.queryByRole('link', { name: 'Télécharger le kit surveillant' })).doesNotExist();
-        });
-      });
-
-      module('when FT_CLEA_RESULTS_RETRIEVAL_BY_HABILITATED_CERTIFICATION_CENTERS is enabled', function () {
-        module('when session has clea results and session is published', function () {
-          test('it should show the clea result download section', async function (assert) {
-            // given
-            session.update({ publishedAt: '2022-01-01', hasSomeCleaAcquired: true });
-            server.create('feature-toggle', { isCleaResultsRetrievalByHabilitatedCertificationCentersEnabled: true });
-
-            // when
-            const screen = await visit(`/sessions/${session.id}`);
-
-            // then
-            assert.dom(screen.getByText(this.intl.t('pages.sessions.detail.panel-clea.title'))).exists();
-            assert
-              .dom(
-                screen.getByRole('button', { name: this.intl.t('pages.sessions.detail.panel-clea.download-button') })
-              )
-              .exists();
-          });
+          assert.dom(screen.getByText(this.intl.t('pages.sessions.detail.panel-clea.title'))).exists();
+          assert
+            .dom(screen.getByRole('button', { name: this.intl.t('pages.sessions.detail.panel-clea.download-button') }))
+            .exists();
         });
       });
     });

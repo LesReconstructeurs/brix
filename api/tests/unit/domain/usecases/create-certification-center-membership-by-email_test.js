@@ -1,8 +1,6 @@
-const { catchErr, expect, sinon } = require('../../../test-helper');
-
-const { AlreadyExistingEntityError, UserNotFoundError } = require('../../../../lib/domain/errors');
-
-const createCertificationCenterMembershipByEmail = require('../../../../lib/domain/usecases/create-certification-center-membership-by-email');
+import { catchErr, expect, sinon } from '../../../test-helper.js';
+import { AlreadyExistingEntityError, UserNotFoundError } from '../../../../lib/domain/errors.js';
+import { createCertificationCenterMembershipByEmail } from '../../../../lib/domain/usecases/create-certification-center-membership-by-email.js';
 
 describe('Unit | UseCase | create-certification-center-membership-by-email', function () {
   const certificationCenterId = 1;
@@ -75,7 +73,7 @@ describe('Unit | UseCase | create-certification-center-membership-by-email', fun
     // then
     expect(error).to.be.instanceOf(AlreadyExistingEntityError);
     expect(error.message).to.equal(
-      `Certification center membership already exists for the user ID ${userId} and certification center ID ${certificationCenterId}.`
+      `Certification center membership already exists for the user ID ${userId} and certification center ID ${certificationCenterId}.`,
     );
   });
 });

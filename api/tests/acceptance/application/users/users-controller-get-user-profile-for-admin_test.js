@@ -1,12 +1,13 @@
-const {
+import {
   databaseBuilder,
   expect,
   generateValidRequestAuthorizationHeader,
   mockLearningContent,
   insertUserWithRoleSuperAdmin,
-} = require('../../../test-helper');
+} from '../../../test-helper.js';
 
-const createServer = require('../../../../server');
+import { createServer } from '../../../../server.js';
+import { constants } from '../../../../lib/domain/constants.js';
 
 describe('Acceptance | Controller | users-controller-get-user-profile-for-admin', function () {
   let options;
@@ -133,6 +134,8 @@ describe('Acceptance | Controller | users-controller-get-user-profile-for-admin'
             type: 'Profiles',
             attributes: {
               'pix-score': knowledgeElement.earnedPix,
+              'max-reachable-level': constants.MAX_REACHABLE_LEVEL,
+              'max-reachable-pix-score': constants.MAX_REACHABLE_PIX_SCORE,
             },
             relationships: {
               scorecards: {

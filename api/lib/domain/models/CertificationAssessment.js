@@ -1,10 +1,15 @@
-const Joi = require('joi').extend(require('@joi/date'));
-const { validateEntity } = require('../validators/entity-validator');
-const _ = require('lodash');
-const { ChallengeToBeNeutralizedNotFoundError, ChallengeToBeDeneutralizedNotFoundError } = require('../errors');
-const AnswerStatus = require('./AnswerStatus');
-const NeutralizationAttempt = require('./NeutralizationAttempt');
-const CertificationAnswerStatusChangeAttempt = require('./CertificationAnswerStatusChangeAttempt');
+import BaseJoi from 'joi';
+import JoiDate from '@joi/date';
+const Joi = BaseJoi.extend(JoiDate);
+import { validateEntity } from '../validators/entity-validator.js';
+import _ from 'lodash';
+
+import { ChallengeToBeNeutralizedNotFoundError, ChallengeToBeDeneutralizedNotFoundError } from '../errors.js';
+
+import { AnswerStatus } from './AnswerStatus.js';
+import { NeutralizationAttempt } from './NeutralizationAttempt.js';
+import { CertificationAnswerStatusChangeAttempt } from './CertificationAnswerStatusChangeAttempt.js';
+import { CertificationVersion } from './CertificationVersion.js';
 
 const states = {
   COMPLETED: 'completed',
@@ -22,7 +27,10 @@ const certificationAssessmentSchema = Joi.object({
   state: Joi.string()
     .valid(states.COMPLETED, states.STARTED, states.ENDED_BY_SUPERVISOR, states.ENDED_DUE_TO_FINALIZATION)
     .required(),
-  isV2Certification: Joi.boolean().required(),
+  version: Joi.number()
+    .integer()
+    .valid(...Object.values(CertificationVersion))
+    .required(),
   certificationChallenges: Joi.array().min(1).required(),
   certificationAnswersByDate: Joi.array().min(0).required(),
 });
@@ -35,7 +43,7 @@ class CertificationAssessment {
     createdAt,
     completedAt,
     state,
-    isV2Certification,
+    version,
     certificationChallenges,
     certificationAnswersByDate,
   } = {}) {
@@ -45,7 +53,7 @@ class CertificationAssessment {
     this.createdAt = createdAt;
     this.completedAt = completedAt;
     this.state = state;
-    this.isV2Certification = isV2Certification;
+    this.version = version;
     this.certificationChallenges = certificationChallenges;
     this.certificationAnswersByDate = certificationAnswersByDate;
 
@@ -117,7 +125,7 @@ class CertificationAssessment {
     const certificationChallengesForBadge = _.filter(this.certificationChallenges, { certifiableBadgeKey });
     const challengeIds = _.map(certificationChallengesForBadge, 'challengeId');
     const answersForBadge = _.filter(this.certificationAnswersByDate, ({ challengeId }) =>
-      _.includes(challengeIds, challengeId)
+      _.includes(challengeIds, challengeId),
     );
     return {
       certificationChallenges: certificationChallengesForBadge,
@@ -137,7 +145,7 @@ class CertificationAssessment {
     this.certificationChallenges.forEach((certificationChallenge) => {
       if (
         !this.certificationAnswersByDate.some(
-          (certificationAnswer) => certificationChallenge.challengeId === certificationAnswer.challengeId
+          (certificationAnswer) => certificationChallenge.challengeId === certificationAnswer.challengeId,
         )
       ) {
         certificationChallenge.skipAutomatically();
@@ -149,7 +157,7 @@ class CertificationAssessment {
     this.certificationChallenges.map((certificationChallenge) => {
       if (
         !this.certificationAnswersByDate.some(
-          (certificationAnswer) => certificationChallenge.challengeId === certificationAnswer.challengeId
+          (certificationAnswer) => certificationChallenge.challengeId === certificationAnswer.challengeId,
         )
       ) {
         certificationChallenge.neutralize();
@@ -167,4 +175,4 @@ function _isAnswerKoOrSkippedOrPartially(answerStatus) {
 
 CertificationAssessment.states = states;
 
-module.exports = CertificationAssessment;
+export { CertificationAssessment, states };

@@ -1,17 +1,19 @@
-const _ = require('lodash');
-const CertificationCandidate = require('../models/CertificationCandidate');
-const {
-  CertificationCandidateAlreadyLinkedToUserError,
+import _ from 'lodash';
+import { CertificationCandidate } from '../models/CertificationCandidate.js';
+
+import {
   CertificationCandidateByPersonalInfoNotFoundError,
   MatchingReconciledStudentNotFoundError,
   CertificationCandidateByPersonalInfoTooManyMatchesError,
   UserAlreadyLinkedToCandidateInSessionError,
   SessionNotAccessible,
-} = require('../errors');
-const UserLinkedToCertificationCandidate = require('../events/UserLinkedToCertificationCandidate');
-const UserAlreadyLinkedToCertificationCandidate = require('../events/UserAlreadyLinkedToCertificationCandidate');
+  UnexpectedUserAccountError,
+} from '../errors.js';
 
-async function linkUserToSessionCertificationCandidate({
+import { UserLinkedToCertificationCandidate } from '../events/UserLinkedToCertificationCandidate.js';
+import { UserAlreadyLinkedToCertificationCandidate } from '../events/UserAlreadyLinkedToCertificationCandidate.js';
+
+const linkUserToSessionCertificationCandidate = async function ({
   userId,
   sessionId,
   firstName,
@@ -67,9 +69,11 @@ async function linkUserToSessionCertificationCandidate({
   if (certificationCandidate.isLinkedToUserId(userId)) {
     return new UserAlreadyLinkedToCertificationCandidate();
   } else {
-    throw new CertificationCandidateAlreadyLinkedToUserError();
+    throw new UnexpectedUserAccountError({});
   }
-}
+};
+
+export { linkUserToSessionCertificationCandidate };
 
 async function _getSessionCertificationCandidateByPersonalInfo({
   sessionId,
@@ -84,12 +88,12 @@ async function _getSessionCertificationCandidateByPersonalInfo({
   });
   if (_.isEmpty(matchingSessionCandidates)) {
     throw new CertificationCandidateByPersonalInfoNotFoundError(
-      'No certification candidate matches with the provided personal info'
+      'No certification candidate matches with the provided personal info',
     );
   }
   if (matchingSessionCandidates.length > 1) {
     throw new CertificationCandidateByPersonalInfoTooManyMatchesError(
-      'More than one candidate match with the provided personal info'
+      'More than one candidate match with the provided personal info',
     );
   }
 
@@ -126,7 +130,7 @@ async function _linkUserToCandidate({ sessionId, userId, certificationCandidate,
   });
   if (existingCandidateLinkedToUser) {
     throw new UserAlreadyLinkedToCandidateInSessionError(
-      'The user is already linked to a candidate in the given session'
+      'The user is already linked to a candidate in the given session',
     );
   }
 
@@ -153,7 +157,3 @@ async function _checkCandidateMatchTheReconciledStudent({
     throw new MatchingReconciledStudentNotFoundError();
   }
 }
-
-module.exports = {
-  linkUserToSessionCertificationCandidate,
-};

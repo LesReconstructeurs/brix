@@ -1,58 +1,33 @@
-import { action } from '@ember/object';
-import { inject as service } from '@ember/service';
 import Controller from '@ember/controller';
-import get from 'lodash/get';
+import { service } from '@ember/service';
+import { action } from '@ember/object';
 
 export default class ToolsController extends Controller {
   @service notifications;
   @service store;
+  @service currentUser;
 
   @action
-  async refreshLearningContent() {
+  async archiveCampaigns(files) {
+    const adapter = this.store.adapterFor('import-files');
+
+    this.isLoading = true;
+    this.notifications.clearAll();
     try {
-      await this.store.adapterFor('learning-content-cache').refreshCacheEntries();
-      this.notifications.success('La demande de rechargement du cache a bien été prise en compte.');
-    } catch (err) {
-      this.notifications.error('Une erreur est survenue.');
-    }
-  }
-
-  @action
-  async createLearningContentReleaseAndRefreshCache() {
-    try {
-      await this.store.adapterFor('learning-content-cache').createLearningContentReleaseAndRefreshCache();
-      this.notifications.success(
-        'La création de la version du référentiel et le rechargement du cache a bien été prise en compte.'
-      );
-    } catch (err) {
-      this.notifications.error('Une erreur est survenue.');
-    }
-  }
-
-  @action
-  async createNewTag(event) {
-    event.preventDefault();
-    let tag;
-
-    try {
-      tag = this.store.createRecord('tag', { name: this.tagName });
-      await tag.save();
-
-      this.notifications.success('Le tag a bien été créé !');
-      document.getElementById('tagNameInput').value = '';
-    } catch (response) {
-      this.store.deleteRecord(tag);
-      const status = get(response, 'errors[0].status');
-      if (status === '412') {
-        this.notifications.error('Ce tag existe déjà.');
+      await adapter.importCampaignsToArchive(files);
+      this.isLoading = false;
+      this.notifications.success('Toutes les campagnes ont été archivées.');
+    } catch ({ errors: [error] }) {
+      this.isLoading = false;
+      if (error.code === 'HEADER_REQUIRED') {
+        this.notifications.error("La colonne campaignId n'est pas présente.");
+      } else if (error.code === 'HEADER_UNKNOWN') {
+        this.notifications.error('Une colonne dans le fichier ne devrait pas être présente.');
+      } else if (error.code === 'ENCODING_NOT_SUPPORTED') {
+        this.notifications.error('Encodage non supporté.');
       } else {
-        this.notifications.error('Une erreur est survenue. Veuillez réessayer.');
+        this.notifications.error('Une erreur est survenue. OUPS...');
       }
     }
-  }
-
-  @action
-  onChangeTagName(event) {
-    this.tagName = event.target.value;
   }
 }

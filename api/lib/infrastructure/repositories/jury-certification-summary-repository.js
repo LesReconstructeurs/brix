@@ -1,51 +1,46 @@
-const _ = require('lodash');
-const { fetchPage } = require('../utils/knex-utils');
-const { knex } = require('../../../db/knex-database-connection');
-const JuryCertificationSummary = require('../../domain/read-models/JuryCertificationSummary');
-const CertificationIssueReport = require('../../domain/models/CertificationIssueReport');
-const Assessment = require('../../domain/models/Assessment');
-const ComplementaryCertificationCourseResult = require('../../domain/models/ComplementaryCertificationCourseResult');
+import _ from 'lodash';
+import { fetchPage } from '../utils/knex-utils.js';
+import { knex } from '../../../db/knex-database-connection.js';
+import { JuryCertificationSummary } from '../../domain/read-models/JuryCertificationSummary.js';
+import { CertificationIssueReport } from '../../domain/models/CertificationIssueReport.js';
+import { Assessment } from '../../domain/models/Assessment.js';
+import { ComplementaryCertificationCourseResult } from '../../domain/models/ComplementaryCertificationCourseResult.js';
 
-module.exports = {
-  async findBySessionId(sessionId) {
-    const result = await _getCertificationCoursesIdBySessionIdQuery(sessionId);
+const findBySessionId = async function (sessionId) {
+  const certificationCourseIds = await _getCertificationCoursesIdBySessionIdQuery(sessionId).pluck(
+    'certification-courses.id',
+  );
+  const orderResults = await _getByCertificationCourseIds(certificationCourseIds);
 
-    const certificationCourseIds = result.map((obj) => obj.id);
+  const juryCertificationSummaryDTOs = await _getJuryCertificationSummaries(orderResults);
 
-    const results = await _getByCertificationCourseIds(certificationCourseIds);
-
-    const juryCertificationSummaryDTOs = await _getJuryCertificationSummaries(results);
-
-    const juryCertificationSummaries = _.map(juryCertificationSummaryDTOs, _toDomain);
-    return juryCertificationSummaries;
-  },
-
-  async findBySessionIdPaginated({ page, sessionId }) {
-    const query = _getCertificationCoursesIdBySessionIdQuery(sessionId);
-
-    const { results: orderedCertificationCourseIdsInObjects, pagination } = await fetchPage(query, page);
-
-    const orderedCertificationCourseIds = orderedCertificationCourseIdsInObjects.map((obj) => obj.id);
-
-    const results = await _getByCertificationCourseIds(orderedCertificationCourseIds);
-
-    const orderedResults = orderedCertificationCourseIds.map((id) => results.find((result) => result.id === id));
-
-    const juryCertificationSummaryDTOs = await _getJuryCertificationSummaries(orderedResults);
-
-    const juryCertificationSummaries = _.map(juryCertificationSummaryDTOs, _toDomain);
-    return {
-      pagination,
-      juryCertificationSummaries,
-    };
-  },
+  const juryCertificationSummaries = _.map(juryCertificationSummaryDTOs, _toDomain);
+  return juryCertificationSummaries;
 };
+
+const findBySessionIdPaginated = async function ({ page, sessionId }) {
+  const query = _getCertificationCoursesIdBySessionIdQuery(sessionId);
+
+  const { results: orderedCertificationCourseIdsInObjects, pagination } = await fetchPage(query, page);
+
+  const orderedCertificationCourseIds = orderedCertificationCourseIdsInObjects.map((obj) => obj.id);
+  const orderedResults = await _getByCertificationCourseIds(orderedCertificationCourseIds);
+
+  const juryCertificationSummaryDTOs = await _getJuryCertificationSummaries(orderedResults);
+  const juryCertificationSummaries = _.map(juryCertificationSummaryDTOs, _toDomain);
+  return {
+    pagination,
+    juryCertificationSummaries,
+  };
+};
+
+export { findBySessionId, findBySessionIdPaginated };
 
 async function _getJuryCertificationSummaries(results) {
   const certificationCourseIds = results.map((row) => row.id);
   const certificationIssueReportRows = await knex('certification-issue-reports').whereIn(
     'certificationCourseId',
-    certificationCourseIds
+    certificationCourseIds,
   );
 
   const juryCertificationSummaryDTOs = _buildJuryCertificationSummaryDTOs(results, certificationIssueReportRows);
@@ -53,46 +48,44 @@ async function _getJuryCertificationSummaries(results) {
 }
 
 async function _getByCertificationCourseIds(orderedCertificationCourseIds) {
-  return knex
+  const results = await knex
     .select('certification-courses.*', 'assessment-results.pixScore')
     .select({
       assessmentResultStatus: 'assessment-results.status',
       assessmentState: 'assessments.state',
     })
-    .select(
-      knex.raw(
-        `json_agg("complementary-certification-badges"."label") over (partition by "certification-courses".id) as "complementaryCertificationTakenLabels"`
-      )
-    )
+    .select({ complementaryCertificationTakenLabel: 'complementary-certification-badges.label' })
     .from('certification-courses')
     .leftJoin('assessments', 'assessments.certificationCourseId', 'certification-courses.id')
     .leftJoin(
       'certification-courses-last-assessment-results',
       'certification-courses.id',
-      'certification-courses-last-assessment-results.certificationCourseId'
+      'certification-courses-last-assessment-results.certificationCourseId',
     )
     .leftJoin(
       'assessment-results',
       'assessment-results.id',
-      'certification-courses-last-assessment-results.lastAssessmentResultId'
+      'certification-courses-last-assessment-results.lastAssessmentResultId',
     )
     .leftJoin(
       'complementary-certification-courses',
       'complementary-certification-courses.certificationCourseId',
-      'certification-courses.id'
+      'certification-courses.id',
     )
     .leftJoin('complementary-certification-course-results', function () {
       this.on(
         'complementary-certification-course-results.complementaryCertificationCourseId',
-        'complementary-certification-courses.id'
+        'complementary-certification-courses.id',
       ).andOnVal(
         'complementary-certification-course-results.source',
-        ComplementaryCertificationCourseResult.sources.PIX
+        ComplementaryCertificationCourseResult.sources.PIX,
       );
     })
     .leftJoin('badges', 'badges.key', 'complementary-certification-course-results.partnerKey')
     .leftJoin('complementary-certification-badges', 'complementary-certification-badges.badgeId', 'badges.id')
     .whereIn('certification-courses.id', orderedCertificationCourseIds);
+
+  return orderedCertificationCourseIds.map((orderedId) => results.find(({ id }) => id === orderedId));
 }
 
 function _getCertificationCoursesIdBySessionIdQuery(sessionId) {
@@ -139,15 +132,13 @@ function _toDomain(juryCertificationSummaryDTO) {
   const certificationIssueReports = juryCertificationSummaryDTO.certificationIssueReports.map(
     (certificationIssueReportDTO) => {
       return new CertificationIssueReport(certificationIssueReportDTO);
-    }
+    },
   );
 
   return new JuryCertificationSummary({
     ...juryCertificationSummaryDTO,
     status: juryCertificationSummaryDTO.assessmentResultStatus,
-    isCourseCancelled: juryCertificationSummaryDTO.isCancelled,
     isEndedBySupervisor: juryCertificationSummaryDTO.assessmentState === Assessment.states.ENDED_BY_SUPERVISOR,
     certificationIssueReports,
-    complementaryCertificationTakenLabels: _.compact(juryCertificationSummaryDTO.complementaryCertificationTakenLabels),
   });
 }

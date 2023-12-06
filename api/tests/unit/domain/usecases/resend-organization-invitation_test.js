@@ -1,7 +1,5 @@
-const { expect, sinon } = require('../../../test-helper');
-
-const organizationInvitationService = require('../../../../lib/domain/services/organization-invitation-service');
-const resendOrganizationInvitation = require('../../../../lib/domain/usecases/resend-organization-invitation');
+import { expect, sinon } from '../../../test-helper.js';
+import { resendOrganizationInvitation } from '../../../../lib/domain/usecases/resend-organization-invitation.js';
 
 describe('Unit | UseCase | resend-organization-invitation', function () {
   describe('#resendOrganizationInvitation', function () {
@@ -13,7 +11,7 @@ describe('Unit | UseCase | resend-organization-invitation', function () {
 
       const organizationRepository = Symbol('organization repository');
       const organizationInvitationRepository = Symbol('organization invitation repository');
-      sinon.stub(organizationInvitationService, 'createOrUpdateOrganizationInvitation').resolves();
+      const organizationInvitationService = { createOrUpdateOrganizationInvitation: sinon.stub() };
 
       // when
       await resendOrganizationInvitation({
@@ -22,6 +20,7 @@ describe('Unit | UseCase | resend-organization-invitation', function () {
         locale,
         organizationRepository,
         organizationInvitationRepository,
+        organizationInvitationService,
       });
 
       // then

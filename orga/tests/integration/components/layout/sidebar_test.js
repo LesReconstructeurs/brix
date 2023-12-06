@@ -1,6 +1,6 @@
 import { module, test } from 'qunit';
 import { setupRenderingTest } from 'ember-qunit';
-import hbs from 'htmlbars-inline-precompile';
+import { hbs } from 'ember-cli-htmlbars';
 import Service from '@ember/service';
 import { render } from '@1024pix/ember-testing-library';
 
@@ -8,14 +8,14 @@ module('Integration | Component | Layout::Sidebar', function (hooks) {
   setupRenderingTest(hooks);
 
   module('when the user is authenticated on orga.pix.fr', function (hooks) {
-    class UrlServiceStub extends Service {
-      get isFrenchDomainExtension() {
+    class CurrentDomainServiceStub extends Service {
+      get isFranceDomain() {
         return true;
       }
     }
 
     hooks.beforeEach(function () {
-      this.owner.register('service:url', UrlServiceStub);
+      this.owner.register('service:currentDomain', CurrentDomainServiceStub);
     });
 
     test('it should display documentation url given by current organization', async function (assert) {

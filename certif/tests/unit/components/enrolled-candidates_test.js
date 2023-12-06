@@ -3,9 +3,11 @@ import { setupTest } from 'ember-qunit';
 import sinon from 'sinon';
 import EmberObject from '@ember/object';
 import createGlimmerComponent from '../../helpers/create-glimmer-component';
+import setupIntl from '../../helpers/setup-intl';
 
 module('Unit | Component | enrolled-candidates', function (hooks) {
   setupTest(hooks);
+  setupIntl(hooks);
 
   let component;
 
@@ -20,7 +22,7 @@ module('Unit | Component | enrolled-candidates', function (hooks) {
       const certificationCandidateData = _buildCandidate({});
       const savableCandidate = _buildCandidate(
         { ...certificationCandidateData },
-        { save: sinon.stub().resolves(), deleteRecord: sinon.stub().returns() }
+        { save: sinon.stub().resolves(), deleteRecord: sinon.stub().returns() },
       );
       const store = { createRecord: sinon.stub().returns(savableCandidate) };
 
@@ -51,7 +53,7 @@ module('Unit | Component | enrolled-candidates', function (hooks) {
       const certificationCandidateData = _buildCandidate({});
       const savableCandidate = _buildCandidate(
         { ...certificationCandidateData },
-        { save: sinon.stub().resolves(), deleteRecord: sinon.stub() }
+        { save: sinon.stub().resolves(), deleteRecord: sinon.stub() },
       );
       const store = { createRecord: sinon.stub().returns(savableCandidate) };
 
@@ -71,9 +73,7 @@ module('Unit | Component | enrolled-candidates', function (hooks) {
       // then
       sinon.assert.notCalled(savableCandidate.save);
       sinon.assert.calledOnce(savableCandidate.deleteRecord);
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(component.args.certificationCandidates.length, 1);
+      assert.strictEqual(component.args.certificationCandidates.length, 1);
     });
   });
 
@@ -173,9 +173,7 @@ module('Unit | Component | enrolled-candidates', function (hooks) {
 
       // then
       assert.true(component.shouldDisplayCertificationCandidateModal);
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(component.certificationCandidateInDetailsModal, candidate);
+      assert.strictEqual(component.certificationCandidateInDetailsModal, candidate);
     });
   });
 
@@ -196,9 +194,7 @@ module('Unit | Component | enrolled-candidates', function (hooks) {
 
       // then
       assert.false(component.shouldDisplayCertificationCandidateModal);
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(component.certificationCandidateInDetailsModal, null);
+      assert.strictEqual(component.certificationCandidateInDetailsModal, null);
     });
   });
 

@@ -12,12 +12,14 @@ module('Acceptance | Target Profile Insights', function (hooks) {
   module('Access restriction stuff', function (hooks) {
     hooks.beforeEach(async function () {
       const badge = server.create('badge', { id: 200 });
-      const targetProfile = server.create('target-profile', {
+      const stage = server.create('stage', { id: 100 });
+      const stageCollection = server.create('stage-collection', { id: 1, stages: [stage] });
+      server.create('target-profile', {
         id: 1,
         name: 'Profil cible extra croustillant',
         badges: [badge],
+        stageCollection,
       });
-      server.create('stage', { id: 100, targetProfile });
     });
 
     module('When admin member is not logged in', function () {
@@ -46,6 +48,17 @@ module('Acceptance | Target Profile Insights', function (hooks) {
           await visit('/target-profiles/1/badges/200');
           assert.strictEqual(currentURL(), '/target-profiles/1/badges/200');
         });
+
+        test('it should set target-profiles menubar item active', async function (assert) {
+          // given
+          await authenticateAdminMemberWithRole({ isSuperAdmin: true })(server);
+
+          // when
+          const screen = await visit(`/target-profiles/1/insights`);
+
+          // then
+          assert.dom(screen.getByRole('link', { name: 'Profils cibles' })).hasClass('active');
+        });
       });
 
       module('when admin member has role "CERTIF"', function () {
@@ -66,18 +79,22 @@ module('Acceptance | Target Profile Insights', function (hooks) {
   });
 
   module('Insights', function (hooks) {
-    let targetProfile;
+    let targetProfile, stageCollection;
 
     hooks.beforeEach(async function () {
-      targetProfile = server.create('target-profile', { id: 1, name: 'Profil cible extra croustillant' });
+      stageCollection = server.create('stage-collection', { id: 1, stages: [] });
+      targetProfile = server.create('target-profile', {
+        id: 1,
+        name: 'Profil cible extra croustillant',
+        stageCollection,
+      });
       await authenticateAdminMemberWithRole({ isSuperAdmin: true })(server);
     });
 
     module('Stages', function () {
-      test('it should display existing stages', async function (assert) {
+      test('it should display a warning if target profile is linked to a campaign', async function (assert) {
         // given
-        server.create('stage', { id: 100, title: 'premier palier', targetProfile });
-        server.create('stage', { id: 101, title: 'deuxième palier', targetProfile });
+        targetProfile.update({ hasLinkedCampaign: true });
 
         // when
         const screen = await visit('/target-profiles/1');
@@ -85,27 +102,56 @@ module('Acceptance | Target Profile Insights', function (hooks) {
 
         // then
         assert.strictEqual(currentURL(), '/target-profiles/1/insights');
-        assert.dom(screen.getByText('premier palier')).exists();
-        assert.dom(screen.getByText('deuxième palier')).exists();
+        assert.dom(screen.getByText('Ce profil cible est associé à une campagne, vous ne pouvez donc pas :')).exists();
       });
-
-      test('it should display stage details when clicking on "Voir détail"', async function (assert) {
+      test('it should not display this warning if target profile is not linked to a campaign', async function (assert) {
         // given
-        server.create('stage', {
-          id: 100,
-          level: 1,
-          threshold: null,
-          title: 'premier palier',
-          message: 'message palier',
-          prescriberTitle: 'titre prescripteur',
-          prescriberDescription: 'description prescripteur',
-          targetProfile,
-        });
+        targetProfile.update({ hasLinkedCampaign: false });
 
         // when
         const screen = await visit('/target-profiles/1');
         await clickByName('Clés de lecture');
-        await clickByName('Voir détail');
+
+        // then
+        assert.strictEqual(currentURL(), '/target-profiles/1/insights');
+        assert
+          .dom(screen.queryByText('Ce profil cible est associé à une campagne, vous ne pouvez donc pas :'))
+          .doesNotExist();
+      });
+
+      test('it should display existing stages', async function (assert) {
+        // given
+        const stage1 = server.create('stage', { id: 100, title: 'premier palier' });
+        const stage2 = server.create('stage', { id: 101, title: 'deuxième palier' });
+        stageCollection.update({ stages: [stage1, stage2] });
+
+        // when
+        const screen = await visit('/target-profiles/1');
+        await clickByName('Clés de lecture');
+
+        // then
+        assert.strictEqual(currentURL(), '/target-profiles/1/insights');
+        assert.dom(screen.getAllByText('premier palier')[0]).exists();
+        assert.dom(screen.getAllByText('deuxième palier')[0]).exists();
+      });
+
+      test('it should display stage details when clicking on "Voir détail"', async function (assert) {
+        // given
+        const stage = server.create('stage', {
+          id: 100,
+          level: 1,
+          threshold: null,
+          isFirstSkill: false,
+          title: 'premier palier',
+          message: 'message palier',
+          prescriberTitle: 'titre prescripteur',
+          prescriberDescription: 'description prescripteur',
+        });
+        stageCollection.update({ stages: [stage] });
+
+        // when
+        const screen = await visit('/target-profiles/1/insights');
+        await clickByName('Voir le détail du palier 100');
 
         // then
         assert.strictEqual(currentURL(), '/target-profiles/1/stages/100');
@@ -118,7 +164,8 @@ module('Acceptance | Target Profile Insights', function (hooks) {
       });
 
       test('it should go back to insights when clicking on target profile header in details page', async function (assert) {
-        server.create('stage', { id: 100, title: 'premier palier', targetProfile });
+        const stage = server.create('stage', { id: 100, title: 'premier palier' });
+        stageCollection.update({ stages: [stage] });
 
         // when
         await visit('/target-profiles/1/stages/100');
@@ -128,49 +175,15 @@ module('Acceptance | Target Profile Insights', function (hooks) {
         assert.strictEqual(currentURL(), '/target-profiles/1/insights');
       });
 
-      test('it should edit the stage information', async function (assert) {
-        // given
-        server.create('stage', {
-          id: 100,
-          threshold: 10,
-          title: 'ancien titre',
-          message: 'ancien message',
-          prescriberTitle: 'ancien titre prescripteur',
-          prescriberDescription: 'ancienne description prescripteur',
-          targetProfile,
-        });
-
-        // when
-        const screen = await visit('/target-profiles/1');
-        await clickByName('Clés de lecture');
-        await clickByName('Voir détail');
-        await clickByName('Éditer');
-        await fillByLabel('Seuil', 20);
-        await fillByLabel('Titre', 'nouveau titre');
-        await fillByLabel('Message', 'nouveau message');
-        await fillByLabel('Titre pour le prescripteur', 'nouveau titre prescripteur');
-        await fillByLabel('Description pour le prescripteur', 'nouvelle description prescripteur');
-        await clickByName('Enregistrer');
-
-        // then
-        assert.strictEqual(currentURL(), '/target-profiles/1/stages/100');
-        assert.dom(screen.getByText('ID : 100')).exists();
-        assert.dom(screen.getByText('Seuil : 20')).exists();
-        assert.dom(screen.getByText('Titre : nouveau titre')).exists();
-        assert.dom(screen.getByText('Message : nouveau message')).exists();
-        assert.dom(screen.getByText('Titre pour le prescripteur : nouveau titre prescripteur')).exists();
-        assert.dom(screen.getByText('Description pour le prescripteur : nouvelle description prescripteur')).exists();
-        assert.dom(screen.queryByText('Enregistrer')).doesNotExist();
-      });
-
       test('it should cancel stage edition', async function (assert) {
         // given
-        server.create('stage', { id: 100, title: 'titre initial', targetProfile });
+        const stage = server.create('stage', { id: 100, title: 'titre initial' });
+        stageCollection.update({ stages: [stage] });
 
         // when
         const screen = await visit('/target-profiles/1');
         await clickByName('Clés de lecture');
-        await clickByName('Voir détail');
+        await clickByName('Voir le détail du palier 100');
         await clickByName('Éditer');
         await fillByLabel('Titre', 'titre modifié');
         await clickByName('Annuler');
@@ -181,18 +194,218 @@ module('Acceptance | Target Profile Insights', function (hooks) {
         assert.dom(screen.queryByText('Enregistrer')).doesNotExist();
       });
 
-      test('it should add a new stage', async function (assert) {
-        // when
-        const screen = await visit('/target-profiles/1');
-        await clickByName('Clés de lecture');
-        await clickByName('Palier par niveau');
-        await clickByName('Nouveau palier');
-        await fillByLabel('Titre du palier', 'mon super palier');
-        await clickByName('Enregistrer');
+      module('Stage level', function () {
+        test('it should add new stages', async function (assert) {
+          // when
+          const screen = await visit('/target-profiles/1');
+          await clickByName('Clés de lecture');
+          await clickByName('Palier par niveau');
+          await clickByName('Nouveau palier');
+          await clickByName('Nouveau palier');
+          await clickByName('Nouveau palier "1er acquis"');
 
-        // then
-        assert.dom(screen.getByText('mon super palier')).exists();
-        assert.dom(screen.queryByText('Enregistrer')).doesNotExist();
+          const [firstStageTitleInput, secondStageTitleInput, firstSkillStageTitleInput] =
+            screen.getAllByLabelText('Titre du palier');
+          const [firstStageLevelButton, secondStageLevelButton] = screen.getAllByLabelText('Niveau du palier');
+          const [firstStageLevelMessage, secondStageLevelMessage, firstSkillStageLevelMessage] =
+            screen.getAllByLabelText('Message du palier');
+          await fillIn(firstStageTitleInput, 'mon premier palier');
+          await fillIn(secondStageTitleInput, 'mon deuxième palier');
+          await fillIn(firstSkillStageTitleInput, 'mon palier premier acquis');
+
+          await click(secondStageLevelButton);
+          await screen.findByRole('listbox');
+          await click(screen.getByRole('option', { name: '3' }));
+          await waitForElementToBeRemoved(() => screen.queryByRole('listbox'));
+
+          await fillIn(firstStageLevelMessage, 'mon message un');
+          await fillIn(secondStageLevelMessage, 'mon message deux');
+          await fillIn(firstSkillStageLevelMessage, 'mon message premier acquis');
+
+          await clickByName('Enregistrer');
+
+          // then
+          assert.true(firstStageLevelButton.hasAttributes('aria-disabled', 'true'));
+          assert.dom(screen.getAllByText('mon premier palier')[0]).exists();
+          assert.dom(screen.getAllByText('mon deuxième palier')[0]).exists();
+          assert.dom(screen.getAllByText('mon palier premier acquis')[0]).exists();
+          assert.dom(screen.getAllByText('3')[0]).exists();
+          assert.dom(screen.getAllByText('0')[0]).exists();
+          assert.dom(screen.getAllByText('1er acquis')[0]).exists();
+          assert.dom(screen.getByText('mon message un')).exists();
+          assert.dom(screen.getByText('mon message deux')).exists();
+          assert.dom(screen.getByText('mon message premier acquis')).exists();
+          assert.dom(screen.queryByText('Enregistrer')).doesNotExist();
+        });
+
+        test('it should not display delete button stage on level 0 when there are other stages', async function (assert) {
+          // given
+          const stage = server.create('stage', {
+            id: 100,
+            level: 0,
+            threshold: null,
+            title: 'premier palier',
+            message: 'message palier',
+            prescriberTitle: 'titre prescripteur',
+            prescriberDescription: 'description prescripteur',
+          });
+          const anotherStage = server.create('stage', {
+            id: 101,
+            level: 1,
+            threshold: null,
+            title: 'deuxième palier',
+            message: 'message palier',
+            prescriberTitle: 'titre prescripteur',
+            prescriberDescription: 'description prescripteur',
+          });
+          stageCollection.update({ stages: [stage, anotherStage] });
+
+          // when
+          await visit('/target-profiles/1/insights');
+
+          // then
+          assert.dom('[aria-label="Voir le détail du palier 100"]').exists();
+          assert.dom('[aria-label="Voir le détail du palier 101"]').exists();
+          assert.dom('[aria-label="Supprimer le palier 100"]').doesNotExist();
+          assert.dom('[aria-label="Supprimer le palier 101"]').exists();
+        });
+
+        test('it should edit the stage information', async function (assert) {
+          // given
+          const stage = server.create('stage', {
+            id: 100,
+            level: 2,
+            threshold: null,
+            title: 'ancien titre',
+            message: 'ancien message',
+            prescriberTitle: 'ancien titre prescripteur',
+            prescriberDescription: 'ancienne description prescripteur',
+          });
+          stageCollection.update({ stages: [stage] });
+
+          // when
+          const screen = await visit('/target-profiles/1');
+          await clickByName('Clés de lecture');
+          await clickByName('Voir le détail du palier 100');
+          await clickByName('Éditer');
+          await click(screen.getByRole('button', { name: 'Niveau' }));
+          await screen.findByRole('listbox');
+          await click(screen.getByRole('option', { name: '1' }));
+          await fillByLabel('Titre', 'nouveau titre');
+          await fillByLabel('Message', 'nouveau message');
+          await fillByLabel('Titre pour le prescripteur', 'nouveau titre prescripteur');
+          await fillByLabel('Description pour le prescripteur', 'nouvelle description prescripteur');
+          await clickByName('Enregistrer');
+
+          // then
+          assert.strictEqual(currentURL(), '/target-profiles/1/stages/100');
+          assert.dom(screen.getByText('ID : 100')).exists();
+          assert.dom(screen.getByText('Niveau : 1')).exists();
+          assert.dom(screen.getByText('Titre : nouveau titre')).exists();
+          assert.dom(screen.getByText('Message : nouveau message')).exists();
+          assert.dom(screen.getByText('Titre pour le prescripteur : nouveau titre prescripteur')).exists();
+          assert.dom(screen.getByText('Description pour le prescripteur : nouvelle description prescripteur')).exists();
+          assert.dom(screen.queryByText('Enregistrer')).doesNotExist();
+        });
+      });
+
+      module('Stage threshold', function () {
+        test('it should add new stages', async function (assert) {
+          // when
+          const screen = await visit('/target-profiles/1');
+          await clickByName('Clés de lecture');
+          await clickByName('Palier par seuil');
+          await clickByName('Nouveau palier');
+          await clickByName('Nouveau palier');
+
+          const [firstStageTitleInput, secondStageTitleInput] = screen.getAllByLabelText('Titre du palier');
+          const [firstStageThresholdInput, secondStageThresholdInput] = screen.getAllByLabelText('Seuil du palier');
+          const [firstStageLevelMessage, secondStageLevelMessage] = screen.getAllByLabelText('Message du palier');
+          await fillIn(firstStageTitleInput, 'mon premier palier');
+          await fillIn(secondStageTitleInput, 'mon deuxième palier');
+          await fillIn(secondStageThresholdInput, 50);
+          await fillIn(firstStageLevelMessage, 'mon message 1');
+          await fillIn(secondStageLevelMessage, 'mon message 2');
+          await clickByName('Enregistrer');
+
+          // then
+          assert.true(firstStageThresholdInput.hasAttributes('value', '0'));
+          assert.dom(screen.getAllByText('mon premier palier')[0]).exists();
+          assert.dom(screen.getAllByText('mon deuxième palier')[0]).exists();
+          assert.dom(screen.getAllByText(0)[0]).exists();
+          assert.dom(screen.getAllByText(50)[0]).exists();
+          assert.dom(screen.getByText('mon message 1')).exists();
+          assert.dom(screen.getByText('mon message 2')).exists();
+          assert.dom(screen.queryByText('Enregistrer')).doesNotExist();
+        });
+
+        test('it should not display delete button stage on threshold 0 when there are other stages', async function (assert) {
+          // given
+          const stage = server.create('stage', {
+            id: 100,
+            level: null,
+            threshold: 0,
+            title: 'premier palier',
+            message: 'message palier',
+            prescriberTitle: 'titre prescripteur',
+            prescriberDescription: 'description prescripteur',
+          });
+          const anotherStage = server.create('stage', {
+            id: 101,
+            level: null,
+            threshold: 50,
+            title: 'deuxième palier',
+            message: 'message palier',
+            prescriberTitle: 'titre prescripteur',
+            prescriberDescription: 'description prescripteur',
+          });
+          stageCollection.update({ stages: [stage, anotherStage] });
+
+          // when
+          await visit('/target-profiles/1/insights');
+
+          // then
+          assert.dom('[aria-label="Voir le détail du palier 100"]').exists();
+          assert.dom('[aria-label="Voir le détail du palier 101"]').exists();
+          assert.dom('[aria-label="Supprimer le palier 100"]').doesNotExist();
+          assert.dom('[aria-label="Supprimer le palier 101"]').exists();
+        });
+
+        test('it should edit the stage information', async function (assert) {
+          // given
+          const stage = server.create('stage', {
+            id: 100,
+            threshold: 10,
+            level: null,
+            title: 'ancien titre',
+            message: 'ancien message',
+            prescriberTitle: 'ancien titre prescripteur',
+            prescriberDescription: 'ancienne description prescripteur',
+          });
+          stageCollection.update({ stages: [stage] });
+
+          // when
+          const screen = await visit('/target-profiles/1');
+          await clickByName('Clés de lecture');
+          await clickByName('Voir le détail du palier 100');
+          await clickByName('Éditer');
+          await fillByLabel('Seuil', 20);
+          await fillByLabel('Titre', 'nouveau titre');
+          await fillByLabel('Message', 'nouveau message');
+          await fillByLabel('Titre pour le prescripteur', 'nouveau titre prescripteur');
+          await fillByLabel('Description pour le prescripteur', 'nouvelle description prescripteur');
+          await clickByName('Enregistrer');
+
+          // then
+          assert.strictEqual(currentURL(), '/target-profiles/1/stages/100');
+          assert.dom(screen.getByText('ID : 100')).exists();
+          assert.dom(screen.getByText('Seuil : 20')).exists();
+          assert.dom(screen.getByText('Titre : nouveau titre')).exists();
+          assert.dom(screen.getByText('Message : nouveau message')).exists();
+          assert.dom(screen.getByText('Titre pour le prescripteur : nouveau titre prescripteur')).exists();
+          assert.dom(screen.getByText('Description pour le prescripteur : nouvelle description prescripteur')).exists();
+          assert.dom(screen.queryByText('Enregistrer')).doesNotExist();
+        });
       });
     });
 
@@ -245,7 +458,7 @@ module('Acceptance | Target Profile Insights', function (hooks) {
         assert.dom(screen.getByText('Lacunes')).exists();
         assert.deepEqual(
           screen.getByTestId('triste').innerText,
-          'L‘évalué doit obtenir 50% sur l‘ensemble des sujets du profil cible.'
+          'L‘évalué doit obtenir 50% sur l‘ensemble des sujets du profil cible.',
         );
       });
 
@@ -324,7 +537,7 @@ module('Acceptance | Target Profile Insights', function (hooks) {
 
       test('it should create a badge', async function (assert) {
         // given
-        const tubeThematicDeux = server.create('new-tube', {
+        const tubeThematicDeux = server.create('tube', {
           id: 'tubeThematicDeuxNiveauQuatre',
           name: '@tubeThematicDeuxNiveauQuatre',
           practicalTitle: 'Mon tube thématique 2 de niveau quatre',
@@ -333,7 +546,7 @@ module('Acceptance | Target Profile Insights', function (hooks) {
           tablet: true,
           level: 4,
         });
-        const tubeThematicUn = server.create('new-tube', {
+        const tubeThematicUn = server.create('tube', {
           id: 'tubeThematicUnNiveauDeux',
           name: '@tubeThematicUnNiveauDeux',
           practicalTitle: 'Mon tube thématique 1 de niveau deux',
@@ -341,25 +554,25 @@ module('Acceptance | Target Profile Insights', function (hooks) {
           tablet: false,
           level: 2,
         });
-        const thematicDeux = server.create('new-thematic', {
+        const thematicDeux = server.create('thematic', {
           id: 'thematicDeux',
           index: '2',
           name: 'thematicDeux',
           tubes: [tubeThematicDeux],
         });
-        const thematicUn = server.create('new-thematic', {
+        const thematicUn = server.create('thematic', {
           id: 'thematicUn',
           index: '1',
           name: 'thematicUn',
           tubes: [tubeThematicUn],
         });
-        const competenceUn = server.create('new-competence', {
+        const competenceUn = server.create('competence', {
           id: 'competenceUn',
           name: 'competenceUn',
           index: '1.1',
           thematics: [thematicUn, thematicDeux],
         });
-        const areaUn = server.create('new-area', {
+        const areaUn = server.create('area', {
           id: 'areaUn',
           title: 'areaUn',
           code: '1',
@@ -367,7 +580,7 @@ module('Acceptance | Target Profile Insights', function (hooks) {
           frameworkId: 'frameworkId',
           competences: [competenceUn],
         });
-        targetProfile.update({ newAreas: [areaUn] });
+        targetProfile.update({ areas: [areaUn] });
 
         // when
         const screen = await visit('/target-profiles/1');
@@ -437,16 +650,16 @@ module('Acceptance | Target Profile Insights', function (hooks) {
         assert.dom(screen.getByText('Lacunes')).exists();
         assert.deepEqual(
           screen.getByTestId('triste').innerText,
-          'L‘évalué doit obtenir 50% sur l‘ensemble des sujets du profil cible.'
+          'L‘évalué doit obtenir 50% sur l‘ensemble des sujets du profil cible.',
         );
         const labelsForCappedTubes = screen.getAllByTestId('toujourstriste');
         assert.deepEqual(
           labelsForCappedTubes[0].innerText,
-          "L'évalué doit obtenir 60% sur le groupe Le tube de l'année possédant les sujets plafonnés par niveau suivants :"
+          "L'évalué doit obtenir 60% sur le groupe Le tube de l'année possédant les sujets plafonnés par niveau suivants :",
         );
         assert.deepEqual(
           labelsForCappedTubes[1].innerText,
-          "L'évalué doit obtenir 70% sur tous les sujets plafonnés par niveau suivants :"
+          "L'évalué doit obtenir 70% sur tous les sujets plafonnés par niveau suivants :",
         );
       });
 

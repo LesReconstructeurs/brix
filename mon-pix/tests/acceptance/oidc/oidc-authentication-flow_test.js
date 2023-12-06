@@ -15,9 +15,7 @@ module('Acceptance | OIDC | authentication flow', function (hooks) {
       test('should redirect the user to logout url', async function (assert) {
         // given
         const screen = await visit('/connexion/oidc-partner?code=code&state=state');
-        await click(
-          screen.getByLabelText('Accepter les conditions d’utilisation de Pix et la politique de confidentialité')
-        );
+        await click(screen.getByLabelText(this.intl.t('common.cgu.label')));
         await click(screen.getByRole('button', { name: 'Je créé mon compte' }));
         await click(screen.getByRole('button', { name: 'Lloyd Consulter mes informations' }));
 
@@ -25,9 +23,7 @@ module('Acceptance | OIDC | authentication flow', function (hooks) {
         await click(screen.getByRole('link', { name: 'Se déconnecter' }));
 
         // then
-        // TODO: Fix this the next time the file is edited.
-        // eslint-disable-next-line qunit/no-assert-equal
-        assert.equal(currentURL(), '/deconnexion');
+        assert.strictEqual(currentURL(), '/deconnexion');
       });
     });
 
@@ -46,7 +42,7 @@ module('Acceptance | OIDC | authentication flow', function (hooks) {
         // when
         await fillIn(
           screen.getByRole('textbox', { name: this.intl.t('pages.login-or-register-oidc.login-form.email') }),
-          'lloyd.ce@example.net'
+          'lloyd.ce@example.net',
         );
         await fillIn(screen.getByLabelText(this.intl.t('pages.login-or-register-oidc.login-form.password')), 'pix123');
         await click(screen.getByRole('button', { name: 'Je me connecte' }));
@@ -55,7 +51,7 @@ module('Acceptance | OIDC | authentication flow', function (hooks) {
         assert.ok(
           screen.getByRole('heading', {
             name: "Attention ! Un nouveau moyen de connexion est sur le point d'être ajouté à votre compte Pix",
-          })
+          }),
         );
       });
     });

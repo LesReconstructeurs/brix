@@ -1,5 +1,4 @@
 import { module, test } from 'qunit';
-import { setupRenderingTest } from 'ember-qunit';
 import { click } from '@ember/test-helpers';
 import { render } from '@1024pix/ember-testing-library';
 import { hbs } from 'ember-cli-htmlbars';
@@ -11,9 +10,10 @@ import {
   categoryToLabel,
   subcategoryToLabel,
 } from 'pix-certif/models/certification-issue-report';
+import setupIntlRenderingTest from '../../helpers/setup-intl-rendering';
 
 module('Integration | Component | issue-reports-modal', function (hooks) {
-  setupRenderingTest(hooks);
+  setupIntlRenderingTest(hooks);
 
   test('it show candidate information in title', async function (assert) {
     // given
@@ -76,10 +76,12 @@ module('Integration | Component | issue-reports-modal', function (hooks) {
     // given
     const issue1 = EmberObject.create({
       category: certificationIssueReportCategories.CANDIDATE_INFORMATIONS_CHANGES,
+      categoryLabel: categoryToLabel[certificationIssueReportCategories.CANDIDATE_INFORMATIONS_CHANGES],
     });
 
     const issue2 = EmberObject.create({
       category: certificationIssueReportCategories.SIGNATURE_ISSUE,
+      categoryLabel: categoryToLabel[certificationIssueReportCategories.SIGNATURE_ISSUE],
     });
 
     const report = EmberObject.create({
@@ -147,9 +149,9 @@ module('Integration | Component | issue-reports-modal', function (hooks) {
     `);
 
     // then
-    assert.contains(categoryToLabel[certificationIssueReportCategories.SIGNATURE_ISSUE]);
-    assert.contains(categoryToLabel[certificationIssueReportCategories.CANDIDATE_INFORMATIONS_CHANGES]);
-    assert.contains(subcategoryToLabel[certificationIssueReportSubcategories.NAME_OR_BIRTHDATE]);
+    assert.contains(this.intl.t(categoryToLabel[certificationIssueReportCategories.SIGNATURE_ISSUE]));
+    assert.contains(this.intl.t(categoryToLabel[certificationIssueReportCategories.CANDIDATE_INFORMATIONS_CHANGES]));
+    assert.contains(this.intl.t(subcategoryToLabel[certificationIssueReportSubcategories.NAME_OR_BIRTHDATE]));
     assert.dom('li').exists({ count: 2 });
   });
 });

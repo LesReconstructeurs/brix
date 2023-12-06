@@ -1,4 +1,4 @@
-const _ = require('lodash');
+import _ from 'lodash';
 
 async function fetchForCampaigns({
   assessment,
@@ -85,9 +85,18 @@ async function fetchForFlashCampaigns({
 }) {
   const [allAnswers, challenges, { estimatedLevel } = {}] = await Promise.all([
     answerRepository.findByAssessment(assessmentId),
-    challengeRepository.findFlashCompatible({ locale }),
+    challengeRepository.findActiveFlashCompatible({ locale }),
     flashAssessmentResultRepository.getLatestByAssessmentId(assessmentId),
   ]);
+
+  const challengeIds = new Set(challenges.map(({ id }) => id));
+  const missingChallengeIds = allAnswers
+    .map(({ challengeId }) => challengeId)
+    .filter((challengeId) => !challengeIds.has(challengeId));
+  if (missingChallengeIds.length > 0) {
+    const missingChallenges = await challengeRepository.getMany(missingChallengeIds);
+    challenges.push(...missingChallenges);
+  }
 
   return {
     allAnswers,
@@ -106,9 +115,4 @@ async function fetchForFlashLevelEstimation({ assessment, answerRepository, chal
   };
 }
 
-module.exports = {
-  fetchForCampaigns,
-  fetchForCompetenceEvaluations,
-  fetchForFlashCampaigns,
-  fetchForFlashLevelEstimation,
-};
+export { fetchForCampaigns, fetchForCompetenceEvaluations, fetchForFlashCampaigns, fetchForFlashLevelEstimation };

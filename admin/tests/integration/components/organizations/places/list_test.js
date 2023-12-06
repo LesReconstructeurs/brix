@@ -3,7 +3,7 @@ import { click } from '@ember/test-helpers';
 import sinon from 'sinon';
 import { render } from '@1024pix/ember-testing-library';
 import { setupRenderingTest } from 'ember-qunit';
-import hbs from 'htmlbars-inline-precompile';
+import { hbs } from 'ember-cli-htmlbars';
 
 module('Integration | Component | Organizations | Places | List', function (hooks) {
   setupRenderingTest(hooks);
@@ -42,7 +42,7 @@ module('Integration | Component | Organizations | Places | List', function (hook
 
         // when
         const screen = await render(
-          hbs`<Organizations::Places::List @places={{this.places}} @onDelete={{this.onDelete}} />`
+          hbs`<Organizations::Places::List @places={{this.places}} @onDelete={{this.onDelete}} />`,
         );
 
         // then
@@ -83,7 +83,7 @@ module('Integration | Component | Organizations | Places | List', function (hook
 
         // when
         const screen = await render(
-          hbs`<Organizations::Places::List @places={{this.places}} @onDelete={{this.onDelete}} />`
+          hbs`<Organizations::Places::List @places={{this.places}} @onDelete={{this.onDelete}} />`,
         );
         await click(screen.getByText('Supprimer'));
 

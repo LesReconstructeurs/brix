@@ -1,6 +1,6 @@
-const { expect } = require('../../../../test-helper');
-const serializer = require('../../../../../lib/infrastructure/serializers/jsonapi/target-profile-serializer');
-const TargetProfile = require('../../../../../lib/domain/models/TargetProfile');
+import { expect } from '../../../../test-helper.js';
+import * as serializer from '../../../../../lib/infrastructure/serializers/jsonapi/target-profile-serializer.js';
+import { TargetProfile } from '../../../../../lib/domain/models/TargetProfile.js';
 
 describe('Unit | Serializer | JSONAPI | target-profile-serializer', function () {
   describe('#serialize', function () {
@@ -73,6 +73,7 @@ describe('Unit | Serializer | JSONAPI | target-profile-serializer', function () 
               { id: 'tubeId1', level: '5' },
               { id: 'tubeId2', level: '7' },
             ],
+            'are-knowledge-elements-resettable': true,
           },
         },
       };
@@ -93,6 +94,7 @@ describe('Unit | Serializer | JSONAPI | target-profile-serializer', function () 
           { id: 'tubeId1', level: '5' },
           { id: 'tubeId2', level: '7' },
         ],
+        areKnowledgeElementsResettable: true,
       };
       expect(deserializedTargetProfileCreationCommand).to.deep.equal(expectedTargetProfileCreationCommand);
     });

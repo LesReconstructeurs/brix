@@ -1,22 +1,56 @@
-const { sinon, expect, hFake, domainBuilder } = require('../../../test-helper');
-const assessmentController = require('../../../../lib/application/assessments/assessment-controller');
-const usecases = require('../../../../lib/domain/usecases');
-const events = require('../../../../lib/domain/events');
-const assessmentSerializer = require('../../../../lib/infrastructure/serializers/jsonapi/assessment-serializer');
-const AssessmentCompleted = require('../../../../lib/domain/events/AssessmentCompleted');
-const DomainTransaction = require('../../../../lib/infrastructure/DomainTransaction');
+import { domainBuilder, expect, hFake, sinon } from '../../../test-helper.js';
+import { assessmentController } from '../../../../lib/application/assessments/assessment-controller.js';
+import { usecases } from '../../../../lib/domain/usecases/index.js';
+import * as events from '../../../../lib/domain/events/index.js';
+import { AssessmentCompleted } from '../../../../lib/domain/events/AssessmentCompleted.js';
+import { DomainTransaction } from '../../../../lib/infrastructure/DomainTransaction.js';
+import { Activity } from '../../../../lib/domain/models/Activity.js';
 
 describe('Unit | Controller | assessment-controller', function () {
+  describe('#createForPix1d', function () {
+    it('should call the expected usecase', async function () {
+      const missionId = 'mission-id';
+      const assessmentSerializer = { serialize: sinon.stub() };
+      const createdAssessment = Symbol('created-assessment');
+      assessmentSerializer.serialize.withArgs(createdAssessment).resolves(Symbol('serialized-assessment'));
+      sinon.stub(usecases, 'createMissionAssessment').withArgs({ missionId }).resolves(createdAssessment);
+      const request = { payload: { missionId } };
+
+      const result = await assessmentController.createForPix1d(request, hFake, {
+        assessmentSerializer,
+      });
+
+      expect(result.statusCode).to.be.equal(201);
+      expect(assessmentSerializer.serialize).to.have.been.calledWith(createdAssessment);
+    });
+  });
+  describe('#createAssessmentPreviewForPix1d', function () {
+    it('should call the expected usecase', async function () {
+      const assessmentSerializer = { serialize: sinon.stub() };
+      const createdAssessment = Symbol('created-assessment');
+      assessmentSerializer.serialize.withArgs(createdAssessment).resolves(Symbol('serialized-assessment'));
+      sinon.stub(usecases, 'createPreviewAssessment').resolves(createdAssessment);
+
+      const result = await assessmentController.createAssessmentPreviewForPix1d({}, hFake, {
+        assessmentSerializer,
+      });
+
+      expect(result.statusCode).to.be.equal(201);
+      expect(assessmentSerializer.serialize).to.have.been.calledWith(createdAssessment);
+    });
+  });
   describe('#get', function () {
     const authenticatedUserId = '12';
     const locale = 'fr';
     const assessmentId = 104974;
 
     const assessment = { id: assessmentId, title: 'Ordinary Wizarding Level assessment' };
+    let assessmentSerializerStub;
 
     beforeEach(function () {
       sinon.stub(usecases, 'getAssessment').withArgs({ assessmentId, locale }).resolves(assessment);
-      sinon.stub(assessmentSerializer, 'serialize').resolvesArg(0);
+      assessmentSerializerStub = { serialize: sinon.stub() };
+      assessmentSerializerStub.serialize.resolvesArg(0);
     });
 
     it('should call the expected usecase', async function () {
@@ -34,10 +68,65 @@ describe('Unit | Controller | assessment-controller', function () {
       };
 
       // when
-      const result = await assessmentController.get(request, hFake);
+      const result = await assessmentController.get(request, hFake, { assessmentSerializer: assessmentSerializerStub });
 
       // then
       expect(result).to.be.equal(assessment);
+    });
+  });
+
+  describe('#getCurrentActivity', function () {
+    const assessmentId = 104974;
+    const activity = { assessmentId, level: Activity.levels.TUTORIAL };
+    let activitySerializerStub;
+
+    beforeEach(function () {
+      sinon.stub(usecases, 'getCurrentActivity').withArgs({ assessmentId }).resolves(activity);
+      activitySerializerStub = { serialize: sinon.stub() };
+      activitySerializerStub.serialize.resolvesArg(0);
+    });
+
+    it('should call the expected usecase', async function () {
+      // given
+      const request = {
+        params: {
+          id: assessmentId,
+        },
+      };
+
+      // when
+      const result = await assessmentController.getCurrentActivity(request, hFake, {
+        activitySerializer: activitySerializerStub,
+      });
+
+      // then
+      expect(result).to.be.equal(activity);
+    });
+  });
+
+  describe('#getNextChallengeForPix1d', function () {
+    it('should call the expected usecase', async function () {
+      const assessmentId = 104974;
+      const challenge = { id: 'rec1', instruction: '1st challenge for Pix1d' };
+      const challengeSerializerStub = { serialize: sinon.stub() };
+      challengeSerializerStub.serialize.resolves(challenge);
+
+      // given
+      const request = {
+        params: {
+          id: assessmentId,
+        },
+      };
+
+      sinon.stub(usecases, 'getNextChallengeForPix1d').withArgs({ assessmentId }).resolves(challenge);
+
+      // when
+      const result = await assessmentController.getNextChallengeForPix1d(request, hFake, {
+        challengeSerializer: challengeSerializerStub,
+      });
+
+      // then
+      expect(result).to.be.equal(challenge);
     });
   });
 

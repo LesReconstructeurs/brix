@@ -1,4 +1,4 @@
-const { expect, domainBuilder } = require('../../../test-helper');
+import { expect, domainBuilder } from '../../../test-helper.js';
 
 describe('Unit | Domain | Models | CertificationCenter', function () {
   describe('#isSco', function () {
@@ -16,6 +16,23 @@ describe('Unit | Domain | Models | CertificationCenter', function () {
 
       // when / then
       expect(certificationCenter.isSco).is.false;
+    });
+  });
+  describe('#hasBillingMode', function () {
+    it('should return false when certification center is of type SCO', function () {
+      // given
+      const certificationCenter = domainBuilder.buildCertificationCenter({ type: 'SCO' });
+
+      // when / then
+      expect(certificationCenter.hasBillingMode).is.false;
+    });
+
+    it('should return true when certification center is not of type SCO', function () {
+      // given
+      const certificationCenter = domainBuilder.buildCertificationCenter({ type: 'SUP' });
+
+      // when / then
+      expect(certificationCenter.hasBillingMode).is.true;
     });
   });
   describe('#isHabilitated', function () {

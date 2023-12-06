@@ -1,5 +1,5 @@
-const { expect, sinon } = require('../../../test-helper');
-const findPaginatedFilteredSupParticipants = require('../../../../lib/domain/usecases/find-paginated-filtered-sup-participants');
+import { expect, sinon } from '../../../test-helper.js';
+import { findPaginatedFilteredSupParticipants } from '../../../../lib/domain/usecases/find-paginated-filtered-sup-participants.js';
 
 describe('Unit | UseCase | findPaginatedFilteredSupParticipants', function () {
   let supOrganizationParticipantRepository;
@@ -20,6 +20,7 @@ describe('Unit | UseCase | findPaginatedFilteredSupParticipants', function () {
     foundSupParticipants = await findPaginatedFilteredSupParticipants({
       organizationId,
       filter: { search: 'Arm', group: 'L1' },
+      sort: { participationCount: 'asc' },
       page: { size: 10, number: 1 },
       supOrganizationParticipantRepository,
     });
@@ -27,6 +28,7 @@ describe('Unit | UseCase | findPaginatedFilteredSupParticipants', function () {
     expect(supOrganizationParticipantRepository.findPaginatedFilteredSupParticipants).to.have.been.calledWithExactly({
       organizationId,
       filter: { search: 'Arm', group: 'L1' },
+      sort: { participationCount: 'asc' },
       page: { size: 10, number: 1 },
     });
     expect(foundSupParticipants).to.deep.equal(expectedSupParticipants);

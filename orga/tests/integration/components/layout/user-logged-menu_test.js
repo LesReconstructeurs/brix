@@ -2,7 +2,7 @@ import { module, test } from 'qunit';
 import { render } from '@ember/test-helpers';
 import { clickByName } from '@1024pix/ember-testing-library';
 import setupIntlRenderingTest from '../../../helpers/setup-intl-rendering';
-import hbs from 'htmlbars-inline-precompile';
+import { hbs } from 'ember-cli-htmlbars';
 import Object from '@ember/object';
 import Service from '@ember/service';
 
@@ -78,7 +78,7 @@ module('Integration | Component | Layout::UserLoggedMenu', function (hooks) {
 
   test('should display the organizations name and externalId when menu is open', async function (assert) {
     // when
-    await render(hbs`<Layout::UserLoggedMenu  />`);
+    await render(hbs`<Layout::UserLoggedMenu />`);
     await clickByName('Ouvrir le menu utilisateur');
 
     // then

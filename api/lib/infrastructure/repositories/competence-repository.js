@@ -1,19 +1,17 @@
-const _ = require('lodash');
-const LearningContentResourceNotFound = require('../datasources/learning-content/LearningContentResourceNotFound');
-const Area = require('../../domain/models/Area');
-const areaDatasource = require('../datasources/learning-content/area-datasource');
-const Competence = require('../../domain/models/Competence');
-const competenceDatasource = require('../datasources/learning-content/competence-datasource');
-const { NotFoundError } = require('../../domain/errors');
-const { FRENCH_FRANCE } = require('../../domain/constants').LOCALE;
-const { PIX_ORIGIN } = require('../../domain/constants');
-const { getTranslatedKey } = require('../../domain/services/get-translated-text');
+import _ from 'lodash';
+import { LearningContentResourceNotFound } from '../datasources/learning-content/LearningContentResourceNotFound.js';
+import { Competence } from '../../domain/models/Competence.js';
+import { competenceDatasource } from '../datasources/learning-content/competence-datasource.js';
+import { NotFoundError } from '../../domain/errors.js';
+import { LOCALE, PIX_ORIGIN } from '../../domain/constants.js';
 
-function _toDomain({ competenceData, areaDatas, locale }) {
-  const areaData = competenceData.areaId && _.find(areaDatas, { id: competenceData.areaId });
+const { FRENCH_FRANCE } = LOCALE;
+
+import { getTranslatedKey } from '../../domain/services/get-translated-text.js';
+
+function _toDomain({ competenceData, locale }) {
   const translatedCompetenceName = getTranslatedKey(competenceData.name_i18n, locale);
   const translatedCompetenceDescription = getTranslatedKey(competenceData.description_i18n, locale);
-  const translatedAreaTitle = areaData ? getTranslatedKey(areaData.title_i18n, locale) : '';
 
   return new Competence({
     id: competenceData.id,
@@ -23,67 +21,63 @@ function _toDomain({ competenceData, areaDatas, locale }) {
     origin: competenceData.origin,
     skillIds: competenceData.skillIds,
     thematicIds: competenceData.thematicIds,
-    area:
-      areaData &&
-      new Area({
-        id: areaData.id,
-        code: areaData.code,
-        title: translatedAreaTitle,
-        name: areaData.name,
-        color: areaData.color,
-        frameworkId: areaData.frameworkId,
-      }),
+    areaId: competenceData.areaId,
   });
 }
 
-module.exports = {
-  list({ locale } = { locale: FRENCH_FRANCE }) {
-    return _list({ locale: locale || FRENCH_FRANCE });
-  },
-
-  listPixCompetencesOnly({ locale } = { locale: FRENCH_FRANCE }) {
-    return _list({ locale }).then((competences) =>
-      competences.filter((competence) => competence.origin === PIX_ORIGIN)
-    );
-  },
-
-  async get({ id, locale }) {
-    try {
-      const [competenceData, areaDatas] = await Promise.all([competenceDatasource.get(id), areaDatasource.list()]);
-      return _toDomain({ competenceData, areaDatas, locale });
-    } catch (err) {
-      if (err instanceof LearningContentResourceNotFound) {
-        throw new NotFoundError('La compétence demandée n’existe pas');
-      }
-      throw err;
-    }
-  },
-
-  async getCompetenceName({ id, locale }) {
-    try {
-      const competence = await competenceDatasource.get(id);
-      return getTranslatedKey(competence.name_i18n, locale);
-    } catch (err) {
-      if (err instanceof LearningContentResourceNotFound) {
-        throw new NotFoundError('La compétence demandée n’existe pas');
-      }
-      throw err;
-    }
-  },
-
-  async findByRecordIds({ competenceIds, locale }) {
-    const [competenceDatas, areaDatas] = await Promise.all([competenceDatasource.list(), areaDatasource.list()]);
-    return competenceDatas
-      .filter(({ id }) => competenceIds.includes(id))
-      .map((competenceData) => _toDomain({ competenceData, areaDatas, locale }));
-  },
+const list = function ({ locale } = { locale: FRENCH_FRANCE }) {
+  return _list({ locale: locale || FRENCH_FRANCE });
 };
 
-function _list({ locale }) {
-  return Promise.all([competenceDatasource.list(), areaDatasource.list()]).then(([competenceDatas, areaDatas]) => {
-    return _.sortBy(
-      competenceDatas.map((competenceData) => _toDomain({ competenceData, areaDatas, locale })),
-      'index'
-    );
-  });
+const listPixCompetencesOnly = async function ({ locale } = { locale: FRENCH_FRANCE }) {
+  const allCompetences = await _list({ locale });
+  return allCompetences.filter((competence) => competence.origin === PIX_ORIGIN);
+};
+
+const get = async function ({ id, locale }) {
+  try {
+    const competenceData = await competenceDatasource.get(id);
+    return _toDomain({ competenceData, locale });
+  } catch (err) {
+    if (err instanceof LearningContentResourceNotFound) {
+      throw new NotFoundError('La compétence demandée n’existe pas');
+    }
+    throw err;
+  }
+};
+
+const getCompetenceName = async function ({ id, locale }) {
+  try {
+    const competence = await competenceDatasource.get(id);
+    return getTranslatedKey(competence.name_i18n, locale);
+  } catch (err) {
+    if (err instanceof LearningContentResourceNotFound) {
+      throw new NotFoundError('La compétence demandée n’existe pas');
+    }
+    throw err;
+  }
+};
+
+const findByRecordIds = async function ({ competenceIds, locale }) {
+  const competenceDatas = await competenceDatasource.list();
+  return competenceDatas
+    .filter(({ id }) => competenceIds.includes(id))
+    .map((competenceData) => _toDomain({ competenceData, locale }));
+};
+
+const findByAreaId = async function ({ areaId, locale }) {
+  const competenceDatas = await competenceDatasource.list();
+  return competenceDatas
+    .filter((competenceData) => competenceData.areaId === areaId)
+    .map((competenceData) => _toDomain({ competenceData, locale }));
+};
+
+export { list, listPixCompetencesOnly, get, getCompetenceName, findByRecordIds, findByAreaId };
+
+async function _list({ locale }) {
+  const competenceDatas = await competenceDatasource.list();
+  return _.sortBy(
+    competenceDatas.map((competenceData) => _toDomain({ competenceData, locale })),
+    'index',
+  );
 }

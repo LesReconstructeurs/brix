@@ -1,11 +1,10 @@
-const CertificationCenterForAdmin = require('../../../../lib/domain/models/CertificationCenterForAdmin');
+import { CertificationCenterForAdmin } from '../../../../lib/domain/models/CertificationCenterForAdmin.js';
 
-module.exports = function buildCertificationCenterForAdmin({
+const buildCertificationCenterForAdmin = function ({
   id = 1,
   name = 'name',
   type = CertificationCenterForAdmin.types.SUP,
   externalId = 'externalId',
-  isSupervisorAccessEnabled = false,
   createdAt = new Date('2020-01-01'),
   updatedAt,
   dataProtectionOfficerFirstName,
@@ -18,7 +17,6 @@ module.exports = function buildCertificationCenterForAdmin({
     name,
     type,
     externalId,
-    isSupervisorAccessEnabled,
     updatedAt,
     createdAt,
     dataProtectionOfficerFirstName,
@@ -27,3 +25,5 @@ module.exports = function buildCertificationCenterForAdmin({
     habilitations,
   });
 };
+
+export { buildCertificationCenterForAdmin };

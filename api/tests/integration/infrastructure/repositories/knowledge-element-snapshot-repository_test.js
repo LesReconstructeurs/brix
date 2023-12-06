@@ -1,8 +1,8 @@
-const { knex, expect, databaseBuilder, catchErr } = require('../../../test-helper');
-const KnowledgeElement = require('../../../../lib/domain/models/KnowledgeElement');
-const knowledgeElementSnapshotRepository = require('../../../../lib/infrastructure/repositories/knowledge-element-snapshot-repository');
-const { AlreadyExistingEntityError } = require('../../../../lib/domain/errors');
-const DomainTransaction = require('../../../../lib/infrastructure/DomainTransaction');
+import { knex, expect, databaseBuilder, catchErr } from '../../../test-helper.js';
+import { KnowledgeElement } from '../../../../lib/domain/models/KnowledgeElement.js';
+import * as knowledgeElementSnapshotRepository from '../../../../lib/infrastructure/repositories/knowledge-element-snapshot-repository.js';
+import { AlreadyExistingEntityError } from '../../../../lib/domain/errors.js';
+import { DomainTransaction } from '../../../../lib/infrastructure/DomainTransaction.js';
 
 describe('Integration | Repository | KnowledgeElementSnapshotRepository', function () {
   describe('#save', function () {
@@ -38,7 +38,7 @@ describe('Integration | Repository | KnowledgeElementSnapshotRepository', functi
           new KnowledgeElement({
             ...knowledgeElementData,
             createdAt: new Date(knowledgeElementData.createdAt),
-          })
+          }),
         );
       }
       expect(actualKnowledgeElements).to.deep.equal(knowledgeElements);
@@ -86,7 +86,7 @@ describe('Integration | Repository | KnowledgeElementSnapshotRepository', functi
             new KnowledgeElement({
               ...knowledgeElementData,
               createdAt: new Date(knowledgeElementData.createdAt),
-            })
+            }),
           );
         }
         expect(actualKnowledgeElements).to.deep.equal(knowledgeElements);

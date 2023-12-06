@@ -1,8 +1,10 @@
-const { PassThrough } = require('stream');
-const { domainBuilder, expect, sinon, streamToPromise } = require('../../../../test-helper');
+import stream from 'stream';
 
-const CampaignProfilesCollectionExport = require('../../../../../lib/infrastructure/serializers/csv/campaign-profiles-collection-export');
-const { getI18n } = require('../../../../tooling/i18n/i18n');
+const { PassThrough } = stream;
+
+import { domainBuilder, expect, sinon, streamToPromise } from '../../../../test-helper.js';
+import { CampaignProfilesCollectionExport } from '../../../../../lib/infrastructure/serializers/csv/campaign-profiles-collection-export.js';
+import { getI18n } from '../../../../tooling/i18n/i18n.js';
 
 describe('Unit | Serializer | CSV | campaign-profiles-collection-export', function () {
   describe('#export', function () {
@@ -51,12 +53,13 @@ describe('Unit | Serializer | CSV | campaign-profiles-collection-export', functi
         organization,
         campaign,
         competences,
-        translate
+        translate,
       );
 
       const expectedHeader =
         '\uFEFF"Nom de l\'organisation";' +
         '"ID Campagne";' +
+        '"Code";' +
         '"Nom de la campagne";' +
         '"Nom du Participant";' +
         '"Prénom du Participant";' +
@@ -90,12 +93,13 @@ describe('Unit | Serializer | CSV | campaign-profiles-collection-export', functi
         organization,
         campaign,
         competences,
-        translate
+        translate,
       );
 
       const expectedHeader =
         '\uFEFF"Nom de l\'organisation";' +
         '"ID Campagne";' +
+        '"Code";' +
         '"Nom de la campagne";' +
         '"Nom du Participant";' +
         '"Prénom du Participant";' +
@@ -130,12 +134,13 @@ describe('Unit | Serializer | CSV | campaign-profiles-collection-export', functi
         organization,
         campaign,
         competences,
-        translate
+        translate,
       );
 
       const expectedHeader =
         '\uFEFF"Nom de l\'organisation";' +
         '"ID Campagne";' +
+        '"Code";' +
         '"Nom de la campagne";' +
         '"Nom du Participant";' +
         '"Prénom du Participant";' +
@@ -169,12 +174,13 @@ describe('Unit | Serializer | CSV | campaign-profiles-collection-export', functi
         organization,
         campaign,
         competences,
-        translate
+        translate,
       );
 
       const expectedHeader =
         '\uFEFF"Nom de l\'organisation";' +
         '"ID Campagne";' +
+        '"Code";' +
         '"Nom de la campagne";' +
         '"Nom du Participant";' +
         '"Prénom du Participant";' +

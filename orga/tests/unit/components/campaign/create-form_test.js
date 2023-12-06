@@ -20,6 +20,7 @@ module('Unit | Component | Campaign::CreateForm', (hooks) => {
         { id: 7, fullName: 'Thierry Golo' },
       ];
       const component = await createGlimmerComponent('component:campaign/create-form', {
+        campaign: {},
         membersSortedByFullName,
         targetProfiles: [],
       });
@@ -29,7 +30,47 @@ module('Unit | Component | Campaign::CreateForm', (hooks) => {
       await component.onChangeCampaignOwner(newOwnerId);
 
       //then
-      assert.deepEqual(component.ownerId, 7);
+      assert.deepEqual(component.campaign.ownerId, 7);
+    });
+  });
+
+  module('#selectMultipleSendingsStatus', function () {
+    test('set to true', async function (assert) {
+      // given
+      class CurrentUserStub extends Service {
+        prescriber = { id: 1 };
+      }
+      this.owner.register('service:current-user', CurrentUserStub);
+      const component = await createGlimmerComponent('component:campaign/create-form', {
+        campaign: {},
+        targetProfiles: [],
+        membersSortedByFullName: [{ id: 1, fullName: 'Just me' }],
+      });
+
+      //when
+      await component.selectMultipleSendingsStatus(true);
+
+      //then
+      assert.true(component.campaign.multipleSendings);
+    });
+
+    test('set to false', async function (assert) {
+      // given
+      class CurrentUserStub extends Service {
+        prescriber = { id: 1 };
+      }
+      this.owner.register('service:current-user', CurrentUserStub);
+      const component = await createGlimmerComponent('component:campaign/create-form', {
+        campaign: {},
+        targetProfiles: [],
+        membersSortedByFullName: [{ id: 1, fullName: 'Just me' }],
+      });
+
+      //when
+      await component.selectMultipleSendingsStatus(false);
+
+      //then
+      assert.false(component.campaign.multipleSendings);
     });
   });
 });

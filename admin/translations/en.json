@@ -2,17 +2,83 @@
   "common": {
     "api-error-messages": {
       "bad-request-error": "The data entered was not in the correct format.",
+      "gateway-timeout-error": "The service is being slow. Please try again later.",
+      "internal-server-error": "An error occurred, our teams are working on finding a solution. Please try again later.",
       "login-unauthorized-error": "There was an error in the email address or username/password entered.",
-      "login-user-temporary-blocked-error": "You have reached too many failed login attempts. Please try again later or <a href=\"{url}\">reset your password here</a>.",
-      "login-user-blocked-error": "Your account has reached the maximum number of failed login attempts and has been temporarily blocked. Please <a href=\"{url}\">contact us</a> to unblock it.",
-    "internal-server-error": "An error occurred, our teams are working on finding a solution. Please try again later.",
-      "gateway-timeout-error": "The service is being slow. Please try again later."
+      "login-user-blocked-error": "Your account has reached the maximum number of failed login attempts and has been temporarily blocked. Please '<'a href=\"{url}\"'>'contact us'</a>' to unblock it.",
+      "login-user-temporary-blocked-error": "You have reached too many failed login attempts. Please try again later or '<'a href=\"{url}\"'>'reset your password here'</a>'."
+    },
+    "notifications": {
+      "generic-error": "An error occurred."
+    },
+    "words": {
+      "no": "No",
+      "yes": "Yes"
+    }
+  },
+  "components": {
+    "administration": {
+      "organizations-import": {
+        "title": "Mass creation of organizations",
+        "description": "Existing organizations will not be changed.",
+        "notifications": {
+          "success": "The organizations have been created."
+        },
+        "upload-button": "Import CSV file"
+      }
+    },
+    "complementary-certifications": {
+      "target-profiles": {
+        "badges-list": {
+          "title": "Résultats thématiques certifiants du profil cible actuel",
+          "header": {
+            "id": "ID",
+            "level": "Niveau",
+            "name": "Nom du résultat thématique"
+          }
+        }
+      }
+    },
+    "organizations": {
+      "all-tags": {
+        "recently-used-tags": "List of tags recently used with {tagName}"
+      }
+    },
+    "users": {
+      "user-detail-personal-information": {
+        "authentication-method": {
+          "should-change-password-status": "Temporary password :"
+        }
+      }
     }
   },
   "pages": {
     "login": {
       "api-error-messages": {
         "login-no-permission": "You don't have the permission to connect."
+      }
+    },
+    "target-profiles": {
+      "resettable-checkbox": {
+        "label": "Allow resetting for evaluation-type campaigns when multiple submissions are enabled for the organisation"
+      }
+    },
+    "trainings": {
+      "training": {
+        "targetProfiles": {
+          "tabName": "Target Profiles"
+        },
+        "triggers": {
+          "goal": {
+            "title": "Goal",
+            "alternative-title": "Add a goal threshold to not exceed"
+          },
+          "prerequisite": {
+            "title": "Prerequisite",
+            "alternative-title": "Add a prerequisite threshold to reach"
+          },
+          "tabName": "Triggers"
+        }
       }
     }
   }

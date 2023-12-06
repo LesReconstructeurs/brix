@@ -1,9 +1,9 @@
-const buildOrganization = require('./build-organization');
-const buildUser = require('./build-user');
-const databaseBuffer = require('../database-buffer');
-const _ = require('lodash');
+import { buildOrganization } from './build-organization.js';
+import { buildUser } from './build-user.js';
+import { databaseBuffer } from '../database-buffer.js';
+import _ from 'lodash';
 
-module.exports = function buildOrganizationLearner({
+const buildOrganizationLearner = function ({
   id = databaseBuffer.getNextId(),
   firstName = 'first-name',
   preferredLastName = 'pref-last-name',
@@ -31,6 +31,8 @@ module.exports = function buildOrganizationLearner({
   updatedAt = new Date('2021-02-01'), // for BEGINNING_OF_THE_2020_SCHOOL_YEAR, can outdate very fast! ;)
   organizationId,
   userId,
+  deletedBy = null,
+  deletedAt = null,
 } = {}) {
   organizationId = _.isUndefined(organizationId) ? buildOrganization().id : organizationId;
   userId = _.isUndefined(userId) ? buildUser().id : userId;
@@ -63,6 +65,8 @@ module.exports = function buildOrganizationLearner({
     updatedAt,
     organizationId,
     userId,
+    deletedBy,
+    deletedAt,
   };
 
   return databaseBuffer.pushInsertable({
@@ -70,3 +74,5 @@ module.exports = function buildOrganizationLearner({
     values,
   });
 };
+
+export { buildOrganizationLearner };

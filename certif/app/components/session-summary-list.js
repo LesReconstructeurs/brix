@@ -1,7 +1,7 @@
 import Component from '@glimmer/component';
 import { action } from '@ember/object';
 import { tracked } from '@glimmer/tracking';
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 import get from 'lodash/get';
 
 export default class SessionSummaryList extends Component {
@@ -10,6 +10,11 @@ export default class SessionSummaryList extends Component {
   @tracked currentEnrolledCandidatesCount = null;
   @service store;
   @service notifications;
+  @service intl;
+
+  get currentLocale() {
+    return this.intl.locale[0];
+  }
 
   @action
   openSessionDeletionConfirmModal(sessionId, enrolledCandidatesCount, event) {
@@ -30,7 +35,7 @@ export default class SessionSummaryList extends Component {
     const sessionSummary = this.store.peekRecord('session-summary', this.currentSessionToBeDeletedId);
     try {
       await sessionSummary.destroyRecord();
-      this.notifications.success('La session a été supprimée avec succès.');
+      this.notifications.success(this.intl.t('pages.sessions.list.delete-modal.success'));
     } catch (err) {
       if (this._doesNotExist(err)) {
         this._handleSessionDoesNotExistsError();
@@ -52,14 +57,14 @@ export default class SessionSummaryList extends Component {
   }
 
   _handleUnknownSavingError() {
-    this.notifications.error("Une erreur s'est produite lors de la suppression de la session.");
+    this.notifications.error(this.intl.t('pages.sessions.list.delete-modal.errors.unknown'));
   }
 
   _handleSessionDoesNotExistsError() {
-    this.notifications.error("La session que vous tentez de supprimer n'existe pas.");
+    this.notifications.error(this.intl.t('pages.sessions.list.delete-modal.errors.session-does-not-exists'));
   }
 
   _handleSessionHasStartedError() {
-    this.notifications.error('La session a déjà commencé.');
+    this.notifications.error(this.intl.t('pages.sessions.list.delete-modal.errors.session-has-started'));
   }
 }

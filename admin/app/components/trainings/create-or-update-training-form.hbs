@@ -1,0 +1,127 @@
+<form class="form create-training-form" {{on "submit" this.onSubmit}}>
+
+  <section class="form-section">
+    <Card class="create-training-form__card" @title="Information sur le contenu formatif">
+      <p class="form__instructions">Tous les champs sont obligatoires.</p>
+      <PixInput
+        class="form-field"
+        @id="trainingTitle"
+        @label="Titre"
+        required={{true}}
+        aria-required={{true}}
+        @value={{this.form.title}}
+        {{on "change" (fn this.updateForm "title")}}
+      />
+      <PixInput
+        class="form-field"
+        @id="trainingLink"
+        @label="Lien"
+        required={{true}}
+        aria-required={{true}}
+        @value={{this.form.link}}
+        {{on "change" (fn this.updateForm "link")}}
+      />
+      <PixSelect
+        @label="Format"
+        @placeholder={{"-- Sélectionnez un format --"}}
+        @value={{this.form.type}}
+        @options={{this.optionsTypeList}}
+        required={{true}}
+        aria-required={{true}}
+        @onChange={{(fn this.updateSelect "type")}}
+      />
+      <div class="create-training-form-card__duration">
+        <PixInput
+          class="form-field"
+          @id="trainingDaysDuration"
+          @label="Jours (JJ)"
+          min="0"
+          required={{true}}
+          aria-required={{true}}
+          type="number"
+          @value={{this.form.duration.days}}
+          {{on "change" (fn this.updateForm "duration.days")}}
+        />
+        <PixInput
+          class="form-field"
+          @id="trainingHoursDuration"
+          @label="Heures (HH)"
+          min="0"
+          max="23"
+          required={{true}}
+          aria-required={{true}}
+          type="number"
+          @value={{this.form.duration.hours}}
+          {{on "change" (fn this.updateForm "duration.hours")}}
+        />
+        <PixInput
+          class="form-field"
+          @id="trainingMinutesDuration"
+          @label="Minutes (MM)"
+          required={{true}}
+          min="0"
+          max="59"
+          aria-required={{true}}
+          type="number"
+          @value={{this.form.duration.minutes}}
+          {{on "change" (fn this.updateForm "duration.minutes")}}
+        />
+      </div>
+      <PixSelect
+        @id="trainingLocale"
+        @label="Langue localisée"
+        @placeholder={{"-- Sélectionnez une langue --"}}
+        @options={{this.optionsLocaleList}}
+        @value={{this.form.locale}}
+        @onChange={{(fn this.updateSelect "locale")}}
+        required={{true}}
+        aria-required={{true}}
+      />
+      <div class="training-editor-logo-url-input">
+        <label for="trainingEditorLogoUrl-name">Nom du fichier du logo éditeur (.svg)
+          <span class="training-editor-logo-url-input__information">
+            <a
+              href="https://1024pix.github.io/pix-images-list/editeurs-cf.html"
+              target="_blank"
+              rel="noopener noreferrer"
+            >Voir la liste des logos éditeur</a>
+            <br />Exemple : logo-ministere-education-nationale-et-jeunesse.svg
+          </span>
+        </label>
+        <PixInput
+          class="form-field"
+          @id="trainingEditorLogoUrl"
+          required={{true}}
+          aria-required={{true}}
+          @ariaLabel="Nom du fichier du logo éditeur"
+          placeholder="logo-ministere-education-nationale-et-jeunesse.svg"
+          @value={{this.form.editorLogoUrl}}
+          {{on "change" (fn this.updateForm "editorLogoUrl")}}
+        />
+      </div>
+      <PixInput
+        class="form-field"
+        @id="trainingEditorName"
+        @label="Nom de l'éditeur"
+        @information="Exemple: Ministère de l'Éducation nationale et de la Jeunesse. Liberté égalité fraternité"
+        required={{true}}
+        aria-required={{true}}
+        placeholder="Ministère de l'Éducation nationale et de la Jeunesse. Liberté égalité fraternité."
+        @value={{this.form.editorName}}
+        {{on "change" (fn this.updateForm "editorName")}}
+      />
+    </Card>
+  </section>
+  <section class="form-section form-actions form-section--actions">
+    <PixButton
+      @backgroundColor="transparent-light"
+      @isBorderVisible={{true}}
+      @size="big"
+      @triggerAction={{@onCancel}}
+    >Annuler</PixButton>
+    <PixButton @backgroundColor="green" @size="big" @type="submit" @isLoading={{this.submitting}}>
+      {{if @model "Modifier" "Créer"}}
+      le contenu formatif
+    </PixButton>
+  </section>
+</form>

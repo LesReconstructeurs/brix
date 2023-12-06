@@ -1,7 +1,7 @@
 import { module, test } from 'qunit';
 import { setupRenderingTest } from 'ember-qunit';
 import { render } from '@ember/test-helpers';
-import hbs from 'htmlbars-inline-precompile';
+import { hbs } from 'ember-cli-htmlbars';
 import sinon from 'sinon';
 import { clickByText } from '@1024pix/ember-testing-library';
 
@@ -19,7 +19,7 @@ module('Integration | Component | organization-invitations-action', function (ho
       hbs`<Organizations::InvitationsAction
   @createOrganizationInvitation={{this.createOrganizationInvitation}}
   @onChangeUserEmailToInvite={{this.noop}}
-/>`
+/>`,
     );
     await clickByText('Inviter');
 

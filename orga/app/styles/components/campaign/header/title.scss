@@ -1,45 +1,59 @@
 .campaign-header-title {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin: 24px 0;
+  margin: $pix-spacing-l 0;
 
-  &__headline {
+  &__informations {
     display: flex;
     align-items: center;
+    justify-content: space-between;
+  }
+  
+  &__breadcrumb {
+    margin-bottom: $pix-spacing-s;
   }
 
-  &__infos {
+  &__name {
+    @extend %pix-title-m;
+
+    flex: 0 1 auto;
+    padding-right: $pix-spacing-s;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis; 
+  }
+
+  &__details {
     display: flex;
+    flex: 0 0 auto;
     align-items: center;
     margin: 0;
     padding: 0;
 
     & > * {
-      padding-right: 15px;
       margin-right: 15px;
+      padding-right: 15px;
       border-right: 1px solid $pix-neutral-20;
     }
 
     & > *:last-child {
-      padding-right: 0;
       margin-right: 0;
+      padding-right: 0;
       border-right-width: 0;
     }
   }
 
-  &__info-item {
+  &__detail-item {
+    @extend %pix-body-s;
+
     color: $pix-neutral-60;
-    font-family: $font-roboto;
-    font-size: 1rem;
 
     & > dt {
       display: block;
-      margin-bottom: 8px;
+      margin-bottom: $pix-spacing-xs;
     }
 
     & > dd {
       margin: 0;
+      color: $pix-neutral-90;
     }
   }
 
@@ -54,9 +68,9 @@
     align-items: initial;
 
     &__headline {
-      margin-bottom: 16px;
       justify-content: center;
       width: 100%;
+      margin-bottom: $pix-spacing-s;
     }
 
     &__infos {

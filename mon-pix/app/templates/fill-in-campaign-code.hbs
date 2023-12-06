@@ -9,21 +9,23 @@
   <NavbarHeader />
 </header>
 
-<main class="main" role="main">
+<main id="main" class="main" role="main">
   <PixBackgroundHeader>
     <PixBlock class="fill-in-campaign-code__container">
       <h1 class="fill-in-campaign-code__title rounded-panel-title">
         {{this.firstTitle}}
       </h1>
-
-      <label for="campaign-code" class="fill-in-campaign-code__instruction">{{{t
+      <p id="campaign-code-description" class="fill-in-campaign-code__instruction">{{{t
           "pages.fill-in-campaign-code.description"
-        }}}</label>
+        }}}</p>
+
+      <label for="campaign-code" class="screen-reader-only">{{{t "pages.fill-in-campaign-code.label"}}}</label>
       <form class="fill-in-campaign-code__form" autocomplete="off">
 
         <div class="fill-in-campaign-code__form-field">
           <Input
             required
+            aria-describedby="campaign-code-description"
             id="campaign-code"
             class="input-code"
             @type="text"
@@ -34,7 +36,7 @@
         </div>
 
         {{#if this.errorMessage}}
-          <div class="fill-in-campaign-code__error" aria-live="polite">
+          <div role="alert" class="fill-in-campaign-code__error">
             {{this.errorMessage}}
           </div>
         {{/if}}
@@ -70,6 +72,9 @@
         </a>
       </div>
     </PixBlock>
+    {{#if this.canDisplayLanguageSwitcher}}
+      <LanguageSwitcher @selectedLanguage={{this.selectedLanguage}} @onLanguageChange={{this.onLanguageChange}} />
+    {{/if}}
   </PixBackgroundHeader>
 </main>
 
@@ -83,12 +88,12 @@
   <:content>
     <p>
       {{t "pages.fill-in-campaign-code.mediacentre-start-campaign-modal.message"}}
-      <p class="pix-text--small">
-        <div class="pix-text--small"><b>{{this.campaign.targetProfileName}}</b></div>
+      <p class="pix-body-s">
+        <div><b>{{this.campaign.targetProfileName}}</b></div>
         {{t "pages.fill-in-campaign-code.mediacentre-start-campaign-modal.organised-by"}}
         <b>{{this.campaign.organizationName}}</b>
       </p>
-      <p class="pix-text--small">
+      <p class="pix-body-s">
         <b>{{t "pages.fill-in-campaign-code.mediacentre-start-campaign-modal.message-footer"}}</b>
       </p>
     </p>
@@ -96,7 +101,11 @@
 
   <:footer>
     <div class="mediacentre-start-campaign-modal__action-buttons">
-      <LinkTo class="pix-text--link pix-text--small" @route="campaigns.entry-point" @model={{this.campaign.code}}>
+      <LinkTo
+        class="mediacentre-start-campaign-modal-action-buttons__continue-action"
+        @route="campaigns.entry-point"
+        @model={{this.campaign.code}}
+      >
         {{t "pages.fill-in-campaign-code.mediacentre-start-campaign-modal.actions.continue"}}
       </LinkTo>
       <PixButton @triggerAction={{this.closeModal}}>

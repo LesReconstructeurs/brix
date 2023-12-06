@@ -1,11 +1,16 @@
-const {
+import {
   expect,
   generateValidRequestAuthorizationHeader,
   databaseBuilder,
   HttpTestServer,
-} = require('../../test-helper');
-const securityPreHandlers = require('../../../lib/application/security-pre-handlers');
-const { ROLES } = require('../../../lib/domain/constants').PIX_ADMIN;
+  sinon,
+} from '../../test-helper.js';
+
+import { securityPreHandlers } from '../../../lib/application/security-pre-handlers.js';
+import { config as settings } from '../../../lib/config.js';
+import { PIX_ADMIN } from '../../../lib/domain/constants.js';
+
+const { ROLES } = PIX_ADMIN;
 
 describe('Integration | Application | SecurityPreHandlers', function () {
   describe('check admin member roles for pix admin routes', function () {
@@ -338,6 +343,68 @@ describe('Integration | Application | SecurityPreHandlers', function () {
         expect(response.statusCode).to.equal(403);
         expect(response.result.errors[0].code).to.equal('USER_IS_BLOCKED');
       });
+    });
+  });
+
+  describe('#checkPix1dActivated', function () {
+    let httpServerTest;
+
+    beforeEach(async function () {
+      const moduleUnderTest = {
+        name: 'security-test',
+        register: async function (server) {
+          server.route([
+            {
+              method: 'GET',
+              path: '/api/test-pix1d',
+              handler: (r, h) => h.response().code(200),
+              config: {
+                auth: false,
+                pre: [
+                  {
+                    method: (request, h) => securityPreHandlers.checkPix1dActivated(request, h),
+                  },
+                ],
+              },
+            },
+          ]);
+        },
+      };
+      httpServerTest = new HttpTestServer();
+      await httpServerTest.register(moduleUnderTest);
+      httpServerTest.setupAuthentication();
+    });
+
+    it('should authorize access to resource when Pix1D is activated', async function () {
+      // given
+      sinon.stub(settings.featureToggles, 'isPix1dEnabled').value(true);
+
+      // when
+      const options = {
+        method: 'GET',
+        url: '/api/test-pix1d',
+      };
+
+      const { statusCode } = await httpServerTest.requestObject(options);
+
+      // then
+      expect(statusCode).to.equal(200);
+    });
+
+    it('should forbid resource access when Pix1D is not activated', async function () {
+      // given
+      sinon.stub(settings.featureToggles, 'isPix1dEnabled').value(false);
+
+      // when
+      const options = {
+        method: 'GET',
+        url: '/api/test-pix1d',
+      };
+
+      const response = await httpServerTest.requestObject(options);
+
+      // then
+      expect(response.statusCode).to.equal(403);
     });
   });
 });

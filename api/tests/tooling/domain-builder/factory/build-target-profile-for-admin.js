@@ -1,10 +1,11 @@
-const buildArea = require('./build-area');
-const buildCompetence = require('./build-competence');
-const buildThematic = require('./build-thematic');
-const buildTube = require('./build-tube');
-const TargetProfileForAdmin = require('../../../../lib/domain/models/TargetProfileForAdminNewFormat');
+import { buildArea } from './build-area.js';
+import { buildCompetence } from './build-competence.js';
+import { buildThematic } from './build-thematic.js';
+import { buildTube } from './build-tube.js';
+import { buildStageCollection } from './target-profile-management/build-stage-collection.js';
+import { TargetProfileForAdmin } from '../../../../lib/domain/models/TargetProfileForAdmin.js';
 
-module.exports = function buildTargetProfileForAdmin({
+const buildTargetProfileForAdmin = function ({
   id = 123,
   name = 'Profil cible super cool',
   outdated = false,
@@ -17,6 +18,7 @@ module.exports = function buildTargetProfileForAdmin({
   category = 'some_category',
   isSimplifiedAccess = true,
   badges = [],
+  stageCollection = buildStageCollection({ id: 123, maxLevel: 2, stages: [] }),
   areas = [buildArea({ id: 'recArea' })],
   competences = [buildCompetence({ id: 'recCompetence', area: buildArea({ id: 'recArea' }) })],
   thematics = [buildThematic({ id: 'recThematic', competenceId: 'recCompetence' })],
@@ -37,9 +39,12 @@ module.exports = function buildTargetProfileForAdmin({
     category,
     isSimplifiedAccess,
     badges,
+    stageCollection,
     areas,
     competences,
     thematics,
     tubes: tubesWithLevelThematicMobileAndTablet,
   });
 };
+
+export { buildTargetProfileForAdmin };

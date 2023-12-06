@@ -1,56 +1,60 @@
-const chunk = require('lodash/chunk');
-const bluebird = require('bluebird');
-const { knex } = require('../../../db/knex-database-connection');
-const placementProfileService = require('../../domain/services/placement-profile-service');
-const CampaignProfilesCollectionParticipationSummary = require('../../domain/read-models/CampaignProfilesCollectionParticipationSummary');
-const competenceRepository = require('../../infrastructure/repositories/competence-repository');
-const constants = require('../constants');
-const { fetchPage } = require('../utils/knex-utils');
-const { filterByFullName } = require('../utils/filter-utils');
+import chunk from 'lodash/chunk.js';
+import isBoolean from 'lodash/isBoolean.js';
 
-const CampaignProfilesCollectionParticipationSummaryRepository = {
-  async findPaginatedByCampaignId(campaignId, page, filters = {}) {
-    const query = knex
-      .select(
-        'campaign-participations.id AS campaignParticipationId',
-        'campaign-participations.userId AS userId',
-        knex.raw('LOWER("organization-learners"."firstName") AS "lowerFirstName"'),
-        knex.raw('LOWER("organization-learners"."lastName") AS "lowerLastName"'),
-        'organization-learners.firstName AS firstName',
-        'organization-learners.lastName AS lastName',
-        'campaign-participations.participantExternalId',
-        'campaign-participations.sharedAt',
-        'campaign-participations.pixScore AS pixScore'
-      )
-      .from('campaign-participations')
-      .join('organization-learners', 'organization-learners.id', 'campaign-participations.organizationLearnerId')
-      .where('campaign-participations.campaignId', '=', campaignId)
-      .where('campaign-participations.isImproved', '=', false)
-      .where('campaign-participations.deletedAt', 'IS', null)
-      .whereRaw('"campaign-participations"."sharedAt" IS NOT NULL')
-      .orderByRaw('?? ASC, ?? ASC', ['lowerLastName', 'lowerFirstName'])
-      .modify(_filterQuery, filters);
+import bluebird from 'bluebird';
+import { knex } from '../../../db/knex-database-connection.js';
+import * as placementProfileService from '../../domain/services/placement-profile-service.js';
+import { CampaignProfilesCollectionParticipationSummary } from '../../domain/read-models/CampaignProfilesCollectionParticipationSummary.js';
+import * as competenceRepository from '../../infrastructure/repositories/competence-repository.js';
+import { constants } from '../constants.js';
+import { fetchPage } from '../utils/knex-utils.js';
+import { filterByFullName } from '../utils/filter-utils.js';
 
-    const { results, pagination } = await fetchPage(query, page);
+const findPaginatedByCampaignId = async function (campaignId, page, filters = {}) {
+  const query = knex
+    .select(
+      'campaign-participations.id AS campaignParticipationId',
+      'campaign-participations.userId AS userId',
+      knex.raw('LOWER("view-active-organization-learners"."firstName") AS "lowerFirstName"'),
+      knex.raw('LOWER("view-active-organization-learners"."lastName") AS "lowerLastName"'),
+      'view-active-organization-learners.firstName AS firstName',
+      'view-active-organization-learners.lastName AS lastName',
+      'campaign-participations.participantExternalId',
+      'campaign-participations.sharedAt',
+      'campaign-participations.pixScore AS pixScore',
+    )
+    .from('campaign-participations')
+    .join(
+      'view-active-organization-learners',
+      'view-active-organization-learners.id',
+      'campaign-participations.organizationLearnerId',
+    )
+    .where('campaign-participations.campaignId', '=', campaignId)
+    .where('campaign-participations.isImproved', '=', false)
+    .where('campaign-participations.deletedAt', 'IS', null)
+    .whereRaw('"campaign-participations"."sharedAt" IS NOT NULL')
+    .orderByRaw('?? ASC, ?? ASC', ['lowerLastName', 'lowerFirstName'])
+    .modify(_filterQuery, filters);
 
-    const getPlacementProfileForUser = await _makeMemoizedGetPlacementProfileForUser(results);
+  const { results, pagination } = await fetchPage(query, page);
 
-    const data = results.map((result) => {
-      if (!result.sharedAt) {
-        return new CampaignProfilesCollectionParticipationSummary(result);
-      }
+  const getPlacementProfileForUser = await _makeMemoizedGetPlacementProfileForUser(results);
 
-      const placementProfile = getPlacementProfileForUser(result.userId);
+  const data = results.map((result) => {
+    if (!result.sharedAt) {
+      return new CampaignProfilesCollectionParticipationSummary(result);
+    }
 
-      return new CampaignProfilesCollectionParticipationSummary({
-        ...result,
-        certifiable: placementProfile.isCertifiable(),
-        certifiableCompetencesCount: placementProfile.getCertifiableCompetencesCount(),
-      });
+    const placementProfile = getPlacementProfileForUser(result.userId);
+
+    return new CampaignProfilesCollectionParticipationSummary({
+      ...result,
+      certifiable: placementProfile.isCertifiable(),
+      certifiableCompetencesCount: placementProfile.getCertifiableCompetencesCount(),
     });
+  });
 
-    return { data, pagination };
-  },
+  return { data, pagination };
 };
 
 async function _makeMemoizedGetPlacementProfileForUser(results) {
@@ -62,14 +66,14 @@ async function _makeMemoizedGetPlacementProfileForUser(results) {
     chunk(sharedResults, constants.CHUNK_SIZE_CAMPAIGN_RESULT_PROCESSING),
     (sharedResultsChunk) => {
       const sharedAtDatesByUsers = Object.fromEntries(
-        sharedResultsChunk.map(({ userId, sharedAt }) => [userId, sharedAt])
+        sharedResultsChunk.map(({ userId, sharedAt }) => [userId, sharedAt]),
       );
       return placementProfileService.getPlacementProfilesWithSnapshotting({
         userIdsAndDates: sharedAtDatesByUsers,
         allowExcessPixAndLevels: false,
         competences,
       });
-    }
+    },
   );
 
   const placementProfiles = sharedResultsChunks.flat();
@@ -80,17 +84,25 @@ async function _makeMemoizedGetPlacementProfileForUser(results) {
 function _filterQuery(queryBuilder, filters) {
   if (filters.divisions) {
     const divisionsLowerCase = filters.divisions.map((division) => division.toLowerCase());
-    queryBuilder.whereRaw('LOWER("organization-learners"."division") = ANY(:divisionsLowerCase)', {
+    queryBuilder.whereRaw('LOWER("view-active-organization-learners"."division") = ANY(:divisionsLowerCase)', {
       divisionsLowerCase,
     });
   }
   if (filters.groups) {
     const groupsLowerCase = filters.groups.map((group) => group.toLowerCase());
-    queryBuilder.whereIn(knex.raw('LOWER("organization-learners"."group")'), groupsLowerCase);
+    queryBuilder.whereIn(knex.raw('LOWER("view-active-organization-learners"."group")'), groupsLowerCase);
   }
   if (filters.search) {
-    filterByFullName(queryBuilder, filters.search, 'organization-learners.firstName', 'organization-learners.lastName');
+    filterByFullName(
+      queryBuilder,
+      filters.search,
+      'view-active-organization-learners.firstName',
+      'view-active-organization-learners.lastName',
+    );
+  }
+  if (isBoolean(filters.certificability)) {
+    queryBuilder.where('campaign-participations.isCertifiable', filters.certificability);
   }
 }
 
-module.exports = CampaignProfilesCollectionParticipationSummaryRepository;
+export { findPaginatedByCampaignId };

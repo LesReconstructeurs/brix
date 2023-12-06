@@ -1,12 +1,12 @@
 import { module, test } from 'qunit';
-import { setupRenderingTest } from 'ember-qunit';
+import setupIntlRenderingTest from '../../../../helpers/setup-intl-rendering';
 import { hbs } from 'ember-cli-htmlbars';
 import { render } from '@1024pix/ember-testing-library';
 import Service from '@ember/service';
 import sinon from 'sinon';
 
 module('Integration | Component | users | user-detail-personal-information/authentication-method', function (hooks) {
-  setupRenderingTest(hooks);
+  setupIntlRenderingTest(hooks);
 
   module('When the admin member has access to users actions scope', function () {
     class AccessControlStub extends Service {
@@ -22,11 +22,21 @@ module('Integration | Component | users | user-detail-personal-information/authe
 
           // when
           const screen = await render(
-            hbs`<Users::UserDetailPersonalInformation::AuthenticationMethod @user={{this.user}} />`
+            hbs`<Users::UserDetailPersonalInformation::AuthenticationMethod @user={{this.user}} />`,
           );
 
           // then
-          assert.dom(screen.getByText('30/10/2020')).exists();
+          assert
+            .dom(
+              screen.getAllByRole('listitem').find((listItem) => {
+                const childrenText = listItem.textContent.trim().split('\n');
+                return (
+                  childrenText[0]?.trim() === 'Adresse e-mail confirmée le :' &&
+                  childrenText[1]?.trim() === '30/10/2020'
+                );
+              }),
+            )
+            .exists();
         });
       });
 
@@ -38,11 +48,17 @@ module('Integration | Component | users | user-detail-personal-information/authe
 
           // when
           const screen = await render(
-            hbs`<Users::UserDetailPersonalInformation::AuthenticationMethod @user={{this.user}} />`
+            hbs`<Users::UserDetailPersonalInformation::AuthenticationMethod @user={{this.user}} />`,
           );
 
           // then
-          assert.dom(screen.getByText('Adresse e-mail non confirmée')).exists();
+          assert
+            .dom(
+              screen
+                .getAllByRole('listitem')
+                .find((listItem) => listItem.textContent?.trim() === 'Adresse e-mail non confirmée'),
+            )
+            .exists();
         });
       });
 
@@ -54,12 +70,20 @@ module('Integration | Component | users | user-detail-personal-information/authe
 
           // when
           const screen = await render(
-            hbs`<Users::UserDetailPersonalInformation::AuthenticationMethod @user={{this.user}} />`
+            hbs`<Users::UserDetailPersonalInformation::AuthenticationMethod @user={{this.user}} />`,
           );
 
           // then
-          assert.dom(screen.getByText('Date de dernière connexion :')).exists();
-          assert.dom(screen.getByText('01/07/2022')).exists();
+          assert
+            .dom(
+              screen.getAllByRole('listitem').find((listItem) => {
+                const childrenText = listItem.textContent.trim().split('\n');
+                return (
+                  childrenText[0]?.trim() === 'Date de dernière connexion :' && childrenText[1]?.trim() === '01/07/2022'
+                );
+              }),
+            )
+            .exists();
         });
       });
 
@@ -71,12 +95,51 @@ module('Integration | Component | users | user-detail-personal-information/authe
 
           // when
           const screen = await render(
-            hbs`<Users::UserDetailPersonalInformation::AuthenticationMethod @user={{this.user}} />`
+            hbs`<Users::UserDetailPersonalInformation::AuthenticationMethod @user={{this.user}} />`,
           );
 
           // then
-          assert.dom(screen.getByText('Date de dernière connexion :')).exists();
-          assert.dom(screen.queryByText('Invalid date')).doesNotExist();
+          assert
+            .dom(
+              screen
+                .getAllByRole('listitem')
+                .find((listItem) => listItem.textContent?.trim() === 'Date de dernière connexion :'),
+            )
+            .exists();
+        });
+      });
+
+      module('when user has a PIX authentication method', function () {
+        test('it displays the should change password status', async function (assert) {
+          // given
+          this.set('user', {
+            authenticationMethods: [
+              {
+                identityProvider: 'PIX',
+                authenticationComplement: { shouldChangePassword: true },
+              },
+            ],
+          });
+          this.owner.register('service:access-control', AccessControlStub);
+
+          // when
+          const screen = await render(
+            hbs`<Users::UserDetailPersonalInformation::AuthenticationMethod @user={{this.user}} />`,
+          );
+
+          // then
+          const expectedLabel = this.intl.t(
+            'components.users.user-detail-personal-information.authentication-method.should-change-password-status',
+          );
+          const expectedValue = this.intl.t('common.words.yes');
+          assert
+            .dom(
+              screen.getAllByRole('listitem').find((listItem) => {
+                const childrenText = listItem.textContent.trim().split('\n');
+                return childrenText[0]?.trim() === expectedLabel && childrenText[1]?.trim() === expectedValue;
+              }),
+            )
+            .exists();
         });
       });
 
@@ -89,7 +152,7 @@ module('Integration | Component | users | user-detail-personal-information/authe
 
             // when
             const screen = await render(
-              hbs`<Users::UserDetailPersonalInformation::AuthenticationMethod @user={{this.user}} />`
+              hbs`<Users::UserDetailPersonalInformation::AuthenticationMethod @user={{this.user}} />`,
             );
 
             // then
@@ -105,7 +168,7 @@ module('Integration | Component | users | user-detail-personal-information/authe
 
             // when
             const screen = await render(
-              hbs`<Users::UserDetailPersonalInformation::AuthenticationMethod @user={{this.user}} />`
+              hbs`<Users::UserDetailPersonalInformation::AuthenticationMethod @user={{this.user}} />`,
             );
 
             // then
@@ -125,7 +188,7 @@ module('Integration | Component | users | user-detail-personal-information/authe
 
             // when
             const screen = await render(
-              hbs`<Users::UserDetailPersonalInformation::AuthenticationMethod @user={{this.user}} />`
+              hbs`<Users::UserDetailPersonalInformation::AuthenticationMethod @user={{this.user}} />`,
             );
 
             // then
@@ -141,7 +204,7 @@ module('Integration | Component | users | user-detail-personal-information/authe
 
             // when
             const screen = await render(
-              hbs`<Users::UserDetailPersonalInformation::AuthenticationMethod @user={{this.user}} />`
+              hbs`<Users::UserDetailPersonalInformation::AuthenticationMethod @user={{this.user}} />`,
             );
 
             // then
@@ -161,7 +224,7 @@ module('Integration | Component | users | user-detail-personal-information/authe
 
             // when
             const screen = await render(
-              hbs`<Users::UserDetailPersonalInformation::AuthenticationMethod @user={{this.user}} />`
+              hbs`<Users::UserDetailPersonalInformation::AuthenticationMethod @user={{this.user}} />`,
             );
 
             // then
@@ -178,7 +241,7 @@ module('Integration | Component | users | user-detail-personal-information/authe
 
             // when
             const screen = await render(
-              hbs`<Users::UserDetailPersonalInformation::AuthenticationMethod @user={{this.user}} />`
+              hbs`<Users::UserDetailPersonalInformation::AuthenticationMethod @user={{this.user}} />`,
             );
 
             // then
@@ -199,25 +262,6 @@ module('Integration | Component | users | user-detail-personal-information/authe
           }
         }
 
-        module('when user has "Sunlight Navigations" authentication method', function () {
-          test('should display information', async function (assert) {
-            // given
-            this.set('user', {
-              authenticationMethods: [{ identityProvider: 'SUNLIGHT_NAVIGATIONS' }],
-            });
-            this.owner.register('service:access-control', AccessControlStub);
-            this.owner.register('service:oidc-identity-providers', OidcIdentityProvidersStub);
-
-            // when
-            const screen = await render(
-              hbs`<Users::UserDetailPersonalInformation::AuthenticationMethod @user={{this.user}} />`
-            );
-
-            // then
-            assert.dom(screen.getByLabelText("L'utilisateur a une méthode de connexion Sunlight Navigations")).exists();
-          });
-        });
-
         module('when user does not have "Sunlight Navigations" authentication method', function () {
           test('should display information', async function (assert) {
             // given
@@ -227,7 +271,7 @@ module('Integration | Component | users | user-detail-personal-information/authe
 
             // when
             const screen = await render(
-              hbs`<Users::UserDetailPersonalInformation::AuthenticationMethod @user={{this.user}} />`
+              hbs`<Users::UserDetailPersonalInformation::AuthenticationMethod @user={{this.user}} />`,
             );
 
             // then
@@ -237,7 +281,7 @@ module('Integration | Component | users | user-detail-personal-information/authe
           });
         });
 
-        module('when user has more authentication methods', function () {
+        module('when user has one or more authentication methods', function () {
           test('should display information, delete and reassign buttons', async function (assert) {
             // given
             const toggleDisplayRemoveAuthenticationMethodModalStub = sinon.stub();
@@ -271,7 +315,7 @@ module('Integration | Component | users | user-detail-personal-information/authe
 
           // when
           const screen = await render(
-            hbs`<Users::UserDetailPersonalInformation::AuthenticationMethod @user={{this.user}} />`
+            hbs`<Users::UserDetailPersonalInformation::AuthenticationMethod @user={{this.user}} />`,
           );
 
           // then
@@ -288,7 +332,7 @@ module('Integration | Component | users | user-detail-personal-information/authe
 
             // when
             const screen = await render(
-              hbs`<Users::UserDetailPersonalInformation::AuthenticationMethod @user={{this.user}} />`
+              hbs`<Users::UserDetailPersonalInformation::AuthenticationMethod @user={{this.user}} />`,
             );
 
             // then
@@ -304,7 +348,7 @@ module('Integration | Component | users | user-detail-personal-information/authe
 
             // when
             const screen = await render(
-              hbs`<Users::UserDetailPersonalInformation::AuthenticationMethod @user={{this.user}} />`
+              hbs`<Users::UserDetailPersonalInformation::AuthenticationMethod @user={{this.user}} />`,
             );
 
             // then
@@ -329,7 +373,7 @@ module('Integration | Component | users | user-detail-personal-information/authe
 
       // when
       const screen = await render(
-        hbs`<Users::UserDetailPersonalInformation::AuthenticationMethod @user={{this.user}} />`
+        hbs`<Users::UserDetailPersonalInformation::AuthenticationMethod @user={{this.user}} />`,
       );
 
       // then

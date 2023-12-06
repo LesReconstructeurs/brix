@@ -1,6 +1,6 @@
 import { module, test } from 'qunit';
 import { setupRenderingTest } from 'ember-qunit';
-import hbs from 'htmlbars-inline-precompile';
+import { hbs } from 'ember-cli-htmlbars';
 import { render } from '@1024pix/ember-testing-library';
 import sinon from 'sinon';
 
@@ -14,7 +14,7 @@ module('Integration | Component | Certification Centers | Invitations', function
 
       // when
       const screen = await render(
-        hbs`<CertificationCenters::Invitations @certificationCenterInvitations={{this.certificationCenterInvitations}} />`
+        hbs`<CertificationCenters::Invitations @certificationCenterInvitations={{this.certificationCenterInvitations}} />`,
       );
 
       // then
@@ -42,7 +42,7 @@ module('Integration | Component | Certification Centers | Invitations', function
         hbs`<CertificationCenters::Invitations
   @certificationCenterInvitations={{this.certificationCenterInvitations}}
   @onCancelCertificationCenterInvitation={{this.cancelCertificationCenterInvitation}}
-/>`
+/>`,
       );
 
       // then

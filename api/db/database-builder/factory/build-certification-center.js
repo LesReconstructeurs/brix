@@ -1,13 +1,13 @@
-const databaseBuffer = require('../database-buffer');
+import { databaseBuffer } from '../database-buffer.js';
 
-module.exports = function buildCertificationCenter({
+const buildCertificationCenter = function ({
   id = databaseBuffer.getNextId(),
   name = 'some name',
   type = 'SUP',
   externalId = 'EX123',
   createdAt = new Date('2020-01-01'),
   updatedAt,
-  isSupervisorAccessEnabled = false,
+  isV3Pilot = false,
 } = {}) {
   const values = {
     id,
@@ -16,10 +16,12 @@ module.exports = function buildCertificationCenter({
     externalId,
     createdAt,
     updatedAt,
-    isSupervisorAccessEnabled,
+    isV3Pilot,
   };
   return databaseBuffer.pushInsertable({
     tableName: 'certification-centers',
     values,
   });
 };
+
+export { buildCertificationCenter };

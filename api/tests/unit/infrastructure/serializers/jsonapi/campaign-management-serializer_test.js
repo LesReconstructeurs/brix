@@ -1,5 +1,5 @@
-const { expect, domainBuilder } = require('../../../../test-helper');
-const serializer = require('../../../../../lib/infrastructure/serializers/jsonapi/campaign-management-serializer');
+import { expect, domainBuilder } from '../../../../test-helper.js';
+import * as serializer from '../../../../../lib/infrastructure/serializers/jsonapi/campaign-management-serializer.js';
 
 describe('Unit | Serializer | JSONAPI | campaign-management-serializer', function () {
   describe('#serialize()', function () {
@@ -30,6 +30,8 @@ describe('Unit | Serializer | JSONAPI | campaign-management-serializer', functio
             'owner-id': campaignManagement.ownerId,
             'owner-first-name': campaignManagement.ownerFirstName,
             'owner-last-name': campaignManagement.ownerLastName,
+            'target-profile-id': campaignManagement.targetProfileId,
+            'target-profile-name': campaignManagement.targetProfileName,
           },
         },
       });

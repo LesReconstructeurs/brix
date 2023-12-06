@@ -1,5 +1,5 @@
 import Route from '@ember/routing/route';
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 
 export default class UserTutorialsRecommendedRoute extends Route {
   @service currentUser;
@@ -27,7 +27,7 @@ export default class UserTutorialsRecommendedRoute extends Route {
           size: params.pageSize,
         },
       },
-      { reload: true }
+      { reload: true },
     );
     return {
       areas,

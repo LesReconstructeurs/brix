@@ -1,9 +1,8 @@
-const { expect, sinon, domainBuilder, catchErr } = require('../../../test-helper');
-const CertificationCourse = require('../../../../lib/domain/models/CertificationCourse');
-
-const correctCandidateIdentityInCertificationCourse = require('../../../../lib/domain/usecases/correct-candidate-identity-in-certification-course');
-const { CpfBirthInformationValidation } = require('../../../../lib/domain/services/certification-cpf-service');
-const { CpfBirthInformationValidationError } = require('../../../../lib/domain/errors');
+import { catchErr, domainBuilder, expect, sinon } from '../../../test-helper.js';
+import { CertificationCourse } from '../../../../lib/domain/models/CertificationCourse.js';
+import { correctCandidateIdentityInCertificationCourse } from '../../../../lib/domain/usecases/correct-candidate-identity-in-certification-course.js';
+import { CpfBirthInformationValidation } from '../../../../lib/domain/services/certification-cpf-service.js';
+import { CertificationCandidatesError } from '../../../../lib/domain/errors.js';
 
 describe('Unit | UseCase | correct-candidate-identity-in-certification-course', function () {
   let certificationCourseRepository;
@@ -43,6 +42,8 @@ describe('Unit | UseCase | correct-candidate-identity-in-certification-course', 
       birthCountry: 'ETATS-UNIS',
       birthINSEECode: '99404',
     });
+    const cpfBirthInformationValidation = new CpfBirthInformationValidation();
+    cpfBirthInformationValidation.success({ birthCountry, birthINSEECode, birthPostalCode, birthCity });
 
     certificationCourseRepository.get.withArgs(4).resolves(certificationCourseToBeModified);
     certificationCpfService.getBirthInformation
@@ -54,7 +55,7 @@ describe('Unit | UseCase | correct-candidate-identity-in-certification-course', 
         certificationCpfCountryRepository,
         certificationCpfCityRepository,
       })
-      .resolves(CpfBirthInformationValidation.success({ birthCountry, birthINSEECode, birthPostalCode, birthCity }));
+      .resolves(cpfBirthInformationValidation);
 
     const command = {
       certificationCourseId: 4,
@@ -89,11 +90,11 @@ describe('Unit | UseCase | correct-candidate-identity-in-certification-course', 
         birthCountry: 'FRANCE',
         birthINSEECode: null,
         birthPostalCode: '75015',
-      })
+      }),
     );
   });
 
-  it('should throws a CpfBirthInformationValidationError if birth information validation fails', async function () {
+  it('should throws a CertificationCandidatesError if birth information validation fails', async function () {
     // given
     const sex = 'F';
     const birthCountry = 'FRANCE';
@@ -113,6 +114,9 @@ describe('Unit | UseCase | correct-candidate-identity-in-certification-course', 
     });
 
     certificationCourseRepository.get.withArgs(4).resolves(certificationCourseToBeModified);
+    const certificationCandidateError = { code: '', getMessage: () => 'Failure message' };
+    const cpfBirthInformationValidation = new CpfBirthInformationValidation();
+    cpfBirthInformationValidation.failure({ certificationCandidateError });
     certificationCpfService.getBirthInformation
       .withArgs({
         birthCountry,
@@ -122,7 +126,7 @@ describe('Unit | UseCase | correct-candidate-identity-in-certification-course', 
         certificationCpfCountryRepository,
         certificationCpfCityRepository,
       })
-      .resolves(CpfBirthInformationValidation.failure('Failure message'));
+      .resolves(cpfBirthInformationValidation);
 
     const command = {
       certificationCourseId: 4,
@@ -146,7 +150,7 @@ describe('Unit | UseCase | correct-candidate-identity-in-certification-course', 
     });
 
     // then
-    expect(error).to.be.an.instanceOf(CpfBirthInformationValidationError);
+    expect(error).to.be.an.instanceOf(CertificationCandidatesError);
     expect(error.message).to.equal('Failure message');
   });
 });

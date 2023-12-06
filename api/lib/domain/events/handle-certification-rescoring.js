@@ -1,13 +1,13 @@
-const AssessmentResult = require('../models/AssessmentResult');
-const CertificationResult = require('../models/CertificationResult');
-const CompetenceMark = require('../models/CompetenceMark');
-const CertificationRescoringCompleted = require('./CertificationRescoringCompleted.js');
-const bluebird = require('bluebird');
-const { CertificationComputeError } = require('../errors');
-const ChallengeNeutralized = require('./ChallengeNeutralized');
-const ChallengeDeneutralized = require('./ChallengeDeneutralized');
-const CertificationJuryDone = require('./CertificationJuryDone');
-const { checkEventTypes } = require('./check-event-types');
+import { AssessmentResult } from '../models/AssessmentResult.js';
+import { CertificationResult } from '../models/CertificationResult.js';
+import { CompetenceMark } from '../models/CompetenceMark.js';
+import { CertificationRescoringCompleted } from './CertificationRescoringCompleted.js';
+import bluebird from 'bluebird';
+import { CertificationComputeError } from '../errors.js';
+import { ChallengeNeutralized } from './ChallengeNeutralized.js';
+import { ChallengeDeneutralized } from './ChallengeDeneutralized.js';
+import { CertificationJuryDone } from './CertificationJuryDone.js';
+import { checkEventTypes } from './check-event-types.js';
 
 const eventTypes = [ChallengeNeutralized, ChallengeDeneutralized, CertificationJuryDone];
 
@@ -35,14 +35,8 @@ async function handleCertificationRescoring({
       certificationAssessmentScore,
       certificationAssessment,
       event,
-      assessmentResultRepository
+      assessmentResultRepository,
     );
-
-    await certificationCourseRepository.saveLastAssessmentResultId({
-      certificationCourseId: certificationAssessment.certificationCourseId,
-      lastAssessmentResultId: assessmentResultId,
-    });
-
     await _saveCompetenceMarks(certificationAssessmentScore, assessmentResultId, competenceMarkRepository);
 
     await _cancelCertificationCourseIfHasNotEnoughNonNeutralizedChallengesToBeTrusted({
@@ -91,7 +85,6 @@ async function _saveResultAfterCertificationComputeError({
   certificationAssessment,
   assessmentResultRepository,
   certificationComputeError,
-  certificationCourseRepository,
   juryId,
   event,
 }) {
@@ -102,10 +95,9 @@ async function _saveResultAfterCertificationComputeError({
     juryId,
     emitter,
   });
-  const { id: assessmentResultId } = await assessmentResultRepository.save(assessmentResult);
-  await certificationCourseRepository.saveLastAssessmentResultId({
+  await assessmentResultRepository.save({
     certificationCourseId: certificationAssessment.certificationCourseId,
-    lastAssessmentResultId: assessmentResultId,
+    assessmentResult,
   });
 }
 
@@ -113,7 +105,7 @@ async function _saveAssessmentResult(
   certificationAssessmentScore,
   certificationAssessment,
   event,
-  assessmentResultRepository
+  assessmentResultRepository,
 ) {
   let assessmentResult;
   const emitter = _getEmitterFromEvent(event);
@@ -136,7 +128,10 @@ async function _saveAssessmentResult(
       juryId: event.juryId,
     });
   }
-  const { id: assessmentResultId } = await assessmentResultRepository.save(assessmentResult);
+  const { id: assessmentResultId } = await assessmentResultRepository.save({
+    certificationCourseId: certificationAssessment.certificationCourseId,
+    assessmentResult,
+  });
   return assessmentResultId;
 }
 
@@ -162,4 +157,4 @@ function _getEmitterFromEvent(event) {
 }
 
 handleCertificationRescoring.eventTypes = eventTypes;
-module.exports = handleCertificationRescoring;
+export { handleCertificationRescoring };

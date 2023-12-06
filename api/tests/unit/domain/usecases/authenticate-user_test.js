@@ -1,18 +1,16 @@
-const { expect, sinon, domainBuilder, catchErr } = require('../../../test-helper');
+import { expect, sinon, domainBuilder, catchErr } from '../../../test-helper.js';
+import { authenticateUser } from '../../../../lib/domain/usecases/authenticate-user.js';
+import { User } from '../../../../lib/domain/models/User.js';
+import { AdminMember } from '../../../../lib/domain/models/AdminMember.js';
 
-const authenticateUser = require('../../../../lib/domain/usecases/authenticate-user');
-const User = require('../../../../lib/domain/models/User');
-const AdminMember = require('../../../../lib/domain/models/AdminMember');
-
-const {
+import {
   UserNotFoundError,
   MissingOrInvalidCredentialsError,
   ForbiddenAccess,
   UserShouldChangePasswordError,
-} = require('../../../../lib/domain/errors');
+} from '../../../../lib/domain/errors.js';
 
-const endTestScreenRemovalService = require('../../../../lib/domain/services/end-test-screen-removal-service');
-const appMessages = require('../../../../lib/domain/constants');
+import * as appMessages from '../../../../lib/domain/constants.js';
 
 describe('Unit | Application | UseCase | authenticate-user', function () {
   let refreshTokenService;
@@ -22,6 +20,7 @@ describe('Unit | Application | UseCase | authenticate-user', function () {
 
   const userEmail = 'user@example.net';
   const password = 'Password1234';
+  const localeFromCookie = 'fr';
 
   beforeEach(function () {
     refreshTokenService = {
@@ -31,6 +30,7 @@ describe('Unit | Application | UseCase | authenticate-user', function () {
     userRepository = {
       getByUsernameOrEmailWithRoles: sinon.stub(),
       updateLastLoggedAt: sinon.stub(),
+      update: sinon.stub(),
     };
     adminMemberRepository = {
       get: sinon.stub(),
@@ -38,7 +38,6 @@ describe('Unit | Application | UseCase | authenticate-user', function () {
     pixAuthenticationService = {
       getUserByUsernameAndPassword: sinon.stub(),
     };
-    sinon.stub(endTestScreenRemovalService, 'isEndTestScreenRemovalEnabledForSomeCertificationCenter');
   });
 
   context('check acces by pix scope', function () {
@@ -178,27 +177,6 @@ describe('Unit | Application | UseCase | authenticate-user', function () {
 
     context('when scope is pix-certif', function () {
       context('when user is not linked to any certification centers', function () {
-        it('should rejects an error when feature toggle is disabled for all certification center', async function () {
-          // given
-          const scope = appMessages.PIX_CERTIF.SCOPE;
-          const user = domainBuilder.buildUser({ email: userEmail, certificationCenterMemberships: [] });
-          pixAuthenticationService.getUserByUsernameAndPassword.resolves(user);
-          endTestScreenRemovalService.isEndTestScreenRemovalEnabledForSomeCertificationCenter.resolves(false);
-
-          // when
-          const error = await catchErr(authenticateUser)({
-            username: userEmail,
-            password,
-            scope,
-            pixAuthenticationService,
-            userRepository,
-          });
-
-          // then
-          expect(error).to.be.an.instanceOf(ForbiddenAccess);
-          expect(error.message).to.be.equal(appMessages.PIX_CERTIF.NOT_LINKED_CERTIFICATION_MSG);
-        });
-
         it('should resolves a valid JWT access token when feature toggle is enabled', async function () {
           // given
           const scope = appMessages.PIX_CERTIF.SCOPE;
@@ -211,7 +189,6 @@ describe('Unit | Application | UseCase | authenticate-user', function () {
             certificationCenterMemberships: [Symbol('certificationCenterMembership')],
           });
 
-          endTestScreenRemovalService.isEndTestScreenRemovalEnabledForSomeCertificationCenter.resolves(true);
           pixAuthenticationService.getUserByUsernameAndPassword.resolves(user);
           refreshTokenService.createRefreshTokenFromUserId
             .withArgs({
@@ -232,7 +209,6 @@ describe('Unit | Application | UseCase | authenticate-user', function () {
             pixAuthenticationService,
             refreshTokenService,
             userRepository,
-            endTestScreenRemovalService,
           });
 
           // then
@@ -367,7 +343,6 @@ describe('Unit | Application | UseCase | authenticate-user', function () {
         password: 'Password1234',
         userRepository,
         pixAuthenticationService,
-        endTestScreenRemovalService,
         tokenService,
       });
 
@@ -375,6 +350,92 @@ describe('Unit | Application | UseCase | authenticate-user', function () {
       expect(error).to.be.an.instanceOf(UserShouldChangePasswordError);
       expect(error.message).to.equal('Erreur, vous devez changer votre mot de passe.');
       expect(error.meta).to.equal('RESET_PASSWORD_TOKEN');
+    });
+  });
+
+  context('check if locale is updated', function () {
+    context('when user has a locale', function () {
+      it('does not update the user locale', async function () {
+        // given
+        const accessToken = 'jwt.access.token';
+        const source = 'pix';
+        const expirationDelaySeconds = 1;
+        const user = domainBuilder.buildUser({ email: userEmail, locale: 'fr-FR' });
+
+        pixAuthenticationService.getUserByUsernameAndPassword.resolves(user);
+        refreshTokenService.createAccessTokenFromRefreshToken.resolves({ accessToken, expirationDelaySeconds });
+
+        // when
+        await authenticateUser({
+          username: userEmail,
+          password,
+          source,
+          localeFromCookie,
+          pixAuthenticationService,
+          refreshTokenService,
+          userRepository,
+        });
+
+        // then
+        expect(userRepository.update).to.not.have.been.called;
+      });
+    });
+
+    context('when user does not have a locale', function () {
+      context('when there is a locale cookie ', function () {
+        it('updates the user locale with the formatted value', async function () {
+          // given
+          const accessToken = 'jwt.access.token';
+          const source = 'pix';
+          const expirationDelaySeconds = 1;
+          const user = domainBuilder.buildUser({ email: userEmail, locale: null });
+          const setLocaleIfNotAlreadySetStub = sinon.stub(user, 'setLocaleIfNotAlreadySet');
+
+          pixAuthenticationService.getUserByUsernameAndPassword.resolves(user);
+          refreshTokenService.createAccessTokenFromRefreshToken.resolves({ accessToken, expirationDelaySeconds });
+
+          // when
+          await authenticateUser({
+            username: userEmail,
+            password,
+            source,
+            localeFromCookie: 'localeFromCookie',
+            pixAuthenticationService,
+            refreshTokenService,
+            userRepository,
+          });
+
+          // then
+          expect(setLocaleIfNotAlreadySetStub).to.have.been.calledWithExactly('localeFromCookie');
+        });
+      });
+
+      context('when there is no locale cookie', function () {
+        it('does not update the user locale', async function () {
+          // given
+          const accessToken = 'jwt.access.token';
+          const source = 'pix';
+          const expirationDelaySeconds = 1;
+          const user = domainBuilder.buildUser({ email: userEmail, locale: undefined });
+
+          pixAuthenticationService.getUserByUsernameAndPassword.resolves(user);
+          refreshTokenService.createAccessTokenFromRefreshToken.resolves({ accessToken, expirationDelaySeconds });
+
+          // when
+          await authenticateUser({
+            username: userEmail,
+            password,
+            source,
+            localeFromCookie: undefined,
+            pixAuthenticationService,
+            refreshTokenService,
+            userRepository,
+          });
+
+          // then
+          expect(userRepository.update).to.not.have.been.called;
+        });
+      });
     });
   });
 });

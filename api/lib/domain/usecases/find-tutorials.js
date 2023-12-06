@@ -1,9 +1,9 @@
-const { UserNotAuthorizedToAccessEntityError } = require('../errors');
-const Scorecard = require('../models/Scorecard');
-const KnowledgeElement = require('../models/KnowledgeElement');
-const _ = require('lodash');
+import { UserNotAuthorizedToAccessEntityError } from '../errors.js';
+import { Scorecard } from '../models/Scorecard.js';
+import { KnowledgeElement } from '../models/KnowledgeElement.js';
+import _ from 'lodash';
 
-module.exports = async function findTutorials({
+const findTutorials = async function ({
   authenticatedUserId,
   scorecardId,
   knowledgeElementRepository,
@@ -38,10 +38,12 @@ module.exports = async function findTutorials({
     tubes,
     tutorialRepository,
     userId,
-    locale
+    locale,
   );
   return _.orderBy(_.flatten(tutorialsWithTubesList), 'tubeName');
 };
+
+export { findTutorials };
 
 async function _getTutorialsWithTubesList(easiestSkills, tubes, tutorialRepository, userId, locale) {
   return await Promise.all(
@@ -59,7 +61,7 @@ async function _getTutorialsWithTubesList(easiestSkills, tubes, tutorialReposito
         tutorial.skillId = skill.id;
         return tutorial;
       });
-    })
+    }),
   );
 }
 
@@ -79,6 +81,6 @@ function _getInvalidatedDirectKnowledgeElements(knowledgeElements) {
   return _.filter(
     knowledgeElements,
     (knowledgeElement) =>
-      knowledgeElement.isInvalidated && knowledgeElement.source === KnowledgeElement.SourceType.DIRECT
+      knowledgeElement.isInvalidated && knowledgeElement.source === KnowledgeElement.SourceType.DIRECT,
   );
 }

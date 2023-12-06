@@ -1,6 +1,8 @@
 import { module, test } from 'qunit';
-import { find, render } from '@ember/test-helpers';
-import hbs from 'htmlbars-inline-precompile';
+// eslint-disable-next-line no-restricted-imports
+import { find } from '@ember/test-helpers';
+import { render } from '@1024pix/ember-testing-library';
+import { hbs } from 'ember-cli-htmlbars';
 import setupIntlRenderingTest from '../../../../helpers/setup-intl-rendering';
 
 module('Integration | Component | User-Tutorials | Filters | ItemCheckbox', function (hooks) {
@@ -20,7 +22,7 @@ module('Integration | Component | User-Tutorials | Filters | ItemCheckbox', func
               @item={{this.item}}
               @currentFilters={{this.currentFilters}}
               @handleFilterChange={{this.handleFilterChange}}
-            />`
+            />`,
       );
 
       // then
@@ -42,7 +44,7 @@ module('Integration | Component | User-Tutorials | Filters | ItemCheckbox', func
               @item={{this.item}}
               @currentFilters={{this.currentFilters}}
               @handleFilterChange={{this.handleFilterChange}}
-            />`
+            />`,
       );
 
       // then

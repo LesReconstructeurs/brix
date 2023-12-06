@@ -1,10 +1,12 @@
-const Joi = require('joi').extend(require('@joi/date'));
+import BaseJoi from 'joi';
+import JoiDate from '@joi/date';
+const Joi = BaseJoi.extend(JoiDate);
 
-const securityPreHandlers = require('../security-pre-handlers');
-const organizationLearnerController = require('./organization-learner-controller');
-const identifiersType = require('../../domain/types/identifiers-type');
+import { securityPreHandlers } from '../security-pre-handlers.js';
+import { organizationLearnerController } from './organization-learner-controller.js';
+import { identifiersType } from '../../domain/types/identifiers-type.js';
 
-exports.register = async function (server) {
+const register = async function (server) {
   const adminRoutes = [
     {
       method: 'DELETE',
@@ -99,4 +101,5 @@ exports.register = async function (server) {
   ]);
 };
 
-exports.name = 'organization-learners-api';
+const name = 'organization-learners-api';
+export { register, name };

@@ -1,9 +1,8 @@
-const OrganizationLearner = require('../../../domain/models/OrganizationLearner');
-const { checkValidation } = require('../../../domain/validators/organization-learner-validator');
-
-const { CsvOrganizationLearnerParser } = require('./csv-learner-parser');
-const { CsvImportError, DomainError } = require('../../../domain/errors');
-const OrganizationLearnerColumns = require('./organization-learner-columns');
+import { OrganizationLearner } from '../../../domain/models/OrganizationLearner.js';
+import { checkValidation } from '../../../domain/validators/organization-learner-validator.js';
+import { CsvOrganizationLearnerParser } from './csv-learner-parser.js';
+import { CsvImportError, DomainError } from '../../../domain/errors.js';
+import { OrganizationLearnerImportHeader } from './organization-learner-import-header.js';
 
 const ERRORS = {
   IDENTIFIER_UNIQUE: 'IDENTIFIER_UNIQUE',
@@ -65,15 +64,15 @@ class OrganizationLearnerParser extends CsvOrganizationLearnerParser {
   constructor(input, organizationId, i18n) {
     const learnerSet = new OrganizationLearnerSet();
 
-    const columns = new OrganizationLearnerColumns(i18n).columns;
+    const columns = new OrganizationLearnerImportHeader(i18n).columns;
 
     super(input, organizationId, columns, learnerSet);
   }
 
   _handleError(err, index) {
-    const column = this._columns.find((column) => column.name === err.key);
+    const column = this._columns.find((column) => column.property === err.key);
     const line = index + 2;
-    const field = column.label;
+    const field = column.name;
 
     if (err.why === 'uniqueness' && err.key === 'nationalIdentifier') {
       throw new CsvImportError(ERRORS.IDENTIFIER_UNIQUE, { line, field });
@@ -91,4 +90,4 @@ class OrganizationLearnerParser extends CsvOrganizationLearnerParser {
   }
 }
 
-module.exports = OrganizationLearnerParser;
+export { OrganizationLearnerParser };

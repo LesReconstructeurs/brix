@@ -1,8 +1,28 @@
+import { SESSION_SUPERVISING } from './constants/session-supervising.js';
+
 class DomainError extends Error {
   constructor(message, code, meta) {
     super(message);
     this.code = code;
     this.meta = meta;
+  }
+}
+
+class LocaleFormatError extends DomainError {
+  constructor(locale) {
+    super();
+    this.message = `Given locale is in invalid format: "${locale}"`;
+    this.code = 'INVALID_LOCALE_FORMAT';
+    this.meta = { locale };
+  }
+}
+
+class LocaleNotSupportedError extends DomainError {
+  constructor(locale) {
+    super();
+    this.message = `Given locale is not supported : "${locale}"`;
+    this.code = 'LOCALE_NOT_SUPPORTED';
+    this.meta = { locale };
   }
 }
 
@@ -154,7 +174,7 @@ class AlreadySharedCampaignParticipationError extends DomainError {
 class CancelledInvitationError extends DomainError {
   constructor(
     message = "L'invitation à cette organisation a été annulée.",
-    code = 'CANCELLED_ORGANIZATION_INVITATION_CODE'
+    code = 'CANCELLED_ORGANIZATION_INVITATION_CODE',
   ) {
     super(message, code);
   }
@@ -163,7 +183,7 @@ class CancelledInvitationError extends DomainError {
 class UncancellableOrganizationInvitationError extends DomainError {
   constructor(
     message = "L'invitation à cette organisation ne peut pas être annulée.",
-    code = 'UNCANCELLABLE_ORGANIZATION_INVITATION_CODE'
+    code = 'UNCANCELLABLE_ORGANIZATION_INVITATION_CODE',
   ) {
     super(message, code);
   }
@@ -172,7 +192,7 @@ class UncancellableOrganizationInvitationError extends DomainError {
 class UncancellableCertificationCenterInvitationError extends DomainError {
   constructor(
     message = "L'invitation à ce centre de certification ne peut pas être annulée.",
-    code = 'UNCANCELLABLE_CERTIFICATION_CENTER_INVITATION_CODE'
+    code = 'UNCANCELLABLE_CERTIFICATION_CENTER_INVITATION_CODE',
   ) {
     super(message, code);
   }
@@ -256,12 +276,6 @@ class CampaignTypeError extends DomainError {
   }
 }
 
-class UserNotAuthorizedToGetCertificationCoursesError extends DomainError {
-  constructor(message = "Cet utilisateur n'est pas autorisé à récupérer ces certification courses.") {
-    super(message);
-  }
-}
-
 class UserNotAuthorizedToGenerateUsernamePasswordError extends DomainError {
   constructor(message = "Cet utilisateur n'est pas autorisé à générer un identifiant et un mot de passe.") {
     super(message);
@@ -330,11 +344,6 @@ class InvalidCertificationCandidate extends DomainError {
     if (type === 'any.only' && error.key === 'sex') {
       error.why = 'not_a_sex_code';
     }
-
-    if (type === 'array.max' && error.key === 'complementaryCertifications') {
-      error.why = 'only_one_complementary_certification';
-    }
-
     if (type === 'any.only' && error.key === 'billingMode') {
       if (allowedValues.length === 1 && allowedValues[0] === null) {
         error.why = 'billing_mode_not_null';
@@ -350,9 +359,13 @@ class InvalidCertificationCandidate extends DomainError {
     if (type === 'any.required' && error.key === 'prepaymentCode') {
       error.why = 'prepayment_code_null';
     }
-    if (type === 'object.assert' && errorDetail.context.subject.key === 'birthPostalCode') {
-      error.why = 'birthPostalCode_birthINSEECode_invalid';
+    if (type === 'number.less' || type === 'number.min') {
+      error.why = 'extra_time_percentage_out_of_range';
     }
+    if (type === 'date.greater') {
+      error.why = 'birthdate_must_be_greater';
+    }
+
     return new InvalidCertificationCandidate({ error });
   }
 }
@@ -398,10 +411,20 @@ class SendingEmailToInvalidDomainError extends DomainError {
   }
 }
 
+class SendingEmailToInvalidEmailAddressError extends DomainError {
+  constructor(emailAddress, errorMessage) {
+    super(`Failed to send email to ${emailAddress} because email address seems to be invalid.`);
+    this.meta = {
+      emailAddress,
+      errorMessage,
+    };
+  }
+}
+
 class SendingEmailToRefererError extends DomainError {
   constructor(failedEmailReferers) {
     super(
-      `Échec lors de l'envoi du mail au(x) référent(s) du centre de certification : ${failedEmailReferers.join(', ')}`
+      `Échec lors de l'envoi du mail au(x) référent(s) du centre de certification : ${failedEmailReferers.join(', ')}`,
     );
   }
 }
@@ -458,7 +481,7 @@ class CertificationEndedByFinalizationError extends DomainError {
 
 class SupervisorAccessNotAuthorizedError extends DomainError {
   constructor(
-    message = "Cette session est organisée dans un centre de certification pour lequel l'espace surveillant n'a pas été activé par Pix."
+    message = "Cette session est organisée dans un centre de certification pour lequel l'espace surveillant n'a pas été activé par Pix.",
   ) {
     super(message);
   }
@@ -471,14 +494,22 @@ class CertificationCandidateOnFinalizedSessionError extends DomainError {
 }
 
 class CertificationCandidateAlreadyLinkedToUserError extends DomainError {
-  constructor(message = 'Ce candidat de certification a déjà été lié à un utilisateur.') {
+  constructor(message = 'At least one candidate is already linked to a user.') {
     super(message);
+    this.code = 'SESSION_STARTED_CANDIDATE_ALREADY_LINKED_TO_USER';
   }
 }
 
 class CertificationCandidateByPersonalInfoNotFoundError extends DomainError {
   constructor(message = "Aucun candidat de certification n'a été trouvé avec ces informations.") {
     super(message);
+  }
+}
+
+class CertificationCandidateNotFoundError extends DomainError {
+  constructor(message = 'No candidate found') {
+    super(message);
+    this.code = 'CANDIDATE_NOT_FOUND';
   }
 }
 
@@ -509,7 +540,7 @@ class CertificationCandidateDeletionError extends DomainError {
 
 class CertificationCandidateMultipleUserLinksWithinSessionError extends DomainError {
   constructor(
-    message = "Il est interdit de lier un utilisateur à plusieurs candidats de certification au sein d'une même session."
+    message = "Il est interdit de lier un utilisateur à plusieurs candidats de certification au sein d'une même session.",
   ) {
     super(message);
   }
@@ -533,57 +564,9 @@ class CertificationCandidateForbiddenDeletionError extends DomainError {
   }
 }
 
-class CertificationCandidateAddError extends DomainError {
-  constructor(message = 'Candidat de certification invalide.') {
-    super(message);
-  }
-
-  static fromInvalidCertificationCandidateError(error) {
-    let message = 'Candidat de certification invalide.';
-
-    if (error.why === 'not_a_billing_mode') {
-      message = `Le champ “Tarification part Pix” ne peut contenir qu'une des valeurs suivantes: Gratuite, Payante ou Prépayée.`;
-    } else if (error.why === 'prepayment_code_null') {
-      message = `Le champ “Code de prépaiement” est obligatoire puisque l’option “Prépayée” a été sélectionnée pour ce candidat.`;
-    } else if (error.why === 'prepayment_code_not_null') {
-      message = `Le champ “Code de prépaiement” doit rester vide puisque l’option “Prépayée” n'a pas été sélectionnée pour ce candidat.`;
-    }
-
-    return new CertificationCandidateAddError(message);
-  }
-}
-
-class CertificationCandidatesImportError extends DomainError {
-  constructor({ message = "Quelque chose s'est mal passé. Veuillez réessayer", code = null } = {}) {
-    super(message, code);
-  }
-
-  static fromInvalidCertificationCandidateError(error, keyLabelMap, lineNumber) {
-    const label = error.key in keyLabelMap ? keyLabelMap[error.key].replace(/\* /, '') : 'none';
-    const linePortion = `Ligne ${lineNumber} :`;
-    let contentPortion = "Quelque chose s'est mal passé. Veuillez réessayer";
-
-    if (error.why === 'not_a_date' || error.why === 'date_format') {
-      contentPortion = `Le champ “${label}” doit être au format jj/mm/aaaa.`;
-    } else if (error.why === 'email_format') {
-      contentPortion = `Le champ “${label}” doit être au format email.`;
-    } else if (error.why === 'not_a_string') {
-      contentPortion = `Le champ “${label}” doit être une chaîne de caractères.`;
-    } else if (error.why === 'not_a_number') {
-      contentPortion = `Le champ “${label}” doit être un nombre.`;
-    } else if (error.why === 'required') {
-      contentPortion = `Le champ “${label}” est obligatoire.`;
-    } else if (error.why === 'not_a_sex_code') {
-      contentPortion = `Le champ “${label}” accepte les valeurs "M" pour un homme ou "F" pour une femme.`;
-    } else if (error.why === 'not_a_billing_mode') {
-      contentPortion = `Le champ “${label}” ne peut contenir qu'une des valeurs suivantes: Gratuite, Payante ou Prépayée.`;
-    } else if (error.why === 'prepayment_code_null') {
-      contentPortion = `Le champ “${label}” est obligatoire puisque l’option “Prépayée” a été sélectionnée pour ce candidat.`;
-    } else if (error.why === 'prepayment_code_not_null') {
-      contentPortion = `Le champ “${label}” doit rester vide puisque l’option “Prépayée” n'a pas été sélectionnée pour ce candidat.`;
-    }
-
-    return new CertificationCandidatesImportError({ message: `${linePortion} ${contentPortion}` });
+class CertificationCandidatesError extends DomainError {
+  constructor({ message = "Quelque chose s'est mal passé. Veuillez réessayer", code = null, meta = null } = {}) {
+    super(message, code, meta);
   }
 }
 
@@ -714,7 +697,11 @@ class MissingUserAccountError extends DomainError {
 }
 
 class UnexpectedUserAccountError extends DomainError {
-  constructor({ message = "Ce compte utilisateur n'est pas celui qui est attendu.", code, meta }) {
+  constructor({
+    message = "Ce compte utilisateur n'est pas celui qui est attendu.",
+    code = 'UNEXPECTED_USER_ACCOUNT',
+    meta,
+  }) {
     super(message);
     this.code = code;
     this.meta = meta;
@@ -875,7 +862,7 @@ class PasswordResetDemandNotFoundError extends DomainError {
 }
 
 class AdminMemberError extends DomainError {
-  constructor(message = 'An error occured on admin member', code = 'ADMIN_MEMBER_ERROR') {
+  constructor(message = 'An error occurred on admin member', code = 'ADMIN_MEMBER_ERROR') {
     super(message, code);
     this.code = code;
     this.message = message;
@@ -883,30 +870,37 @@ class AdminMemberError extends DomainError {
 }
 
 class SessionAlreadyFinalizedError extends DomainError {
-  constructor(message = 'Erreur, tentatives de finalisation multiples de la session.') {
+  constructor(message = 'Cannot finalize session more than once.') {
+    super(message);
+    this.code = 'SESSION_ALREADY_FINALIZED';
+  }
+}
+
+class SessionWithIdAndInformationOnMassImportError extends DomainError {
+  constructor(message = 'Merci de ne pas renseigner les informations de session') {
     super(message);
   }
 }
 
 class SessionWithoutStartedCertificationError extends DomainError {
-  constructor(
-    message = "Cette session n'a pas débuté, vous ne pouvez pas la finaliser. Vous pouvez néanmoins la supprimer."
-  ) {
+  constructor(message = "This session hasn't started, you can't finalise it. However, you can delete it.") {
     super(message);
+    this.code = 'SESSION_WITHOUT_STARTED_CERTIFICATION';
   }
 }
 
 class SessionWithAbortReasonOnCompletedCertificationCourseError extends DomainError {
   constructor(
-    message = 'Le champ “Raison de l’abandon” a été renseigné pour un candidat qui a terminé son test de certification entre temps. La session ne peut donc pas être finalisée. Merci de rafraîchir la page avant de finaliser.'
+    message = 'The field "Reason for abandonment" has been filled in for a candidate who has finished their certification exam in between. The session therefore can\'t be finalised. Please refresh the page before finalising.',
   ) {
     super(message);
+    this.code = 'SESSION_WITH_ABORT_REASON_ON_COMPLETED_CERTIFICATION_COURSE';
   }
 }
 
 class SessionWithMissingAbortReasonError extends DomainError {
   constructor(
-    message = "Une ou plusieurs certifications non terminées n'ont pas de “Raison de l’abandon” renseignées. La session ne peut donc pas être finalisée."
+    message = "Une ou plusieurs certifications non terminées n'ont pas de “Raison de l’abandon” renseignées. La session ne peut donc pas être finalisée.",
   ) {
     super(message);
   }
@@ -927,6 +921,14 @@ class SessionNotAccessible extends DomainError {
 class TargetProfileInvalidError extends DomainError {
   constructor(message = 'Le profil cible ne possède aucun acquis ciblé.') {
     super(message);
+  }
+}
+
+class StageModificationForbiddenForLinkedTargetProfileError extends DomainError {
+  constructor(targetProfileId) {
+    super(
+      `Le profil cible ${targetProfileId} est déjà rattaché à une campagne. La modification du seuil ou niveau est alors impossible.`,
+    );
   }
 }
 
@@ -993,8 +995,11 @@ class UserNotAuthorizedToCertifyError extends DomainError {
 }
 
 class UserNotAuthorizedToUpdatePasswordError extends DomainError {
-  constructor(message = "L'utilisateur n'est pas autorisé à mettre à jour ce mot de passe.") {
-    super(message);
+  constructor(
+    message = "L'utilisateur n'est pas autorisé à mettre à jour ce mot de passe.",
+    code = 'USER_NOT_AUTHORIZED_TO_UPDATE_PASSWORD',
+  ) {
+    super(message, code);
   }
 }
 
@@ -1036,10 +1041,10 @@ class UserNotFoundError extends NotFoundError {
   }
 }
 
-class UnknownCountryForStudentEnrollmentError extends DomainError {
+class UnknownCountryForStudentEnrolmentError extends DomainError {
   constructor(
     { firstName, lastName },
-    message = `L'élève ${firstName} ${lastName} a été inscrit avec un code pays de naissance invalide. Veuillez corriger ses informations sur l'espace PixOrga de l'établissement ou contacter le support Pix`
+    message = `L'élève ${firstName} ${lastName} a été inscrit avec un code pays de naissance invalide. Veuillez corriger ses informations sur l'espace PixOrga de l'établissement ou contacter le support Pix`,
   ) {
     super(message);
   }
@@ -1099,6 +1104,38 @@ class UnexpectedOidcStateError extends DomainError {
   }
 }
 
+class OidcMissingFieldsError extends DomainError {
+  constructor(
+    message = 'Mandatory information returned by the identify provider about the user is missing.',
+    code,
+    meta,
+  ) {
+    super(message);
+    this.code = code;
+    this.meta = meta;
+  }
+}
+
+class OidcUserInfoFormatError extends DomainError {
+  constructor(
+    message = 'The user information returned by your identity provider is not in the expected format.',
+    code,
+    meta,
+  ) {
+    super(message);
+    this.code = code;
+    this.meta = meta;
+  }
+}
+
+class OidcInvokingTokenEndpointError extends DomainError {
+  constructor(message = 'Error in retrieving tokens from the partner.', code, meta) {
+    super(message);
+    this.code = code;
+    this.meta = meta;
+  }
+}
+
 class InvalidIdentityProviderError extends DomainError {
   constructor(identityProvider) {
     const message = `Identity provider ${identityProvider} is not supported.`;
@@ -1118,12 +1155,6 @@ class InvalidExternalAPIResponseError extends DomainError {
   }
 }
 
-class CpfBirthInformationValidationError extends DomainError {
-  constructor(message) {
-    super(message);
-  }
-}
-
 class NoOrganizationToAttach extends DomainError {
   constructor(message) {
     super(message);
@@ -1133,7 +1164,7 @@ class NoOrganizationToAttach extends DomainError {
 class InvalidVerificationCodeError extends DomainError {
   constructor(
     message = 'Le code de vérification renseigné ne correspond pas à celui enregistré.',
-    code = 'INVALID_VERIFICATION_CODE'
+    code = 'INVALID_VERIFICATION_CODE',
   ) {
     super(message, code);
   }
@@ -1142,22 +1173,25 @@ class InvalidVerificationCodeError extends DomainError {
 class EmailModificationDemandNotFoundOrExpiredError extends DomainError {
   constructor(
     message = "La demande de modification d'adresse e-mail n'existe pas ou est expirée.",
-    code = 'EXPIRED_OR_NULL_EMAIL_MODIFICATION_DEMAND'
+    code = 'EXPIRED_OR_NULL_EMAIL_MODIFICATION_DEMAND',
   ) {
     super(message, code);
   }
 }
 
 class InvalidSessionSupervisingLoginError extends DomainError {
-  constructor(message = 'Le numéro de session et/ou le mot de passe saisis sont incorrects.') {
-    super(message);
+  constructor(
+    message = SESSION_SUPERVISING.INCORRECT_DATA.getMessage(),
+    code = SESSION_SUPERVISING.INCORRECT_DATA.code,
+  ) {
+    super(message, code);
   }
 }
 
 class CandidateNotAuthorizedToJoinSessionError extends DomainError {
   constructor(
     message = 'Votre surveillant n’a pas confirmé votre présence dans la salle de test. Vous ne pouvez donc pas encore commencer votre test de certification. Merci de prévenir votre surveillant.',
-    code = 'CANDIDATE_NOT_AUTHORIZED_TO_JOIN_SESSION'
+    code = 'CANDIDATE_NOT_AUTHORIZED_TO_JOIN_SESSION',
   ) {
     super(message, code);
   }
@@ -1166,7 +1200,7 @@ class CandidateNotAuthorizedToJoinSessionError extends DomainError {
 class CandidateNotAuthorizedToResumeCertificationTestError extends DomainError {
   constructor(
     message = "Merci de contacter votre surveillant afin qu'il autorise la reprise de votre test.",
-    code = 'CANDIDATE_NOT_AUTHORIZED_TO_RESUME_SESSION'
+    code = 'CANDIDATE_NOT_AUTHORIZED_TO_RESUME_SESSION',
   ) {
     super(message, code);
   }
@@ -1216,7 +1250,7 @@ class SessionStartedDeletionError extends DomainError {
 
 class DifferentExternalIdentifierError extends DomainError {
   constructor(
-    message = "La valeur de l'externalIdentifier de la méthode de connexion ne correspond pas à celui reçu par le partenaire."
+    message = "La valeur de l'externalIdentifier de la méthode de connexion ne correspond pas à celui reçu par le partenaire.",
   ) {
     super(message);
   }
@@ -1242,11 +1276,13 @@ class InvalidJuryLevelError extends DomainError {
 
 class InvalidStageError extends DomainError {
   constructor(message) {
-    super(`Palier non valide : ${message}`);
+    super(message);
   }
 }
 
-module.exports = {
+export {
+  LocaleFormatError,
+  LocaleNotSupportedError,
   AccountRecoveryDemandNotCreatedError,
   AccountRecoveryDemandExpired,
   AccountRecoveryUserAlreadyConfirmEmail,
@@ -1273,8 +1309,6 @@ module.exports = {
   AuthenticationMethodNotFoundError,
   AuthenticationMethodAlreadyExistsError,
   AuthenticationKeyExpired,
-  UncancellableOrganizationInvitationError,
-  UncancellableCertificationCenterInvitationError,
   CampaignCodeError,
   CampaignParticipationDeletedError,
   CampaignTypeError,
@@ -1286,7 +1320,6 @@ module.exports = {
   CertificationAttestationGenerationError,
   CertificationBadgeForbiddenDeletionError,
   CertificationCandidateOnFinalizedSessionError,
-  CertificationCandidateAddError,
   CertificationCandidateAlreadyLinkedToUserError,
   CertificationCandidateByPersonalInfoNotFoundError,
   CertificationCandidateByPersonalInfoTooManyMatchesError,
@@ -1294,9 +1327,10 @@ module.exports = {
   CertificationCandidateDeletionError,
   CertificationCandidateForbiddenDeletionError,
   CertificationCandidateMultipleUserLinksWithinSessionError,
+  CertificationCandidateNotFoundError,
   CertificationCandidatePersonalInfoFieldMissingError,
   CertificationCandidatePersonalInfoWrongFormat,
-  CertificationCandidatesImportError,
+  CertificationCandidatesError,
   CertificationCenterMembershipCreationError,
   CertificationCenterMembershipDisableError,
   CertificationComputeError,
@@ -1310,7 +1344,6 @@ module.exports = {
   ChallengeToBeDeneutralizedNotFoundError,
   CertificationIssueReportAutomaticallyResolvedShouldNotBeUpdatedManually,
   CompetenceResetError,
-  CpfBirthInformationValidationError,
   CsvImportError,
   CsvParsingError,
   DeprecatedCertificationIssueReportCategoryError,
@@ -1358,22 +1391,26 @@ module.exports = {
   NotFoundError,
   DeletedError,
   NotImplementedError,
+  OidcInvokingTokenEndpointError,
+  OidcMissingFieldsError,
+  OidcUserInfoFormatError,
   ObjectValidationError,
   OrganizationArchivedError,
   OrganizationTagNotFound,
   OrganizationAlreadyExistError,
   OrganizationNotFoundError,
   OrganizationWithoutEmailError,
-  PasswordNotMatching,
-  PasswordResetDemandNotFoundError,
   OrganizationLearnerAlreadyLinkedToUserError,
   OrganizationLearnerAlreadyLinkedToInvalidUserError,
   OrganizationLearnerCannotBeDissociatedError,
   OrganizationLearnerDisabledError,
   OrganizationLearnerNotFound,
   OrganizationLearnersCouldNotBeSavedError,
+  PasswordNotMatching,
+  PasswordResetDemandNotFoundError,
   SendingEmailError,
   SendingEmailToInvalidDomainError,
+  SendingEmailToInvalidEmailAddressError,
   SendingEmailToRefererError,
   SendingEmailToResultRecipientError,
   SessionAlreadyFinalizedError,
@@ -1382,15 +1419,19 @@ module.exports = {
   SessionStartedDeletionError,
   SessionWithoutStartedCertificationError,
   SessionWithAbortReasonOnCompletedCertificationCourseError,
+  SessionWithIdAndInformationOnMassImportError,
   SessionWithMissingAbortReasonError,
   SiecleXmlImportError,
+  StageModificationForbiddenForLinkedTargetProfileError,
   SupervisorAccessNotAuthorizedError,
   TargetProfileInvalidError,
   TargetProfileCannotBeCreated,
   TooManyRows,
+  UncancellableOrganizationInvitationError,
+  UncancellableCertificationCenterInvitationError,
   UnexpectedOidcStateError,
   UnexpectedUserAccountError,
-  UnknownCountryForStudentEnrollmentError,
+  UnknownCountryForStudentEnrolmentError,
   UserAlreadyExistsWithAuthenticationMethodError,
   UserAlreadyLinkedToCandidateInSessionError,
   UserCantBeCreatedError,
@@ -1404,7 +1445,6 @@ module.exports = {
   UserNotAuthorizedToCreateResourceError,
   UserNotAuthorizedToGenerateUsernamePasswordError,
   UserNotAuthorizedToGetCampaignResultsError,
-  UserNotAuthorizedToGetCertificationCoursesError,
   UserNotAuthorizedToRemoveAuthenticationMethod,
   UserNotAuthorizedToUpdateCampaignError,
   UserNotAuthorizedToUpdatePasswordError,

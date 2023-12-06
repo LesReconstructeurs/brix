@@ -1,12 +1,12 @@
 import { module, test } from 'qunit';
 import sinon from 'sinon';
-import { setupRenderingTest } from 'ember-qunit';
 import { click } from '@ember/test-helpers';
-import hbs from 'htmlbars-inline-precompile';
+import { hbs } from 'ember-cli-htmlbars';
 import { render as renderScreen } from '@1024pix/ember-testing-library';
+import setupIntlRenderingTest from '../../../helpers/setup-intl-rendering';
 
 module('Integration | Component | SessionFinalization::ComplementaryInformationStep', function (hooks) {
-  setupRenderingTest(hooks);
+  setupIntlRenderingTest(hooks);
 
   test('on click on incident during certification session checkbox, it should call toggleIncidentDuringCertificationSession', async function (assert) {
     // given
@@ -26,7 +26,7 @@ module('Integration | Component | SessionFinalization::ComplementaryInformationS
     await click(
       screen.getByRole('checkbox', {
         name: 'Malgré un incident survenu pendant la session, les candidats ont pu terminer leur test de certification. Un temps supplémentaire a été accordé à un ou plusieurs candidats.',
-      })
+      }),
     );
 
     // then
@@ -52,7 +52,7 @@ module('Integration | Component | SessionFinalization::ComplementaryInformationS
     await click(
       screen.getByRole('checkbox', {
         name: "Un ou plusieurs candidats étaient présents en session de certification mais n'ont pas pu rejoindre la session.",
-      })
+      }),
     );
 
     // then
@@ -79,12 +79,12 @@ module('Integration | Component | SessionFinalization::ComplementaryInformationS
     assert.false(
       screen.getByRole('checkbox', {
         name: 'Malgré un incident survenu pendant la session, les candidats ont pu terminer leur test de certification. Un temps supplémentaire a été accordé à un ou plusieurs candidats.',
-      }).checked
+      }).checked,
     );
     assert.false(
       screen.getByRole('checkbox', {
         name: "Un ou plusieurs candidats étaient présents en session de certification mais n'ont pas pu rejoindre la session.",
-      }).checked
+      }).checked,
     );
   });
 
@@ -106,7 +106,7 @@ module('Integration | Component | SessionFinalization::ComplementaryInformationS
     await click(
       screen.getByRole('checkbox', {
         name: "Un ou plusieurs candidats étaient présents en session de certification mais n'ont pas pu rejoindre la session.",
-      })
+      }),
     );
 
     // then
@@ -114,8 +114,8 @@ module('Integration | Component | SessionFinalization::ComplementaryInformationS
     assert
       .dom(
         screen.getByRole('link', {
-          name: 'ici un document pour vous aider à résoudre ce type de problème de connexion pour les prochaines sessions. (PDF, 131ko)',
-        })
+          name: 'ici un document pour vous aider à résoudre ce type de problème de connexion pour les prochaines sessions (PDF, 131ko).',
+        }),
       )
       .exists();
   });

@@ -2,7 +2,7 @@
 <div class="new-information {{@backgroundColorClass}}">
   <div class="new-information__content">
     {{#if (media "isDesktop")}}
-      <img class="new-information-content__img" src="{{@image}}" alt="" role="presentation" />
+      <img class="new-information-content__img" src="{{@image}}" alt="" />
     {{/if}}
     <div class="new-information-content__text {{@textAlignment}} {{@textColorClass}}">
       {{{@information}}}
@@ -34,9 +34,9 @@
     </div>
   </div>
 
-  {{#if @closeaction}}
-    <button class="new-information__close {{@textColorClass}}" {{on "click" @closeaction}} type="button">
-      <FaIcon @icon="xmark" /><span class="sr-only">{{t "common.new-information-banner.close-label"}}.</span>
+  {{#if @closeAction}}
+    <button class="new-information__close {{@textColorClass}}" {{on "click" @closeAction}} type="button">
+      <FaIcon @icon="xmark" /><span class="sr-only">{{t "common.new-information-banner.close-label"}}</span>
     </button>
   {{/if}}
 </div>

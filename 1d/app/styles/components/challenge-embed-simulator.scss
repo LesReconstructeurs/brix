@@ -1,0 +1,10 @@
+.challenge-embed-simulator {
+  &__iframe {
+    position: relative;
+    width: 100%;
+    height: calc(100% - 5px);
+    border: none;
+  }
+}
+
+

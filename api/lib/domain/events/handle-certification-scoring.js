@@ -1,10 +1,10 @@
-const AssessmentResult = require('../models/AssessmentResult');
-const CertificationScoringCompleted = require('./CertificationScoringCompleted.js');
-const CompetenceMark = require('../models/CompetenceMark');
-const bluebird = require('bluebird');
-const { CertificationComputeError } = require('../errors');
-const AssessmentCompleted = require('./AssessmentCompleted');
-const { checkEventTypes } = require('./check-event-types');
+import { AssessmentResult } from '../models/AssessmentResult.js';
+import { CertificationScoringCompleted } from './CertificationScoringCompleted.js';
+import { CompetenceMark } from '../models/CompetenceMark.js';
+import bluebird from 'bluebird';
+import { CertificationComputeError } from '../errors.js';
+import { AssessmentCompleted } from './AssessmentCompleted.js';
+import { checkEventTypes } from './check-event-types.js';
 
 const eventTypes = [AssessmentCompleted];
 const EMITTER = 'PIX-ALGO';
@@ -85,11 +85,6 @@ async function _saveResult({
     assessmentResultRepository,
   });
 
-  await certificationCourseRepository.saveLastAssessmentResultId({
-    certificationCourseId: certificationAssessment.certificationCourseId,
-    lastAssessmentResultId: assessmentResult.id,
-  });
-
   await bluebird.mapSeries(certificationAssessmentScore.competenceMarks, (competenceMark) => {
     const competenceMarkDomain = new CompetenceMark({
       ...competenceMark,
@@ -114,7 +109,10 @@ function _createAssessmentResult({
     assessmentId: certificationAssessment.id,
     emitter: EMITTER,
   });
-  return assessmentResultRepository.save(assessmentResult);
+  return assessmentResultRepository.save({
+    certificationCourseId: certificationAssessment.certificationCourseId,
+    assessmentResult,
+  });
 }
 
 async function _saveResultAfterCertificationComputeError({
@@ -128,14 +126,13 @@ async function _saveResultAfterCertificationComputeError({
     assessmentId: certificationAssessment.id,
     emitter: EMITTER,
   });
-  const { id: assessmentResultId } = await assessmentResultRepository.save(assessmentResult);
-  await certificationCourseRepository.saveLastAssessmentResultId({
+  await assessmentResultRepository.save({
     certificationCourseId: certificationAssessment.certificationCourseId,
-    lastAssessmentResultId: assessmentResultId,
+    assessmentResult,
   });
   const certificationCourse = await certificationCourseRepository.get(certificationAssessment.certificationCourseId);
   certificationCourse.complete({ now: new Date() });
   return certificationCourseRepository.update(certificationCourse);
 }
 handleCertificationScoring.eventTypes = eventTypes;
-module.exports = handleCertificationScoring;
+export { handleCertificationScoring };

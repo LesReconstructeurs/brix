@@ -1,14 +1,18 @@
-const settings = require('../../../config');
-const OidcAuthenticationService = require('./oidc-authentication-service');
-const DomainTransaction = require('../../../infrastructure/DomainTransaction');
-const AuthenticationMethod = require('../../models/AuthenticationMethod');
-const moment = require('moment');
-const { v4: uuidv4 } = require('uuid');
-const logoutUrlTemporaryStorage = require('../../../infrastructure/temporary-storage').withPrefix('logout-url:');
+import { config } from '../../../config.js';
+import { OidcAuthenticationService } from './oidc-authentication-service.js';
+import { DomainTransaction } from '../../../infrastructure/DomainTransaction.js';
+import { AuthenticationMethod } from '../../models/AuthenticationMethod.js';
+import dayjs from 'dayjs';
+import { v4 as uuidv4 } from 'uuid';
+import { temporaryStorage } from '../../../infrastructure/temporary-storage/index.js';
+import { POLE_EMPLOI } from '../../constants/oidc-identity-providers.js';
+
+const configKey = POLE_EMPLOI.configKey;
+const logoutUrlTemporaryStorage = temporaryStorage.withPrefix('logout-url:');
 
 class PoleEmploiOidcAuthenticationService extends OidcAuthenticationService {
   constructor() {
-    const clientId = settings.poleEmploi.clientId;
+    const clientId = config[configKey].clientId;
     // Attention, les scopes serviceDigitauxExposition api_peconnect-servicesdigitauxv1 ne sont pas présents dans la documentation de Pole Emploi mais ils sont nécessaires à l'envoi des résultats
     const authenticationUrlParameters = [
       { key: 'realm', value: '/individu' },
@@ -19,23 +23,25 @@ class PoleEmploiOidcAuthenticationService extends OidcAuthenticationService {
     ];
 
     super({
+      identityProvider: POLE_EMPLOI.code,
+      configKey,
       source: 'pole_emploi_connect',
-      identityProvider: 'POLE_EMPLOI',
       slug: 'pole-emploi',
       organizationName: 'Pôle Emploi',
+      additionalRequiredProperties: ['logoutUrl', 'afterLogoutUrl', 'sendingUrl'],
       hasLogoutUrl: true,
-      jwtOptions: { expiresIn: settings.poleEmploi.accessTokenLifespanMs / 1000 },
-      clientSecret: settings.poleEmploi.clientSecret,
+      jwtOptions: { expiresIn: config[configKey].accessTokenLifespanMs / 1000 },
+      clientSecret: config[configKey].clientSecret,
       clientId: clientId,
-      tokenUrl: settings.poleEmploi.tokenUrl,
-      authenticationUrl: settings.poleEmploi.authenticationUrl,
+      tokenUrl: config[configKey].tokenUrl,
+      authenticationUrl: config[configKey].authenticationUrl,
       authenticationUrlParameters,
-      userInfoUrl: settings.poleEmploi.userInfoUrl,
+      userInfoUrl: config[configKey].userInfoUrl,
     });
 
-    this.logoutUrl = settings.poleEmploi.logoutUrl;
-    this.afterLogoutUrl = settings.poleEmploi.afterLogoutUrl;
-    this.temporaryStorage = settings.poleEmploi.temporaryStorage;
+    this.logoutUrl = config[configKey].logoutUrl;
+    this.afterLogoutUrl = config[configKey].afterLogoutUrl;
+    this.temporaryStorage = config[configKey].temporaryStorage;
   }
 
   // Override because we need idToken to send results after a campaign
@@ -48,6 +54,7 @@ class PoleEmploiOidcAuthenticationService extends OidcAuthenticationService {
     authenticationMethodRepository,
   }) {
     let createdUserId;
+
     await DomainTransaction.execute(async (domainTransaction) => {
       createdUserId = (await userToCreateRepository.create({ user, domainTransaction })).id;
 
@@ -60,10 +67,7 @@ class PoleEmploiOidcAuthenticationService extends OidcAuthenticationService {
       await authenticationMethodRepository.create({ authenticationMethod, domainTransaction });
     });
 
-    return {
-      userId: createdUserId,
-      idToken: sessionContent.idToken,
-    };
+    return createdUserId;
   }
 
   async getRedirectLogoutUrl({ userId, logoutUrlUUID }) {
@@ -99,9 +103,9 @@ class PoleEmploiOidcAuthenticationService extends OidcAuthenticationService {
     return new AuthenticationMethod.OidcAuthenticationComplement({
       accessToken: sessionContent.accessToken,
       refreshToken: sessionContent.refreshToken,
-      expiredDate: moment().add(sessionContent.expiresIn, 's').toDate(),
+      expiredDate: dayjs().add(sessionContent.expiresIn, 's').toDate(),
     });
   }
 }
 
-module.exports = PoleEmploiOidcAuthenticationService;
+export { PoleEmploiOidcAuthenticationService };

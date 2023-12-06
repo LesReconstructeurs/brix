@@ -1,13 +1,13 @@
-const _ = require('lodash');
-const { sinon, expect, knex, databaseBuilder, catchErr } = require('../../../test-helper');
-const Campaign = require('../../../../lib/domain/models/Campaign');
-const CampaignTypes = require('../../../../lib/domain/models/CampaignTypes');
-const Assessment = require('../../../../lib/domain/models/Assessment');
-const CampaignParticipation = require('../../../../lib/domain/models/CampaignParticipation');
-const CampaignParticipationStatuses = require('../../../../lib/domain/models/CampaignParticipationStatuses');
-const campaignParticipationRepository = require('../../../../lib/infrastructure/repositories/campaign-participation-repository');
-const DomainTransaction = require('../../../../lib/infrastructure/DomainTransaction');
-const { NotFoundError } = require('../../../../lib/domain/errors');
+import _ from 'lodash';
+import { sinon, expect, knex, databaseBuilder, catchErr } from '../../../test-helper.js';
+import { Campaign } from '../../../../lib/domain/models/Campaign.js';
+import { CampaignTypes } from '../../../../lib/domain/models/CampaignTypes.js';
+import { Assessment } from '../../../../lib/domain/models/Assessment.js';
+import { CampaignParticipation } from '../../../../lib/domain/models/CampaignParticipation.js';
+import { CampaignParticipationStatuses } from '../../../../lib/domain/models/CampaignParticipationStatuses.js';
+import * as campaignParticipationRepository from '../../../../lib/infrastructure/repositories/campaign-participation-repository.js';
+import { DomainTransaction } from '../../../../lib/infrastructure/DomainTransaction.js';
+import { NotFoundError } from '../../../../lib/domain/errors.js';
 
 const { STARTED, SHARED, TO_SHARE } = CampaignParticipationStatuses;
 
@@ -80,7 +80,7 @@ describe('Integration | Repository | Campaign Participation', function () {
     it('should return null if there is no participations', async function () {
       // when
       const code = await campaignParticipationRepository.getCodeOfLastParticipationToProfilesCollectionCampaignForUser(
-        userId
+        userId,
       );
 
       // then
@@ -99,7 +99,7 @@ describe('Integration | Repository | Campaign Participation', function () {
 
       // when
       const code = await campaignParticipationRepository.getCodeOfLastParticipationToProfilesCollectionCampaignForUser(
-        userId
+        userId,
       );
 
       // then
@@ -119,7 +119,7 @@ describe('Integration | Repository | Campaign Participation', function () {
 
       // when
       const code = await campaignParticipationRepository.getCodeOfLastParticipationToProfilesCollectionCampaignForUser(
-        userId
+        userId,
       );
 
       // then
@@ -137,7 +137,7 @@ describe('Integration | Repository | Campaign Participation', function () {
 
       // when
       const code = await campaignParticipationRepository.getCodeOfLastParticipationToProfilesCollectionCampaignForUser(
-        userId
+        userId,
       );
 
       // then
@@ -156,7 +156,7 @@ describe('Integration | Repository | Campaign Participation', function () {
 
       // when
       const code = await campaignParticipationRepository.getCodeOfLastParticipationToProfilesCollectionCampaignForUser(
-        userId
+        userId,
       );
 
       // then
@@ -176,7 +176,7 @@ describe('Integration | Repository | Campaign Participation', function () {
 
       // when
       const code = await campaignParticipationRepository.getCodeOfLastParticipationToProfilesCollectionCampaignForUser(
-        userId
+        userId,
       );
 
       // then
@@ -203,7 +203,7 @@ describe('Integration | Repository | Campaign Participation', function () {
 
       // when
       const code = await campaignParticipationRepository.getCodeOfLastParticipationToProfilesCollectionCampaignForUser(
-        userId
+        userId,
       );
 
       // then
@@ -362,7 +362,7 @@ describe('Integration | Repository | Campaign Participation', function () {
         {
           campaignId: campaign1.id,
           createdAt: new Date('2017-03-15T14:59:35Z'),
-        }
+        },
       );
       databaseBuilder.factory.buildCampaignParticipation({
         campaignId: campaign2.id,
@@ -380,7 +380,7 @@ describe('Integration | Repository | Campaign Participation', function () {
 
       // then
       const attributes = participationResultDatas.map((participationResultData) =>
-        _.pick(participationResultData, ['id', 'isShared', 'sharedAt', 'participantExternalId', 'userId'])
+        _.pick(participationResultData, ['id', 'isShared', 'sharedAt', 'participantExternalId', 'userId']),
       );
       expect(attributes).to.deep.equal([
         {
@@ -402,7 +402,7 @@ describe('Integration | Repository | Campaign Participation', function () {
           campaignId: campaign1.id,
           createdAt: new Date('2017-03-15T14:59:35Z'),
           deletedAt: new Date(),
-        }
+        },
       );
       await databaseBuilder.commit();
 
@@ -412,7 +412,7 @@ describe('Integration | Repository | Campaign Participation', function () {
 
       // then
       const attributes = participationResultDatas.map((participationResultData) =>
-        _.pick(participationResultData, ['id', 'isShared', 'sharedAt', 'participantExternalId', 'userId'])
+        _.pick(participationResultData, ['id', 'isShared', 'sharedAt', 'participantExternalId', 'userId']),
       );
       expect(attributes).to.deep.equal([
         {
@@ -435,7 +435,7 @@ describe('Integration | Repository | Campaign Participation', function () {
 
       // then
       const attributes = participationResultDatas.map((participationResultData) =>
-        _.pick(participationResultData, ['participantFirstName', 'participantLastName', 'division'])
+        _.pick(participationResultData, ['participantFirstName', 'participantLastName', 'division']),
       );
       expect(attributes).to.deep.equal([
         {
@@ -544,6 +544,27 @@ describe('Integration | Repository | Campaign Participation', function () {
     beforeEach(async function () {
       userId = databaseBuilder.factory.buildUser().id;
       await databaseBuilder.commit();
+    });
+    it('should only retrieve participations from user', async function () {
+      const campaignId = databaseBuilder.factory.buildCampaign({
+        createdAt: new Date('2000-01-01T10:00:00Z'),
+        archivedAt: null,
+      }).id;
+      const otherUserId = databaseBuilder.factory.buildUser().id;
+
+      databaseBuilder.factory.buildCampaignParticipation({
+        userId,
+        campaignId,
+      });
+      databaseBuilder.factory.buildCampaignParticipation({
+        userId: otherUserId,
+        campaignId,
+      });
+      await databaseBuilder.commit();
+
+      const latestCampaignParticipations = await campaignParticipationRepository.findLatestOngoingByUserId(userId);
+
+      expect(latestCampaignParticipations.length).to.equal(1);
     });
 
     it('should retrieve the most recent campaign participations where the campaign is not archived', async function () {
@@ -920,14 +941,8 @@ describe('Integration | Repository | Campaign Participation', function () {
     });
   });
 
-  describe('#countParticipationsByStage', function () {
+  describe('#getAllParticipationsByCampaignId', function () {
     let campaignId;
-
-    const stagesBoundaries = [
-      { id: 1, from: 0, to: 4 },
-      { id: 2, from: 5, to: 9 },
-      { id: 3, from: 10, to: 19 },
-    ];
 
     beforeEach(async function () {
       campaignId = databaseBuilder.factory.buildCampaign().id;
@@ -937,57 +952,59 @@ describe('Integration | Repository | Campaign Participation', function () {
     it('returns an empty object when no participations', async function () {
       await databaseBuilder.commit();
 
-      const result = await campaignParticipationRepository.countParticipationsByStage(campaignId, stagesBoundaries);
+      const result = await campaignParticipationRepository.getAllParticipationsByCampaignId(campaignId);
 
-      expect(result).to.deep.equal({});
+      expect(result).to.deep.equal([]);
     });
 
-    it('returns the distribution for the campaign', async function () {
+    it('returns the list of the campaign', async function () {
       databaseBuilder.factory.buildCampaignParticipation({ masteryRate: 0 });
-      databaseBuilder.factory.buildCampaignParticipation({ campaignId, masteryRate: 0 });
+      databaseBuilder.factory.buildCampaignParticipation({ campaignId, masteryRate: 0, validatedSkillsCount: 0 });
       await databaseBuilder.commit();
 
-      const result = await campaignParticipationRepository.countParticipationsByStage(campaignId, stagesBoundaries);
+      const result = await campaignParticipationRepository.getAllParticipationsByCampaignId(campaignId);
 
-      expect(result).to.deep.equal({ 1: 1, 2: 0, 3: 0 });
+      expect(result).to.deep.equal([{ masteryRate: '0.00', validatedSkillsCount: 0 }]);
     });
 
-    it('returns the distribution for only isImproved=false participations', async function () {
-      databaseBuilder.factory.buildCampaignParticipation({ campaignId, masteryRate: 0, isImproved: false });
-      databaseBuilder.factory.buildCampaignParticipation({ campaignId, masteryRate: 0, isImproved: true });
-      await databaseBuilder.commit();
-
-      const result = await campaignParticipationRepository.countParticipationsByStage(campaignId, stagesBoundaries);
-
-      expect(result).to.deep.equal({ 1: 1, 2: 0, 3: 0 });
-    });
-
-    it('returns the distribution for not deleted participations', async function () {
-      databaseBuilder.factory.buildCampaignParticipation({ campaignId, masteryRate: 0, deletedAt: null });
+    it('returns the list of only isImproved=false participations', async function () {
       databaseBuilder.factory.buildCampaignParticipation({
         campaignId,
         masteryRate: 0,
+        validatedSkillsCount: 0,
+        isImproved: false,
+      });
+      databaseBuilder.factory.buildCampaignParticipation({
+        campaignId,
+        masteryRate: 0,
+        validatedSkillsCount: 0,
+        isImproved: true,
+      });
+      await databaseBuilder.commit();
+
+      const result = await campaignParticipationRepository.getAllParticipationsByCampaignId(campaignId);
+
+      expect(result).to.deep.equal([{ masteryRate: '0.00', validatedSkillsCount: 0 }]);
+    });
+
+    it('returns the list of not deleted participations', async function () {
+      databaseBuilder.factory.buildCampaignParticipation({
+        campaignId,
+        masteryRate: 0,
+        deletedAt: null,
+        validatedSkillsCount: 0,
+      });
+      databaseBuilder.factory.buildCampaignParticipation({
+        campaignId,
+        masteryRate: 0,
+        validatedSkillsCount: 0,
         deletedAt: new Date('2019-03-13'),
       });
       await databaseBuilder.commit();
 
-      const result = await campaignParticipationRepository.countParticipationsByStage(campaignId, stagesBoundaries);
+      const result = await campaignParticipationRepository.getAllParticipationsByCampaignId(campaignId);
 
-      expect(result).to.deep.equal({ 1: 1, 2: 0, 3: 0 });
-    });
-
-    it('returns the distribution of participations by stage', async function () {
-      databaseBuilder.factory.buildCampaignParticipation({ campaignId, masteryRate: 0 });
-      databaseBuilder.factory.buildCampaignParticipation({ campaignId, masteryRate: 0.05 });
-      databaseBuilder.factory.buildCampaignParticipation({ campaignId, masteryRate: 0.06 });
-      databaseBuilder.factory.buildCampaignParticipation({ campaignId, masteryRate: 0.1 });
-      databaseBuilder.factory.buildCampaignParticipation({ campaignId, masteryRate: 0.12 });
-      databaseBuilder.factory.buildCampaignParticipation({ campaignId, masteryRate: 0.19 });
-      await databaseBuilder.commit();
-
-      const result = await campaignParticipationRepository.countParticipationsByStage(campaignId, stagesBoundaries);
-
-      expect(result).to.deep.equal({ 1: 1, 2: 2, 3: 3 });
+      expect(result).to.deep.equal([{ masteryRate: '0.00', validatedSkillsCount: 0 }]);
     });
   });
 
@@ -1250,7 +1267,7 @@ describe('Integration | Repository | Campaign Participation', function () {
 
         expect(participations[0]).to.be.instanceOf(CampaignParticipation);
         expect(participations[1]).to.be.instanceOf(CampaignParticipation);
-        expect(participations.map((participation) => participation.id)).to.deep.equal([
+        expect(participations.map((participation) => participation.id)).to.have.members([
           campaignParticipationImproved.id,
           campaignParticipationToDelete.id,
         ]);
@@ -1334,7 +1351,7 @@ describe('Integration | Repository | Campaign Participation', function () {
       campaignParticipation.deletedBy = ownerId;
 
       await DomainTransaction.execute((domainTransaction) => {
-        return campaignParticipationRepository.delete({
+        return campaignParticipationRepository.remove({
           id: campaignParticipation.id,
           deletedAt: campaignParticipation.deletedAt,
           deletedBy: campaignParticipation.deletedBy,

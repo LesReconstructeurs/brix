@@ -1,13 +1,12 @@
-const { expect, knex, databaseBuilder, generateValidRequestAuthorizationHeader } = require('../../../test-helper');
-const Membership = require('../../../../lib/domain/models/Membership');
-const SupOrganizationLearnerColumns = require('../../../../lib/infrastructure/serializers/csv/sup-organization-learner-columns');
-
-const { getI18n } = require('../../../../tests/tooling/i18n/i18n');
-const createServer = require('../../../../server');
+import { expect, knex, databaseBuilder, generateValidRequestAuthorizationHeader } from '../../../test-helper.js';
+import { Membership } from '../../../../lib/domain/models/Membership.js';
+import { SupOrganizationLearnerImportHeader } from '../../../../lib/infrastructure/serializers/csv/sup-organization-learner-import-header.js';
+import { getI18n } from '../../../../tests/tooling/i18n/i18n.js';
+import { createServer } from '../../../../server.js';
 
 const i18n = getI18n();
-const supOrganizationLearnerColumns = new SupOrganizationLearnerColumns(i18n).columns
-  .map((column) => column.label)
+const supOrganizationLearnerImportHeader = new SupOrganizationLearnerImportHeader(i18n).columns
+  .map((column) => column.name)
   .join(';');
 
 let server;
@@ -38,7 +37,7 @@ describe('Acceptance | Application | organization-controller-import-sup-organiza
         });
         await databaseBuilder.commit();
         const buffer =
-          `${supOrganizationLearnerColumns}\n` +
+          `${supOrganizationLearnerImportHeader}\n` +
           'Beatrix;The;Bride;Kiddo;Black Mamba;01/01/1990;thebride@example.net;12346;Assassination Squad;Hattori Hanzo;Deadly Viper Assassination Squad;Master;hello darkness my old friend\n' +
           'O-Ren;;;Ishii;Cottonmouth;01/01/1980;ishii@example.net;789;Assassination Squad;Bill;Deadly Viper Assassination Squad;DUT;Autre;';
 
@@ -103,7 +102,7 @@ describe('Acceptance | Application | organization-controller-import-sup-organiza
           organizationRole: Membership.roles.MEMBER,
         });
         await databaseBuilder.commit();
-        const buffer = supOrganizationLearnerColumns;
+        const buffer = supOrganizationLearnerImportHeader;
 
         const options = {
           method: 'POST',
@@ -131,7 +130,7 @@ describe('Acceptance | Application | organization-controller-import-sup-organiza
             organizationRole: Membership.roles.ADMIN,
           });
           await databaseBuilder.commit();
-          const buffer = supOrganizationLearnerColumns;
+          const buffer = supOrganizationLearnerImportHeader;
 
           const options = {
             method: 'POST',
@@ -146,7 +145,7 @@ describe('Acceptance | Application | organization-controller-import-sup-organiza
 
           expect(response.statusCode).to.equal(403);
         });
-      }
+      },
     );
   });
 });

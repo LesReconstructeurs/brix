@@ -1,5 +1,5 @@
 import Component from '@glimmer/component';
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 import { action } from '@ember/object';
 import { tracked } from '@glimmer/tracking';
 import ENV from 'mon-pix/config/environment';
@@ -60,7 +60,7 @@ export default class EmailVerificationCode extends Component {
           this.errorMessage = this.intl.t('pages.user-account.email-verification.errors.incorrect-code');
         } else if (code === 'EXPIRED_OR_NULL_EMAIL_MODIFICATION_DEMAND') {
           this.errorMessage = this.intl.t(
-            'pages.user-account.email-verification.errors.email-modification-demand-expired'
+            'pages.user-account.email-verification.errors.email-modification-demand-expired',
           );
         }
       } else if (status === '400') {

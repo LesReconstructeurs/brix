@@ -1,5 +1,5 @@
-const moment = require('moment');
-const _ = require('lodash');
+import moment from 'moment';
+import _ from 'lodash';
 
 const STATS_COLUMNS_COUNT = 3;
 
@@ -10,7 +10,7 @@ class CampaignAssessmentCsvLine {
     campaignParticipationInfo,
     targetProfile,
     learningContent,
-    campaignStages,
+    stageCollection,
     participantKnowledgeElementsByCompetenceId,
     acquiredBadges,
     campaignParticipationService,
@@ -21,9 +21,9 @@ class CampaignAssessmentCsvLine {
     this.campaignParticipationInfo = campaignParticipationInfo;
     this.targetProfile = targetProfile;
     this.learningContent = learningContent;
-    this.campaignStages = campaignStages;
+    this.stageCollection = stageCollection;
     this.targetedKnowledgeElementsCount = _.sum(
-      _.map(participantKnowledgeElementsByCompetenceId, (knowledgeElements) => knowledgeElements.length)
+      _.map(participantKnowledgeElementsByCompetenceId, (knowledgeElements) => knowledgeElements.length),
     );
     this.targetedKnowledgeElementsByCompetence = participantKnowledgeElementsByCompetenceId;
     this.acquiredBadges = acquiredBadges;
@@ -63,7 +63,7 @@ class CampaignAssessmentCsvLine {
       this._makeSharedStatsColumns({
         id: competence.id,
         ...this._getStatsForCompetence(competence),
-      })
+      }),
     );
   }
 
@@ -84,7 +84,7 @@ class CampaignAssessmentCsvLine {
 
   _makeBadgesColumns() {
     return _.flatMap(this.targetProfile.badges, ({ title }) =>
-      this._makeYesNoColumns(_.includes(this.acquiredBadges, title))
+      this._makeYesNoColumns(_.includes(this.acquiredBadges, title)),
     );
   }
 
@@ -92,6 +92,7 @@ class CampaignAssessmentCsvLine {
     return [
       this.organization.name,
       this.campaign.id,
+      this.campaign.code,
       this.campaign.name,
       this.targetProfile.name,
       this.campaignParticipationInfo.participantLastName,
@@ -103,14 +104,14 @@ class CampaignAssessmentCsvLine {
       this.campaignParticipationService.progress(
         this.campaignParticipationInfo.isCompleted,
         this.targetedKnowledgeElementsCount,
-        this.learningContent.skills.length
+        this.learningContent.skills.length,
       ),
       moment.utc(this.campaignParticipationInfo.createdAt).format('YYYY-MM-DD'),
       this._makeYesNoColumns(this.campaignParticipationInfo.isShared),
       this.campaignParticipationInfo.isShared
         ? moment.utc(this.campaignParticipationInfo.sharedAt).format('YYYY-MM-DD')
         : this.emptyContent,
-      ...(this.campaignStages.hasReachableStages ? [this._getReachedStage()] : []),
+      ...(this.stageCollection.hasStage ? [this._getReachedStage()] : []),
       ...(this.campaignParticipationInfo.isShared
         ? this._makeBadgesColumns()
         : this._makeEmptyColumns(this.targetProfile.badges.length)),
@@ -146,7 +147,7 @@ class CampaignAssessmentCsvLine {
     if (competenceId in this.targetedKnowledgeElementsByCompetence) {
       knowledgeElementForSkill = _.find(
         this.targetedKnowledgeElementsByCompetence[competenceId],
-        (knowledgeElement) => knowledgeElement.skillId === targetedSkill.id
+        (knowledgeElement) => knowledgeElement.skillId === targetedSkill.id,
       );
     }
 
@@ -159,7 +160,7 @@ class CampaignAssessmentCsvLine {
 
   _countValidatedKnowledgeElementsForCompetence(competenceId) {
     return this.targetedKnowledgeElementsByCompetence[competenceId].filter(
-      (knowledgeElement) => knowledgeElement.isValidated
+      (knowledgeElement) => knowledgeElement.isValidated,
     ).length;
   }
 
@@ -169,8 +170,9 @@ class CampaignAssessmentCsvLine {
     }
 
     const masteryPercentage = this.campaignParticipationInfo.masteryRate * 100;
+    const validatedSkillsCount = this.campaignParticipationInfo.validatedSkillsCount;
 
-    return this.campaignStages.reachableStages.filter((stage) => masteryPercentage >= stage.threshold).length;
+    return this.stageCollection.getReachedStage(validatedSkillsCount, masteryPercentage).reachedStage - 1;
   }
 
   get _studentNumber() {
@@ -198,4 +200,4 @@ class CampaignAssessmentCsvLine {
   }
 }
 
-module.exports = CampaignAssessmentCsvLine;
+export { CampaignAssessmentCsvLine };

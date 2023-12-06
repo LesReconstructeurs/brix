@@ -8,7 +8,9 @@
   padding: 0;
 
   .warning-text {
-    font-size:0.825rem;
+    @extend %pix-body-s;
+
+    font-weight: $font-medium;
   }
 }
 

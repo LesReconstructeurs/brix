@@ -113,7 +113,6 @@ module('Integration | Component | users | user-detail-personal-information', fun
 
       // then
       assert.ok(destroyRecordStub.called);
-      // assert.dom(screen.queryByRole('heading', { name: 'Merci de confirmer' })).doesNotExist();
     });
   });
 
@@ -190,7 +189,7 @@ module('Integration | Component | users | user-detail-personal-information', fun
           hbs`<Users::UserDetailPersonalInformation
   @user={{this.user}}
   @removeAuthenticationMethod={{this.removeAuthenticationMethod}}
-/>`
+/>`,
         );
         await click(screen.getAllByRole('button', { name: 'Supprimer' })[0]);
 
@@ -201,7 +200,6 @@ module('Integration | Component | users | user-detail-personal-information', fun
 
         // then
         assert.ok(removeAuthenticationMethodStub.called);
-        //assert.dom(screen.queryByRole('heading', { name: 'Merci de confirmer' })).doesNotExist();
       });
     });
   });

@@ -1,4 +1,5 @@
-import { clickByName, visit, fillByLabel } from '@1024pix/ember-testing-library';
+import { clickByName, fillByLabel, visit } from '@1024pix/ember-testing-library';
+import setupIntl from '../../../../helpers/setup-intl';
 import { setupApplicationTest } from 'ember-qunit';
 import { setupMirage } from 'ember-cli-mirage/test-support';
 import { module, test } from 'qunit';
@@ -7,6 +8,7 @@ import { click, currentURL } from '@ember/test-helpers';
 
 module('Acceptance | Target Profile Management', function (hooks) {
   setupApplicationTest(hooks);
+  setupIntl(hooks);
   setupMirage(hooks);
 
   module('Access restriction stuff', function () {
@@ -32,7 +34,15 @@ module('Acceptance | Target Profile Management', function (hooks) {
           await visit('/target-profiles/1');
 
           // then
-          assert.strictEqual(currentURL(), '/target-profiles/1');
+          assert.strictEqual(currentURL(), '/target-profiles/1/details');
+        });
+
+        test('it should set target-profiles menubar item active', async function (assert) {
+          // when
+          const screen = await visit(`/target-profiles/1/details`);
+
+          // then
+          assert.dom(screen.getByRole('link', { name: 'Profils cibles' })).hasClass('active');
         });
       });
 
@@ -69,22 +79,28 @@ module('Acceptance | Target Profile Management', function (hooks) {
         comment: 'Commentaire Privé.',
         category: 'SUBJECT',
         isSimplifiedAccess: true,
-        isNewFormat: true,
+        hasLinkedCampaign: true,
+        areKnowledgeElementsResettable: false,
       });
 
       // when
       const screen = await visit('/target-profiles/1');
 
       // then
-      assert.dom(screen.getByRole('heading', { name: 'Profil Cible Fantastix' })).exists();
+      assert.dom(screen.getByRole('heading', { name: 'Profil Cible Fantastix', level: 2 })).exists();
       assert.dom(screen.getByText('Thématiques')).exists();
-      assert.dom(screen.getByText('ID : 1')).exists();
-      assert.dom(screen.getByText('Public : Oui')).exists();
-      assert.dom(screen.getByText('Obsolète : Non')).exists();
-      assert.dom(screen.getByText('Parcours Accès Simplifié : Oui')).exists();
+      assert.dom(_findByNestedText(screen, 'ID : 1')).exists();
+      assert.dom(_findByNestedText(screen, 'Public : Oui')).exists();
+      assert.dom(_findByNestedText(screen, 'Obsolète : Non')).exists();
+      assert.dom(_findByNestedText(screen, 'Parcours Accès Simplifié : Oui')).exists();
+      assert
+        .dom(_findByNestedText(screen, `${this.intl.t('pages.target-profiles.resettable-checkbox.label')} : Non`))
+        .exists();
+      assert.dom(_findByNestedText(screen, 'Est associé à une campagne : Oui')).exists();
       assert.dom(screen.getByText('456')).exists();
       assert.dom(screen.getByText('Top profil cible.')).exists();
       assert.dom(screen.getByText('Commentaire Privé.')).exists();
+      assert.dom(screen.getByAltText('Profil cible')).exists();
     });
 
     test('it should edit target profile information', async function (assert) {
@@ -95,11 +111,18 @@ module('Acceptance | Target Profile Management', function (hooks) {
         description: 'description initiale',
         comment: 'commentaire initial',
         category: 'OTHER',
+        areKnowledgeElementsResettable: true,
       });
 
       // when
       const screen = await visit('/target-profiles/1');
       await clickByName('Éditer');
+      assert
+        .dom(screen.getByRole('checkbox', { name: this.intl.t('pages.target-profiles.resettable-checkbox.label') }))
+        .isChecked();
+      await click(
+        screen.getByRole('checkbox', { name: this.intl.t('pages.target-profiles.resettable-checkbox.label') }),
+      );
       await fillByLabel('* Nom', 'nom modifié');
       await click(screen.getByRole('button', { name: 'Catégorie :' }));
       await screen.findByRole('listbox');
@@ -109,9 +132,12 @@ module('Acceptance | Target Profile Management', function (hooks) {
       await clickByName('Enregistrer');
 
       // then
-      assert.strictEqual(currentURL(), '/target-profiles/1');
-      assert.dom(screen.getByRole('heading', { name: 'nom modifié' })).exists();
+      assert.strictEqual(currentURL(), '/target-profiles/1/details');
+      assert.dom(screen.getByRole('heading', { name: 'nom modifié', level: 2 })).exists();
       assert.dom(screen.queryByText('Enregistrer')).doesNotExist();
+      assert
+        .dom(_findByNestedText(screen, `${this.intl.t('pages.target-profiles.resettable-checkbox.label')} : Non`))
+        .exists();
       await clickByName('Éditer');
       assert.dom(screen.getByDisplayValue('description modifiée')).exists();
       assert.dom(screen.getByDisplayValue('commentaire modifié')).exists();
@@ -133,8 +159,8 @@ module('Acceptance | Target Profile Management', function (hooks) {
       await clickByName('Annuler');
 
       // then
-      assert.strictEqual(currentURL(), '/target-profiles/1');
-      assert.dom(screen.getByRole('heading', { name: 'Nom à éditer' })).exists();
+      assert.strictEqual(currentURL(), '/target-profiles/1/details');
+      assert.dom(screen.getByRole('heading', { name: 'Nom à éditer', level: 2 })).exists();
       assert.dom(screen.queryByText('Enregistrer')).doesNotExist();
     });
 
@@ -152,7 +178,7 @@ module('Acceptance | Target Profile Management', function (hooks) {
       await clickByName('Oui, marquer comme accès simplifié');
 
       // then
-      assert.dom(screen.getByText('Parcours Accès Simplifié : Oui')).exists();
+      assert.dom(_findByNestedText(screen, 'Parcours Accès Simplifié : Oui')).exists();
     });
 
     test('it should outdate target profile', async function (assert) {
@@ -169,7 +195,14 @@ module('Acceptance | Target Profile Management', function (hooks) {
       await clickByName('Oui, marquer comme obsolète');
 
       // then
-      assert.dom(screen.getByText('Obsolète : Oui')).exists();
+      assert.dom(_findByNestedText(screen, 'Obsolète : Oui')).exists();
     });
   });
 });
+
+// workaround https://github.com/testing-library/dom-testing-library/issues/201#issuecomment-484890360
+function _findByNestedText(screen, text) {
+  return screen.getByText((content, element) => {
+    return element.textContent === text;
+  });
+}

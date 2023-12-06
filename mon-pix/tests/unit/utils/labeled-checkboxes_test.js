@@ -9,10 +9,10 @@ module('Unit | Utility | labeled checkboxes', function () {
         proposals: ['prop 1', 'prop 2', 'prop 3', 'prop 4'],
         answers: [false, true],
         output: [
-          ['prop 1', false],
-          ['prop 2', true],
-          ['prop 3', false],
-          ['prop 4', false],
+          { label: 'prop 1', checked: false, value: 1, index: 0 },
+          { label: 'prop 2', checked: true, value: 2, index: 1 },
+          { label: 'prop 3', checked: false, value: 3, index: 2 },
+          { label: 'prop 4', checked: false, value: 4, index: 3 },
         ],
       },
       {
@@ -20,10 +20,41 @@ module('Unit | Utility | labeled checkboxes', function () {
         proposals: ['prop 1', 'prop 2', 'prop 3', 'prop 4'],
         answers: undefined,
         output: [
-          ['prop 1', false],
-          ['prop 2', false],
-          ['prop 3', false],
-          ['prop 4', false],
+          { label: 'prop 1', checked: false, value: 1, index: 0 },
+          { label: 'prop 2', checked: false, value: 2, index: 1 },
+          { label: 'prop 3', checked: false, value: 3, index: 2 },
+          { label: 'prop 4', checked: false, value: 4, index: 3 },
+        ],
+      },
+      {
+        when: 'nominal case, non-existing answers (undefined)',
+        proposals: ['prop 1', 'prop 2', 'prop 3', 'prop 4'],
+        answers: undefined,
+        output: [
+          {
+            label: 'prop 1',
+            checked: false,
+            value: 1,
+            index: 0,
+          },
+          {
+            label: 'prop 2',
+            checked: false,
+            value: 2,
+            index: 1,
+          },
+          {
+            label: 'prop 3',
+            checked: false,
+            value: 3,
+            index: 2,
+          },
+          {
+            label: 'prop 4',
+            checked: false,
+            value: 4,
+            index: 3,
+          },
         ],
       },
       {
@@ -31,10 +62,10 @@ module('Unit | Utility | labeled checkboxes', function () {
         proposals: ['prop 1', 'prop 2', 'prop 3', 'prop 4'],
         answers: null,
         output: [
-          ['prop 1', false],
-          ['prop 2', false],
-          ['prop 3', false],
-          ['prop 4', false],
+          { label: 'prop 1', checked: false, value: 1, index: 0 },
+          { label: 'prop 2', checked: false, value: 2, index: 1 },
+          { label: 'prop 3', checked: false, value: 3, index: 2 },
+          { label: 'prop 4', checked: false, value: 4, index: 3 },
         ],
       },
       {
@@ -42,10 +73,10 @@ module('Unit | Utility | labeled checkboxes', function () {
         proposals: ['prop 1', 'prop 2', 'prop 3', 'prop 4'],
         answers: [],
         output: [
-          ['prop 1', false],
-          ['prop 2', false],
-          ['prop 3', false],
-          ['prop 4', false],
+          { label: 'prop 1', checked: false, value: 1, index: 0 },
+          { label: 'prop 2', checked: false, value: 2, index: 1 },
+          { label: 'prop 3', checked: false, value: 3, index: 2 },
+          { label: 'prop 4', checked: false, value: 4, index: 3 },
         ],
       },
       {
@@ -53,10 +84,10 @@ module('Unit | Utility | labeled checkboxes', function () {
         proposals: ['prop 1', 'prop 2', 'prop 3', 'prop 4'],
         answers: [true],
         output: [
-          ['prop 1', true],
-          ['prop 2', false],
-          ['prop 3', false],
-          ['prop 4', false],
+          { label: 'prop 1', checked: true, value: 1, index: 0 },
+          { label: 'prop 2', checked: false, value: 2, index: 1 },
+          { label: 'prop 3', checked: false, value: 3, index: 2 },
+          { label: 'prop 4', checked: false, value: 4, index: 3 },
         ],
       },
       {
@@ -100,13 +131,8 @@ module('Unit | Utility | labeled checkboxes', function () {
           ' when ' +
           testCase.when,
         function (assert) {
-          // TODO: Fix this the next time the file is edited.
-          // eslint-disable-next-line qunit/no-assert-equal
-          assert.equal(
-            JSON.stringify(labeledCheckboxes(testCase.proposals, testCase.answers)),
-            JSON.stringify(testCase.output)
-          );
-        }
+          assert.deepEqual(labeledCheckboxes(testCase.proposals, testCase.answers), testCase.output);
+        },
       );
     });
   });

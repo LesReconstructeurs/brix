@@ -1,6 +1,5 @@
-const hashInt = require('hash-int');
-const { ObjectValidationError } = require('../errors');
-const Answer = require('./Answer');
+import { ObjectValidationError } from '../errors.js';
+import { Answer } from './Answer.js';
 
 const courseIdMessage = {
   COMPETENCE_EVALUATION: '[NOT USED] CompetenceId is in Competence Evaluation.',
@@ -21,6 +20,7 @@ const types = {
   DEMO: 'DEMO',
   PREVIEW: 'PREVIEW',
   CAMPAIGN: 'CAMPAIGN',
+  PIX1D_MISSION: 'PIX1D_MISSION',
 };
 
 const TYPES_OF_ASSESSMENT_NEEDING_USER = [types.CERTIFICATION, types.COMPETENCE_EVALUATION, types.CAMPAIGN];
@@ -31,6 +31,7 @@ const methods = {
   COURSE_DETERMINED: 'COURSE_DETERMINED',
   CHOSEN: 'CHOSEN',
   FLASH: 'FLASH',
+  PIX1D: 'PIX1D',
 };
 
 const statesOfLastQuestion = {
@@ -61,6 +62,7 @@ class Assessment {
     campaignParticipationId,
     method,
     campaignCode,
+    missionId,
   } = {}) {
     this.id = id;
     this.createdAt = createdAt;
@@ -82,6 +84,7 @@ class Assessment {
     this.campaignParticipationId = campaignParticipationId;
     this.method = method || Assessment.computeMethodFromType(this.type);
     this.campaignCode = campaignCode;
+    this.missionId = missionId;
   }
 
   isCompleted() {
@@ -146,10 +149,6 @@ class Assessment {
     return this.method === methods.SMART_RANDOM;
   }
 
-  chooseNextFlashChallenge(challenges) {
-    return challenges[Math.abs(hashInt(this.id)) % challenges.length];
-  }
-
   get hasLastQuestionBeenFocusedOut() {
     return this.lastQuestionState === Assessment.statesOfLastQuestion.FOCUSEDOUT;
   }
@@ -207,6 +206,14 @@ class Assessment {
       method: methods.SMART_RANDOM,
     });
   }
+  static createForPix1dMission({ missionId }) {
+    return new Assessment({
+      missionId,
+      state: Assessment.states.STARTED,
+      type: Assessment.types.PIX1D_MISSION,
+      method: Assessment.methods.PIX1D,
+    });
+  }
 
   static createImprovingForCompetenceEvaluation({ userId, competenceId }) {
     const assessment = this.createForCompetenceEvaluation({ userId, competenceId });
@@ -221,4 +228,4 @@ Assessment.types = types;
 Assessment.statesOfLastQuestion = statesOfLastQuestion;
 Assessment.methods = methods;
 
-module.exports = Assessment;
+export { Assessment };

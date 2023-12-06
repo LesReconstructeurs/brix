@@ -1,5 +1,5 @@
-const { domainBuilder, expect, sinon } = require('../../../test-helper');
-const createUserAndReconcileToOrganizationLearnerFromExternalUser = require('../../../../lib/domain/usecases/create-user-and-reconcile-to-organization-learner-from-external-user');
+import { domainBuilder, expect, sinon } from '../../../test-helper.js';
+import { createUserAndReconcileToOrganizationLearnerFromExternalUser } from '../../../../lib/domain/usecases/create-user-and-reconcile-to-organization-learner-from-external-user.js';
 
 describe('Unit | UseCase | create-user-and-reconcile-to-organization-learner-from-external-user', function () {
   let obfuscationService;
@@ -21,8 +21,8 @@ describe('Unit | UseCase | create-user-and-reconcile-to-organization-learner-fro
       createAccessTokenForSaml: sinon.stub(),
     };
     userReconciliationService = {
-      findMatchingOrganizationLearnerIdForGivenOrganizationIdAndUser: sinon.stub(),
-      checkIfStudentHasAnAlreadyReconciledAccount: sinon.stub(),
+      findMatchingOrganizationLearnerForGivenOrganizationIdAndReconciliationInfo: sinon.stub(),
+      assertStudentHasAnAlreadyReconciledAccount: sinon.stub(),
     };
     userRepository = {
       getBySamlId: sinon.stub(),
@@ -42,8 +42,8 @@ describe('Unit | UseCase | create-user-and-reconcile-to-organization-learner-fro
 
       campaignRepository.getByCode.resolves('ABCDE');
       tokenService.extractExternalUserFromIdToken.resolves(externalUser);
-      userReconciliationService.findMatchingOrganizationLearnerIdForGivenOrganizationIdAndUser.resolves(
-        organizationLearner
+      userReconciliationService.findMatchingOrganizationLearnerForGivenOrganizationIdAndReconciliationInfo.resolves(
+        organizationLearner,
       );
       userRepository.getBySamlId.resolves(user);
 
@@ -76,8 +76,8 @@ describe('Unit | UseCase | create-user-and-reconcile-to-organization-learner-fro
 
       campaignRepository.getByCode.resolves('ABCDE');
       tokenService.extractExternalUserFromIdToken.resolves(externalUser);
-      userReconciliationService.findMatchingOrganizationLearnerIdForGivenOrganizationIdAndUser.resolves(
-        organizationLearner
+      userReconciliationService.findMatchingOrganizationLearnerForGivenOrganizationIdAndReconciliationInfo.resolves(
+        organizationLearner,
       );
       userRepository.getBySamlId.resolves(user);
       tokenService.createAccessTokenForSaml.withArgs(user.id).resolves(token);
@@ -112,8 +112,8 @@ describe('Unit | UseCase | create-user-and-reconcile-to-organization-learner-fro
 
       campaignRepository.getByCode.resolves('ABCDE');
       tokenService.extractExternalUserFromIdToken.resolves(externalUser);
-      userReconciliationService.findMatchingOrganizationLearnerIdForGivenOrganizationIdAndUser.resolves(
-        organizationLearner
+      userReconciliationService.findMatchingOrganizationLearnerForGivenOrganizationIdAndReconciliationInfo.resolves(
+        organizationLearner,
       );
       userRepository.getBySamlId.resolves(null);
       userService.createAndReconcileUserToOrganizationLearner.resolves(user.id);
@@ -147,8 +147,8 @@ describe('Unit | UseCase | create-user-and-reconcile-to-organization-learner-fro
 
       campaignRepository.getByCode.resolves('ABCDE');
       tokenService.extractExternalUserFromIdToken.resolves(externalUser);
-      userReconciliationService.findMatchingOrganizationLearnerIdForGivenOrganizationIdAndUser.resolves(
-        organizationLearner
+      userReconciliationService.findMatchingOrganizationLearnerForGivenOrganizationIdAndReconciliationInfo.resolves(
+        organizationLearner,
       );
       userRepository.getBySamlId.resolves(null);
       userService.createAndReconcileUserToOrganizationLearner.resolves(user.id);

@@ -1,88 +1,111 @@
-const { knex } = require('../../../db/knex-database-connection');
-const bookshelfToDomainConverter = require('../utils/bookshelf-to-domain-converter');
-const BookshelfBadge = require('../orm-models/Badge');
-const Badge = require('../../domain/models/Badge');
-const omit = require('lodash/omit');
-const bookshelfUtils = require('../utils/knex-utils');
-const { AlreadyExistingEntityError } = require('../../domain/errors');
-const DomainTransaction = require('../../infrastructure/DomainTransaction');
+import { knex } from '../../../db/knex-database-connection.js';
+import { Badge } from '../../domain/models/Badge.js';
+import { SkillSet } from '../../domain/models/SkillSet.js';
+import { BadgeCriterion } from '../../domain/models/BadgeCriterion.js';
+import lodash from 'lodash';
+
+const { omit } = lodash;
+
+import * as knexUtils from '../utils/knex-utils.js';
+import { AlreadyExistingEntityError } from '../../domain/errors.js';
+import { DomainTransaction } from '../../infrastructure/DomainTransaction.js';
 
 const TABLE_NAME = 'badges';
 
-module.exports = {
-  findByCampaignId(campaignId) {
-    return BookshelfBadge.query((qb) => {
-      qb.join('target-profiles', 'target-profiles.id', 'badges.targetProfileId');
-      qb.join('campaigns', 'campaigns.targetProfileId', 'target-profiles.id');
-    })
-      .where('campaigns.id', campaignId)
-      .fetchAll({
-        require: false,
-        withRelated: ['badgeCriteria', 'skillSets'],
-      })
-      .then((results) => bookshelfToDomainConverter.buildDomainObjects(BookshelfBadge, results));
-  },
+const findByCampaignId = async function (campaignId) {
+  const badges = await knex(TABLE_NAME)
+    .select(`${TABLE_NAME}.*`)
+    .join('target-profiles', 'target-profiles.id', `${TABLE_NAME}.targetProfileId`)
+    .join('campaigns', 'campaigns.targetProfileId', 'target-profiles.id')
+    .where('campaigns.id', campaignId);
 
-  async isAssociated(badgeId, { knexTransaction } = DomainTransaction.emptyTransaction()) {
-    const associatedBadge = await (knexTransaction ?? knex)('badge-acquisitions').where({ badgeId }).first();
-    return !!associatedBadge;
-  },
-
-  async isRelatedToCertification(badgeId, { knexTransaction } = DomainTransaction.emptyTransaction()) {
-    const complementaryCertificationBadge = await (knexTransaction ?? knex)('complementary-certification-badges')
-      .where({ badgeId })
-      .first();
-    return !!complementaryCertificationBadge;
-  },
-
-  async get(id) {
-    const bookshelfBadge = await BookshelfBadge.where('id', id).fetch({
-      withRelated: ['badgeCriteria', 'skillSets'],
-    });
-    return bookshelfToDomainConverter.buildDomainObject(BookshelfBadge, bookshelfBadge);
-  },
-
-  async getByKey(key) {
-    const bookshelfBadge = await BookshelfBadge.where({ key }).fetch({
-      withRelated: ['badgeCriteria', 'skillSets'],
-    });
-    return bookshelfToDomainConverter.buildDomainObject(BookshelfBadge, bookshelfBadge);
-  },
-
-  async save(badge, { knexTransaction } = DomainTransaction.emptyTransaction()) {
-    try {
-      const [savedBadge] = await (knexTransaction ?? knex)(TABLE_NAME).insert(_adaptModelToDb(badge)).returning('*');
-      return new Badge(savedBadge);
-    } catch (err) {
-      if (bookshelfUtils.isUniqConstraintViolated(err)) {
-        throw new AlreadyExistingEntityError(`The badge key ${badge.key} already exists`);
-      }
-      throw err;
-    }
-  },
-
-  async update(badge) {
-    const [updatedBadge] = await knex(TABLE_NAME).update(_adaptModelToDb(badge)).where({ id: badge.id }).returning('*');
-    return new Badge({ ...badge, ...updatedBadge });
-  },
-
-  async isKeyAvailable(key, { knexTransaction } = DomainTransaction.emptyTransaction()) {
-    const result = await (knexTransaction ?? knex)(TABLE_NAME).select('key').where('key', key);
-    if (result.length) {
-      throw new AlreadyExistingEntityError(`The badge key ${key} already exists`);
-    }
-    return true;
-  },
-
-  async delete(badgeId, { knexTransaction } = DomainTransaction.emptyTransaction()) {
-    const knexConn = knexTransaction ?? knex;
-    await knexConn('badge-criteria').where({ badgeId }).del();
-    await knexConn('skill-sets').where({ badgeId }).del();
-    await knexConn('badges').where({ id: badgeId }).del();
-
-    return true;
-  },
+  return Promise.all(
+    badges.map(async (badge) => {
+      const { badgeCriteria, skillSets } = await _addCriteriaInformation(badge);
+      return new Badge({ ...badge, badgeCriteria, skillSets });
+    }),
+  );
 };
+
+const isAssociated = async function (badgeId, { knexTransaction } = DomainTransaction.emptyTransaction()) {
+  const associatedBadge = await (knexTransaction ?? knex)('badge-acquisitions').where({ badgeId }).first();
+  return !!associatedBadge;
+};
+
+const isRelatedToCertification = async function (badgeId, { knexTransaction } = DomainTransaction.emptyTransaction()) {
+  const complementaryCertificationBadge = await (knexTransaction ?? knex)('complementary-certification-badges')
+    .where({ badgeId })
+    .first();
+  return !!complementaryCertificationBadge;
+};
+
+const get = async function (id) {
+  const badge = await knex(TABLE_NAME).select('*').where({ id }).first();
+  const { badgeCriteria, skillSets } = await _addCriteriaInformation(badge);
+  return new Badge({ ...badge, badgeCriteria, skillSets });
+};
+
+const getByKey = async function (key) {
+  const badge = await knex(TABLE_NAME).select('*').where({ key }).first();
+  const { badgeCriteria, skillSets } = await _addCriteriaInformation(badge);
+  return new Badge({ ...badge, badgeCriteria, skillSets });
+};
+
+const save = async function (badge, { knexTransaction } = DomainTransaction.emptyTransaction()) {
+  try {
+    const [savedBadge] = await (knexTransaction ?? knex)(TABLE_NAME).insert(_adaptModelToDb(badge)).returning('*');
+    return new Badge(savedBadge);
+  } catch (err) {
+    if (knexUtils.isUniqConstraintViolated(err)) {
+      throw new AlreadyExistingEntityError(`The badge key ${badge.key} already exists`);
+    }
+    throw err;
+  }
+};
+
+const update = async function (badge) {
+  const [updatedBadge] = await knex(TABLE_NAME).update(_adaptModelToDb(badge)).where({ id: badge.id }).returning('*');
+  return new Badge({ ...badge, ...updatedBadge });
+};
+
+const isKeyAvailable = async function (key, { knexTransaction } = DomainTransaction.emptyTransaction()) {
+  const result = await (knexTransaction ?? knex)(TABLE_NAME).select('key').where('key', key);
+  if (result.length) {
+    throw new AlreadyExistingEntityError(`The badge key ${key} already exists`);
+  }
+  return true;
+};
+
+const remove = async function (badgeId, { knexTransaction } = DomainTransaction.emptyTransaction()) {
+  const knexConn = knexTransaction ?? knex;
+  await knexConn('badge-criteria').where({ badgeId }).del();
+  await knexConn('skill-sets').where({ badgeId }).del();
+  await knexConn('badges').where({ id: badgeId }).del();
+
+  return true;
+};
+
+export {
+  findByCampaignId,
+  isAssociated,
+  isRelatedToCertification,
+  get,
+  getByKey,
+  save,
+  update,
+  isKeyAvailable,
+  remove,
+};
+
+async function _addCriteriaInformation(badge) {
+  const badgeCriteria = await knex('badge-criteria').where({ badgeId: badge.id });
+  const skillSets = await knex('skill-sets').where({ badgeId: badge.id });
+
+  return {
+    badgeCriteria: badgeCriteria.map((badgeCriterion) => new BadgeCriterion(badgeCriterion)),
+    skillSets: skillSets.map((skillSet) => new SkillSet(skillSet)),
+  };
+}
 
 function _adaptModelToDb(badge) {
   return omit(badge, ['id', 'badgeCriteria', 'skillSets', 'complementaryCertificationBadge']);

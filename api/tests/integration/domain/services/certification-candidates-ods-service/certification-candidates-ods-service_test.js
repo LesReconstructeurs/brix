@@ -1,24 +1,36 @@
-const { expect, databaseBuilder, catchErr, domainBuilder } = require('../../../../test-helper');
-const {
+import { catchErr, databaseBuilder, domainBuilder, expect, sinon } from '../../../../test-helper.js';
+import {
   CLEA,
   PIX_PLUS_DROIT,
   PIX_PLUS_EDU_1ER_DEGRE,
   PIX_PLUS_EDU_2ND_DEGRE,
-} = require('../../../../../lib/domain/models/ComplementaryCertification');
-const certificationCandidatesOdsService = require('../../../../../lib/domain/services/certification-candidates-ods-service');
-const certificationCpfService = require('../../../../../lib/domain/services/certification-cpf-service');
-const certificationCpfCountryRepository = require('../../../../../lib/infrastructure/repositories/certification-cpf-country-repository');
-const certificationCpfCityRepository = require('../../../../../lib/infrastructure/repositories/certification-cpf-city-repository');
-const certificationCenterRepository = require('../../../../../lib/infrastructure/repositories/certification-center-repository');
-const complementaryCertificationRepository = require('../../../../../lib/infrastructure/repositories/complementary-certification-repository');
-const CertificationCandidate = require('../../../../../lib/domain/models/CertificationCandidate');
-const { CertificationCandidatesImportError } = require('../../../../../lib/domain/errors');
-const { readFile } = require('fs').promises;
-const _ = require('lodash');
+} from '../../../../../lib/domain/models/ComplementaryCertification.js';
+import * as certificationCandidatesOdsService from '../../../../../lib/domain/services/certification-candidates-ods-service.js';
+import * as certificationCpfService from '../../../../../lib/domain/services/certification-cpf-service.js';
+import * as certificationCpfCountryRepository from '../../../../../lib/infrastructure/repositories/certification-cpf-country-repository.js';
+import * as certificationCpfCityRepository from '../../../../../lib/infrastructure/repositories/certification-cpf-city-repository.js';
+import * as certificationCenterRepository from '../../../../../lib/infrastructure/repositories/certification-center-repository.js';
+import * as complementaryCertificationRepository from '../../../../../lib/infrastructure/repositories/complementary-certification-repository.js';
+import { CertificationCandidate } from '../../../../../lib/domain/models/CertificationCandidate.js';
+import { CertificationCandidatesError } from '../../../../../lib/domain/errors.js';
+import fs from 'fs';
+import _ from 'lodash';
+import { getI18n } from '../../../../tooling/i18n/i18n.js';
+import * as url from 'url';
+import { CERTIFICATION_CANDIDATES_ERRORS } from '../../../../../lib/domain/constants/certification-candidates-errors.js';
+
+const { promises } = fs;
+
+const { readFile } = promises;
+
+const i18n = getI18n();
+
+const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 
 describe('Integration | Services | extractCertificationCandidatesFromCandidatesImportSheet', function () {
   let userId;
   let sessionId;
+  let mailCheck;
 
   beforeEach(async function () {
     const certificationCenterId = databaseBuilder.factory.buildCertificationCenter({}).id;
@@ -53,17 +65,21 @@ describe('Integration | Services | extractCertificationCandidatesFromCandidatesI
       INSEECode: '01065',
     });
     await databaseBuilder.commit();
+
+    mailCheck = { checkDomainIsValid: sinon.stub() };
   });
 
-  it('should throw a CertificationCandidatesImportError if there is an error in the file', async function () {
+  it('should throw a CertificationCandidatesError if there is an error in the file', async function () {
     // given
     const odsFilePath = `${__dirname}/attendance_sheet_extract_mandatory_ko_test.ods`;
     const odsBuffer = await readFile(odsFilePath);
+    mailCheck.checkDomainIsValid.resolves();
 
     // when
     const error = await catchErr(
-      certificationCandidatesOdsService.extractCertificationCandidatesFromCandidatesImportSheet
+      certificationCandidatesOdsService.extractCertificationCandidatesFromCandidatesImportSheet,
     )({
+      i18n,
       sessionId,
       odsBuffer,
       certificationCpfService,
@@ -72,23 +88,26 @@ describe('Integration | Services | extractCertificationCandidatesFromCandidatesI
       certificationCenterRepository,
       complementaryCertificationRepository,
       isSco: true,
+      mailCheck,
     });
 
     // then
-    expect(error).to.be.instanceOf(CertificationCandidatesImportError);
-    expect(error.message).to.equal('Ligne 13 : Le champ “Prénom” est obligatoire.');
-    expect(error.code).to.be.null;
+    expect(error).to.be.instanceOf(CertificationCandidatesError);
+    expect(error.code).to.equal('CANDIDATE_FIRST_NAME_REQUIRED');
+    expect(error.meta).to.deep.equal({ line: 13 });
   });
 
-  it('should throw a CertificationCandidatesImportError if there is an error in the birth information', async function () {
+  it('should throw a CertificationCandidatesError if there is an error in the birth information', async function () {
     // given
     const odsFilePath = `${__dirname}/attendance_sheet_extract_birth_ko_test.ods`;
     const odsBuffer = await readFile(odsFilePath);
+    mailCheck.checkDomainIsValid.resolves();
 
     // when
     const error = await catchErr(
-      certificationCandidatesOdsService.extractCertificationCandidatesFromCandidatesImportSheet
+      certificationCandidatesOdsService.extractCertificationCandidatesFromCandidatesImportSheet,
     )({
+      i18n,
       sessionId,
       odsBuffer,
       certificationCpfService,
@@ -97,12 +116,43 @@ describe('Integration | Services | extractCertificationCandidatesFromCandidatesI
       certificationCenterRepository,
       complementaryCertificationRepository,
       isSco: true,
+      mailCheck,
     });
 
     // then
-    expect(error).to.be.instanceOf(CertificationCandidatesImportError);
-    expect(error.message).to.equal('Ligne 13 : La valeur du code INSEE doit être "99" pour un pays étranger.');
-    expect(error.code).to.be.null;
+    expect(error).to.be.instanceOf(CertificationCandidatesError);
+    expect(error.code).to.equal(CERTIFICATION_CANDIDATES_ERRORS.CANDIDATE_FOREIGN_INSEE_CODE_NOT_VALID.code);
+  });
+
+  it('should throw a CertificationCandidatesImportError if there are email errors', async function () {
+    // given
+    const odsFilePath = `${__dirname}/attendance_sheet_extract_recipient_email_ko_test.ods`;
+    const odsBuffer = await readFile(odsFilePath);
+    mailCheck.checkDomainIsValid.withArgs('jack@d.it').throws();
+
+    // when
+    const error = await catchErr(
+      certificationCandidatesOdsService.extractCertificationCandidatesFromCandidatesImportSheet,
+    )({
+      i18n,
+      sessionId,
+      odsBuffer,
+      certificationCpfService,
+      certificationCpfCountryRepository,
+      certificationCpfCityRepository,
+      certificationCenterRepository,
+      complementaryCertificationRepository,
+      isSco: true,
+      mailCheck,
+    });
+
+    // then
+    const certificationCandidatesError = new CertificationCandidatesError({
+      code: CERTIFICATION_CANDIDATES_ERRORS.CANDIDATE_RESULT_RECIPIENT_EMAIL_NOT_VALID.code,
+      meta: { email: 'jack@d.it', line: 1 },
+    });
+
+    expect(error).to.deepEqualInstance(certificationCandidatesError);
   });
 
   it('should return extracted and validated certification candidates', async function () {
@@ -114,6 +164,7 @@ describe('Integration | Services | extractCertificationCandidatesFromCandidatesI
     // when
     const actualCertificationCandidates =
       await certificationCandidatesOdsService.extractCertificationCandidatesFromCandidatesImportSheet({
+        i18n,
         sessionId,
         isSco,
         odsBuffer,
@@ -122,6 +173,7 @@ describe('Integration | Services | extractCertificationCandidatesFromCandidatesI
         certificationCpfCityRepository,
         certificationCenterRepository,
         complementaryCertificationRepository,
+        mailCheck,
       });
 
     // then
@@ -205,7 +257,7 @@ describe('Integration | Services | extractCertificationCandidatesFromCandidatesI
           authorizedToStart: undefined,
           userId: undefined,
           organizationLearnerId: null,
-          complementaryCertifications: [],
+          complementaryCertification: null,
           billingMode: null,
           prepaymentCode: null,
           sessionId,
@@ -228,13 +280,13 @@ describe('Integration | Services | extractCertificationCandidatesFromCandidatesI
           authorizedToStart: undefined,
           userId: undefined,
           organizationLearnerId: null,
-          complementaryCertifications: [],
+          complementaryCertification: null,
           billingMode: null,
           prepaymentCode: null,
           sessionId,
         },
       ],
-      (candidate) => new CertificationCandidate(candidate)
+      (candidate) => new CertificationCandidate(candidate),
     );
     expect(actualCertificationCandidates).to.deep.equal(expectedCertificationCandidates);
   });
@@ -273,8 +325,9 @@ describe('Integration | Services | extractCertificationCandidatesFromCandidatesI
 
         // when
         const error = await catchErr(
-          certificationCandidatesOdsService.extractCertificationCandidatesFromCandidatesImportSheet
+          certificationCandidatesOdsService.extractCertificationCandidatesFromCandidatesImportSheet,
         )({
+          i18n,
           sessionId,
           odsBuffer,
           certificationCpfService,
@@ -283,19 +336,25 @@ describe('Integration | Services | extractCertificationCandidatesFromCandidatesI
           certificationCenterRepository,
           complementaryCertificationRepository,
           isSco: false,
+          mailCheck,
         });
 
         // then
-        expect(error).to.be.instanceOf(CertificationCandidatesImportError);
-
-        expect(error.message).to.equal(
-          "Ligne 13 : Vous ne pouvez pas inscrire un candidat à plus d'une certification complémentaire."
+        expect(error).to.deepEqualInstance(
+          new CertificationCandidatesError({
+            code: CERTIFICATION_CANDIDATES_ERRORS.CANDIDATE_MAX_ONE_COMPLEMENTARY_CERTIFICATION.code,
+            message: 'A candidate cannot have more than one complementary certification',
+            meta: {
+              line: 13,
+            },
+          }),
         );
       });
     });
 
     it('should return extracted and validated certification candidates with complementary certification', async function () {
       // given
+      mailCheck.checkDomainIsValid.resolves();
       const cleaComplementaryCertification = databaseBuilder.factory.buildComplementaryCertification({
         label: 'CléA Numérique',
         key: CLEA,
@@ -356,9 +415,9 @@ describe('Integration | Services | extractCertificationCandidatesFromCandidatesI
             extraTimePercentage: 0.15,
             sessionId,
             billingMode: 'FREE',
-            complementaryCertifications: [
-              domainBuilder.buildComplementaryCertification(pixPlusEdu1erDegreComplementaryCertification),
-            ],
+            complementaryCertification: domainBuilder.buildComplementaryCertification(
+              pixPlusEdu1erDegreComplementaryCertification,
+            ),
           },
           {
             lastName: 'Jackson',
@@ -375,9 +434,9 @@ describe('Integration | Services | extractCertificationCandidatesFromCandidatesI
             extraTimePercentage: null,
             sessionId,
             billingMode: 'FREE',
-            complementaryCertifications: [
-              domainBuilder.buildComplementaryCertification(pixPlusDroitComplementaryCertification),
-            ],
+            complementaryCertification: domainBuilder.buildComplementaryCertification(
+              pixPlusDroitComplementaryCertification,
+            ),
           },
           {
             lastName: 'Jackson',
@@ -394,9 +453,7 @@ describe('Integration | Services | extractCertificationCandidatesFromCandidatesI
             extraTimePercentage: 0.6,
             sessionId,
             billingMode: 'FREE',
-            complementaryCertifications: [
-              domainBuilder.buildComplementaryCertification(cleaComplementaryCertification),
-            ],
+            complementaryCertification: domainBuilder.buildComplementaryCertification(cleaComplementaryCertification),
           },
           {
             lastName: 'Mercury',
@@ -413,17 +470,18 @@ describe('Integration | Services | extractCertificationCandidatesFromCandidatesI
             extraTimePercentage: 1.5,
             sessionId,
             billingMode: 'FREE',
-            complementaryCertifications: [
-              domainBuilder.buildComplementaryCertification(pixPlusEdu2ndDegreComplementaryCertification),
-            ],
+            complementaryCertification: domainBuilder.buildComplementaryCertification(
+              pixPlusEdu2ndDegreComplementaryCertification,
+            ),
           },
         ],
-        (candidate) => new CertificationCandidate(candidate)
+        (candidate) => new CertificationCandidate(candidate),
       );
 
       // when
       const actualCertificationCandidates =
         await certificationCandidatesOdsService.extractCertificationCandidatesFromCandidatesImportSheet({
+          i18n,
           sessionId,
           odsBuffer,
           certificationCpfService,
@@ -432,6 +490,7 @@ describe('Integration | Services | extractCertificationCandidatesFromCandidatesI
           certificationCenterRepository,
           complementaryCertificationRepository,
           isSco: false,
+          mailCheck,
         });
 
       // then
@@ -441,6 +500,7 @@ describe('Integration | Services | extractCertificationCandidatesFromCandidatesI
 
   it('should return extracted and validated certification candidates with billing information', async function () {
     // given
+    mailCheck.checkDomainIsValid.resolves();
     const isSco = false;
 
     const userId = databaseBuilder.factory.buildUser().id;
@@ -520,12 +580,13 @@ describe('Integration | Services | extractCertificationCandidatesFromCandidatesI
           prepaymentCode: 'CODE1',
         },
       ],
-      (candidate) => new CertificationCandidate(candidate)
+      (candidate) => new CertificationCandidate(candidate),
     );
 
     // when
     const actualCertificationCandidates =
       await certificationCandidatesOdsService.extractCertificationCandidatesFromCandidatesImportSheet({
+        i18n,
         sessionId,
         isSco,
         odsBuffer,
@@ -534,6 +595,7 @@ describe('Integration | Services | extractCertificationCandidatesFromCandidatesI
         certificationCpfCityRepository,
         certificationCenterRepository,
         complementaryCertificationRepository,
+        mailCheck,
       });
 
     // then
@@ -544,10 +606,12 @@ describe('Integration | Services | extractCertificationCandidatesFromCandidatesI
     const isSco = true;
     const odsFilePath = `${__dirname}/attendance_sheet_extract_ok_test.ods`;
     const odsBuffer = await readFile(odsFilePath);
+    mailCheck.checkDomainIsValid.resolves();
 
     // when
     const actualCertificationCandidates =
       await certificationCandidatesOdsService.extractCertificationCandidatesFromCandidatesImportSheet({
+        i18n,
         sessionId,
         isSco,
         odsBuffer,
@@ -556,6 +620,7 @@ describe('Integration | Services | extractCertificationCandidatesFromCandidatesI
         certificationCpfCityRepository,
         certificationCenterRepository,
         complementaryCertificationRepository,
+        mailCheck,
       });
 
     // then
@@ -639,7 +704,7 @@ describe('Integration | Services | extractCertificationCandidatesFromCandidatesI
           authorizedToStart: undefined,
           userId: undefined,
           organizationLearnerId: null,
-          complementaryCertifications: [],
+          complementaryCertification: null,
           billingMode: null,
           prepaymentCode: null,
           sessionId,
@@ -662,13 +727,13 @@ describe('Integration | Services | extractCertificationCandidatesFromCandidatesI
           authorizedToStart: undefined,
           userId: undefined,
           organizationLearnerId: null,
-          complementaryCertifications: [],
+          complementaryCertification: null,
           billingMode: null,
           prepaymentCode: null,
           sessionId,
         },
       ],
-      (candidate) => new CertificationCandidate(candidate)
+      (candidate) => new CertificationCandidate(candidate),
     );
     expect(actualCertificationCandidates).to.deep.equal(expectedCertificationCandidates);
   });

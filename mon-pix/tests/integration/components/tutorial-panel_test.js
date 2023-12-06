@@ -1,8 +1,10 @@
 import Service from '@ember/service';
 import { module, test } from 'qunit';
 import setupIntlRenderingTest from '../../helpers/setup-intl-rendering';
-import { find, render } from '@ember/test-helpers';
-import hbs from 'htmlbars-inline-precompile';
+// eslint-disable-next-line no-restricted-imports
+import { find } from '@ember/test-helpers';
+import { render } from '@1024pix/ember-testing-library';
+import { hbs } from 'ember-cli-htmlbars';
 
 module('Integration | Component | Tutorial Panel', function (hooks) {
   setupIntlRenderingTest(hooks);
@@ -25,9 +27,7 @@ module('Integration | Component | Tutorial Panel', function (hooks) {
         assert.dom('.tutorial-panel__hint-picto-container').exists();
         assert.dom('.tutorial-panel__hint-picto').exists();
         assert.dom('.tutorial-panel__hint-content').exists();
-        // TODO: Fix this the next time the file is edited.
-        // eslint-disable-next-line qunit/no-assert-equal
-        assert.equal(find('.tutorial-panel__hint-content').textContent.trim(), 'Ceci est un indice.');
+        assert.strictEqual(find('.tutorial-panel__hint-content').textContent.trim(), 'Ceci est un indice.');
       });
     });
 

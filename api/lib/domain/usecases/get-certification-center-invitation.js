@@ -1,6 +1,6 @@
-const { CancelledInvitationError, AlreadyExistingInvitationError } = require('../errors');
+import { CancelledInvitationError, AlreadyExistingInvitationError } from '../errors.js';
 
-module.exports = async function getCertificationCenterInvitation({
+const getCertificationCenterInvitation = async function ({
   certificationCenterInvitationId,
   certificationCenterInvitationCode,
   certificationCenterInvitationRepository,
@@ -16,9 +16,11 @@ module.exports = async function getCertificationCenterInvitation({
 
   if (foundCertificationCenterInvitation.isAccepted) {
     throw new AlreadyExistingInvitationError(
-      `L'invitation avec l'id ${certificationCenterInvitationId} a déjà été acceptée.`
+      `L'invitation avec l'id ${certificationCenterInvitationId} a déjà été acceptée.`,
     );
   }
 
   return foundCertificationCenterInvitation;
 };
+
+export { getCertificationCenterInvitation };

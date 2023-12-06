@@ -1,7 +1,8 @@
 import Route from '@ember/routing/route';
 import RSVP from 'rsvp';
 import { action } from '@ember/object';
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
+
 export default class ActivityRoute extends Route {
   @service store;
 
@@ -61,7 +62,7 @@ export default class ActivityRoute extends Route {
   resetController(controller, isExiting) {
     if (isExiting) {
       controller.pageNumber = 1;
-      controller.pageSize = 25;
+      controller.pageSize = 50;
       controller.divisions = [];
       controller.status = null;
       controller.groups = [];

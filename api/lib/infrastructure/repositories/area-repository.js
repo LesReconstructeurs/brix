@@ -1,8 +1,9 @@
-const Area = require('../../domain/models/Area');
-const areaDatasource = require('../datasources/learning-content/area-datasource');
-const competenceRepository = require('./competence-repository');
-const { getTranslatedKey } = require('../../domain/services/get-translated-text');
-const _ = require('lodash');
+import { Area } from '../../domain/models/Area.js';
+import { areaDatasource } from '../datasources/learning-content/area-datasource.js';
+import * as competenceRepository from './competence-repository.js';
+import { getTranslatedKey } from '../../domain/services/get-translated-text.js';
+import _ from 'lodash';
+import { NotFoundError } from '../../domain/errors.js';
 
 function _toDomain({ areaData, locale }) {
   const translatedTitle = getTranslatedKey(areaData.title_i18n, locale);
@@ -27,7 +28,7 @@ async function listWithPixCompetencesOnly({ locale } = {}) {
     competenceRepository.listPixCompetencesOnly({ locale }),
   ]);
   areas.forEach((area) => {
-    area.competences = _.filter(competences, { area: { id: area.id } });
+    area.competences = _.filter(competences, { areaId: area.id });
   });
   return _.filter(areas, ({ competences }) => !_.isEmpty(competences));
 }
@@ -37,9 +38,14 @@ async function findByFrameworkIdWithCompetences({ frameworkId, locale }) {
   const areas = areaDatas.map((areaData) => _toDomain({ areaData, locale }));
   const competences = await competenceRepository.list({ locale });
   areas.forEach((area) => {
-    area.competences = _.filter(competences, { area: { id: area.id } });
+    area.competences = _.filter(competences, { areaId: area.id });
   });
   return areas;
+}
+
+async function findByFrameworkId({ frameworkId, locale }) {
+  const areaDatas = await areaDatasource.findByFrameworkId(frameworkId);
+  return areaDatas.map((areaData) => _toDomain({ areaData, locale }));
 }
 
 async function findByRecordIds({ areaIds, locale }) {
@@ -47,9 +53,13 @@ async function findByRecordIds({ areaIds, locale }) {
   return areaDataObjects.filter(({ id }) => areaIds.includes(id)).map((areaData) => _toDomain({ areaData, locale }));
 }
 
-module.exports = {
-  list,
-  listWithPixCompetencesOnly,
-  findByFrameworkIdWithCompetences,
-  findByRecordIds,
-};
+async function get({ id, locale }) {
+  const areaDataObjects = await areaDatasource.list();
+  const areaData = areaDataObjects.find((area) => area.id === id);
+  if (!areaData) {
+    throw new NotFoundError(`Area "${id}" not found.`);
+  }
+  return _toDomain({ areaData, locale });
+}
+
+export { list, listWithPixCompetencesOnly, findByFrameworkIdWithCompetences, findByFrameworkId, findByRecordIds, get };

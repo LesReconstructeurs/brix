@@ -1,7 +1,10 @@
-const { expect, domainBuilder } = require('../../../test-helper');
-const pickChallengeService = require('../../../../lib/domain/services/pick-challenge-service');
-const { ENGLISH_SPOKEN, FRENCH_FRANCE, FRENCH_SPOKEN } = require('../../../../lib/domain/constants').LOCALE;
-const _ = require('lodash');
+import { expect, domainBuilder } from '../../../test-helper.js';
+import { pickChallengeService } from '../../../../lib/domain/services/pick-challenge-service.js';
+import { LOCALE } from '../../../../lib/domain/constants.js';
+
+const { ENGLISH_SPOKEN, FRENCH_FRANCE, FRENCH_SPOKEN } = LOCALE;
+
+import _ from 'lodash';
 
 describe('Unit | Service | PickChallengeService', function () {
   describe('#pickChallenge', function () {
@@ -52,7 +55,7 @@ describe('Unit | Service | PickChallengeService', function () {
             skills,
             randomSeed,
             locale: FRENCH_SPOKEN,
-          })
+          }),
         );
 
         // then
@@ -129,7 +132,7 @@ describe('Unit | Service | PickChallengeService', function () {
             skills,
             randomSeed: time,
             locale: FRENCH_SPOKEN,
-          })
+          }),
         );
 
         // then

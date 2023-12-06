@@ -64,15 +64,13 @@ module('Unit | Component | Training | card', function (hooks) {
       test(`should return ${expectedResult} for given duration ${JSON.stringify(duration)}`, function (assert) {
         // given
         const training = store.createRecord('training', { duration });
-        const component = createGlimmerComponent('component:training/card', { training });
+        const component = createGlimmerComponent('training/card', { training });
 
         // when
         const result = component.durationFormatted;
 
         // then
-        // TODO: Fix this the next time the file is edited.
-        // eslint-disable-next-line qunit/no-assert-equal
-        assert.equal(result, expectedResult);
+        assert.strictEqual(result, expectedResult);
       });
     });
   });
@@ -81,7 +79,7 @@ module('Unit | Component | Training | card', function (hooks) {
     test('should return appropriate image src for training type webinaire', function (assert) {
       // given
       const training = store.createRecord('training', { type: 'webinaire' });
-      const component = createGlimmerComponent('component:training/card', { training });
+      const component = createGlimmerComponent('training/card', { training });
       const getRandomImageNumberSpy = sinon.spy(component, '_getRandomImageNumber');
 
       // when
@@ -95,7 +93,7 @@ module('Unit | Component | Training | card', function (hooks) {
     test('should return appropriate image src for training type autoformation', function (assert) {
       // given
       const training = store.createRecord('training', { type: 'autoformation' });
-      const component = createGlimmerComponent('component:training/card', { training });
+      const component = createGlimmerComponent('training/card', { training });
       const getRandomImageNumberSpy = sinon.spy(component, '_getRandomImageNumber');
 
       // when
@@ -111,29 +109,25 @@ module('Unit | Component | Training | card', function (hooks) {
     test('should return appropriate tag color for given type webinaire', function (assert) {
       // given
       const training = store.createRecord('training', { type: 'webinaire' });
-      const component = createGlimmerComponent('component:training/card', { training });
+      const component = createGlimmerComponent('training/card', { training });
 
       // when
       const result = component.tagColor;
 
       // then
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(result, 'purple-light');
+      assert.strictEqual(result, 'purple-light');
     });
 
     test('should return appropriate tag color for given type autoformation', function (assert) {
       // given
       const training = store.createRecord('training', { type: 'autoformation' });
-      const component = createGlimmerComponent('component:training/card', { training });
+      const component = createGlimmerComponent('training/card', { training });
 
       // when
       const result = component.tagColor;
 
       // then
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(result, 'blue-light');
+      assert.strictEqual(result, 'blue-light');
     });
   });
 });

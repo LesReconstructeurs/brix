@@ -1,5 +1,5 @@
-const { expect, sinon } = require('../../../test-helper');
-const LayeredCache = require('../../../../lib/infrastructure/caches/LayeredCache');
+import { expect, sinon } from '../../../test-helper.js';
+import { LayeredCache } from '../../../../lib/infrastructure/caches/LayeredCache.js';
 
 describe('Unit | Infrastructure | Caches | LayeredCache', function () {
   const layeredCacheInstance = new LayeredCache();
@@ -52,7 +52,7 @@ describe('Unit | Infrastructure | Caches | LayeredCache', function () {
       expect(layeredCacheInstance._firstLevelCache.flushAll).to.have.been.calledOnce;
       expect(result).to.deep.equal(objectToCache);
       expect(layeredCacheInstance._secondLevelCache.set).to.have.been.calledBefore(
-        layeredCacheInstance._firstLevelCache.flushAll
+        layeredCacheInstance._firstLevelCache.flushAll,
       );
     });
   });

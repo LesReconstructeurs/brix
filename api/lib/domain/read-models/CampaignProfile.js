@@ -1,5 +1,5 @@
-const CampaignProfileCompetence = require('./CampaignProfileCompetence');
-const CampaignParticipationStatuses = require('../models/CampaignParticipationStatuses');
+import { CampaignProfileCompetence } from './CampaignProfileCompetence.js';
+import { CampaignParticipationStatuses } from '../models/CampaignParticipationStatuses.js';
 
 const { SHARED } = CampaignParticipationStatuses;
 
@@ -9,16 +9,19 @@ class CampaignProfile {
     lastName,
     placementProfile,
     campaignParticipationId,
+    organizationLearnerId,
     campaignId,
     participantExternalId,
     sharedAt,
     status,
     createdAt,
     pixScore,
+    allAreas,
   }) {
     this.firstName = firstName;
     this.lastName = lastName;
     this.campaignParticipationId = campaignParticipationId;
+    this.organizationLearnerId = organizationLearnerId;
     this.campaignId = campaignId;
     this.externalId = participantExternalId;
     this.sharedAt = sharedAt;
@@ -26,6 +29,7 @@ class CampaignProfile {
     this.createdAt = createdAt;
     this.placementProfile = placementProfile;
     this.pixScore = pixScore;
+    this.allAreas = allAreas;
   }
 
   get isCertifiable() {
@@ -52,11 +56,19 @@ class CampaignProfile {
   get competences() {
     if (this.isShared) {
       return this.placementProfile.userCompetences.map((competence) => {
-        return new CampaignProfileCompetence(competence);
+        const area = this.allAreas.find((area) => area.id === competence.areaId);
+        return new CampaignProfileCompetence({
+          id: competence.id,
+          index: competence.index,
+          name: competence.name,
+          pixScore: competence.pixScore,
+          estimatedLevel: competence.estimatedLevel,
+          areaColor: area.color,
+        });
       });
     }
     return [];
   }
 }
 
-module.exports = CampaignProfile;
+export { CampaignProfile };

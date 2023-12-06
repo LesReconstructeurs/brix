@@ -1,6 +1,6 @@
 import RSVP from 'rsvp';
 import Route from '@ember/routing/route';
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 
 export default class ActivityRoute extends Route {
   @service store;
@@ -8,7 +8,7 @@ export default class ActivityRoute extends Route {
 
   async model() {
     const organizationLearner = this.modelFor(
-      'authenticated.sup-organization-participants.sup-organization-participant'
+      'authenticated.sup-organization-participants.sup-organization-participant',
     );
     try {
       return RSVP.hash({

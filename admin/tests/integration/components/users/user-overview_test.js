@@ -3,7 +3,7 @@ import sinon from 'sinon';
 import { setupRenderingTest } from 'ember-qunit';
 import { hbs } from 'ember-cli-htmlbars';
 import EmberObject from '@ember/object';
-import { clickByName, render } from '@1024pix/ember-testing-library';
+import { clickByName, render, waitFor } from '@1024pix/ember-testing-library';
 import Service from '@ember/service';
 
 module('Integration | Component | users | user-overview', function (hooks) {
@@ -44,6 +44,7 @@ module('Integration | Component | users | user-overview', function (hooks) {
           email: 'john.snow@winterfell.got',
           username: 'kingofthenorth',
           lang: 'fr',
+          locale: 'fr-FR',
           createdAt: new Date('2021-12-10'),
         });
         this.set('user', user);
@@ -52,25 +53,55 @@ module('Integration | Component | users | user-overview', function (hooks) {
         const screen = await render(hbs`<Users::UserOverview @user={{this.user}} />`);
 
         // then
-        assert.dom(screen.getByText(this.user.firstName)).exists();
-        assert.dom(screen.getByText(this.user.lastName)).exists();
-        assert.dom(screen.getByText(this.user.email)).exists();
-        assert.dom(screen.getByText(this.user.username)).exists();
-        assert.dom(screen.getByText('FR')).exists();
-        assert.dom(screen.getByText('10/12/2021')).exists();
+        assert.dom(screen.getByText(`Prénom : ${this.user.firstName}`)).exists();
+        assert.dom(screen.getByText(`Nom : ${this.user.lastName}`)).exists();
+        assert.dom(screen.getByText(`Adresse e-mail : ${this.user.email}`)).exists();
+        assert.dom(screen.getByText(`Identifiant : ${this.user.username}`)).exists();
+        assert.dom(screen.getByText('Langue : fr')).exists();
+        assert.dom(screen.getByText('Locale : fr-FR')).exists();
+        assert.dom(screen.getByText('Date de création : 10/12/2021')).exists();
       });
 
       module('terms of service', function () {
-        test('should display "OUI" with date when user accepted Pix App terms of service', async function (assert) {
-          // given
-          this.set('user', { cgu: true, lastTermsOfServiceValidatedAt: new Date('2021-12-10') });
+        module('should display yes by application', function () {
+          test('should display "OUI" with date when user accepted Pix App terms of service', async function (assert) {
+            // given
+            this.set('user', { cgu: true, lastTermsOfServiceValidatedAt: new Date('2021-12-10') });
 
-          // when
-          const screen = await render(hbs`<Users::UserOverview @user={{this.user}} />`);
+            // when
+            const screen = await render(hbs`<Users::UserOverview @user={{this.user}} />`);
 
-          // then
-          assert.dom(screen.getByText('CGU Pix App validé :')).exists();
-          assert.dom(screen.getByText('OUI, le 10/12/2021')).exists();
+            // then
+            assert.dom(screen.getByText('CGU Pix App validé : OUI, le 10/12/2021')).exists();
+          });
+
+          test('should display "OUI" with date when user accepted Pix Orga terms of service', async function (assert) {
+            // given
+            this.set('user', {
+              pixOrgaTermsOfServiceAccepted: true,
+              lastPixOrgaTermsOfServiceValidatedAt: new Date('2021-12-14'),
+            });
+
+            // when
+            const screen = await render(hbs`<Users::UserOverview @user={{this.user}} />`);
+
+            // then
+            assert.dom(screen.getByText('CGU Pix Orga validé : OUI, le 14/12/2021')).exists();
+          });
+
+          test('should display "OUI" with date when user accepted Pix Certif terms of service', async function (assert) {
+            // given
+            this.set('user', {
+              pixCertifTermsOfServiceAccepted: true,
+              lastPixCertifTermsOfServiceValidatedAt: new Date('2021-12-14'),
+            });
+
+            // when
+            const screen = await render(hbs`<Users::UserOverview @user={{this.user}} />`);
+
+            // then
+            assert.dom(screen.getByText('CGU Pix Certif validé : OUI, le 14/12/2021')).exists();
+          });
         });
 
         test('should display "NON" when user not accepted Pix App terms of service', async function (assert) {
@@ -81,22 +112,7 @@ module('Integration | Component | users | user-overview', function (hooks) {
           const screen = await render(hbs`<Users::UserOverview @user={{this.user}} />`);
 
           // then
-          assert.dom(screen.getByText('NON')).exists();
-        });
-
-        test('should display "OUI" with date when user accepted Pix Orga terms of service', async function (assert) {
-          // given
-          this.set('user', {
-            pixOrgaTermsOfServiceAccepted: true,
-            lastPixOrgaTermsOfServiceValidatedAt: new Date('2021-12-14'),
-          });
-
-          // when
-          const screen = await render(hbs`<Users::UserOverview @user={{this.user}} />`);
-
-          // then
-          assert.dom(screen.getByText('CGU Pix Orga validé :')).exists();
-          assert.dom(screen.getByText('OUI, le 14/12/2021')).exists();
+          assert.dom(screen.getByText('CGU Pix App validé : NON')).exists();
         });
 
         test('should display "NON" when user not accepted Pix Orga terms of service', async function (assert) {
@@ -107,25 +123,10 @@ module('Integration | Component | users | user-overview', function (hooks) {
           const screen = await render(hbs`<Users::UserOverview @user={{this.user}} />`);
 
           // then
-          assert.dom(screen.getByText('NON')).exists();
+          assert.dom(screen.getByText('CGU Pix Orga validé : NON')).exists();
         });
 
-        test('should display "OUI" with date when user accepted Pix Certif terms of service', async function (assert) {
-          // given
-          this.set('user', {
-            pixCertifTermsOfServiceAccepted: true,
-            lastPixCertifTermsOfServiceValidatedAt: new Date('2021-12-14'),
-          });
-
-          // when
-          const screen = await render(hbs`<Users::UserOverview @user={{this.user}} />`);
-
-          // then
-          assert.dom(screen.getByText('CGU Pix Certif validé :')).exists();
-          assert.dom(screen.getByText('OUI, le 14/12/2021')).exists();
-        });
-
-        test('should display "NON" when user not accepted Pix Certif terms of service', async function (assert) {
+        test('should display "NON" when user not accepted Pix Certif terms of service and "OUI" with no date when terms of service for an app are validated but no date provided', async function (assert) {
           // given
           this.set('user', { pixCertifTermsOfServiceAccepted: false, pixOrgaTermsOfServiceAccepted: true, cgu: true });
 
@@ -133,7 +134,9 @@ module('Integration | Component | users | user-overview', function (hooks) {
           const screen = await render(hbs`<Users::UserOverview @user={{this.user}} />`);
 
           // then
-          assert.dom(screen.getByText('NON')).exists();
+          assert.dom(screen.getByText('CGU Pix Certif validé : NON')).exists();
+          assert.dom(screen.getByText('CGU Pix Orga validé : OUI')).exists();
+          assert.dom(screen.getByText('CGU Pix App validé : OUI')).exists();
         });
       });
 
@@ -166,8 +169,7 @@ module('Integration | Component | users | user-overview', function (hooks) {
           // then
           assert.dom(screen.queryByText('Utilisateur totalement bloqué le :')).doesNotExist();
           assert.dom(screen.queryByText("Utilisateur temporairement bloqué jusqu'au :")).doesNotExist();
-          assert.dom(screen.getByText('Nombre de tentatives de connexion en erreur :')).exists();
-          assert.dom(screen.getByText('0')).exists();
+          assert.dom(screen.getByText('Nombre de tentatives de connexion en erreur : 0')).exists();
         });
 
         test('should display dates when user is temporarily blocked', async function (assert) {
@@ -185,10 +187,10 @@ module('Integration | Component | users | user-overview', function (hooks) {
           const screen = await render(hbs`<Users::UserOverview @user={{this.user}} />`);
 
           // then
-          assert.dom(screen.getByText('Nombre de tentatives de connexion en erreur :')).exists();
-          assert.dom(screen.getByText('50')).exists();
-          assert.dom(screen.getByText("Utilisateur temporairement bloqué jusqu'au :")).exists();
-          assert.dom(screen.getByText('28/11/2022', { exact: false })).exists();
+          assert.dom(screen.getByText('Nombre de tentatives de connexion en erreur : 50')).exists();
+          assert
+            .dom(screen.getByText("Utilisateur temporairement bloqué jusqu'au : 10/12/2022", { exact: false }))
+            .exists();
           assert.dom(screen.queryByText('Utilisateur totalement bloqué le :')).doesNotExist();
         });
 
@@ -207,10 +209,8 @@ module('Integration | Component | users | user-overview', function (hooks) {
           const screen = await render(hbs`<Users::UserOverview @user={{this.user}} />`);
 
           // then
-          assert.dom(screen.getByText('Nombre de tentatives de connexion en erreur :')).exists();
-          assert.dom(screen.getByText('50')).exists();
-          assert.dom(screen.getByText('Utilisateur totalement bloqué le :')).exists();
-          assert.dom(screen.getByText('01/02/2021', { exact: false })).exists();
+          assert.dom(screen.getByText('Nombre de tentatives de connexion en erreur : 50')).exists();
+          assert.dom(screen.getByText('Utilisateur totalement bloqué le : 01/02/2021', { exact: false })).exists();
           assert.dom(screen.queryByText("Utilisateur temporairement bloqué jusqu'au :")).doesNotExist();
         });
       });
@@ -228,13 +228,14 @@ module('Integration | Component | users | user-overview', function (hooks) {
         });
       });
 
-      test('should display the edit and cancel buttons', async function (assert) {
+      test('displays the edit and cancel buttons', async function (assert) {
         // given
         this.set('user', {
           firstName: 'John',
           lastName: 'Harry',
           email: 'john.harry@example.net',
           username: null,
+          lang: null,
         });
 
         // when
@@ -246,7 +247,7 @@ module('Integration | Component | users | user-overview', function (hooks) {
         assert.dom(screen.getByRole('button', { name: 'Annuler' })).exists();
       });
 
-      test('should display user’s first name and last name in edit mode', async function (assert) {
+      test('displays user’s language, first name and last name in edit mode', async function (assert) {
         // given
         this.set('user', user);
 
@@ -257,6 +258,33 @@ module('Integration | Component | users | user-overview', function (hooks) {
         // then
         assert.dom(screen.getByRole('textbox', { name: 'Prénom :' })).hasValue(this.user.firstName);
         assert.dom(screen.getByRole('textbox', { name: 'Nom :' })).hasValue(this.user.lastName);
+
+        await clickByName('Langue :');
+        await screen.findByRole('listbox');
+        assert.dom(screen.getByRole('option', { name: 'Français' })).exists();
+        assert.dom(screen.getByRole('option', { name: 'Anglais' })).exists();
+
+        await clickByName('Locale :');
+        await waitFor(async () => {
+          await screen.findByRole('listbox');
+          assert.dom(screen.getByRole('option', { name: 'en' })).exists();
+          assert.dom(screen.getByRole('option', { name: 'fr' })).exists();
+          assert.dom(screen.getByRole('option', { name: 'fr-BE' })).exists();
+          assert.dom(screen.getByRole('option', { name: 'fr-FR' })).exists();
+        });
+      });
+
+      test('does not display user’s terms of service', async function (assert) {
+        // given
+        this.set('user', user);
+
+        // when
+        const screen = await render(hbs`<Users::UserOverview @user={{this.user}} />`);
+        await clickByName('Modifier');
+
+        // then
+        assert.dom(screen.queryByText('CGU Pix Orga validé :')).doesNotExist();
+        assert.dom(screen.queryByText('CGU Pix Certif validé :')).doesNotExist();
       });
 
       module('when user has an email only', function () {
@@ -341,19 +369,6 @@ module('Integration | Component | users | user-overview', function (hooks) {
           // then
           assert.dom(screen.queryByRole('textbox', { name: 'Adresse e-mail :' })).doesNotExist();
         });
-      });
-
-      test('should not display user’s terms of service', async function (assert) {
-        // given
-        this.set('user', user);
-
-        // when
-        const screen = await render(hbs`<Users::UserOverview @user={{this.user}} />`);
-        await clickByName('Modifier');
-
-        // then
-        assert.dom(screen.queryByText('CGU Pix Orga validé :')).doesNotExist();
-        assert.dom(screen.queryByText('CGU Pix Certif validé :')).doesNotExist();
       });
     });
 

@@ -1,21 +1,23 @@
-const isNil = require('lodash/isNil');
-const isUndefined = require('lodash/isUndefined');
+import lodash from 'lodash';
 
-const databaseBuffer = require('../database-buffer');
+const { isUndefined, isNil } = lodash;
 
-const AuthenticationMethod = require('../../../lib/domain/models/AuthenticationMethod');
-const Membership = require('../../../lib/domain/models/Membership');
+import { databaseBuffer } from '../database-buffer.js';
+import { AuthenticationMethod } from '../../../lib/domain/models/AuthenticationMethod.js';
+import { NON_OIDC_IDENTITY_PROVIDERS } from '../../../lib/domain/constants/identity-providers.js';
+import { Membership } from '../../../lib/domain/models/Membership.js';
 
-const encrypt = require('../../../lib/domain/services/encryption-service');
+import * as encrypt from '../../../lib/domain/services/encryption-service.js';
 
-const buildPixAdminRole = require('./build-pix-admin-role');
-const buildOrganization = require('./build-organization');
-const buildMembership = require('./build-membership');
-const buildCertificationCenter = require('./build-certification-center');
-const buildCertificationCenterMembership = require('./build-certification-center-membership');
+import { buildPixAdminRole } from './build-pix-admin-role.js';
+import { buildOrganization } from './build-organization.js';
+import { buildMembership } from './build-membership.js';
+import { buildCertificationCenter } from './build-certification-center.js';
+import { buildCertificationCenterMembership } from './build-certification-center-membership.js';
+import { DEFAULT_PASSWORD } from '../../seeds/data/users-builder.js';
+import { PIX_ADMIN } from '../../../lib/domain/constants.js';
 
-const { DEFAULT_PASSWORD } = require('../../seeds/data/users-builder');
-const { ROLES } = require('../../../lib/domain/constants').PIX_ADMIN;
+const { ROLES } = PIX_ADMIN;
 
 function _buildPixAuthenticationMethod({
   id = databaseBuffer.getNextId(),
@@ -31,7 +33,7 @@ function _buildPixAuthenticationMethod({
   const values = {
     id,
     userId,
-    identityProvider: AuthenticationMethod.identityProviders.PIX,
+    identityProvider: NON_OIDC_IDENTITY_PROVIDERS.PIX.code,
     authenticationComplement: new AuthenticationMethod.PixAuthenticationComplement({
       password: hashedPassword,
       shouldChangePassword,
@@ -65,6 +67,7 @@ const buildUser = function buildUser({
   username = `${firstName}.${lastName}.${id}`,
   cgu = true,
   lang = 'fr',
+  locale,
   lastTermsOfServiceValidatedAt = null,
   lastPixOrgaTermsOfServiceValidatedAt = null,
   lastPixCertifTermsOfServiceValidatedAt = null,
@@ -73,6 +76,7 @@ const buildUser = function buildUser({
   pixCertifTermsOfServiceAccepted = false,
   hasSeenAssessmentInstructions = false,
   hasSeenNewDashboardInfo = false,
+  hasSeenLevelSevenInfo = false,
   hasSeenFocusedChallengeTooltip = false,
   hasSeenOtherChallengesTooltip = false,
   isAnonymous = false,
@@ -94,6 +98,7 @@ const buildUser = function buildUser({
     username,
     cgu,
     lang,
+    locale,
     lastTermsOfServiceValidatedAt,
     lastPixOrgaTermsOfServiceValidatedAt,
     lastPixCertifTermsOfServiceValidatedAt,
@@ -102,6 +107,7 @@ const buildUser = function buildUser({
     pixCertifTermsOfServiceAccepted,
     hasSeenAssessmentInstructions,
     hasSeenNewDashboardInfo,
+    hasSeenLevelSevenInfo,
     hasSeenFocusedChallengeTooltip,
     hasSeenOtherChallengesTooltip,
     isAnonymous,
@@ -128,6 +134,7 @@ buildUser.withRawPassword = function buildUserWithRawPassword({
   username,
   cgu = true,
   lang = 'fr',
+  locale,
   lastTermsOfServiceValidatedAt = new Date('2019-04-28T02:42:00Z'),
   lastPixOrgaTermsOfServiceValidatedAt = null,
   lastPixCertifTermsOfServiceValidatedAt = null,
@@ -152,6 +159,7 @@ buildUser.withRawPassword = function buildUserWithRawPassword({
     username,
     cgu,
     lang,
+    locale,
     lastTermsOfServiceValidatedAt,
     lastPixOrgaTermsOfServiceValidatedAt,
     lastPixCertifTermsOfServiceValidatedAt,
@@ -187,6 +195,7 @@ buildUser.withoutPixAuthenticationMethod = function buildUserWithoutPixAuthentic
   lastName = 'TheKid',
   cgu = true,
   lang = 'fr',
+  locale,
   lastTermsOfServiceValidatedAt = new Date('2019-04-28T02:42:00Z'),
   lastPixOrgaTermsOfServiceValidatedAt = null,
   lastPixCertifTermsOfServiceValidatedAt = null,
@@ -202,6 +211,7 @@ buildUser.withoutPixAuthenticationMethod = function buildUserWithoutPixAuthentic
     lastName,
     cgu,
     lang,
+    locale,
     lastTermsOfServiceValidatedAt,
     lastPixOrgaTermsOfServiceValidatedAt,
     lastPixCertifTermsOfServiceValidatedAt,
@@ -228,6 +238,7 @@ buildUser.withRole = function buildUserWithRole({
   email,
   cgu = true,
   lang = 'fr',
+  locale,
   lastTermsOfServiceValidatedAt,
   lastPixOrgaTermsOfServiceValidatedAt = null,
   lastPixCertifTermsOfServiceValidatedAt = null,
@@ -250,6 +261,7 @@ buildUser.withRole = function buildUserWithRole({
     email,
     cgu,
     lang,
+    locale,
     lastTermsOfServiceValidatedAt,
     lastPixOrgaTermsOfServiceValidatedAt,
     lastPixCertifTermsOfServiceValidatedAt,
@@ -284,6 +296,7 @@ buildUser.withMembership = function buildUserWithMemberships({
   email,
   cgu = true,
   lang = 'fr',
+  locale,
   lastTermsOfServiceValidatedAt,
   lastPixOrgaTermsOfServiceValidatedAt = null,
   lastPixCertifTermsOfServiceValidatedAt = null,
@@ -307,6 +320,7 @@ buildUser.withMembership = function buildUserWithMemberships({
     email,
     cgu,
     lang,
+    locale,
     lastTermsOfServiceValidatedAt,
     lastPixOrgaTermsOfServiceValidatedAt,
     lastPixCertifTermsOfServiceValidatedAt,
@@ -348,6 +362,7 @@ buildUser.withCertificationCenterMembership = function buildUserWithCertificatio
   username = `${firstName}.${lastName}.${id}`,
   cgu = true,
   lang = 'fr',
+  locale,
   lastTermsOfServiceValidatedAt = null,
   lastPixOrgaTermsOfServiceValidatedAt = null,
   lastPixCertifTermsOfServiceValidatedAt = null,
@@ -369,6 +384,7 @@ buildUser.withCertificationCenterMembership = function buildUserWithCertificatio
     email,
     cgu,
     lang,
+    locale,
     lastTermsOfServiceValidatedAt,
     lastPixOrgaTermsOfServiceValidatedAt,
     lastPixCertifTermsOfServiceValidatedAt,
@@ -390,4 +406,4 @@ buildUser.withCertificationCenterMembership = function buildUserWithCertificatio
   return user;
 };
 
-module.exports = buildUser;
+export { buildUser };

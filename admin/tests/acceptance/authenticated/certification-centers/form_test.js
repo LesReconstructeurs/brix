@@ -3,7 +3,7 @@ import { click, currentURL, fillIn } from '@ember/test-helpers';
 import { setupApplicationTest } from 'ember-qunit';
 import { visit } from '@1024pix/ember-testing-library';
 
-import setupMirage from 'ember-cli-mirage/test-support/setup-mirage';
+import { setupMirage } from 'ember-cli-mirage/test-support';
 
 import { createAuthenticateSession } from 'pix-admin/tests/helpers/test-init';
 
@@ -20,15 +20,15 @@ module('Acceptance | Certification Centers | Form', function (hooks) {
     });
     await createAuthenticateSession({ userId });
 
-    server.create('habilitation', { key: 'S', label: 'Pix+Surf' });
-    server.create('habilitation', { key: 'A', label: 'Pix+Autre' });
+    server.create('complementary-certification', { key: 'S', label: 'Pix+Surf' });
+    server.create('complementary-certification', { key: 'A', label: 'Pix+Autre' });
 
     const name = 'name';
     const type = { label: 'Organisation professionnelle', value: 'PRO' };
     const externalId = 'externalId';
     this.server.post('/admin/certification-centers', (schema, request) => {
-      const { name, type, externalId, isSupervisorAccessEnabled } = JSON.parse(request.requestBody).data.attributes;
-      return schema.certificationCenters.create({ id: 99, name, type, externalId, isSupervisorAccessEnabled });
+      const { name, type, externalId } = JSON.parse(request.requestBody).data.attributes;
+      return schema.certificationCenters.create({ id: 99, name, type, externalId });
     });
 
     // when
@@ -47,10 +47,9 @@ module('Acceptance | Certification Centers | Form', function (hooks) {
 
     // then
     assert.strictEqual(currentURL(), '/certification-centers/99');
-    assert.dom(screen.getByRole('heading', { name })).exists();
+    assert.dom(screen.getByRole('heading', { name, level: 2 })).exists();
     assert.dom(screen.getByText(type.label)).exists();
     assert.dom(screen.getByText(externalId)).exists();
-    assert.strictEqual(screen.getByLabelText('Espace surveillant').textContent, 'oui');
 
     //assert.dom(screen.getByRole('listitem', { name: 'Non-habilité pour Pix+Autre' })).exists();
     //assert.dom(screen.getByRole('listitem', { name: 'Habilité pour Pix+Surf' })).exists();

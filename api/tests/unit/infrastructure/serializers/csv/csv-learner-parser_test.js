@@ -1,9 +1,7 @@
-const iconv = require('iconv-lite');
-const { sinon, expect, catchErr } = require('../../../../test-helper');
-const {
-  CsvOrganizationLearnerParser,
-  CsvColumn,
-} = require('../../../../../lib/infrastructure/serializers/csv/csv-learner-parser');
+import iconv from 'iconv-lite';
+import { sinon, expect, catchErr } from '../../../../test-helper.js';
+import { CsvOrganizationLearnerParser } from '../../../../../lib/infrastructure/serializers/csv/csv-learner-parser.js';
+import { CsvColumn } from '../../../../../lib/infrastructure/serializers/csv/csv-column.js';
 
 class FakeLearnerSet {
   constructor() {
@@ -25,8 +23,8 @@ describe('Unit | Infrastructure | CsvOrganizationLearnerParser', function () {
   context('when the header is correctly formed', function () {
     context('when there are lines', function () {
       const columns = [
-        new CsvColumn({ name: 'col1', label: 'Column 1' }),
-        new CsvColumn({ name: 'col2', label: 'Column 2' }),
+        new CsvColumn({ property: 'col1', name: 'Column 1' }),
+        new CsvColumn({ property: 'col2', name: 'Column 2' }),
       ];
 
       it('returns a SupOrganizationLearnerSet with an organization learner for each line', function () {
@@ -44,8 +42,8 @@ describe('Unit | Infrastructure | CsvOrganizationLearnerParser', function () {
     });
     context('when there are different date formats', function () {
       const columns = [
-        new CsvColumn({ name: 'col1', label: 'Column 1' }),
-        new CsvColumn({ name: 'col2', label: 'Column 2', isDate: true }),
+        new CsvColumn({ property: 'col1', name: 'Column 1' }),
+        new CsvColumn({ property: 'col2', name: 'Column 2', isDate: true }),
       ];
 
       it('throws a parsing error', function () {
@@ -66,7 +64,7 @@ describe('Unit | Infrastructure | CsvOrganizationLearnerParser', function () {
     });
 
     context('when there is a validation error', function () {
-      const columns = [new CsvColumn({ name: 'ColumnName', label: 'ColumnLabel' })];
+      const columns = [new CsvColumn({ property: 'property', name: 'ColumnLabel' })];
 
       let error;
       beforeEach(function () {
@@ -78,7 +76,7 @@ describe('Unit | Infrastructure | CsvOrganizationLearnerParser', function () {
       context('when error.why is min_length', function () {
         it('throws a parsing error', async function () {
           error = new Error();
-          error.key = 'ColumnName';
+          error.key = 'property';
           error.why = 'min_length';
           error.limit = 12;
 
@@ -98,7 +96,7 @@ describe('Unit | Infrastructure | CsvOrganizationLearnerParser', function () {
       context('when error.why is max_length', function () {
         it('throws a parsing error', async function () {
           error = new Error();
-          error.key = 'ColumnName';
+          error.key = 'property';
           error.why = 'max_length';
           error.limit = 8;
 
@@ -118,7 +116,7 @@ describe('Unit | Infrastructure | CsvOrganizationLearnerParser', function () {
       context('when error.why is required', function () {
         it('throws a parsing error', async function () {
           error = new Error();
-          error.key = 'ColumnName';
+          error.key = 'property';
           error.why = 'required';
 
           const input = `ColumnLabel;
@@ -137,7 +135,7 @@ describe('Unit | Infrastructure | CsvOrganizationLearnerParser', function () {
       context('when error.why is bad_values', function () {
         it('throws a parsing error', async function () {
           error = new Error();
-          error.key = 'ColumnName';
+          error.key = 'property';
           error.why = 'bad_values';
           error.valids = ['value1', 'value2', 'value3'];
 
@@ -161,7 +159,7 @@ describe('Unit | Infrastructure | CsvOrganizationLearnerParser', function () {
       context('when error.length is bad_values', function () {
         it('throws a parsing error', async function () {
           error = new Error();
-          error.key = 'ColumnName';
+          error.key = 'property';
           error.why = 'length';
           error.limit = 2;
 
@@ -181,7 +179,7 @@ describe('Unit | Infrastructure | CsvOrganizationLearnerParser', function () {
       context('when error.why is date_format', function () {
         it('throws a parsing error', async function () {
           error = new Error();
-          error.key = 'ColumnName';
+          error.key = 'property';
           error.why = 'date_format';
 
           const input = `ColumnLabel;
@@ -200,7 +198,7 @@ describe('Unit | Infrastructure | CsvOrganizationLearnerParser', function () {
       context('when error.why is not_a_date', function () {
         it('throws a parsing error', async function () {
           error = new Error();
-          error.key = 'ColumnName';
+          error.key = 'property';
           error.why = 'not_a_date';
 
           const input = `ColumnLabel;
@@ -219,7 +217,7 @@ describe('Unit | Infrastructure | CsvOrganizationLearnerParser', function () {
       context('when error.why is email_format', function () {
         it('throws a parsing error', async function () {
           error = new Error();
-          error.key = 'ColumnName';
+          error.key = 'property';
           error.why = 'email_format';
 
           const input = `ColumnLabel;
@@ -237,7 +235,7 @@ describe('Unit | Infrastructure | CsvOrganizationLearnerParser', function () {
 
       it('should throw an error including line number', async function () {
         error = new Error();
-        error.key = 'ColumnName';
+        error.key = 'property';
         error.why = 'required';
 
         learnerSet.addLearner = sinon.stub().onThirdCall().throws(error);
@@ -259,8 +257,8 @@ describe('Unit | Infrastructure | CsvOrganizationLearnerParser', function () {
 
   context('When file does not match requirements', function () {
     const columns = [
-      new CsvColumn({ name: 'col1', label: 'Column 1', isRequired: true }),
-      new CsvColumn({ name: 'col2', label: 'Column 2' }),
+      new CsvColumn({ property: 'col1', name: 'Column 1', isRequired: true }),
+      new CsvColumn({ property: 'col2', name: 'Column 2' }),
     ];
 
     it('should throw an error if the file is not csv', async function () {
@@ -302,8 +300,8 @@ describe('Unit | Infrastructure | CsvOrganizationLearnerParser', function () {
 
   context('When the file has different encoding', function () {
     const columns = [
-      new CsvColumn({ name: 'firstName', label: 'Prénom', isRequired: true, checkEncoding: true }),
-      new CsvColumn({ name: 'lastName', label: 'Nom' }),
+      new CsvColumn({ property: 'firstName', name: 'Prénom', isRequired: true, checkEncoding: true }),
+      new CsvColumn({ property: 'lastName', name: 'Nom' }),
     ];
 
     const input = `Prénom;Nom;

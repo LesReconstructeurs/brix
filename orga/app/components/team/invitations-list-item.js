@@ -1,4 +1,4 @@
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 import { action } from '@ember/object';
 import Component from '@glimmer/component';
 import { tracked } from '@glimmer/tracking';
@@ -25,11 +25,11 @@ export default class InvitationsListItem extends Component {
         },
       });
 
-      this.notifications.success(
-        this.intl.t('pages.team-new.success.invitation', { email: organizationInvitation.email })
+      this.notifications.sendSuccess(
+        this.intl.t('pages.team-new.success.invitation', { email: organizationInvitation.email }),
       );
     } catch (e) {
-      this.notifications.error(this.intl.t('api-errors-messages.global'));
+      this.notifications.sendError(this.intl.t('api-errors-messages.global'));
     } finally {
       setTimeout(() => {
         this.isResending = false;

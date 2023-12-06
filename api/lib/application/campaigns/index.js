@@ -1,14 +1,14 @@
-const Joi = require('joi');
-const campaignController = require('./campaign-controller');
-const campaignManagementController = require('./campaign-management-controller');
-const campaignStatsController = require('./campaign-stats-controller');
-const securityPreHandlers = require('../security-pre-handlers');
-const identifiersType = require('../../domain/types/identifiers-type');
-const CampaignParticipationStatuses = require('../../domain/models/CampaignParticipationStatuses');
+import Joi from 'joi';
+import { campaignController } from './campaign-controller.js';
+import { campaignManagementController } from './campaign-management-controller.js';
+import { campaignStatsController } from './campaign-stats-controller.js';
+import { securityPreHandlers } from '../security-pre-handlers.js';
+import { identifiersType } from '../../domain/types/identifiers-type.js';
+import { CampaignParticipationStatuses } from '../../domain/models/CampaignParticipationStatuses.js';
 
 const campaignParticipationStatuses = Object.values(CampaignParticipationStatuses);
 
-exports.register = async function (server) {
+const register = async function (server) {
   server.route([
     {
       method: 'POST',
@@ -304,6 +304,7 @@ exports.register = async function (server) {
             'filter[divisions][]': [Joi.string(), Joi.array().items(Joi.string())],
             'filter[groups][]': [Joi.string(), Joi.array().items(Joi.string())],
             'filter[search]': Joi.string().empty(''),
+            'filter[certificability]': Joi.string().empty(''),
             'page[number]': Joi.number().integer().empty(''),
             'page[size]': Joi.number().integer().empty(''),
           }),
@@ -440,4 +441,5 @@ exports.register = async function (server) {
   ]);
 };
 
-exports.name = 'campaigns-api';
+const name = 'campaigns-api';
+export { register, name };

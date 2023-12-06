@@ -1,216 +1,227 @@
-const _ = require('lodash');
+import _ from 'lodash';
 
-const { knex } = require('../../../../db/knex-database-connection');
-const BookshelfSession = require('../../orm-models/Session');
-const bookshelfToDomainConverter = require('../../utils/bookshelf-to-domain-converter');
-const { NotFoundError } = require('../../../domain/errors');
-const Session = require('../../../domain/models/Session');
-const CertificationCenter = require('../../../domain/models/CertificationCenter');
-const CertificationCandidate = require('../../../domain/models/CertificationCandidate');
-const ComplementaryCertification = require('../../../domain/models/ComplementaryCertification');
-const DomainTransaction = require('../../DomainTransaction');
+import { knex } from '../../../../db/knex-database-connection.js';
+import { NotFoundError } from '../../../domain/errors.js';
+import { Session } from '../../../domain/models/Session.js';
+import { CertificationCenter } from '../../../domain/models/CertificationCenter.js';
+import { CertificationCandidate } from '../../../domain/models/CertificationCandidate.js';
+import { ComplementaryCertification } from '../../../domain/models/ComplementaryCertification.js';
+import { DomainTransaction } from '../../DomainTransaction.js';
 
-module.exports = {
-  async save(sessionData, { knexTransaction } = DomainTransaction.emptyTransaction()) {
-    const knexConn = knexTransaction ?? knex;
-    sessionData = _.omit(sessionData, ['certificationCandidates']);
-    const [savedSession] = await knexConn('sessions').insert(sessionData).returning('*');
+const save = async function (sessionData, { knexTransaction } = DomainTransaction.emptyTransaction()) {
+  const knexConn = knexTransaction ?? knex;
+  sessionData = _.omit(sessionData, ['certificationCandidates']);
+  const [savedSession] = await knexConn('sessions').insert(sessionData).returning('*');
 
-    return new Session(savedSession);
-  },
+  return new Session(savedSession);
+};
 
-  async isSessionCodeAvailable(accessCode) {
-    const sessionWithAccessCode = await BookshelfSession.where({ accessCode }).fetch({ require: false });
+const saveSessions = async function (sessionsData) {
+  const sessions = sessionsData.map((session) => {
+    return _.omit(session, ['certificationCandidates']);
+  });
+  return knex.batchInsert('sessions', sessions);
+};
 
-    return !sessionWithAccessCode;
-  },
+const isFinalized = async function (id) {
+  const session = await knex.select('id').from('sessions').where({ id }).whereNotNull('finalizedAt').first();
+  return Boolean(session);
+};
 
-  async isFinalized(id) {
-    const session = await BookshelfSession.query((qb) => {
-      qb.where({ id });
-      qb.whereRaw('?? IS NOT NULL', ['finalizedAt']);
-    }).fetch({ require: false, columns: 'id' });
-    return Boolean(session);
-  },
+const get = async function (sessionId) {
+  const foundSession = await knex.select('*').from('sessions').where({ id: sessionId }).first();
+  if (!foundSession) {
+    throw new NotFoundError("La session n'existe pas ou son accès est restreint");
+  }
+  return new Session({ ...foundSession });
+};
 
-  async get(sessionId) {
-    try {
-      const session = await BookshelfSession.where({ id: sessionId }).fetch();
-      return bookshelfToDomainConverter.buildDomainObject(BookshelfSession, session);
-    } catch (err) {
-      if (err instanceof BookshelfSession.NotFoundError) {
-        throw new NotFoundError("La session n'existe pas ou son accès est restreint");
-      }
-      throw err;
-    }
-  },
+const isSessionExisting = async function ({ address, room, date, time }) {
+  const sessions = await knex('sessions').where({ address, room, date, time });
+  return sessions.length > 0;
+};
 
-  async getWithCertificationCandidates(sessionId) {
-    const session = await knex.from('sessions').where({ 'sessions.id': sessionId }).first();
+const isSessionExistingBySessionAndCertificationCenterIds = async function ({ sessionId, certificationCenterId }) {
+  const [session] = await knex('sessions').where({ id: sessionId, certificationCenterId });
+  return Boolean(session);
+};
 
-    if (!session) {
-      throw new NotFoundError("La session n'existe pas ou son accès est restreint");
-    }
+const getWithCertificationCandidates = async function (sessionId) {
+  const session = await knex.from('sessions').where({ 'sessions.id': sessionId }).first();
 
-    const certificationCandidates = await knex
-      .select('certification-candidates.*')
-      .select({
-        complementaryCertifications: knex.raw(`
-        json_agg(json_build_object('id', "complementary-certifications"."id", 'label', "complementary-certifications"."label", 'key', "complementary-certifications"."key"))
-        `),
-      })
-      .from('certification-candidates')
-      .leftJoin(
-        'complementary-certification-subscriptions',
-        'complementary-certification-subscriptions.certificationCandidateId',
-        'certification-candidates.id'
-      )
-      .leftJoin(
-        'complementary-certifications',
-        'complementary-certifications.id',
-        'complementary-certification-subscriptions.complementaryCertificationId'
-      )
-      .groupBy('certification-candidates.id')
-      .where({ sessionId })
-      .orderByRaw('LOWER(??) ASC, LOWER(??) ASC', ['lastName', 'firstName']);
+  if (!session) {
+    throw new NotFoundError("La session n'existe pas ou son accès est restreint");
+  }
 
-    return _toDomain({ ...session, certificationCandidates });
-  },
+  const certificationCandidates = await knex
+    .select({
+      certificationCandidate: 'certification-candidates.*',
+      complementaryCertificationId: 'complementary-certifications.id',
+      complementaryCertificationKey: 'complementary-certifications.key',
+      complementaryCertificationLabel: 'complementary-certifications.label',
+    })
+    .from('certification-candidates')
+    .leftJoin(
+      'complementary-certification-subscriptions',
+      'complementary-certification-subscriptions.certificationCandidateId',
+      'certification-candidates.id',
+    )
+    .leftJoin(
+      'complementary-certifications',
+      'complementary-certifications.id',
+      'complementary-certification-subscriptions.complementaryCertificationId',
+    )
+    .groupBy('certification-candidates.id', 'complementary-certifications.id')
+    .where({ sessionId })
+    .orderByRaw('LOWER(??) ASC, LOWER(??) ASC', ['lastName', 'firstName']);
 
-  async updateSessionInfo(session) {
-    const sessionDataToUpdate = _.pick(session, [
-      'address',
-      'room',
-      'accessCode',
-      'examiner',
-      'date',
-      'time',
-      'description',
-    ]);
+  return _toDomain({ ...session, certificationCandidates });
+};
 
-    let updatedSession = await new BookshelfSession({ id: session.id }).save(sessionDataToUpdate, {
-      patch: true,
-      method: 'update',
-    });
-    updatedSession = await updatedSession.refresh();
-    return bookshelfToDomainConverter.buildDomainObject(BookshelfSession, updatedSession);
-  },
+const updateSessionInfo = async function (session) {
+  const sessionDataToUpdate = _.pick(session, [
+    'address',
+    'room',
+    'accessCode',
+    'examiner',
+    'date',
+    'time',
+    'description',
+  ]);
 
-  async doesUserHaveCertificationCenterMembershipForSession(userId, sessionId) {
-    const session = await BookshelfSession.where({
+  const [updatedSession] = await knex('sessions').where({ id: session.id }).update(sessionDataToUpdate).returning('*');
+  return new Session(updatedSession);
+};
+
+const doesUserHaveCertificationCenterMembershipForSession = async function (userId, sessionId) {
+  const sessions = await knex
+    .select('sessions.id')
+    .from('sessions')
+    .where({
       'sessions.id': sessionId,
       'certification-center-memberships.userId': userId,
       'certification-center-memberships.disabledAt': null,
     })
-      .query((qb) => {
-        qb.innerJoin('certification-centers', 'certification-centers.id', 'sessions.certificationCenterId');
-        qb.innerJoin(
-          'certification-center-memberships',
-          'certification-center-memberships.certificationCenterId',
-          'certification-centers.id'
-        );
-      })
-      .fetch({ require: false, columns: 'sessions.id' });
-    return Boolean(session);
-  },
-
-  async finalize({ id, examinerGlobalComment, hasIncident, hasJoiningIssue, finalizedAt }) {
-    let updatedSession = await new BookshelfSession({ id }).save(
-      { examinerGlobalComment, hasIncident, hasJoiningIssue, finalizedAt },
-      { patch: true }
+    .innerJoin('certification-centers', 'certification-centers.id', 'sessions.certificationCenterId')
+    .innerJoin(
+      'certification-center-memberships',
+      'certification-center-memberships.certificationCenterId',
+      'certification-centers.id',
     );
-    updatedSession = await updatedSession.refresh();
-    return bookshelfToDomainConverter.buildDomainObject(BookshelfSession, updatedSession);
-  },
+  return Boolean(sessions.length);
+};
 
-  async flagResultsAsSentToPrescriber({ id, resultsSentToPrescriberAt }) {
-    let flaggedSession = await new BookshelfSession({ id }).save({ resultsSentToPrescriberAt }, { patch: true });
-    flaggedSession = await flaggedSession.refresh();
-    return bookshelfToDomainConverter.buildDomainObject(BookshelfSession, flaggedSession);
-  },
+const finalize = async function ({ id, examinerGlobalComment, hasIncident, hasJoiningIssue, finalizedAt }) {
+  const [finalizedSession] = await knex('sessions')
+    .where({ id })
+    .update({ examinerGlobalComment, hasIncident, hasJoiningIssue, finalizedAt })
+    .returning('*');
+  return new Session(finalizedSession);
+};
 
-  async updatePublishedAt({ id, publishedAt }) {
-    let publishedSession = await new BookshelfSession({ id }).save({ publishedAt }, { patch: true });
-    publishedSession = await publishedSession.refresh();
-    return bookshelfToDomainConverter.buildDomainObject(BookshelfSession, publishedSession);
-  },
+const flagResultsAsSentToPrescriber = async function ({ id, resultsSentToPrescriberAt }) {
+  const [flaggedSession] = await knex('sessions').where({ id }).update({ resultsSentToPrescriberAt }).returning('*');
+  return new Session(flaggedSession);
+};
 
-  async isSco({ sessionId }) {
-    const result = await knex
-      .select('certification-centers.type')
-      .from('sessions')
-      .where('sessions.id', '=', sessionId)
-      .innerJoin('certification-centers', 'certification-centers.id', 'sessions.certificationCenterId')
-      .first();
+const updatePublishedAt = async function ({ id, publishedAt }) {
+  const [publishedSession] = await knex('sessions').where({ id }).update({ publishedAt }).returning('*');
+  return new Session(publishedSession);
+};
 
-    return result.type === CertificationCenter.types.SCO;
-  },
+const isSco = async function ({ sessionId }) {
+  const result = await knex
+    .select('certification-centers.type')
+    .from('sessions')
+    .where('sessions.id', '=', sessionId)
+    .innerJoin('certification-centers', 'certification-centers.id', 'sessions.certificationCenterId')
+    .first();
 
-  async delete(sessionId) {
-    await knex.transaction(async (trx) => {
-      const certificationCandidateIdsInSession = await knex('certification-candidates')
-        .where({ sessionId })
-        .pluck('id');
-      const supervisorAccessIds = await knex('supervisor-accesses').where({ sessionId }).pluck('id');
+  return result.type === CertificationCenter.types.SCO;
+};
 
-      if (supervisorAccessIds) {
-        await trx('supervisor-accesses').whereIn('id', supervisorAccessIds).del();
-      }
+const remove = async function (sessionId) {
+  await knex.transaction(async (trx) => {
+    const certificationCandidateIdsInSession = await knex('certification-candidates').where({ sessionId }).pluck('id');
+    const supervisorAccessIds = await knex('supervisor-accesses').where({ sessionId }).pluck('id');
 
-      if (certificationCandidateIdsInSession.length) {
-        await trx('complementary-certification-subscriptions')
-          .whereIn('certificationCandidateId', certificationCandidateIdsInSession)
-          .del();
-        await trx('certification-candidates').whereIn('id', certificationCandidateIdsInSession).del();
-      }
-      const nbSessionsDeleted = await trx('sessions').where('id', sessionId).del();
-      if (nbSessionsDeleted === 0) throw new NotFoundError();
-    });
+    if (supervisorAccessIds) {
+      await trx('supervisor-accesses').whereIn('id', supervisorAccessIds).del();
+    }
 
-    return;
-  },
+    if (certificationCandidateIdsInSession.length) {
+      await trx('complementary-certification-subscriptions')
+        .whereIn('certificationCandidateId', certificationCandidateIdsInSession)
+        .del();
+      await trx('certification-candidates').whereIn('id', certificationCandidateIdsInSession).del();
+    }
+    const nbSessionsDeleted = await trx('sessions').where('id', sessionId).del();
+    if (nbSessionsDeleted === 0) throw new NotFoundError();
+  });
 
-  async hasSomeCleaAcquired(sessionId) {
-    const result = await knex
-      .select(1)
-      .from('sessions')
-      .innerJoin('certification-courses', 'certification-courses.sessionId', 'sessions.id')
-      .innerJoin(
-        'complementary-certification-courses',
-        'complementary-certification-courses.certificationCourseId',
-        'certification-courses.id'
-      )
-      .innerJoin(
-        'complementary-certifications',
-        'complementary-certifications.id',
-        'complementary-certification-courses.complementaryCertificationId'
-      )
-      .innerJoin(
-        'complementary-certification-course-results',
-        'complementary-certification-course-results.complementaryCertificationCourseId',
-        'complementary-certification-courses.id'
-      )
-      .where('sessions.id', sessionId)
-      .whereNotNull('sessions.publishedAt')
-      .where('complementary-certification-course-results.acquired', true)
-      .where('complementary-certifications.key', ComplementaryCertification.CLEA)
-      .first();
-    return Boolean(result);
-  },
+  return;
+};
 
-  async hasNoStartedCertification(sessionId) {
-    const result = await knex.select(1).from('certification-courses').where('sessionId', sessionId).first();
-    return !result;
-  },
+const hasSomeCleaAcquired = async function (sessionId) {
+  const result = await knex
+    .select(1)
+    .from('sessions')
+    .innerJoin('certification-courses', 'certification-courses.sessionId', 'sessions.id')
+    .innerJoin(
+      'complementary-certification-courses',
+      'complementary-certification-courses.certificationCourseId',
+      'certification-courses.id',
+    )
+    .innerJoin(
+      'complementary-certifications',
+      'complementary-certifications.id',
+      'complementary-certification-courses.complementaryCertificationId',
+    )
+    .innerJoin(
+      'complementary-certification-course-results',
+      'complementary-certification-course-results.complementaryCertificationCourseId',
+      'complementary-certification-courses.id',
+    )
+    .where('sessions.id', sessionId)
+    .whereNotNull('sessions.publishedAt')
+    .where('complementary-certification-course-results.acquired', true)
+    .where('complementary-certifications.key', ComplementaryCertification.CLEA)
+    .first();
+  return Boolean(result);
+};
 
-  async countUncompletedCertifications(sessionId) {
-    const { count } = await knex
-      .count('id')
-      .from('certification-courses')
-      .where({ sessionId, completedAt: null })
-      .first();
-    return count;
-  },
+const hasNoStartedCertification = async function (sessionId) {
+  const result = await knex.select(1).from('certification-courses').where('sessionId', sessionId).first();
+  return !result;
+};
+
+const countUncompletedCertifications = async function (sessionId) {
+  const { count } = await knex
+    .count('id')
+    .from('certification-courses')
+    .where({ sessionId, completedAt: null })
+    .first();
+  return count;
+};
+
+export {
+  save,
+  saveSessions,
+  isFinalized,
+  get,
+  isSessionExisting,
+  isSessionExistingBySessionAndCertificationCenterIds,
+  getWithCertificationCandidates,
+  updateSessionInfo,
+  doesUserHaveCertificationCenterMembershipForSession,
+  finalize,
+  flagResultsAsSentToPrescriber,
+  updatePublishedAt,
+  isSco,
+  remove,
+  hasSomeCleaAcquired,
+  hasNoStartedCertification,
+  countUncompletedCertifications,
 };
 
 function _toDomain(results) {
@@ -220,14 +231,25 @@ function _toDomain(results) {
       (candidateData) =>
         new CertificationCandidate({
           ...candidateData,
-          complementaryCertifications: candidateData.complementaryCertifications.filter(
-            (complementaryCertification) => complementaryCertification.id != null
-          ),
-        })
+          complementaryCertification: _buildComplementaryCertification({
+            id: candidateData.complementaryCertificationId,
+            key: candidateData.complementaryCertificationKey,
+            label: candidateData.complementaryCertificationLabel,
+          }),
+        }),
     );
 
   return new Session({
     ...results,
     certificationCandidates: toDomainCertificationCandidates,
+  });
+}
+
+function _buildComplementaryCertification({ id, key, label }) {
+  if (!id) return null;
+  return new ComplementaryCertification({
+    id,
+    key,
+    label,
   });
 }

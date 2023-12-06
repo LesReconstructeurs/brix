@@ -1,9 +1,9 @@
 import { Factory, trait } from 'miragejs';
-import faker from 'faker';
+import { faker } from '@faker-js/faker';
 
 export default Factory.extend({
   id() {
-    return `rec_${faker.random.alphaNumeric(5)}`;
+    return `rec_${faker.string.alphanumeric(5)}`;
   },
 
   type() {
@@ -21,25 +21,25 @@ export default Factory.extend({
   // NOTE : ID set in the afterCreate, else faker would always generate the same ID
   forCompetenceEvaluation: trait({
     afterCreate(challenge) {
-      challenge.update({ id: `recCOMPEVAL_${faker.random.alphaNumeric(5)}` });
+      challenge.update({ id: `recCOMPEVAL_${faker.string.alphanumeric(5)}` });
     },
   }),
 
   forCertification: trait({
     afterCreate(challenge) {
-      challenge.update({ id: `recCERTIF_${faker.random.alphaNumeric(5)}` });
+      challenge.update({ id: `recCERTIF_${faker.string.alphanumeric(5)}` });
     },
   }),
 
   forDemo: trait({
     afterCreate(challenge) {
-      challenge.update({ id: `recDEMO_${faker.random.alphaNumeric(5)}` });
+      challenge.update({ id: `recDEMO_${faker.string.alphanumeric(5)}` });
     },
   }),
 
   forCampaign: trait({
     afterCreate(challenge) {
-      challenge.update({ id: `recSMARPLA_${faker.random.alphaNumeric(5)}` });
+      challenge.update({ id: `recSMARPLA_${faker.string.alphanumeric(5)}` });
     },
   }),
 
@@ -51,7 +51,7 @@ export default Factory.extend({
     proposals:
       '- *possibilite* 1, et/ou' +
       '\n - [possibilite 2](/test), et/ou' +
-      '\n - ![possibilite 3](/images/brix-logo-blanc.svg), et/ou' +
+      '\n - ![possibilite 3](/images/pix-logo-blanc.svg), et/ou' +
       '\n - possibilite 4',
   }),
 
@@ -63,7 +63,7 @@ export default Factory.extend({
     proposals:
       '- 1ere *possibilite*\n ' +
       '- 2eme [possibilite](/test)\n ' +
-      '- ![3eme possibilite](/images/brix-logo-blanc.svg)\n' +
+      '- ![3eme possibilite](/images/pix-logo-blanc.svg)\n' +
       '- 4eme possibilite',
   }),
 
@@ -115,7 +115,7 @@ export default Factory.extend({
   }),
 
   timed: trait({
-    timer: faker.random.number(),
+    timer: faker.number.int(),
   }),
 
   QROCwithFile1: trait({
@@ -140,7 +140,7 @@ export default Factory.extend({
 
   withEmbed: trait({
     embedUrl: 'https://example.biz',
-    embedTitle: faker.random.words(),
+    embedTitle: faker.lorem.words(),
     embedHeight: '100',
   }),
 

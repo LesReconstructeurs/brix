@@ -1,13 +1,13 @@
 import { module, test } from 'qunit';
-import { setupRenderingTest } from 'ember-qunit';
 import { click } from '@ember/test-helpers';
 import { hbs } from 'ember-cli-htmlbars';
 import sinon from 'sinon';
 import EmberObject from '@ember/object';
 import { render } from '@1024pix/ember-testing-library';
+import setupIntlRenderingTest from '../../helpers/setup-intl-rendering';
 
 module('Integration | Component | add-student-list', function (hooks) {
-  setupRenderingTest(hooks);
+  setupIntlRenderingTest(hooks);
 
   const ADD_BUTTON_SELECTOR = '.bottom-action-bar__actions--add-button';
   let notificationMessagesService;
@@ -63,7 +63,7 @@ module('Integration | Component | add-student-list', function (hooks) {
         />
       `);
       await click(
-        screen.getByRole('textbox', { name: 'Filtrer la liste des élèves en cochant la ou les classes souhaitées' })
+        screen.getByRole('textbox', { name: 'Filtrer la liste des élèves en cochant la ou les classes souhaitées' }),
       );
       await screen.findByRole('menu');
 
@@ -96,7 +96,7 @@ module('Integration | Component | add-student-list', function (hooks) {
 
       // when
       await render(
-        hbs`<AddStudentList @studentList={{this.students}} @certificationCenterDivisions={{this.divisions}}></AddStudentList>`
+        hbs`<AddStudentList @studentList={{this.students}} @certificationCenterDivisions={{this.divisions}}></AddStudentList>`,
       );
 
       // then
@@ -125,13 +125,12 @@ module('Integration | Component | add-student-list', function (hooks) {
       ];
       this.set('divisions', divisions);
 
-      await render(
-        hbs`<AddStudentList @studentList={{this.students}} @certificationCenterDivisions={{this.divisions}}></AddStudentList>`
+      const screen = await render(
+        hbs`<AddStudentList @studentList={{this.students}} @certificationCenterDivisions={{this.divisions}}></AddStudentList>`,
       );
 
       // when
-      const firstStudentCheckbox = '.add-student-list__column-checkbox button:nth-of-type(1)';
-      await click(firstStudentCheckbox);
+      await click(screen.getByRole('checkbox', { name: 'Sélectionner le candidat firstName lastName' }));
 
       // then
       assert.true(this.students[0].isSelected);
@@ -139,8 +138,7 @@ module('Integration | Component | add-student-list', function (hooks) {
 
     test('it should be possible to unselect a selected student', async function (assert) {
       // given
-      this.set('students', [_buildSelectedStudent()]);
-      const students = [_buildSelectedStudent()];
+      const students = [_buildSelectedStudent('Jean', 'Bon')];
       students.meta = {
         page: 1,
         pageSize: 25,
@@ -156,13 +154,12 @@ module('Integration | Component | add-student-list', function (hooks) {
       ];
       this.set('divisions', divisions);
 
-      await render(
-        hbs`<AddStudentList @studentList={{this.students}} @certificationCenterDivisions={{this.divisions}}></AddStudentList>`
+      const screen = await render(
+        hbs`<AddStudentList @studentList={{this.students}} @certificationCenterDivisions={{this.divisions}}></AddStudentList>`,
       );
 
       // when
-      const firstStudentCheckbox = '.add-student-list__column-checkbox button:nth-of-type(1)';
-      await click(firstStudentCheckbox);
+      await click(screen.getByRole('checkbox', { name: 'Sélectionner le candidat Jean Bon' }));
 
       // then
       assert.false(this.students[0].isSelected);
@@ -194,13 +191,12 @@ module('Integration | Component | add-student-list', function (hooks) {
         ];
         this.set('divisions', divisions);
 
-        await render(
-          hbs`<AddStudentList @studentList={{this.students}} @certificationCenterDivisions={{this.divisions}}></AddStudentList>`
+        const screen = await render(
+          hbs`<AddStudentList @studentList={{this.students}} @certificationCenterDivisions={{this.divisions}}></AddStudentList>`,
         );
 
         // when
-        const selectAllCheckbox = '.add-student-list__checker';
-        await click(selectAllCheckbox);
+        await click(screen.getByRole('checkbox', { name: 'Sélectionner tous les candidats de la liste' }));
 
         // then
         assert.true(this.students.every((s) => s.isSelected));
@@ -224,13 +220,12 @@ module('Integration | Component | add-student-list', function (hooks) {
       ];
       this.set('divisions', divisions);
 
-      await render(
-        hbs`<AddStudentList @studentList={{this.students}} @certificationCenterDivisions={{this.divisions}}></AddStudentList>`
+      const screen = await render(
+        hbs`<AddStudentList @studentList={{this.students}} @certificationCenterDivisions={{this.divisions}}></AddStudentList>`,
       );
 
       // when
-      const selectAllCheckbox = '.add-student-list__checker';
-      await click(selectAllCheckbox);
+      await click(screen.getByRole('checkbox', { name: 'Sélectionner tous les candidats de la liste' }));
 
       // then
       assert.false(this.students.every((s) => s.isSelected));
@@ -451,7 +446,7 @@ module('Integration | Component | add-student-list', function (hooks) {
           sinon.stub(store, 'peekAll').withArgs('student').returns(students);
 
           await render(
-            hbs`<AddStudentList @studentList={{this.students}} @session={{this.session}} @certificationCenterDivisions={{this.divisions}}></AddStudentList>`
+            hbs`<AddStudentList @studentList={{this.students}} @session={{this.session}} @certificationCenterDivisions={{this.divisions}}></AddStudentList>`,
           );
 
           // when
@@ -459,8 +454,8 @@ module('Integration | Component | add-student-list', function (hooks) {
           await click(addButton);
           assert.ok(
             notificationMessagesService.error.calledOnceWith(
-              'Une erreur est survenue au moment d‘inscrire les candidats...'
-            )
+              'Une erreur est survenue au moment d‘inscrire les candidats...',
+            ),
           );
         });
       });
@@ -486,7 +481,7 @@ module('Integration | Component | add-student-list', function (hooks) {
         sinon.stub(store, 'peekAll').withArgs('student').returns(students);
 
         await render(
-          hbs`<AddStudentList @studentList={{this.students}} @session={{this.session}} @certificationCenterDivisions={{this.divisions}}></AddStudentList>`
+          hbs`<AddStudentList @studentList={{this.students}} @session={{this.session}} @certificationCenterDivisions={{this.divisions}}></AddStudentList>`,
         );
 
         // when
@@ -502,7 +497,7 @@ module('Integration | Component | add-student-list', function (hooks) {
     lastName = 'lastName',
     division = 'division',
     birthdate = 'birthdate',
-    isEnrolled = false
+    isEnrolled = false,
   ) {
     return EmberObject.create({
       firstName,
@@ -524,7 +519,7 @@ module('Integration | Component | add-student-list', function (hooks) {
     firstName = 'firstName',
     lastName = 'lastName',
     division = 'division',
-    birthdate = 'birthdate'
+    birthdate = 'birthdate',
   ) {
     return EmberObject.create({
       firstName,

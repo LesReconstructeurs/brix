@@ -1,13 +1,13 @@
-const { expect, sinon, domainBuilder, catchErr } = require('../../../test-helper');
-const usecases = require('../../../../lib/domain/usecases');
-const OrganizationLearner = require('../../../../lib/domain/models/OrganizationLearner');
+import { expect, sinon, domainBuilder, catchErr } from '../../../test-helper.js';
+import { usecases } from '../../../../lib/domain/usecases/index.js';
+import { OrganizationLearner } from '../../../../lib/domain/models/OrganizationLearner.js';
 
-const {
+import {
   CampaignCodeError,
   NotFoundError,
   OrganizationLearnerAlreadyLinkedToUserError,
   UserShouldNotBeReconciledOnAnotherAccountError,
-} = require('../../../../lib/domain/errors');
+} from '../../../../lib/domain/errors.js';
 
 describe('Unit | UseCase | reconcile-sco-organization-learner-manually', function () {
   let campaignCode;
@@ -40,8 +40,8 @@ describe('Unit | UseCase | reconcile-sco-organization-learner-manually', functio
       findByUserId: sinon.stub(),
     };
     userReconciliationService = {
-      findMatchingOrganizationLearnerIdForGivenOrganizationIdAndUser: sinon.stub(),
-      checkIfStudentHasAnAlreadyReconciledAccount: sinon.stub(),
+      findMatchingOrganizationLearnerForGivenOrganizationIdAndReconciliationInfo: sinon.stub(),
+      assertStudentHasAnAlreadyReconciledAccount: sinon.stub(),
     };
   });
 
@@ -68,8 +68,8 @@ describe('Unit | UseCase | reconcile-sco-organization-learner-manually', functio
       campaignRepository.getByCode
         .withArgs(campaignCode)
         .resolves(domainBuilder.buildCampaign({ organization: { id: organizationId } }));
-      userReconciliationService.findMatchingOrganizationLearnerIdForGivenOrganizationIdAndUser.throws(
-        new NotFoundError('Error message')
+      userReconciliationService.findMatchingOrganizationLearnerForGivenOrganizationIdAndReconciliationInfo.throws(
+        new NotFoundError('Error message'),
       );
 
       // when
@@ -92,11 +92,11 @@ describe('Unit | UseCase | reconcile-sco-organization-learner-manually', functio
       campaignRepository.getByCode
         .withArgs(campaignCode)
         .resolves(domainBuilder.buildCampaign({ organization: { id: organizationId } }));
-      userReconciliationService.findMatchingOrganizationLearnerIdForGivenOrganizationIdAndUser.resolves(
-        organizationLearner
+      userReconciliationService.findMatchingOrganizationLearnerForGivenOrganizationIdAndReconciliationInfo.resolves(
+        organizationLearner,
       );
-      userReconciliationService.checkIfStudentHasAnAlreadyReconciledAccount.throws(
-        new OrganizationLearnerAlreadyLinkedToUserError()
+      userReconciliationService.assertStudentHasAnAlreadyReconciledAccount.throws(
+        new OrganizationLearnerAlreadyLinkedToUserError(),
       );
 
       // when
@@ -129,10 +129,10 @@ describe('Unit | UseCase | reconcile-sco-organization-learner-manually', functio
       campaignRepository.getByCode
         .withArgs(campaignCode)
         .resolves(domainBuilder.buildCampaign({ organization: { id: organizationId } }));
-      userReconciliationService.findMatchingOrganizationLearnerIdForGivenOrganizationIdAndUser.resolves(
-        organizationLearner
+      userReconciliationService.findMatchingOrganizationLearnerForGivenOrganizationIdAndReconciliationInfo.resolves(
+        organizationLearner,
       );
-      userReconciliationService.checkIfStudentHasAnAlreadyReconciledAccount.resolves();
+      userReconciliationService.assertStudentHasAnAlreadyReconciledAccount.resolves();
       organizationLearnerRepository.findOneByUserIdAndOrganizationId
         .withArgs({
           userId: user.id,
@@ -185,10 +185,10 @@ describe('Unit | UseCase | reconcile-sco-organization-learner-manually', functio
           });
 
           campaignRepository.getByCode.resolves(campaign);
-          userReconciliationService.findMatchingOrganizationLearnerIdForGivenOrganizationIdAndUser.resolves(
-            currentOrganizationLearner
+          userReconciliationService.findMatchingOrganizationLearnerForGivenOrganizationIdAndReconciliationInfo.resolves(
+            currentOrganizationLearner,
           );
-          userReconciliationService.checkIfStudentHasAnAlreadyReconciledAccount.resolves();
+          userReconciliationService.assertStudentHasAnAlreadyReconciledAccount.resolves();
           organizationLearnerRepository.findOneByUserIdAndOrganizationId.resolves();
           organizationLearnerRepository.findByUserId.withArgs({ userId: 1 }).resolves([previousOrganizationLearner]);
           organizationLearnerRepository.reconcileUserToOrganizationLearner.resolves(currentOrganizationLearner);
@@ -239,10 +239,10 @@ describe('Unit | UseCase | reconcile-sco-organization-learner-manually', functio
           });
 
           campaignRepository.getByCode.resolves(campaign);
-          userReconciliationService.findMatchingOrganizationLearnerIdForGivenOrganizationIdAndUser.resolves(
-            currentOrganizationLearner
+          userReconciliationService.findMatchingOrganizationLearnerForGivenOrganizationIdAndReconciliationInfo.resolves(
+            currentOrganizationLearner,
           );
-          userReconciliationService.checkIfStudentHasAnAlreadyReconciledAccount.resolves();
+          userReconciliationService.assertStudentHasAnAlreadyReconciledAccount.resolves();
           organizationLearnerRepository.findOneByUserIdAndOrganizationId.resolves();
           organizationLearnerRepository.findByUserId.withArgs({ userId: 1 }).resolves([previousOrganizationLearner]);
 
@@ -293,10 +293,10 @@ describe('Unit | UseCase | reconcile-sco-organization-learner-manually', functio
         });
 
         campaignRepository.getByCode.resolves(campaign);
-        userReconciliationService.findMatchingOrganizationLearnerIdForGivenOrganizationIdAndUser.resolves(
-          currentOrganizationLearner
+        userReconciliationService.findMatchingOrganizationLearnerForGivenOrganizationIdAndReconciliationInfo.resolves(
+          currentOrganizationLearner,
         );
-        userReconciliationService.checkIfStudentHasAnAlreadyReconciledAccount.resolves();
+        userReconciliationService.assertStudentHasAnAlreadyReconciledAccount.resolves();
         organizationLearnerRepository.findOneByUserIdAndOrganizationId.resolves();
         organizationLearnerRepository.findByUserId.withArgs({ userId: 1 }).resolves([previousOrganizationLearner]);
         organizationLearnerRepository.reconcileUserToOrganizationLearner.resolves(currentOrganizationLearner);
@@ -347,10 +347,10 @@ describe('Unit | UseCase | reconcile-sco-organization-learner-manually', functio
         });
 
         campaignRepository.getByCode.resolves(campaign);
-        userReconciliationService.findMatchingOrganizationLearnerIdForGivenOrganizationIdAndUser.resolves(
-          currentOrganizationLearner
+        userReconciliationService.findMatchingOrganizationLearnerForGivenOrganizationIdAndReconciliationInfo.resolves(
+          currentOrganizationLearner,
         );
-        userReconciliationService.checkIfStudentHasAnAlreadyReconciledAccount.resolves();
+        userReconciliationService.assertStudentHasAnAlreadyReconciledAccount.resolves();
         organizationLearnerRepository.findOneByUserIdAndOrganizationId.resolves();
         organizationLearnerRepository.findByUserId.withArgs({ userId: 1 }).resolves([previousOrganizationLearner]);
         organizationLearnerRepository.reconcileUserToOrganizationLearner.resolves(currentOrganizationLearner);
@@ -411,10 +411,10 @@ describe('Unit | UseCase | reconcile-sco-organization-learner-manually', functio
             });
 
             campaignRepository.getByCode.resolves(campaign);
-            userReconciliationService.findMatchingOrganizationLearnerIdForGivenOrganizationIdAndUser.resolves(
-              currentOrganizationLearner
+            userReconciliationService.findMatchingOrganizationLearnerForGivenOrganizationIdAndReconciliationInfo.resolves(
+              currentOrganizationLearner,
             );
-            userReconciliationService.checkIfStudentHasAnAlreadyReconciledAccount.resolves();
+            userReconciliationService.assertStudentHasAnAlreadyReconciledAccount.resolves();
             organizationLearnerRepository.findOneByUserIdAndOrganizationId.resolves();
             organizationLearnerRepository.findByUserId
               .withArgs({ userId: 1 })
@@ -470,10 +470,10 @@ describe('Unit | UseCase | reconcile-sco-organization-learner-manually', functio
             });
 
             campaignRepository.getByCode.resolves(campaign);
-            userReconciliationService.findMatchingOrganizationLearnerIdForGivenOrganizationIdAndUser.resolves(
-              currentOrganizationLearner
+            userReconciliationService.findMatchingOrganizationLearnerForGivenOrganizationIdAndReconciliationInfo.resolves(
+              currentOrganizationLearner,
             );
-            userReconciliationService.checkIfStudentHasAnAlreadyReconciledAccount.resolves();
+            userReconciliationService.assertStudentHasAnAlreadyReconciledAccount.resolves();
             organizationLearnerRepository.findOneByUserIdAndOrganizationId.resolves();
             organizationLearnerRepository.findByUserId
               .withArgs({ userId: 1 })
@@ -494,11 +494,11 @@ describe('Unit | UseCase | reconcile-sco-organization-learner-manually', functio
               {
                 userId: reconciliationInfo.id,
                 organizationLearnerId: currentOrganizationLearner.id,
-              }
+              },
             );
           });
         });
-      }
+      },
     );
   });
 
@@ -512,10 +512,10 @@ describe('Unit | UseCase | reconcile-sco-organization-learner-manually', functio
       campaignRepository.getByCode
         .withArgs(campaignCode)
         .resolves(domainBuilder.buildCampaign({ organization: { id: organizationId } }));
-      userReconciliationService.findMatchingOrganizationLearnerIdForGivenOrganizationIdAndUser.resolves(
-        organizationLearner
+      userReconciliationService.findMatchingOrganizationLearnerForGivenOrganizationIdAndReconciliationInfo.resolves(
+        organizationLearner,
       );
-      userReconciliationService.checkIfStudentHasAnAlreadyReconciledAccount.resolves();
+      userReconciliationService.assertStudentHasAnAlreadyReconciledAccount.resolves();
       organizationLearnerRepository.reconcileUserToOrganizationLearner
         .withArgs({
           userId: user.id,
@@ -550,11 +550,11 @@ describe('Unit | UseCase | reconcile-sco-organization-learner-manually', functio
       campaignRepository.getByCode
         .withArgs(campaignCode)
         .resolves(domainBuilder.buildCampaign({ organization: { id: organizationId } }));
-      userReconciliationService.findMatchingOrganizationLearnerIdForGivenOrganizationIdAndUser.resolves(
-        organizationLearner
+      userReconciliationService.findMatchingOrganizationLearnerForGivenOrganizationIdAndReconciliationInfo.resolves(
+        organizationLearner,
       );
       organizationLearnerRepository.findByUserId.resolves([organizationLearner]);
-      userReconciliationService.checkIfStudentHasAnAlreadyReconciledAccount.resolves();
+      userReconciliationService.assertStudentHasAnAlreadyReconciledAccount.resolves();
 
       // when
       const result = await usecases.reconcileScoOrganizationLearnerManually({

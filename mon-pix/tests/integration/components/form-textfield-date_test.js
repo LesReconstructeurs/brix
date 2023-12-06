@@ -1,7 +1,9 @@
 import { module, test } from 'qunit';
 import setupIntlRenderingTest from '../../helpers/setup-intl-rendering';
-import { fillIn, find, render, settled, triggerEvent } from '@ember/test-helpers';
-import hbs from 'htmlbars-inline-precompile';
+// eslint-disable-next-line no-restricted-imports
+import { fillIn, find, triggerEvent } from '@ember/test-helpers';
+import { render } from '@1024pix/ember-testing-library';
+import { hbs } from 'ember-cli-htmlbars';
 
 module('Integration | Component | form textfield date', function (hooks) {
   setupIntlRenderingTest(hooks);
@@ -58,9 +60,7 @@ module('Integration | Component | form textfield date', function (hooks) {
       test(`Should render a ${expectedRendering}`, function (assert) {
         // Then
         assert.dom(item).exists({ count: expectedLength });
-        // TODO: Fix this the next time the file is edited.
-        // eslint-disable-next-line qunit/no-assert-equal
-        assert.equal(find(item).nodeName, expectedRendering.toUpperCase());
+        assert.strictEqual(find(item).nodeName, expectedRendering.toUpperCase());
       });
     });
 
@@ -218,14 +218,10 @@ module('Integration | Component | form textfield date', function (hooks) {
         />`);
       });
 
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/require-expect
       test('return true if any img does exist', function (assert) {
         // then
-        return settled().then(() => {
-          assert.dom('img').exists({ count: 3 });
-          assert.ok(find('img').getAttribute('class').includes('form-textfield-icon__state--error'));
-        });
+        assert.dom('img').exists({ count: 3 });
+        assert.ok(find('img').getAttribute('class').includes('form-textfield-icon__state--error'));
       });
 
       [

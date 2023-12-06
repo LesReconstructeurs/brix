@@ -7,7 +7,7 @@ function _getEnvironmentVariableAsNumber({ environmentVariableName, defaultValue
     return number;
   }
   throw new Error(
-    `Invalid value '${valueToValidate}' for environment variable '${environmentVariableName}'. It should be a number greater than or equal ${minValue}.`
+    `Invalid value '${valueToValidate}' for environment variable '${environmentVariableName}'. It should be a number greater than or equal ${minValue}.`,
   );
 }
 
@@ -21,7 +21,7 @@ module.exports = function (environment) {
     modulePrefix: 'pix-orga',
     environment,
     rootURL: '/',
-    locationType: 'auto',
+    locationType: 'history',
     EmberENV: {
       FEATURES: {
         // Here you can enable experimental features on an ember canary build
@@ -36,6 +36,7 @@ module.exports = function (environment) {
     APP: {
       API_HOST: process.env.API_HOST || '',
       BANNER_CONTENT: process.env.BANNER_CONTENT || '',
+      CERTIFICATION_BANNER_DISPLAY_DATES: process.env.CERTIFICATION_BANNER_DISPLAY_DATES || '',
       BANNER_TYPE: process.env.BANNER_TYPE || '',
       CAMPAIGNS_ROOT_URL: process.env.CAMPAIGNS_ROOT_URL,
       MAX_CONCURRENT_AJAX_CALLS: _getEnvironmentVariableAsNumber({
@@ -74,6 +75,10 @@ module.exports = function (environment) {
           CODE: '403',
           I18N_KEY: 'pages.login-form.errors.status.403',
         },
+        USER_NOT_FOUND: {
+          CODE: '404',
+          I18N_KEY: 'pages.login-form.errors.status.404',
+        },
         INTERNAL_SERVER_ERROR: {
           CODE: '500',
           I18N_KEY: 'common.api-error-messages.internal-server-error',
@@ -87,6 +92,7 @@ module.exports = function (environment) {
           I18N_KEY: 'common.api-error-messages.internal-server-error',
         },
       },
+      COOKIE_LOCALE_LIFESPAN_IN_SECONDS: 31536000, // 1 year in seconds
     },
 
     fontawesome: {
@@ -107,7 +113,9 @@ module.exports = function (environment) {
   };
 
   if (environment === 'development') {
+    ENV.APP.FT_DELETE_PARTICIPANT = true;
     ENV.APP.CAMPAIGNS_ROOT_URL = 'http://localhost:4200/campagnes/';
+    ENV.APP.CERTIFICATION_BANNER_DISPLAY_DATES = '04 05 06 07';
     // ENV.APP.LOG_RESOLVER = true;
     // ENV.APP.LOG_ACTIVE_GENERATION = true;
     // ENV.APP.LOG_TRANSITIONS = true;
@@ -120,6 +128,7 @@ module.exports = function (environment) {
   }
 
   if (environment === 'test') {
+    ENV.APP.CERTIFICATION_BANNER_DISPLAY_DATES = '04 05 06 07';
     ENV.APP.API_HOST = 'http://localhost:3000';
     ENV.APP.CAMPAIGNS_ROOT_URL = 'http://localhost:4200/campagnes/';
 
@@ -143,6 +152,8 @@ module.exports = function (environment) {
 
   if (environment === 'production') {
     // here you can enable a production-specific feature
+    ENV.APP.FT_DELETE_PARTICIPANT = _isFeatureEnabled(process.env.FT_DELETE_PARTICIPANT) || false;
+
     if (analyticsEnabled) {
       ENV.matomo.url = process.env.WEB_ANALYTICS_URL;
     }

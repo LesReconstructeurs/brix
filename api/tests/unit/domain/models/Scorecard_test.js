@@ -1,9 +1,7 @@
-// eslint-disable-next-line eslint-comments/disable-enable-pair
-/* eslint-disable mocha/no-setup-in-describe */
-const { expect, sinon } = require('../../../test-helper');
-const KnowledgeElement = require('../../../../lib/domain/models/KnowledgeElement');
-const Scorecard = require('../../../../lib/domain/models/Scorecard');
-const constants = require('../../../../lib/domain/constants');
+import { expect, sinon } from '../../../test-helper.js';
+import { KnowledgeElement } from '../../../../lib/domain/models/KnowledgeElement.js';
+import { Scorecard } from '../../../../lib/domain/models/Scorecard.js';
+import { constants, MAX_REACHABLE_LEVEL, MAX_REACHABLE_PIX_BY_COMPETENCE } from '../../../../lib/domain/constants.js';
 
 describe('Unit | Domain | Models | Scorecard', function () {
   let computeDaysSinceLastKnowledgeElementStub;
@@ -17,11 +15,11 @@ describe('Unit | Domain | Models | Scorecard', function () {
     let actualScorecard;
 
     const userId = '123';
+    const area = { id: 'area' };
     const competence = {
       id: 1,
       name: 'Évaluer',
       description: 'Les compétences numériques',
-      area: 'area',
       index: 'index',
     };
 
@@ -41,7 +39,7 @@ describe('Unit | Domain | Models | Scorecard', function () {
         ];
         computeDaysSinceLastKnowledgeElementStub.withArgs(knowledgeElements).returns(0);
         // when
-        actualScorecard = Scorecard.buildFrom({ userId, knowledgeElements, competenceEvaluation, competence });
+        actualScorecard = Scorecard.buildFrom({ userId, knowledgeElements, competenceEvaluation, competence, area });
       });
       // then
       it('should build an object of Scorecard type', function () {
@@ -53,7 +51,7 @@ describe('Unit | Domain | Models | Scorecard', function () {
       it('should competence datas to the scorecard object', function () {
         expect(actualScorecard.name).to.equal(competence.name);
         expect(actualScorecard.competenceId).to.equal(competence.id);
-        expect(actualScorecard.area).to.equal(competence.area);
+        expect(actualScorecard.area).to.deep.equal(area);
         expect(actualScorecard.index).to.equal(competence.index);
         expect(actualScorecard.description).to.equal(competence.description);
       });
@@ -186,8 +184,8 @@ describe('Unit | Domain | Models | Scorecard', function () {
         //when
         actualScorecard = Scorecard.buildFrom({ userId, knowledgeElements, competenceEvaluation, competence });
 
-        expect(actualScorecard.level).to.equal(5);
-        expect(actualScorecard.earnedPix).to.equal(40);
+        expect(actualScorecard.level).to.equal(MAX_REACHABLE_LEVEL);
+        expect(actualScorecard.earnedPix).to.equal(MAX_REACHABLE_PIX_BY_COMPETENCE);
       });
 
       it('should have the competence level not capped at the maximum value if we allow it', function () {
@@ -201,7 +199,7 @@ describe('Unit | Domain | Models | Scorecard', function () {
         });
 
         expect(actualScorecard.level).to.equal(15);
-        expect(actualScorecard.earnedPix).to.equal(40);
+        expect(actualScorecard.earnedPix).to.equal(MAX_REACHABLE_PIX_BY_COMPETENCE);
       });
     });
 
@@ -272,11 +270,11 @@ describe('Unit | Domain | Models | Scorecard', function () {
     });
 
     before(function () {
-      constants.MINIMUM_DELAY_IN_DAYS_FOR_RESET = 7;
+      sinon.stub(constants, 'MINIMUM_DELAY_IN_DAYS_FOR_RESET').value(7);
     });
 
     after(function () {
-      constants.MINIMUM_DELAY_IN_DAYS_FOR_RESET = originalConstantValue;
+      sinon.stub(constants, 'MINIMUM_DELAY_IN_DAYS_FOR_RESET').value(originalConstantValue);
     });
 
     [
@@ -315,11 +313,11 @@ describe('Unit | Domain | Models | Scorecard', function () {
     });
 
     before(function () {
-      constants.MINIMUM_DELAY_IN_DAYS_BEFORE_IMPROVING = 4;
+      sinon.stub(constants, 'MINIMUM_DELAY_IN_DAYS_BEFORE_IMPROVING').value(4);
     });
 
     after(function () {
-      constants.MINIMUM_DELAY_IN_DAYS_BEFORE_IMPROVING = originalConstantValue;
+      sinon.stub(constants, 'MINIMUM_DELAY_IN_DAYS_BEFORE_IMPROVING').value(originalConstantValue);
     });
 
     [
@@ -407,8 +405,7 @@ describe('Unit | Domain | Models | Scorecard', function () {
       // given
       const level = 2;
       const maxReachableLevel = 1;
-      sinon.stub(constants, 'MAX_REACHABLE_LEVEL').value(maxReachableLevel);
-      const scorecard = new Scorecard({ level });
+      const scorecard = new Scorecard({ level, maxReachableLevel });
 
       // when
       const result = scorecard.isMaxLevel;
@@ -447,8 +444,7 @@ describe('Unit | Domain | Models | Scorecard', function () {
       it(`should return ${testCase.expectedResult} when level is ${testCase.level} and status ${testCase.status}`, function () {
         // given
         const maxReachableLevel = 2;
-        sinon.stub(constants, 'MAX_REACHABLE_LEVEL').value(maxReachableLevel);
-        const scorecard = new Scorecard({ level: testCase.level, status: testCase.status });
+        const scorecard = new Scorecard({ level: testCase.level, status: testCase.status, maxReachableLevel });
 
         // when
         const result = scorecard.isFinishedWithMaxLevel;
@@ -508,8 +504,7 @@ describe('Unit | Domain | Models | Scorecard', function () {
       it(`should return ${testCase.expectedResult} when status is ${testCase.status}, level is ${testCase.level}`, function () {
         // given
         const maxReachableLevel = 2;
-        sinon.stub(constants, 'MAX_REACHABLE_LEVEL').value(maxReachableLevel);
-        const scorecard = new Scorecard({ status: testCase.status, level: testCase.level });
+        const scorecard = new Scorecard({ status: testCase.status, level: testCase.level, maxReachableLevel });
 
         // when
         const result = scorecard.isProgressable;

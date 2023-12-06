@@ -1,10 +1,11 @@
-const { expect, sinon } = require('../../../test-helper');
-const acceptPixCertifTermsOfService = require('../../../../lib/domain/usecases/accept-pix-certif-terms-of-service');
-const userRepository = require('../../../../lib/infrastructure/repositories/user-repository');
+import { expect, sinon } from '../../../test-helper.js';
+import { acceptPixCertifTermsOfService } from '../../../../lib/domain/usecases/accept-pix-certif-terms-of-service.js';
 
 describe('Unit | UseCase | accept-pix-certif-terms-of-service', function () {
+  let userRepository;
+
   beforeEach(function () {
-    sinon.stub(userRepository, 'updatePixCertifTermsOfServiceAcceptedToTrue');
+    userRepository = { updatePixCertifTermsOfServiceAcceptedToTrue: sinon.stub() };
   });
 
   it('should accept terms of service of pix-certif', async function () {

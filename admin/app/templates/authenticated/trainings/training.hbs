@@ -1,0 +1,59 @@
+{{page-title "Détail du contenu formatif " @model.id}}
+
+{{! template-lint-disable no-redundant-role }}
+<header class="page-header" role="banner">
+  <div class="page-title">
+    <LinkTo @route="authenticated.trainings.list">Tous les contenus formatifs</LinkTo>
+    <FaIcon @icon="chevron-right" />
+    <h1>Détail du contenu formatif
+      {{@model.id}}
+    </h1>
+  </div>
+  <div class="page-actions">
+    <a
+      class="page-actions__link"
+      href="https://1024pix.atlassian.net/wiki/spaces/PROD/pages/3753476097/Cr+er+un+contenu+formatif+Mode+d+emploi"
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label="Consulter la documentation de création de contenus formatifs"
+    >
+      <FaIcon @icon="arrow-up-right-from-square" />
+      <span>Consulter la documentation</span>
+    </a>
+  </div>
+</header>
+
+{{! template-lint-disable no-redundant-role }}
+<main class="page-body" role="main">
+  <section class="page-section">
+    {{#if this.isEditMode}}
+      <Trainings::CreateOrUpdateTrainingForm
+        @model={{@model}}
+        @onSubmit={{this.updateTraining}}
+        @onCancel={{this.toggleEditMode}}
+      />
+    {{else}}
+      <Trainings::TrainingDetailsCard @training={{@model}} />
+      {{#if this.canEdit}}
+        <PixButton
+          @size="small"
+          @backgroundColor="transparent-light"
+          @isBorderVisible={{true}}
+          @triggerAction={{this.toggleEditMode}}
+        >Editer
+        </PixButton>
+      {{/if}}
+    {{/if}}
+  </section>
+
+  <nav class="navbar">
+    <LinkTo @route="authenticated.trainings.training.triggers" @model={{@model}} class="navbar-item">
+      {{t "pages.trainings.training.triggers.tabName"}}
+    </LinkTo>
+    <LinkTo @route="authenticated.trainings.training.target-profiles" @model={{@model}} class="navbar-item">
+      {{t "pages.trainings.training.targetProfiles.tabName"}}
+    </LinkTo>
+  </nav>
+
+  {{outlet}}
+</main>

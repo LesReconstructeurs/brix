@@ -1,9 +1,9 @@
-const Joi = require('joi');
-const answerController = require('./answer-controller');
-const identifiersType = require('../../domain/types/identifiers-type');
-const { NotFoundError } = require('../../domain/errors');
+import Joi from 'joi';
+import { answerController } from './answer-controller.js';
+import { identifiersType } from '../../domain/types/identifiers-type.js';
+import { NotFoundError } from '../../domain/errors.js';
 
-exports.register = async (server) => {
+const register = async function (server) {
   server.route([
     {
       method: 'POST',
@@ -108,4 +108,5 @@ exports.register = async (server) => {
   ]);
 };
 
-exports.name = 'answers-api';
+const name = 'answers-api';
+export { register, name };

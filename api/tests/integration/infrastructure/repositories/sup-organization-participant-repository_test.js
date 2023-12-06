@@ -1,9 +1,9 @@
-const _ = require('lodash');
-const { expect, databaseBuilder } = require('../../../test-helper');
-const supOrganizationParticipantRepository = require('../../../../lib/infrastructure/repositories/sup-organization-participant-repository');
-const SupOrganizationParticipant = require('../../../../lib/domain/read-models/SupOrganizationParticipant');
-const CampaignTypes = require('../../../../lib/domain/models/CampaignTypes');
-const CampaignParticipationStatuses = require('../../../../lib/domain/models/CampaignParticipationStatuses');
+import _ from 'lodash';
+import { expect, databaseBuilder } from '../../../test-helper.js';
+import * as supOrganizationParticipantRepository from '../../../../lib/infrastructure/repositories/sup-organization-participant-repository.js';
+import { SupOrganizationParticipant } from '../../../../lib/domain/read-models/SupOrganizationParticipant.js';
+import { CampaignTypes } from '../../../../lib/domain/models/CampaignTypes.js';
+import { CampaignParticipationStatuses } from '../../../../lib/domain/models/CampaignParticipationStatuses.js';
 
 describe('Integration | Infrastructure | Repository | sup-organization-participant-repository', function () {
   describe('#findPaginatedFilteredSupParticipants', function () {
@@ -605,6 +605,177 @@ describe('Integration | Infrastructure | Repository | sup-organization-participa
 
         // then
         expect(participationCount).to.deep.equal(0);
+      });
+    });
+
+    describe('When sup participants are sorted', function () {
+      it('should return sup participants sorted by ascendant participation count', async function () {
+        const organizationId = databaseBuilder.factory.buildOrganization().id;
+        const campaignId = databaseBuilder.factory.buildCampaign({ organizationId }).id;
+        const otherCampaignId = databaseBuilder.factory.buildCampaign({ organizationId }).id;
+        const organizationLearnerId1 = databaseBuilder.factory.buildOrganizationLearner({ organizationId }).id;
+        const organizationLearnerId2 = databaseBuilder.factory.buildOrganizationLearner({ organizationId }).id;
+        const organizationLearnerId3 = databaseBuilder.factory.buildOrganizationLearner({ organizationId }).id;
+
+        databaseBuilder.factory.buildCampaignParticipation({
+          campaignId: campaignId,
+          organizationLearnerId: organizationLearnerId1,
+        });
+        databaseBuilder.factory.buildCampaignParticipation({
+          campaignId: otherCampaignId,
+          organizationLearnerId: organizationLearnerId1,
+        });
+        databaseBuilder.factory.buildCampaignParticipation({
+          campaignId: campaignId,
+          organizationLearnerId: organizationLearnerId3,
+        });
+        await databaseBuilder.commit();
+        // when
+        const { data: participants } = await supOrganizationParticipantRepository.findPaginatedFilteredSupParticipants({
+          organizationId,
+          sort: {
+            participationCount: 'asc',
+          },
+        });
+
+        // then
+        expect(participants.length).to.equal(3);
+        expect(participants[0].id).to.equal(organizationLearnerId2);
+        expect(participants[1].id).to.equal(organizationLearnerId3);
+        expect(participants[2].id).to.equal(organizationLearnerId1);
+      });
+      it('should return sup participants sorted by descendant participation count', async function () {
+        const organizationId = databaseBuilder.factory.buildOrganization().id;
+        const campaignId = databaseBuilder.factory.buildCampaign({ organizationId }).id;
+        const otherCampaignId = databaseBuilder.factory.buildCampaign({ organizationId }).id;
+        const organizationLearnerId1 = databaseBuilder.factory.buildOrganizationLearner({ organizationId }).id;
+        const organizationLearnerId2 = databaseBuilder.factory.buildOrganizationLearner({ organizationId }).id;
+        const organizationLearnerId3 = databaseBuilder.factory.buildOrganizationLearner({ organizationId }).id;
+
+        databaseBuilder.factory.buildCampaignParticipation({
+          campaignId: campaignId,
+          organizationLearnerId: organizationLearnerId1,
+        });
+        databaseBuilder.factory.buildCampaignParticipation({
+          campaignId: otherCampaignId,
+          organizationLearnerId: organizationLearnerId1,
+        });
+        databaseBuilder.factory.buildCampaignParticipation({
+          campaignId: campaignId,
+          organizationLearnerId: organizationLearnerId3,
+        });
+        await databaseBuilder.commit();
+        // when
+        const { data: participants } = await supOrganizationParticipantRepository.findPaginatedFilteredSupParticipants({
+          organizationId,
+          sort: {
+            participationCount: 'desc',
+          },
+        });
+
+        // then
+        expect(participants.length).to.equal(3);
+        expect(participants[0].id).to.equal(organizationLearnerId1);
+        expect(participants[1].id).to.equal(organizationLearnerId3);
+        expect(participants[2].id).to.equal(organizationLearnerId2);
+      });
+
+      it('should return sup participants sorted by name if participation count are identical', async function () {
+        const organizationId = databaseBuilder.factory.buildOrganization().id;
+        const campaignId = databaseBuilder.factory.buildCampaign({ organizationId }).id;
+        const organizationLearnerId1 = databaseBuilder.factory.buildOrganizationLearner({
+          organizationId,
+          lastName: 'Aaaah',
+        }).id;
+        const organizationLearnerId2 = databaseBuilder.factory.buildOrganizationLearner({
+          organizationId,
+          lastName: 'Dupont',
+        }).id;
+        const organizationLearnerId3 = databaseBuilder.factory.buildOrganizationLearner({
+          organizationId,
+          lastName: 'Dupond',
+        }).id;
+
+        databaseBuilder.factory.buildCampaignParticipation({
+          campaignId: campaignId,
+          organizationLearnerId: organizationLearnerId1,
+        });
+        await databaseBuilder.commit();
+        // when
+        const { data: participants } = await supOrganizationParticipantRepository.findPaginatedFilteredSupParticipants({
+          organizationId,
+          sort: {
+            participationCount: 'asc',
+          },
+        });
+
+        // then
+        expect(participants.length).to.equal(3);
+        expect(participants[0].id).to.equal(organizationLearnerId3);
+        expect(participants[1].id).to.equal(organizationLearnerId2);
+        expect(participants[2].id).to.equal(organizationLearnerId1);
+      });
+
+      it('should return sup participants sorted by ascendant lastname', async function () {
+        const organizationId = databaseBuilder.factory.buildOrganization().id;
+        const vadorId = databaseBuilder.factory.buildOrganizationLearner({
+          organizationId,
+          lastName: 'Vador',
+        }).id;
+        const kenobiId = databaseBuilder.factory.buildOrganizationLearner({
+          organizationId,
+          lastName: 'Kenobi',
+        }).id;
+        const skywalkerId = databaseBuilder.factory.buildOrganizationLearner({
+          organizationId,
+          lastName: 'Skywalker',
+        }).id;
+
+        await databaseBuilder.commit();
+        // when
+        const { data: participants } = await supOrganizationParticipantRepository.findPaginatedFilteredSupParticipants({
+          organizationId,
+          sort: {
+            lastnameSort: 'asc',
+          },
+        });
+
+        // then
+        expect(participants.length).to.equal(3);
+        expect(participants[0].id).to.equal(kenobiId);
+        expect(participants[1].id).to.equal(skywalkerId);
+        expect(participants[2].id).to.equal(vadorId);
+      });
+
+      it('should return sup participants sorted by descendant lastname', async function () {
+        const organizationId = databaseBuilder.factory.buildOrganization().id;
+        const vadorId = databaseBuilder.factory.buildOrganizationLearner({
+          organizationId,
+          lastName: 'Vador',
+        }).id;
+        const kenobiId = databaseBuilder.factory.buildOrganizationLearner({
+          organizationId,
+          lastName: 'Kenobi',
+        }).id;
+        const skywalkerId = databaseBuilder.factory.buildOrganizationLearner({
+          organizationId,
+          lastName: 'Skywalker',
+        }).id;
+
+        await databaseBuilder.commit();
+        // when
+        const { data: participants } = await supOrganizationParticipantRepository.findPaginatedFilteredSupParticipants({
+          organizationId,
+          sort: {
+            lastnameSort: 'desc',
+          },
+        });
+
+        // then
+        expect(participants.length).to.equal(3);
+        expect(participants[0].id).to.equal(vadorId);
+        expect(participants[1].id).to.equal(skywalkerId);
+        expect(participants[2].id).to.equal(kenobiId);
       });
     });
 

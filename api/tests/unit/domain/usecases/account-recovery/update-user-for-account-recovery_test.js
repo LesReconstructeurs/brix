@@ -1,10 +1,9 @@
-const sinon = require('sinon');
-const { expect, domainBuilder } = require('../../../../test-helper');
-const updateUserForAccountRecovery = require('../../../../../lib/domain/usecases/account-recovery/update-user-for-account-recovery');
-const AuthenticationMethod = require('../../../../../lib/domain/models/AuthenticationMethod');
-const DomainTransaction = require('../../../../../lib/infrastructure/DomainTransaction');
-
-const User = require('../../../../../lib/domain/models/User');
+import { expect, domainBuilder, sinon } from '../../../../test-helper.js';
+import { updateUserForAccountRecovery } from '../../../../../lib/domain/usecases/account-recovery/update-user-for-account-recovery.js';
+import { AuthenticationMethod } from '../../../../../lib/domain/models/AuthenticationMethod.js';
+import { NON_OIDC_IDENTITY_PROVIDERS } from '../../../../../lib/domain/constants/identity-providers.js';
+import { DomainTransaction } from '../../../../../lib/infrastructure/DomainTransaction.js';
+import { User } from '../../../../../lib/domain/models/User.js';
 
 describe('Unit | Usecases | update-user-for-account-recovery', function () {
   let userRepository,
@@ -73,7 +72,7 @@ describe('Unit | Usecases | update-user-for-account-recovery', function () {
 
       // then
       const expectedAuthenticationMethodFromPix = new AuthenticationMethod({
-        identityProvider: AuthenticationMethod.identityProviders.PIX,
+        identityProvider: NON_OIDC_IDENTITY_PROVIDERS.PIX.code,
         authenticationComplement: new AuthenticationMethod.PixAuthenticationComplement({
           password: hashedPassword,
           shouldChangePassword: false,
@@ -84,7 +83,7 @@ describe('Unit | Usecases | update-user-for-account-recovery', function () {
         {
           authenticationMethod: expectedAuthenticationMethodFromPix,
         },
-        domainTransaction
+        domainTransaction,
       );
     });
   });
@@ -126,7 +125,7 @@ describe('Unit | Usecases | update-user-for-account-recovery', function () {
           userId: user.id,
           hashedPassword,
         },
-        domainTransaction
+        domainTransaction,
       );
     });
   });

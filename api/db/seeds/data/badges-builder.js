@@ -4,7 +4,7 @@ const TOOLS_BADGE_ID = 112;
 const MANIP_BADGE_ID = 113;
 const PRO_BASICS_BADGE_ID = 114;
 const PRO_TOOLS_BADGE_ID = 115;
-const PIX_DROIT_MAITRE_BADGE_ID = 116;
+const PIX_DROIT_AVANCE_BADGE_ID = 116;
 const PIX_DROIT_EXPERT_BADGE_ID = 117;
 const PIX_EMPLOI_CLEA_BADGE_ID_V2 = 118;
 const PIX_EDU_FORMATION_INITIALE_2ND_DEGRE_INITIE_BADGE_ID = 119;
@@ -19,9 +19,10 @@ const PIX_EDU_FORMATION_CONTINUE_1ER_DEGRE_AVANCE_BADGE_ID = 127;
 const PIX_EDU_FORMATION_CONTINUE_1ER_DEGRE_EXPERT_BADGE_ID = 128;
 const PIX_EMPLOI_CLEA_BADGE_ID_V3 = 129;
 
-const BadgeCriterion = require('../../../lib/domain/models/BadgeCriterion');
-const { badges } = require('../../constants');
-const {
+import { BadgeCriterion } from '../../../lib/domain/models/BadgeCriterion.js';
+import { badges } from '../../constants.js';
+
+import {
   targetProfileSkillIdsForCleaBadgeV1,
   targetProfileSkillIdsForCleaBadgeV2,
   targetProfileSkillIdsForCleaBadgeV3,
@@ -35,7 +36,7 @@ const {
   TARGET_PROFILE_PIX_EDU_FORMATION_CONTINUE_2ND_DEGRE,
   TARGET_PROFILE_PIX_EDU_FORMATION_INITIALE_1ER_DEGRE,
   TARGET_PROFILE_PIX_EDU_FORMATION_CONTINUE_1ER_DEGRE,
-} = require('./target-profiles-builder');
+} from './target-profiles-builder.js';
 
 function badgesBuilder({ databaseBuilder }) {
   _createBasicsBadge(databaseBuilder);
@@ -113,7 +114,7 @@ function _createBasicsBadge(databaseBuilder) {
     imageUrl: 'https://images.pix.fr/badges/socle-de-base.svg',
     key: 'Basics',
     message:
-      'Bravo ! Vous maîtrisez quelques bases du numérique comme le vocabulaire, la manipulation basique ou l\'utilisation d\'outils',
+      "Bravo ! Vous maîtrisez quelques bases du numérique comme le vocabulaire, la manipulation basique ou l'utilisation d'outils",
     targetProfileId: TARGET_PROFILE_STAGES_BADGES_ID,
   });
 
@@ -159,7 +160,7 @@ function _createManipBadge(databaseBuilder) {
     imageUrl: 'https://images.pix.fr/badges/office.svg',
     key: 'Manip',
     message:
-      'Vous maîtrisez les gestes de base : le clic, la saisie de texte et la navigation entre onglets d\'un navigateur WEB',
+      "Vous maîtrisez les gestes de base : le clic, la saisie de texte et la navigation entre onglets d'un navigateur WEB",
     targetProfileId: TARGET_PROFILE_STAGES_BADGES_ID,
   });
 
@@ -176,6 +177,7 @@ function _createProfessionalBasicsBadge(databaseBuilder) {
     key: 'Pro Basics',
     message: 'Bravo ! Vous maîtrisez quelques bases  du numérique pour le monde professionnel !',
     targetProfileId: TARGET_PROFILE_ONE_COMPETENCE_ID,
+    isAlwaysVisible: true,
   });
 
   _associateBadgeCriteria(databaseBuilder, basicsBadge, []);
@@ -374,23 +376,23 @@ function _createPixDroitBadge(databaseBuilder) {
   ];
 
   const pixDroitMasterBadge = databaseBuilder.factory.buildBadge({
-    id: PIX_DROIT_MAITRE_BADGE_ID,
-    altMessage: 'Vous avez validé le badge Pix+ Droit MAITRE',
-    title: 'Pix+ Droit Maitre',
+    id: PIX_DROIT_AVANCE_BADGE_ID,
+    altMessage: 'Vous avez validé le badge Pix+ Droit AVANCE',
+    title: 'Pix+ Droit AVANCE',
     imageUrl: 'https://images.pix.fr/badges/socle-de-base.svg',
-    key: 'PIX_DROIT_MAITRE_CERTIF',
-    message: 'avez validé le badge Pix+ Droit MAITRE',
+    key: badges.keys.PIX_DROIT_AVANCE_CERTIF,
+    message: 'avez validé le badge Pix+ Droit AVANCE',
     isCertifiable: true,
     targetProfileId: TARGET_PROFILE_PIX_DROIT_ID,
   });
 
   const pixDroitExpertBadge = databaseBuilder.factory.buildBadge({
     id: PIX_DROIT_EXPERT_BADGE_ID,
-    altMessage: 'Vous avez validé le badge Pix+ Droit EXPERT (et MAITRE)',
-    title: 'Pix+ Droit EXPERT (et MAITRE)',
+    altMessage: 'Vous avez validé le badge Pix+ Droit EXPERT',
+    title: 'Pix+ Droit EXPERT',
     imageUrl: 'https://images.pix.fr/badges/socle-de-base.svg',
-    key: 'PIX_DROIT_EXPERT_CERTIF',
-    message: 'avez validé le badge Pix+ Droit EXPERT (et MAITRE)',
+    key: badges.keys.PIX_DROIT_EXPERT_CERTIF,
+    message: 'avez validé le badge Pix+ Droit EXPERT',
     isCertifiable: true,
     targetProfileId: TARGET_PROFILE_PIX_DROIT_ID,
   });
@@ -566,12 +568,13 @@ function _createPixEduBadges(databaseBuilder) {
     isCertifiable: true,
     targetProfileId: TARGET_PROFILE_PIX_EDU_FORMATION_INITIALE_2ND_DEGRE,
   });
-  const [domain1Confirme2ndDegreSkillSetId, domain2Confirme2ndDegreSkillSetId] = _associatePixEduFormationInitialeSkillSets(
-    databaseBuilder,
-    skillIdsForPixEduDomain1,
-    skillIdsForPixEduDomain2,
-    pixEduFormationInitiale2ndDegreConfirmeBadge,
-  );
+  const [domain1Confirme2ndDegreSkillSetId, domain2Confirme2ndDegreSkillSetId] =
+    _associatePixEduFormationInitialeSkillSets(
+      databaseBuilder,
+      skillIdsForPixEduDomain1,
+      skillIdsForPixEduDomain2,
+      pixEduFormationInitiale2ndDegreConfirmeBadge,
+    );
   databaseBuilder.factory.buildBadgeCriterion({
     scope: BadgeCriterion.SCOPES.SKILL_SET,
     threshold: 60,
@@ -595,12 +598,13 @@ function _createPixEduBadges(databaseBuilder) {
     isCertifiable: true,
     targetProfileId: TARGET_PROFILE_PIX_EDU_FORMATION_INITIALE_1ER_DEGRE,
   });
-  const [domain1Confirme1erDegreSkillSetId, domain2Confirme1erDegreSkillSetId] = _associatePixEduFormationInitialeSkillSets(
-    databaseBuilder,
-    skillIdsForPixEduDomain1,
-    skillIdsForPixEduDomain2,
-    pixEduFormationInitiale1erDegreConfirmeBadge,
-  );
+  const [domain1Confirme1erDegreSkillSetId, domain2Confirme1erDegreSkillSetId] =
+    _associatePixEduFormationInitialeSkillSets(
+      databaseBuilder,
+      skillIdsForPixEduDomain1,
+      skillIdsForPixEduDomain2,
+      pixEduFormationInitiale1erDegreConfirmeBadge,
+    );
   databaseBuilder.factory.buildBadgeCriterion({
     scope: BadgeCriterion.SCOPES.SKILL_SET,
     threshold: 60,
@@ -919,7 +923,7 @@ function _associatePixEduFormationContinueSkillSets(databaseBuilder, skillIdsFor
   );
 }
 
-module.exports = {
+export {
   badgesBuilder,
   PIX_EMPLOI_CLEA_BADGE_ID_V1,
   PIX_EMPLOI_CLEA_BADGE_ID_V2,
@@ -929,7 +933,7 @@ module.exports = {
   MANIP_BADGE_ID,
   PRO_BASICS_BADGE_ID,
   PRO_TOOLS_BADGE_ID,
-  PIX_DROIT_MAITRE_BADGE_ID,
+  PIX_DROIT_AVANCE_BADGE_ID,
   PIX_DROIT_EXPERT_BADGE_ID,
   PIX_EDU_FORMATION_INITIALE_2ND_DEGRE_CONFIRME_BADGE_ID,
   PIX_EDU_FORMATION_CONTINUE_2ND_DEGRE_AVANCE_BADGE_ID,

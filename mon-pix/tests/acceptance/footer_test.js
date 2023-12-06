@@ -1,10 +1,11 @@
+// eslint-disable-next-line no-restricted-imports
 import { find } from '@ember/test-helpers';
 import { module, test } from 'qunit';
 import { setupMirage } from 'ember-cli-mirage/test-support';
 import { setupApplicationTest } from 'ember-qunit';
 import { authenticate } from '../helpers/authentication';
 import { resumeCampaignOfTypeAssessmentByCode } from '../helpers/campaign';
-import { visit } from '@ember/test-helpers';
+import { visit } from '@1024pix/ember-testing-library';
 import setupIntl from '../helpers/setup-intl';
 
 module('Acceptance | Footer', function (hooks) {
@@ -41,7 +42,7 @@ module('Acceptance | Footer', function (hooks) {
       assert.ok(
         find('.footer-container-content__navigation ul li:nth-child(1) a')
           .getAttribute('href')
-          .includes('support.pix.org')
+          .includes('support.pix.org'),
       );
     });
 
@@ -53,7 +54,7 @@ module('Acceptance | Footer', function (hooks) {
       assert.ok(
         find('.footer-container-content__navigation ul li:nth-child(2) a')
           .getAttribute('href')
-          .includes('/accessibilite')
+          .includes('/accessibilite'),
       );
     });
   });

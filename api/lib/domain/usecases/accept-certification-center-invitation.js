@@ -1,11 +1,13 @@
-const { AlreadyExistingMembershipError } = require('../errors');
+import { AlreadyExistingMembershipError } from '../errors.js';
 
-module.exports = async function acceptCertificationCenterInvitation({
+const acceptCertificationCenterInvitation = async function ({
   certificationCenterInvitationId,
   code,
   email,
+  localeFromCookie,
   certificationCenterInvitedUserRepository,
   certificationCenterMembershipRepository,
+  userRepository,
 }) {
   const certificationCenterInvitedUser = await certificationCenterInvitedUserRepository.get({
     certificationCenterInvitationId,
@@ -22,11 +24,21 @@ module.exports = async function acceptCertificationCenterInvitation({
 
   if (isMembershipExisting) {
     throw new AlreadyExistingMembershipError(
-      `Certification center membership already exists for the user ID ${userId} and certification center ID ${certificationCenterId}.`
+      `Certification center membership already exists for the user ID ${userId} and certification center ID ${certificationCenterId}.`,
     );
+  }
+
+  if (localeFromCookie) {
+    const user = await userRepository.getById(userId);
+    user.setLocaleIfNotAlreadySet(localeFromCookie);
+    if (user.hasBeenModified) {
+      await userRepository.update({ id: user.id, locale: user.locale });
+    }
   }
 
   certificationCenterInvitedUser.acceptInvitation(code);
 
   await certificationCenterInvitedUserRepository.save(certificationCenterInvitedUser);
 };
+
+export { acceptCertificationCenterInvitation };

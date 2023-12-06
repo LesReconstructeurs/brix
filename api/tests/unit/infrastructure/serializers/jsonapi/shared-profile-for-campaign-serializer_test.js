@@ -1,6 +1,6 @@
-const { expect, domainBuilder, sinon } = require('../../../../test-helper');
-const SharedProfileForCampaign = require('../../../../../lib/domain/read-models/SharedProfileForCampaign');
-const serializer = require('../../../../../lib/infrastructure/serializers/jsonapi/shared-profile-for-campaign-serializer');
+import { expect, domainBuilder, sinon } from '../../../../test-helper.js';
+import { SharedProfileForCampaign } from '../../../../../lib/domain/read-models/SharedProfileForCampaign.js';
+import * as serializer from '../../../../../lib/infrastructure/serializers/jsonapi/shared-profile-for-campaign-serializer.js';
 
 describe('Unit | Serializer | JSONAPI | shared-profile-for-campaign-serializer', function () {
   let clock;
@@ -29,9 +29,9 @@ describe('Unit | Serializer | JSONAPI | shared-profile-for-campaign-serializer',
         color: '2',
       };
 
-      const competencesWithArea = [
-        domainBuilder.buildCompetence({ id: 'rec1', area: area1 }),
-        domainBuilder.buildCompetence({ id: 'rec2', area: area2 }),
+      const competences = [
+        domainBuilder.buildCompetence({ id: 'rec1', areaId: '1' }),
+        domainBuilder.buildCompetence({ id: 'rec2', areaId: '2' }),
       ];
       const knowledgeElementsGroupedByCompetenceId = {
         rec1: [domainBuilder.buildKnowledgeElement()],
@@ -47,8 +47,11 @@ describe('Unit | Serializer | JSONAPI | shared-profile-for-campaign-serializer',
         campaignParticipation,
         campaignAllowsRetry: true,
         isOrganizationLearnerActive: true,
-        competencesWithArea,
+        competences,
+        allAreas: [area1, area2],
         knowledgeElementsGroupedByCompetenceId,
+        maxReachableLevel: 8,
+        maxReachablePixScore: 768,
       });
     });
 
@@ -61,6 +64,8 @@ describe('Unit | Serializer | JSONAPI | shared-profile-for-campaign-serializer',
             'pix-score': profileSharedForCampaign.pixScore,
             'shared-at': profileSharedForCampaign.sharedAt,
             'can-retry': true,
+            'max-reachable-level': 8,
+            'max-reachable-pix-score': 768,
           },
           relationships: {
             scorecards: {

@@ -1,0 +1,113 @@
+<section class="import-page__section--download panel import-page__resume-section">
+  <PixMessage @type="info">
+    <ul>
+      <li>
+        {{! template-lint-disable no-redundant-role }}
+        <img src="{{this.rootURL}}/icons/solid-square-chevron-right.svg" alt="" role="presentation" />
+        {{t
+          "pages.sessions.import.step-two.sessions-and-empty-sessions-count"
+          sessionsCount=@sessionsCount
+          sessionsWithoutCandidatesCount=@sessionsWithoutCandidatesCount
+        }}</li>
+      <li>
+        <FaIcon @icon="user" />
+        {{t "pages.sessions.import.step-two.candidates-count" candidatesCount=@candidatesCount}}</li>
+    </ul>
+  </PixMessage>
+  {{#if (gt this.nonBlockingErrorReportsCount 0)}}
+    <span class="import-page-section__information">
+      {{t
+        "pages.sessions.import.step-two.non-blocking-errors.information"
+        nonBlockingErrorReportsCount=this.nonBlockingErrorReportsCount
+      }}
+    </span>
+    <div>
+      <PixCollapsible
+        @titleIcon="triangle-exclamation"
+        @title={{t
+          "pages.sessions.import.step-two.non-blocking-errors.title"
+          nonBlockingErrorReportsCount=this.nonBlockingErrorReportsCount
+        }}
+        @iconTitle="plus"
+        class="import-page-section__collapsible-header--non-blocking"
+      >
+        <ul>
+          {{#each this.translatedNonBlockingErrorReport as |report|}}
+            <li>
+              <PixMessage @type="warning">
+                {{t "pages.sessions.import.step-two.non-blocking-errors.line"}}
+                {{report.line}}
+                :
+                {{report.message}}
+              </PixMessage>
+            </li>
+          {{/each}}
+        </ul>
+      </PixCollapsible>
+    </div>
+  {{/if}}
+  {{#if (gt this.blockingErrorReportsCount 0)}}
+    <span class="import-page-section__information">
+      {{t "pages.sessions.import.step-two.blocking-errors.information"}}
+    </span>
+    <div>
+      <PixCollapsible
+        @titleIcon="circle-exclamation"
+        @title={{t
+          "pages.sessions.import.step-two.blocking-errors.title"
+          blockingErrorReportsCount=this.blockingErrorReportsCount
+        }}
+        @iconTitle="plus"
+        class="import-page-section__collapsible-header--blocking"
+      >
+        <ul>
+          {{#each this.translatedBlockingErrorReport as |report|}}
+            <li>
+              <PixMessage @type="error">
+                {{t "pages.sessions.import.step-two.blocking-errors.line"}}
+                {{report.line}}
+                :
+                {{report.message}}
+              </PixMessage>
+            </li>
+          {{/each}}
+        </ul>
+      </PixCollapsible>
+    </div>
+  {{/if}}
+
+  <div class="import-page__section--link-buttons">
+    {{#if this.hasOnlyNonBlockingErrorReports}}
+      <PixButton
+        @backgroundColor="yellow"
+        class="import-page__section--confirm-button--non-blocking"
+        @triggerAction={{@createSessions}}
+      >
+        {{t "pages.sessions.import.step-two.actions.confirm-with-warning.label"}}
+      </PixButton>
+      <PixButton
+        @backgroundColor="transparent-light"
+        @isBorderVisible="true"
+        @triggerAction={{@toggleStepOne}}
+        aria-label={{t "pages.sessions.import.step-two.actions.import-again.extra-information"}}
+      >
+
+        {{t "pages.sessions.import.step-two.actions.import-again.label"}}
+      </PixButton>
+    {{/if}}
+    {{#if (gt this.blockingErrorReportsCount 0)}}
+      <PixButton
+        class="import-page__section--confirm-button"
+        aria-label={{t "pages.sessions.import.step-two.actions.import-again.extra-information"}}
+        @triggerAction={{@toggleStepOne}}
+      >
+        {{t "pages.sessions.import.step-two.actions.import-again.label"}}
+      </PixButton>
+    {{/if}}
+    {{#if this.noError}}
+      <PixButton class="import-page__section--confirm-button" @triggerAction={{@createSessions}}>
+        {{t "pages.sessions.import.step-two.actions.confirm.label"}}
+      </PixButton>
+    {{/if}}
+  </div>
+</section>

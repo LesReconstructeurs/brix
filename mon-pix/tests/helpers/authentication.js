@@ -1,4 +1,5 @@
-import { fillIn, visit } from '@ember/test-helpers';
+import { fillIn } from '@ember/test-helpers';
+import { visit } from '@1024pix/ember-testing-library';
 import { clickByLabel } from './click-by-label';
 import { authenticateSession } from 'ember-simple-auth/test-support';
 
@@ -12,17 +13,19 @@ export async function authenticate(user) {
 }
 
 export async function authenticateByEmail(user) {
-  await visit('/connexion');
-  await fillIn('#login', user.email);
-  await fillIn('#password', user.password);
+  const screen = await visit('/connexion');
+  await fillIn(screen.getByRole('textbox', { name: 'Adresse e-mail ou identifiant' }), user.email);
+  await fillIn(screen.getByLabelText('Mot de passe'), user.password);
   await clickByLabel('Je me connecte');
+  return screen;
 }
 
 export async function authenticateByUsername(user) {
-  await visit('/connexion');
-  await fillIn('#login', user.username);
-  await fillIn('#password', user.password);
+  const screen = await visit('/connexion');
+  await fillIn(screen.getByRole('textbox', { name: 'Adresse e-mail ou identifiant' }), user.username);
+  await fillIn(screen.getByLabelText('Mot de passe'), user.password);
   await clickByLabel('Je me connecte');
+  return screen;
 }
 
 export function generateGarAuthenticationURLHash(user) {

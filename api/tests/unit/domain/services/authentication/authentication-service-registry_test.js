@@ -1,27 +1,38 @@
-const { expect, catchErr } = require('../../../../test-helper');
-const authenticationRegistry = require('../../../../../lib/domain/services/authentication/authentication-service-registry');
-const PoleEmploiOidcAuthenticationService = require('../../../../../lib/domain/services/authentication/pole-emploi-oidc-authentication-service');
-const { InvalidIdentityProviderError } = require('../../../../../lib/domain/errors');
+import { expect, catchErrSync } from '../../../../test-helper.js';
+import * as authenticationRegistry from '../../../../../lib/domain/services/authentication/authentication-service-registry.js';
+import { InvalidIdentityProviderError } from '../../../../../lib/domain/errors.js';
 
 describe('Unit | Domain | Services | authentication registry', function () {
-  describe('#lookupAuthenticationService', function () {
-    it('should find the identity provider service', async function () {
+  describe('#getOidcProviderServices', function () {
+    it('returns all ready OIDC Providers', async function () {
+      // when
+      const services = authenticationRegistry.getOidcProviderServices();
+
+      // then
+      const serviceCodes = services.map((service) => service.code);
+      expect(serviceCodes).to.contain('POLE_EMPLOI');
+      expect(serviceCodes).to.contain('CNAV');
+    });
+  });
+
+  describe('#getOidcProviderServiceByCode', function () {
+    it('returns a ready OIDC Provider', function () {
       // given
       const identityProvider = 'POLE_EMPLOI';
 
       // when
-      const service = await authenticationRegistry.lookupAuthenticationService(identityProvider);
+      const service = authenticationRegistry.getOidcProviderServiceByCode(identityProvider);
 
       // then
-      expect(service).to.be.an.instanceOf(PoleEmploiOidcAuthenticationService);
+      expect(service.code).to.equal('POLE_EMPLOI');
     });
 
-    it('should throw an error when identity provider is not supported', async function () {
+    it('throws an error when identity provider is not supported', function () {
       // given
-      const identityProvider = 'IDP';
+      const identityProvider = 'UNSUPPORTED_OIDC_PROVIDER';
 
       // when
-      const error = await catchErr(authenticationRegistry.lookupAuthenticationService)(identityProvider);
+      const error = catchErrSync(authenticationRegistry.getOidcProviderServiceByCode)(identityProvider);
 
       // then
       expect(error).to.be.an.instanceOf(InvalidIdentityProviderError);

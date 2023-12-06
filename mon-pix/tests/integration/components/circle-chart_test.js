@@ -1,7 +1,7 @@
 import { module, test } from 'qunit';
 import setupIntlRenderingTest from '../../helpers/setup-intl-rendering';
-import { render } from '@ember/test-helpers';
-import hbs from 'htmlbars-inline-precompile';
+import { render } from '@1024pix/ember-testing-library';
+import { hbs } from 'ember-cli-htmlbars';
 
 module('Integration | Component | circle-chart', function (hooks) {
   setupIntlRenderingTest(hooks);
@@ -24,9 +24,10 @@ module('Integration | Component | circle-chart', function (hooks) {
       await render(hbs`<CircleChart @value={{this.value}}/>`);
 
       // then
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(this.element.querySelector('.circle--slice').getAttribute('stroke-dasharray'), `${value}, 100`);
+      assert.strictEqual(
+        this.element.querySelector('.circle--slice').getAttribute('stroke-dasharray'),
+        `${value}, 100`,
+      );
     });
 
     test('should display the circle with given color', async function (assert) {
@@ -61,7 +62,7 @@ module('Integration | Component | circle-chart', function (hooks) {
         this.element
           .querySelector('.circle-chart__content')
           .getAttribute('class')
-          .includes('circle-chart__content--big')
+          .includes('circle-chart__content--big'),
       );
     });
   });

@@ -1,11 +1,44 @@
 import { action } from '@ember/object';
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 import Component from '@glimmer/component';
 import { tracked } from '@glimmer/tracking';
 import isEmpty from 'lodash/isEmpty';
 import isEmailValid from '../../utils/email-validator';
 import isPasswordValid from '../../utils/password-validator';
 import get from 'lodash/get';
+
+const STATUS = {
+  DEFAULT: 'default',
+  SUCCESS: 'success',
+  ERROR: 'error',
+};
+
+class LastName {
+  @tracked status = STATUS.DEFAULT;
+  @tracked message = null;
+}
+
+class FirstName {
+  @tracked status = STATUS.DEFAULT;
+  @tracked message = null;
+}
+
+class Email {
+  @tracked status = STATUS.DEFAULT;
+  @tracked message = null;
+}
+
+class Password {
+  @tracked status = STATUS.DEFAULT;
+  @tracked message = null;
+}
+
+class SignupFormValidation {
+  lastName = new LastName();
+  firstName = new FirstName();
+  email = new Email();
+  password = new Password();
+}
 
 export default class RegisterForm extends Component {
   @service session;
@@ -18,12 +51,10 @@ export default class RegisterForm extends Component {
   @tracked lastName = null;
   @tracked email = null;
   @tracked password = null;
-  @tracked passwordValidationMessage = null;
-  @tracked emailValidationMessage = null;
-  @tracked firstNameValidationMessage = null;
-  @tracked lastNameValidationMessage = null;
   @tracked cguValidationMessage = null;
   @tracked errorMessage = null;
+  @tracked validation = new SignupFormValidation();
+  @tracked selectedLanguage = this.intl.primaryLocale;
 
   get cguUrl() {
     return this.url.cguUrl;
@@ -41,6 +72,7 @@ export default class RegisterForm extends Component {
       return;
     }
     this.isLoading = true;
+
     try {
       await this.store
         .createRecord('user', {
@@ -49,14 +81,16 @@ export default class RegisterForm extends Component {
           email: this.email,
           password: this.password,
           cgu: true,
+          lang: this.selectedLanguage,
         })
         .save();
 
       await this._acceptOrganizationInvitation(
         this.args.organizationInvitationId,
         this.args.organizationInvitationCode,
-        this.email
+        this.email,
       );
+
       await this._authenticate(this.email, this.password);
 
       this.password = null;
@@ -75,45 +109,61 @@ export default class RegisterForm extends Component {
 
   @action
   validatePassword(event) {
-    this.passwordValidationMessage = null;
+    this.validation.password.status = STATUS.DEFAULT;
+    this.validation.password.message = null;
     this.password = event.target.value;
     const isInvalidInput = !isPasswordValid(this.password);
 
     if (isInvalidInput) {
-      this.passwordValidationMessage = this.intl.t('pages.login-or-register.register-form.fields.password.error');
+      this.validation.password.status = STATUS.ERROR;
+      this.validation.password.message = this.intl.t('pages.login-or-register.register-form.fields.password.error');
+    } else {
+      this.validation.password.status = STATUS.SUCCESS;
     }
   }
 
   @action
   validateEmail(event) {
-    this.emailValidationMessage = null;
+    this.validation.email.status = STATUS.DEFAULT;
+    this.validation.email.message = null;
     this.email = event.target.value?.trim().toLowerCase();
     const isInvalidInput = !isEmailValid(this.email);
 
     if (isInvalidInput) {
-      this.emailValidationMessage = this.intl.t('pages.login-or-register.register-form.fields.email.error');
+      this.validation.email.status = STATUS.ERROR;
+      this.validation.email.message = this.intl.t('pages.login-or-register.register-form.fields.email.error');
+    } else {
+      this.validation.email.status = STATUS.SUCCESS;
     }
   }
 
   @action
   validateFirstName(event) {
-    this.firstNameValidationMessage = null;
+    this.validation.firstName.status = STATUS.DEFAULT;
+    this.validation.firstName.message = null;
     this.firstName = event.target.value?.trim();
     const isInvalidInput = isEmpty(this.firstName);
 
     if (isInvalidInput) {
-      this.firstNameValidationMessage = this.intl.t('pages.login-or-register.register-form.fields.first-name.error');
+      this.validation.firstName.status = STATUS.ERROR;
+      this.validation.firstName.message = this.intl.t('pages.login-or-register.register-form.fields.first-name.error');
+    } else {
+      this.validation.firstName.status = STATUS.SUCCESS;
     }
   }
 
   @action
   validateLastName(event) {
-    this.lastNameValidationMessage = null;
+    this.validation.lastName.status = STATUS.DEFAULT;
+    this.validation.lastName.message = null;
     this.lastName = event.target.value?.trim();
     const isInvalidInput = isEmpty(this.lastName);
 
     if (isInvalidInput) {
-      this.lastNameValidationMessage = this.intl.t('pages.login-or-register.register-form.fields.last-name.error');
+      this.validation.lastName.status = STATUS.ERROR;
+      this.validation.lastName.message = this.intl.t('pages.login-or-register.register-form.fields.last-name.error');
+    } else {
+      this.validation.lastName.status = STATUS.SUCCESS;
     }
   }
 

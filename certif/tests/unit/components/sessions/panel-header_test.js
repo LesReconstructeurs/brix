@@ -1,10 +1,10 @@
 import { module, test } from 'qunit';
 import { setupTest } from 'ember-qunit';
+import Service from '@ember/service';
 import createGlimmerComponent from '../../../helpers/create-glimmer-component';
 import sinon from 'sinon';
-import Service from '@ember/service';
 
-module('Unit | Component | panel-header', function (hooks) {
+module('Unit | Component | sessions | panel-header', function (hooks) {
   setupTest(hooks);
 
   let component;
@@ -13,133 +13,111 @@ module('Unit | Component | panel-header', function (hooks) {
     component = createGlimmerComponent('component:sessions/panel-header');
   });
 
-  module('#downloadSessionImportTemplate', function () {
-    test('should call the file-saver service for downloadSessionImportTemplate with the right parameters', async function (assert) {
-      // given
-      const token = 'a token';
+  module('#shouldRenderImportTemplateButton', function () {
+    module('when top level domain is org', function () {
+      module('when current language is french', function () {
+        test('should render import template button', async function (assert) {
+          // given
+          const store = this.owner.lookup('service:store');
+          const currentAllowedCertificationCenterAccess = store.createRecord('allowed-certification-center-access', {
+            type: 'SUP',
+            isRelatedToManagingStudentsOrganization: false,
+          });
 
-      component.session = {
-        isAuthenticated: true,
-        data: {
-          authenticated: {
-            access_token: token,
-          },
-        },
-      };
-      component.fileSaver = {
-        save: sinon.stub(),
-      };
+          class CurrentUserStub extends Service {
+            currentAllowedCertificationCenterAccess = currentAllowedCertificationCenterAccess;
+          }
+          class FeatureTogglesStub extends Service {
+            featureToggles = { isMassiveSessionManagementEnabled: sinon.stub().returns(true) };
+          }
+          class CurrentDomainStub extends Service {
+            getExtension = sinon.stub().returns('org');
+          }
+          class IntlStub extends Service {
+            t = sinon.stub().returns('fr');
+          }
 
-      // when
-      await component.downloadSessionImportTemplate(event);
+          this.owner.register('service:current-domain', CurrentDomainStub);
+          this.owner.register('service:featureToggles', FeatureTogglesStub);
+          this.owner.register('service:current-user', CurrentUserStub);
+          this.owner.register('service:intl', IntlStub);
 
-      // then
-      assert.ok(
-        component.fileSaver.save.calledWith({
-          token,
-          url: `/api/sessions/import`,
-        })
-      );
-    });
+          // when
+          const isRenderImportTemplateButton = component.shouldRenderImportTemplateButton;
 
-    test('should call the notifications service in case of an error', async function (assert) {
-      // given
-      component.session = {
-        isAuthenticated: true,
-        data: {
-          authenticated: {
-            access_token: 'wrong token',
-          },
-        },
-      };
-      component.fileSaver = { save: sinon.stub().rejects() };
-      component.notifications = { error: sinon.spy() };
-
-      // when
-      await component.downloadSessionImportTemplate(event);
-
-      // then
-      sinon.assert.calledOnce(component.notifications.error);
-      assert.ok(component);
-    });
-  });
-
-  module('#importSessions', function () {
-    test('should call upload with the right parameters', async function (assert) {
-      // given
-      const store = this.owner.lookup('service:store');
-      const adapter = store.adapterFor('sessions-import');
-      const sessionsImportStub = sinon.stub(adapter, 'importSessions');
-      const currentAllowedCertificationCenterAccess = store.createRecord('allowed-certification-center-access', {
-        id: 123,
+          // then
+          assert.true(isRenderImportTemplateButton);
+        });
       });
-      const files = [Symbol('file 1')];
+      module('when current language is english', function () {
+        test('should not render import template button', async function (assert) {
+          // given
+          const store = this.owner.lookup('service:store');
+          const currentAllowedCertificationCenterAccess = store.createRecord('allowed-certification-center-access', {
+            type: 'SUP',
+            isRelatedToManagingStudentsOrganization: false,
+          });
 
-      class CurrentUserStub extends Service {
-        currentAllowedCertificationCenterAccess = currentAllowedCertificationCenterAccess;
-      }
+          class CurrentUserStub extends Service {
+            currentAllowedCertificationCenterAccess = currentAllowedCertificationCenterAccess;
+          }
+          class FeatureTogglesStub extends Service {
+            featureToggles = { isMassiveSessionManagementEnabled: sinon.stub().returns(true) };
+          }
+          class CurrentDomainStub extends Service {
+            getExtension = sinon.stub().returns('org');
+          }
+          class IntlStub extends Service {
+            t = sinon.stub().returns('en');
+          }
 
-      this.owner.register('service:current-user', CurrentUserStub);
-      const token = 'a token';
+          this.owner.register('service:current-domain', CurrentDomainStub);
+          this.owner.register('service:featureToggles', FeatureTogglesStub);
+          this.owner.register('service:current-user', CurrentUserStub);
+          this.owner.register('service:intl', IntlStub);
 
-      component.session = {
-        isAuthenticated: true,
-        data: {
-          authenticated: {
-            access_token: token,
-          },
-        },
-      };
+          // when
+          const isRenderImportTemplateButton = component.shouldRenderImportTemplateButton;
 
-      component.args = {
-        reloadSessionSummaries: sinon.stub(),
-      };
-      component.notifications = { success: sinon.stub(), clearAll: sinon.stub() };
-
-      // when
-      await component.importSessions(files);
-
-      // then
-      sinon.assert.calledOnce(component.notifications.success);
-      sinon.assert.calledOnce(component.args.reloadSessionSummaries);
-      assert.ok(sessionsImportStub.calledWith(files, currentAllowedCertificationCenterAccess.id));
+          // then
+          assert.false(isRenderImportTemplateButton);
+        });
+      });
     });
 
-    test('should call the notifications service in case of an error', async function (assert) {
-      // given
-      const store = this.owner.lookup('service:store');
-      const adapter = store.adapterFor('sessions-import');
-      const sessionsImportStub = sinon.stub(adapter, 'importSessions');
-      sessionsImportStub.rejects();
-      const currentAllowedCertificationCenterAccess = store.createRecord('allowed-certification-center-access', {
-        id: 123,
+    module('when top level domain is fr', function () {
+      test('should render import template button', async function (assert) {
+        // given
+        const store = this.owner.lookup('service:store');
+        const currentAllowedCertificationCenterAccess = store.createRecord('allowed-certification-center-access', {
+          type: 'SUP',
+          isRelatedToManagingStudentsOrganization: false,
+        });
+
+        class CurrentUserStub extends Service {
+          currentAllowedCertificationCenterAccess = currentAllowedCertificationCenterAccess;
+        }
+        class FeatureTogglesStub extends Service {
+          featureToggles = { isMassiveSessionManagementEnabled: sinon.stub().returns(true) };
+        }
+        class CurrentDomainStub extends Service {
+          getExtension = sinon.stub().returns('fr');
+        }
+        class IntlStub extends Service {
+          t = sinon.stub().returns('fr');
+        }
+
+        this.owner.register('service:current-domain', CurrentDomainStub);
+        this.owner.register('service:featureToggles', FeatureTogglesStub);
+        this.owner.register('service:current-user', CurrentUserStub);
+        this.owner.register('service:intl', IntlStub);
+
+        // when
+        const isRenderImportTemplateButton = component.shouldRenderImportTemplateButton;
+
+        // then
+        assert.true(isRenderImportTemplateButton);
       });
-      const files = [Symbol('file 1')];
-
-      class CurrentUserStub extends Service {
-        currentAllowedCertificationCenterAccess = currentAllowedCertificationCenterAccess;
-      }
-
-      this.owner.register('service:current-user', CurrentUserStub);
-      const token = 'a token';
-
-      component.session = {
-        isAuthenticated: true,
-        data: {
-          authenticated: {
-            access_token: token,
-          },
-        },
-      };
-
-      component.notifications = { error: sinon.stub(), clearAll: sinon.stub() };
-
-      // when
-      await component.importSessions(files);
-
-      // then
-      sinon.assert.calledOnce(component.notifications.error);
-      assert.ok(component);
     });
   });
 });

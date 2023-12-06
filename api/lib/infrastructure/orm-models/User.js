@@ -1,16 +1,16 @@
-const Bookshelf = require('../bookshelf');
+import { Bookshelf } from '../bookshelf.js';
 
-require('./Assessment');
-require('./KnowledgeElement');
-require('./Membership');
-require('./CertificationCenterMembership');
-require('./UserOrgaSettings');
-require('./OrganizationLearner');
-require('./AuthenticationMethod');
+import './Assessment.js';
+import './KnowledgeElement.js';
+import './Membership.js';
+import './CertificationCenterMembership.js';
+import './UserOrgaSettings.js';
+import './OrganizationLearner.js';
+import './AuthenticationMethod.js';
 
 const modelName = 'User';
 
-module.exports = Bookshelf.model(
+const BookshelfUser = Bookshelf.model(
   modelName,
   {
     tableName: 'users',
@@ -46,5 +46,7 @@ module.exports = Bookshelf.model(
   },
   {
     modelName,
-  }
+  },
 );
+
+export { BookshelfUser };

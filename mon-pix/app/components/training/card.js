@@ -1,8 +1,9 @@
 import Component from '@glimmer/component';
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 
 export default class Card extends Component {
   @service intl;
+
   get durationFormatted() {
     const formattedHours = [];
     const { hours, minutes, seconds } = this.args.training.duration;
@@ -20,6 +21,14 @@ export default class Card extends Component {
 
   get type() {
     return this.intl.t(`pages.training.type.${this.args.training.type}`);
+  }
+
+  get alternativeTextLogo() {
+    return `${this.intl.t('pages.training.editor')} ${this.args.training.editorName}`;
+  }
+
+  get tagTitle() {
+    return `${this.type} - ${this.durationFormatted}`;
   }
 
   get tagColor() {

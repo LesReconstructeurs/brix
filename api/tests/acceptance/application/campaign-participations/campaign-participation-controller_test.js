@@ -1,7 +1,8 @@
-const createServer = require('../../../../server');
-const Assessment = require('../../../../lib/domain/models/Assessment');
-const CampaignParticipationStatuses = require('../../../../lib/domain/models/CampaignParticipationStatuses');
-const {
+import { createServer } from '../../../../server.js';
+import { Assessment } from '../../../../lib/domain/models/Assessment.js';
+import { CampaignParticipationStatuses } from '../../../../lib/domain/models/CampaignParticipationStatuses.js';
+
+import {
   expect,
   databaseBuilder,
   mockLearningContent,
@@ -9,7 +10,7 @@ const {
   generateValidRequestAuthorizationHeader,
   knex,
   insertUserWithRoleSuperAdmin,
-} = require('../../../test-helper');
+} from '../../../test-helper.js';
 
 const { SHARED, STARTED } = CampaignParticipationStatuses;
 
@@ -53,7 +54,7 @@ describe('Acceptance | API | Campaign Participations', function () {
           ],
         },
       ];
-      const learningObjects = learningContentBuilder.buildLearningContent.fromAreas(learningContent);
+      const learningObjects = learningContentBuilder.fromAreas(learningContent);
       mockLearningContent(learningObjects);
 
       options = {
@@ -152,7 +153,7 @@ describe('Acceptance | API | Campaign Participations', function () {
       // then
       expect(response.statusCode).to.equal(412);
       expect(response.result.errors[0].detail).to.equal(
-        `User ${user.id} has already a campaign participation with campaign ${campaignId}`
+        `User ${user.id} has already a campaign participation with campaign ${campaignId}`,
       );
     });
 
@@ -309,7 +310,7 @@ describe('Acceptance | API | Campaign Participations', function () {
 
   describe('GET /api/campaigns/{campaignId}/profiles-collection-participations/{campaignParticipationId}', function () {
     beforeEach(function () {
-      const learningObjects = learningContentBuilder.buildLearningContent.fromAreas([]);
+      const learningObjects = learningContentBuilder.fromAreas([]);
       mockLearningContent(learningObjects);
     });
 
@@ -388,7 +389,7 @@ describe('Acceptance | API | Campaign Participations', function () {
       expect(response.statusCode).to.equal(200);
       expect(response.result.data[0].type).to.equal('trainings');
       expect(response.result.data[0].attributes).to.deep.equal({
-        duration: { hours: 6 },
+        duration: { days: 0, hours: 6, minutes: 0 },
         link: training.link,
         locale: training.locale,
         title: training.title,

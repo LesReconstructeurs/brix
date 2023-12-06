@@ -1,6 +1,5 @@
-const { databaseBuilder, expect, generateValidRequestAuthorizationHeader } = require('../../../test-helper');
-
-const createServer = require('../../../../server');
+import { databaseBuilder, expect, generateValidRequestAuthorizationHeader } from '../../../test-helper.js';
+import { createServer } from '../../../../server.js';
 
 describe('Acceptance | Controller | users-controller-find-paginated-user-recommended-trainings', function () {
   let options;
@@ -39,14 +38,21 @@ describe('Acceptance | Controller | users-controller-find-paginated-user-recomme
           type: 'trainings',
           id: `${trainingId}`,
           attributes: {
-            duration: { hours: 6 },
+            duration: { days: 0, hours: 6, minutes: 0 },
             link: 'http://mon-link.com',
             locale: 'fr-fr',
             title: 'title',
             type: 'webinaire',
-            'editor-name': "Ministère de l'Éducation nationale et de la Jeunesse",
+            'editor-name': "Ministère de l'Éducation nationale et de la Jeunesse. Liberté égalité fraternité",
             'editor-logo-url':
               'https://images.pix.fr/contenu-formatif/editeur/logo-ministere-education-nationale-et-jeunesse.svg',
+          },
+          relationships: {
+            'target-profile-summaries': {
+              links: {
+                related: `/api/admin/trainings/${trainingId}/target-profile-summaries`,
+              },
+            },
           },
         },
       ]);

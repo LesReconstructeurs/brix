@@ -1,7 +1,7 @@
-const { expect, databaseBuilder } = require('../../../test-helper');
-const CampaignTypes = require('../../../../lib/domain/models/CampaignTypes');
-const campaignParticipationInfoRepository = require('../../../../lib/infrastructure/repositories/campaign-participation-info-repository');
-const CampaignParticipationStatuses = require('../../../../lib/domain/models/CampaignParticipationStatuses');
+import { expect, databaseBuilder } from '../../../test-helper.js';
+import { CampaignTypes } from '../../../../lib/domain/models/CampaignTypes.js';
+import * as campaignParticipationInfoRepository from '../../../../lib/infrastructure/repositories/campaign-participation-info-repository.js';
+import { CampaignParticipationStatuses } from '../../../../lib/domain/models/CampaignParticipationStatuses.js';
 
 const { STARTED } = CampaignParticipationStatuses;
 
@@ -27,7 +27,7 @@ describe('Integration | Repository | Campaign Participation Info', function () {
             campaignId: campaign1.id,
             userId,
           },
-          false
+          false,
         );
 
         databaseBuilder.factory.buildAssessment({
@@ -48,7 +48,7 @@ describe('Integration | Repository | Campaign Participation Info', function () {
           {
             campaignId: campaign2.id,
             userId,
-          }
+          },
         );
 
         databaseBuilder.factory.buildAssessment({
@@ -80,6 +80,7 @@ describe('Integration | Repository | Campaign Participation Info', function () {
             studentNumber: null,
             division: null,
             group: null,
+            validatedSkillsCount: null,
           },
         ]);
         expect(campaignParticipationInfos[0].isShared).to.be.true;
@@ -104,7 +105,7 @@ describe('Integration | Repository | Campaign Participation Info', function () {
             campaignId: campaign.id,
             userId: user1Id,
             sharedAt: new Date(),
-          }
+          },
         );
 
         databaseBuilder.factory.buildAssessment({
@@ -120,7 +121,7 @@ describe('Integration | Repository | Campaign Participation Info', function () {
             userId: user2Id,
             status: STARTED,
             sharedAt: null,
-          }
+          },
         );
 
         databaseBuilder.factory.buildAssessment({
@@ -137,7 +138,7 @@ describe('Integration | Repository | Campaign Participation Info', function () {
             status: STARTED,
             sharedAt: null,
             deletedAt: new Date(),
-          }
+          },
         );
 
         databaseBuilder.factory.buildAssessment({
@@ -168,6 +169,7 @@ describe('Integration | Repository | Campaign Participation Info', function () {
           studentNumber: null,
           division: null,
           group: null,
+          validatedSkillsCount: null,
         });
         expect(campaignParticipationInfosOrdered[0].isShared).to.equal(true);
 
@@ -184,6 +186,7 @@ describe('Integration | Repository | Campaign Participation Info', function () {
           studentNumber: null,
           division: null,
           group: null,
+          validatedSkillsCount: null,
         });
         expect(campaignParticipationInfosOrdered[1].isShared).to.equal(false);
       });
@@ -204,7 +207,7 @@ describe('Integration | Repository | Campaign Participation Info', function () {
             campaignId: campaign.id,
             userId,
             sharedAt: new Date(),
-          }
+          },
         );
 
         databaseBuilder.factory.buildAssessment({
@@ -242,6 +245,7 @@ describe('Integration | Repository | Campaign Participation Info', function () {
             studentNumber: null,
             division: null,
             group: null,
+            validatedSkillsCount: null,
           },
         ]);
       });
@@ -314,6 +318,7 @@ describe('Integration | Repository | Campaign Participation Info', function () {
             studentNumber: null,
             division: null,
             group: null,
+            validatedSkillsCount: null,
           },
         ]);
       });

@@ -1,7 +1,7 @@
-import { currentURL, visit } from '@ember/test-helpers';
+import { currentURL } from '@ember/test-helpers';
+import { visit } from '@1024pix/ember-testing-library';
 import { module, test } from 'qunit';
 import { authenticate } from '../helpers/authentication';
-import { contains } from '../helpers/contains';
 import { setupApplicationTest } from 'ember-qunit';
 import { setupMirage } from 'ember-cli-mirage/test-support';
 
@@ -33,9 +33,7 @@ module('Acceptance | User tests', function (hooks) {
       await visit('/mes-parcours');
 
       // then
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(currentURL(), '/mes-parcours');
+      assert.strictEqual(currentURL(), '/mes-parcours');
     });
 
     test('should display user participation cards', async function (assert) {
@@ -56,11 +54,11 @@ module('Acceptance | User tests', function (hooks) {
       });
 
       // when
-      await visit('/mes-parcours');
+      const screen = await visit('/mes-parcours');
 
       // then
-      assert.ok(contains('Campaign 1'));
-      assert.ok(contains('Campaign 2'));
+      assert.ok(screen.getByText('Campaign 1'));
+      assert.ok(screen.getByText('Campaign 2'));
     });
   });
 
@@ -68,9 +66,9 @@ module('Acceptance | User tests', function (hooks) {
     test('should redirect to home, when user is not authenticated', async function (assert) {
       // when
       await visit('/mes-parcours');
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-assert-equal
-      assert.equal(currentURL(), '/connexion');
+
+      // then
+      assert.strictEqual(currentURL(), '/connexion');
     });
   });
 });

@@ -1,24 +1,26 @@
-const {
+import {
   CertificationCandidateByPersonalInfoTooManyMatchesError,
-  CpfBirthInformationValidationError,
-  CertificationCandidateAddError,
   CertificationCandidateOnFinalizedSessionError,
-} = require('../errors');
+  CertificationCandidatesError,
+} from '../errors.js';
+import * as mailCheckImplementation from '../../infrastructure/mail-check.js';
+import { CERTIFICATION_CANDIDATES_ERRORS } from '../constants/certification-candidates-errors.js';
 
-module.exports = async function addCertificationCandidateToSession({
+const addCertificationCandidateToSession = async function ({
   sessionId,
   certificationCandidate,
-  complementaryCertifications,
+  complementaryCertification,
   sessionRepository,
   certificationCandidateRepository,
   certificationCpfService,
   certificationCpfCountryRepository,
   certificationCpfCityRepository,
+  mailCheck = mailCheckImplementation,
 }) {
   certificationCandidate.sessionId = sessionId;
 
   const session = await sessionRepository.get(sessionId);
-  if (!session.canEnrollCandidate()) {
+  if (!session.canEnrolCandidate()) {
     throw new CertificationCandidateOnFinalizedSessionError();
   }
 
@@ -27,7 +29,7 @@ module.exports = async function addCertificationCandidateToSession({
   try {
     certificationCandidate.validate(isSco);
   } catch (error) {
-    throw CertificationCandidateAddError.fromInvalidCertificationCandidateError(error);
+    throw new CertificationCandidatesError(error);
   }
 
   const duplicateCandidates = await certificationCandidateRepository.findBySessionIdAndPersonalInfo({
@@ -39,7 +41,7 @@ module.exports = async function addCertificationCandidateToSession({
 
   if (duplicateCandidates.length !== 0) {
     throw new CertificationCandidateByPersonalInfoTooManyMatchesError(
-      'A candidate with the same personal info is already in the session.'
+      'A candidate with the same personal info is already in the session.',
     );
   }
 
@@ -50,15 +52,41 @@ module.exports = async function addCertificationCandidateToSession({
   });
 
   if (cpfBirthInformation.hasFailed()) {
-    throw new CpfBirthInformationValidationError(cpfBirthInformation.message);
+    throw new CertificationCandidatesError({
+      code: cpfBirthInformation.firstErrorCode,
+      meta: { ...cpfBirthInformation },
+    });
   }
 
   certificationCandidate.updateBirthInformation(cpfBirthInformation);
 
-  certificationCandidate.complementaryCertifications = complementaryCertifications;
+  certificationCandidate.complementaryCertification = complementaryCertification;
+
+  if (certificationCandidate.resultRecipientEmail) {
+    try {
+      await mailCheck.checkDomainIsValid(certificationCandidate.resultRecipientEmail);
+    } catch {
+      throw new CertificationCandidatesError({
+        code: CERTIFICATION_CANDIDATES_ERRORS.CANDIDATE_RESULT_RECIPIENT_EMAIL_NOT_VALID.code,
+        meta: { email: certificationCandidate.resultRecipientEmail },
+      });
+    }
+  }
+  if (certificationCandidate.email) {
+    try {
+      await mailCheck.checkDomainIsValid(certificationCandidate.email);
+    } catch {
+      throw new CertificationCandidatesError({
+        code: CERTIFICATION_CANDIDATES_ERRORS.CANDIDATE_EMAIL_NOT_VALID.code,
+        meta: { email: certificationCandidate.email },
+      });
+    }
+  }
 
   return await certificationCandidateRepository.saveInSession({
     certificationCandidate,
     sessionId: certificationCandidate.sessionId,
   });
 };
+
+export { addCertificationCandidateToSession };

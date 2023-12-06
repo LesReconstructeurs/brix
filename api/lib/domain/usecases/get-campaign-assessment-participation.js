@@ -1,12 +1,13 @@
-const { UserNotAuthorizedToAccessEntityError } = require('../errors');
+import { UserNotAuthorizedToAccessEntityError } from '../errors.js';
 
-module.exports = async function getCampaignAssessmentParticipation({
+const getCampaignAssessmentParticipation = async function ({
   userId,
   campaignId,
   campaignParticipationId,
   campaignRepository,
   campaignAssessmentParticipationRepository,
   badgeAcquisitionRepository,
+  stageCollectionRepository,
 }) {
   if (!(await campaignRepository.checkIfUserOrganizationHasAccessToCampaign(campaignId, userId))) {
     throw new UserNotAuthorizedToAccessEntityError('User does not belong to the organization that owns the campaign');
@@ -25,5 +26,14 @@ module.exports = async function getCampaignAssessmentParticipation({
   const badges = acquiredBadgesByCampaignParticipations[campaignAssessmentParticipation.campaignParticipationId];
   campaignAssessmentParticipation.setBadges(badges);
 
+  const stageCollection = await stageCollectionRepository.findStageCollection({ campaignId });
+  const reachedStage = stageCollection.getReachedStage(
+    campaignAssessmentParticipation.validatedSkillsCount,
+    campaignAssessmentParticipation.masteryRate * 100,
+  );
+  campaignAssessmentParticipation.setStageInfo(reachedStage);
+
   return campaignAssessmentParticipation;
 };
+
+export { getCampaignAssessmentParticipation };

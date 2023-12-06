@@ -8,7 +8,7 @@ function _getEnvironmentVariableAsNumber({ environmentVariableName, defaultValue
     return number;
   }
   throw new Error(
-    `Invalid value '${valueToValidate}' for environment variable '${environmentVariableName}'. It should be a number greater than or equal ${minValue}.`
+    `Invalid value '${valueToValidate}' for environment variable '${environmentVariableName}'. It should be a number greater than or equal ${minValue}.`,
   );
 }
 
@@ -24,7 +24,7 @@ module.exports = function (environment) {
     modulePrefix: 'pix-certif',
     environment,
     rootURL: '/',
-    locationType: 'auto',
+    locationType: 'history',
     EmberENV: {
       FEATURES: {
         // Here you can enable experimental features on an ember canary build
@@ -54,7 +54,7 @@ module.exports = function (environment) {
         },
         SHOULD_CHANGE_PASSWORD: {
           CODE: '401',
-          I18N_KEY: 'pages.login-form.errors.should-change-password',
+          I18N_KEY: 'pages.login.errors.should-change-password',
         },
         USER_IS_TEMPORARY_BLOCKED: {
           CODE: '403',
@@ -85,11 +85,11 @@ module.exports = function (environment) {
         minValue: 1,
       }),
       sessionSupervisingPollingRate: process.env.SESSION_SUPERVISING_POLLING_RATE ?? 5000,
+      COOKIE_LOCALE_LIFESPAN_IN_SECONDS: 31536000, // 1 year in seconds
     },
 
     matomo: {},
 
-    formBuilderLinkUrl: 'https://form-eu.123formbuilder.com/41052/form',
     urlToDownloadSessionIssueReportSheet: 'https://cloud.pix.fr/s/B76yA8ip9Radej9/download',
   };
 

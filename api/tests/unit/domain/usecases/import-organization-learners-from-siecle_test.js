@@ -1,13 +1,11 @@
-const { expect, sinon, catchErr } = require('../../../test-helper');
-const importOrganizationLearnersFromSIECLEFormat = require('../../../../lib/domain/usecases/import-organization-learners-from-siecle');
-const { FileValidationError, SiecleXmlImportError } = require('../../../../lib/domain/errors');
-const DomainTransaction = require('../../../../lib/infrastructure/DomainTransaction');
+import { expect, sinon, catchErr } from '../../../test-helper.js';
+import { importOrganizationLearnersFromSIECLEFormat } from '../../../../lib/domain/usecases/import-organization-learners-from-siecle.js';
+import { FileValidationError, SiecleXmlImportError } from '../../../../lib/domain/errors.js';
+import { DomainTransaction } from '../../../../lib/infrastructure/DomainTransaction.js';
+import { OrganizationLearner } from '../../../../lib/domain/models/OrganizationLearner.js';
+import fs from 'fs/promises';
 
-const OrganizationLearner = require('../../../../lib/domain/models/OrganizationLearner');
-
-const fs = require('fs').promises;
-
-const { getI18n } = require('../../../tooling/i18n/i18n');
+import { getI18n } from '../../../tooling/i18n/i18n.js';
 const i18n = getI18n();
 
 describe('Unit | UseCase | import-organization-learners-from-siecle', function () {
@@ -38,9 +36,6 @@ describe('Unit | UseCase | import-organization-learners-from-siecle', function (
       disableAllOrganizationLearnersInOrganization: sinon.stub().resolves(),
     };
     organizationRepositoryStub = { get: sinon.stub() };
-  });
-  afterEach(function () {
-    sinon.restore();
   });
 
   context('when extracted organizationLearners informations can be imported', function () {
@@ -125,7 +120,7 @@ describe('Unit | UseCase | import-organization-learners-from-siecle', function (
         ];
         organizationRepositoryStub.get.withArgs(organizationId).resolves({ externalId: organizationUAI });
         organizationLearnersXmlServiceStub.extractOrganizationLearnersInformationFromSIECLE.returns(
-          extractedOrganizationLearnersInformations
+          extractedOrganizationLearnersInformations,
         );
 
         const organizationLearnersToUpdate = [
@@ -152,11 +147,11 @@ describe('Unit | UseCase | import-organization-learners-from-siecle', function (
         ];
 
         expect(
-          organizationLearnersXmlServiceStub.extractOrganizationLearnersInformationFromSIECLE
+          organizationLearnersXmlServiceStub.extractOrganizationLearnersInformationFromSIECLE,
         ).to.have.been.calledWith(payload.path, { externalId: organizationUAI });
         expect(organizationLearnerRepositoryStub.addOrUpdateOrganizationOfOrganizationLearners).to.have.been.calledWith(
           organizationLearners,
-          organizationId
+          organizationId,
         );
         expect(organizationLearnerRepositoryStub.addOrUpdateOrganizationOfOrganizationLearners).to.not.throw();
       });
@@ -170,7 +165,7 @@ describe('Unit | UseCase | import-organization-learners-from-siecle', function (
       const extractedOrganizationLearnersInformations = [{ nationalStudentId: 'INE1' }];
       organizationRepositoryStub.get.withArgs(organizationId).resolves({ externalId: organizationUAI });
       organizationLearnersXmlServiceStub.extractOrganizationLearnersInformationFromSIECLE.returns(
-        extractedOrganizationLearnersInformations
+        extractedOrganizationLearnersInformations,
       );
 
       organizationLearnerRepositoryStub.findByOrganizationId.resolves();
@@ -187,7 +182,7 @@ describe('Unit | UseCase | import-organization-learners-from-siecle', function (
 
       // then
       expect(
-        organizationLearnerRepositoryStub.disableAllOrganizationLearnersInOrganization
+        organizationLearnerRepositoryStub.disableAllOrganizationLearnersInOrganization,
       ).to.have.been.calledWithExactly({ domainTransaction, organizationId });
     });
   });

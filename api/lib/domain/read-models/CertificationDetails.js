@@ -1,6 +1,6 @@
-const _ = require('lodash');
-const AnswerCollectionForScoring = require('../models/AnswerCollectionForScoring');
-const { ReproducibilityRate } = require('../models/ReproducibilityRate');
+import _ from 'lodash';
+import { AnswerCollectionForScoring } from '../models/AnswerCollectionForScoring.js';
+import { ReproducibilityRate } from '../models/ReproducibilityRate.js';
 
 class CertificationDetails {
   constructor({
@@ -116,13 +116,13 @@ function _buildListChallengesAndAnswers({ certificationAssessment, competencesWi
         skill: challengeForAnswer.associatedSkillName,
         value: certificationAnswer.value,
       };
-    }
+    },
   );
 
   const unansweredChallengesAndAnswers = _(certificationAssessment.certificationChallenges)
     .map((challenge) => {
       const answer = certificationAssessment.certificationAnswersByDate.find(
-        (answer) => answer.challengeId === challenge.challengeId
+        (answer) => answer.challengeId === challenge.challengeId,
       );
       if (answer) {
         return null;
@@ -150,4 +150,4 @@ function _getCompetenceIndexForChallenge(certificationChallenge, competencesWith
   return competenceWithMark ? competenceWithMark.index : '';
 }
 
-module.exports = CertificationDetails;
+export { CertificationDetails };

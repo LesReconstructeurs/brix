@@ -3,25 +3,27 @@ const COMPLEMENTARY_CERTIFICATION_COURSES_TABLE = 'complementary-certification-c
 const COMPLEMENTARY_CERTIFICATION_COURSE_RESULTS_TABLE = 'complementary-certification-course-results';
 const COMPLEMENTARY_CERTIFICATION_COURSE_ID_COLUMN = 'complementaryCertificationCourseId';
 const CERTIFICATION_COURSE_ID = 'certificationCourseId';
-const uniqBy = require('lodash/uniqBy');
-const bluebird = require('bluebird');
+import lodash from 'lodash';
+const { uniqBy } = lodash;
+import bluebird from 'bluebird';
+import { badges } from '../constants.js';
 const {
   PIX_EMPLOI_CLEA,
   PIX_EMPLOI_CLEA_V2,
-  PIX_DROIT_MAITRE_CERTIF,
+  PIX_DROIT_AVANCE_CERTIF,
   PIX_DROIT_EXPERT_CERTIF,
   PIX_EDU_FORMATION_INITIALE_2ND_DEGRE_INITIE,
   PIX_EDU_FORMATION_INITIALE_2ND_DEGRE_CONFIRME,
   PIX_EDU_FORMATION_CONTINUE_2ND_DEGRE_CONFIRME,
   PIX_EDU_FORMATION_CONTINUE_2ND_DEGRE_AVANCE,
   PIX_EDU_FORMATION_CONTINUE_2ND_DEGRE_EXPERT,
-} = require('../constants').badges.keys;
+} = badges.keys;
 
 const PIX_PLUS_EDU = 'Pix+ Édu';
 const PIX_PLUS_DROIT = 'Pix+ Droit';
 const CLEA = 'CléA Numérique';
 
-exports.up = async function (knex) {
+const up = async function (knex) {
   const complementaryCertifications = await knex(COMPLEMENTARY_CERTIFICATIONS_TABLE).select('*');
   await _alterComplementaryCertificationCourseResultsForeignKey();
   await _addMissingComplementaryCertificationCourses();
@@ -55,7 +57,7 @@ exports.up = async function (knex) {
         await knex(COMPLEMENTARY_CERTIFICATION_COURSE_RESULTS_TABLE)
           .update(COMPLEMENTARY_CERTIFICATION_COURSE_ID_COLUMN, complementaryCertificationCourseId)
           .where({ id: complementaryCertificationCourseResultId });
-      }
+      },
     );
   }
 
@@ -70,7 +72,7 @@ exports.up = async function (knex) {
   async function _getComplementaryCertifCourseIdForComplementaryCertifCourseResultId() {
     const complementaryCertificationCourses = await knex(COMPLEMENTARY_CERTIFICATION_COURSES_TABLE).select('*');
     const complementaryCertificationCourseResults = await knex(COMPLEMENTARY_CERTIFICATION_COURSE_RESULTS_TABLE).select(
-      '*'
+      '*',
     );
 
     return complementaryCertificationCourseResults.map((cccr) => {
@@ -83,7 +85,7 @@ exports.up = async function (knex) {
       const complementaryCertificationCourseId = complementaryCertificationCourses.find(
         (ccc) =>
           ccc.complementaryCertificationId === complementaryCertificationId &&
-          ccc.certificationCourseId === certificationCourseId
+          ccc.certificationCourseId === certificationCourseId,
       ).id;
 
       return { complementaryCertificationCourseResultId, complementaryCertificationCourseId };
@@ -115,7 +117,7 @@ exports.up = async function (knex) {
         .from(COMPLEMENTARY_CERTIFICATION_COURSE_RESULTS_TABLE)
         // eslint-disable-next-line knex/avoid-injections
         .whereRaw(
-          `"${CERTIFICATION_COURSE_ID}" not in (select "${CERTIFICATION_COURSE_ID}" from "complementary-certification-courses")`
+          `"${CERTIFICATION_COURSE_ID}" not in (select "${CERTIFICATION_COURSE_ID}" from "complementary-certification-courses")`,
         )
     );
   }
@@ -129,7 +131,7 @@ exports.up = async function (knex) {
         return getIdFromName(CLEA);
       case PIX_DROIT_EXPERT_CERTIF:
         return getIdFromName(PIX_PLUS_DROIT);
-      case PIX_DROIT_MAITRE_CERTIF:
+      case PIX_DROIT_AVANCE_CERTIF:
         return getIdFromName(PIX_PLUS_DROIT);
       case PIX_EDU_FORMATION_CONTINUE_2ND_DEGRE_AVANCE:
         return getIdFromName(PIX_PLUS_EDU);
@@ -151,7 +153,7 @@ exports.up = async function (knex) {
   }
 };
 
-exports.down = async function (knex) {
+const down = async function (knex) {
   await knex.schema.table(COMPLEMENTARY_CERTIFICATION_COURSE_RESULTS_TABLE, async (table) => {
     table
       .dropColumn(COMPLEMENTARY_CERTIFICATION_COURSE_ID_COLUMN)
@@ -159,3 +161,5 @@ exports.down = async function (knex) {
       .references('complementary-certification-courses.id');
   });
 };
+
+export { up, down };

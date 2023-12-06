@@ -1,10 +1,10 @@
-const { expect, databaseBuilder, mockLearningContent, knex, catchErr } = require('../../../test-helper');
-const Assessment = require('../../../../lib/domain/models/Assessment');
-const KnowledgeElement = require('../../../../lib/domain/models/KnowledgeElement');
-const CampaignAssessmentParticipation = require('../../../../lib/domain/read-models/CampaignAssessmentParticipation');
-const campaignAssessmentParticipationRepository = require('../../../../lib/infrastructure/repositories/campaign-assessment-participation-repository');
-const CampaignParticipationStatuses = require('../../../../lib/domain/models/CampaignParticipationStatuses');
-const { NotFoundError } = require('../../../../lib/domain/errors');
+import { expect, databaseBuilder, mockLearningContent, knex, catchErr } from '../../../test-helper.js';
+import { Assessment } from '../../../../lib/domain/models/Assessment.js';
+import { KnowledgeElement } from '../../../../lib/domain/models/KnowledgeElement.js';
+import { CampaignAssessmentParticipation } from '../../../../lib/domain/read-models/CampaignAssessmentParticipation.js';
+import * as campaignAssessmentParticipationRepository from '../../../../lib/infrastructure/repositories/campaign-assessment-participation-repository.js';
+import { CampaignParticipationStatuses } from '../../../../lib/domain/models/CampaignParticipationStatuses.js';
+import { NotFoundError } from '../../../../lib/domain/errors.js';
 
 const { STARTED } = CampaignParticipationStatuses;
 
@@ -38,7 +38,7 @@ describe('Integration | Repository | Campaign Assessment Participation', functio
             ...participation,
             campaignId,
           },
-          participant
+          participant,
         );
         campaignParticipationId = assessment.campaignParticipationId;
         userId = assessment.userId;
@@ -232,6 +232,8 @@ describe('Integration | Repository | Campaign Assessment Participation', functio
     });
 
     context('when there are several organization-learners for the same participant', function () {
+      let organizationLearnerId;
+
       beforeEach(async function () {
         const skill = { id: 'skill', status: 'actif' };
         mockLearningContent({ skills: [skill] });
@@ -240,7 +242,7 @@ describe('Integration | Repository | Campaign Assessment Participation', functio
         campaignId = databaseBuilder.factory.buildAssessmentCampaignForSkills({ organizationId }, [skill]).id;
         const userId = databaseBuilder.factory.buildUser().id;
 
-        const organizationLearnerId = databaseBuilder.factory.buildOrganizationLearner({
+        organizationLearnerId = databaseBuilder.factory.buildOrganizationLearner({
           organizationId,
           userId,
           firstName: 'John',
@@ -270,13 +272,14 @@ describe('Integration | Repository | Campaign Assessment Participation', functio
         await databaseBuilder.commit();
       });
 
-      it('return the first name and the last name of the correct organization-learner', async function () {
+      it('return the id, first name and the last name of the correct organization-learner', async function () {
         const campaignAssessmentParticipation =
           await campaignAssessmentParticipationRepository.getByCampaignIdAndCampaignParticipationId({
             campaignId,
             campaignParticipationId,
           });
 
+        expect(campaignAssessmentParticipation.organizationLearnerId).to.equal(organizationLearnerId);
         expect(campaignAssessmentParticipation.firstName).to.equal('John');
         expect(campaignAssessmentParticipation.lastName).to.equal('Doe');
       });
@@ -292,7 +295,7 @@ describe('Integration | Repository | Campaign Assessment Participation', functio
         await databaseBuilder.commit();
 
         const error = await catchErr(
-          campaignAssessmentParticipationRepository.getByCampaignIdAndCampaignParticipationId
+          campaignAssessmentParticipationRepository.getByCampaignIdAndCampaignParticipationId,
         )({ campaignId, campaignParticipationId: 77777 });
 
         //then
@@ -314,7 +317,7 @@ describe('Integration | Repository | Campaign Assessment Participation', functio
         await databaseBuilder.commit();
 
         const error = await catchErr(
-          campaignAssessmentParticipationRepository.getByCampaignIdAndCampaignParticipationId
+          campaignAssessmentParticipationRepository.getByCampaignIdAndCampaignParticipationId,
         )({ campaignId, campaignParticipationId });
 
         //then

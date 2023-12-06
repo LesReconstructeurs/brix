@@ -1,5 +1,5 @@
 import { module, test } from 'qunit';
-import hbs from 'htmlbars-inline-precompile';
+import { hbs } from 'ember-cli-htmlbars';
 import setupIntlRenderingTest from '../../../helpers/setup-intl-rendering';
 import { clickByName, render } from '@1024pix/ember-testing-library';
 import sinon from 'sinon';
@@ -28,7 +28,7 @@ module('Integration | Component | Team::InvitationsList', function (hooks) {
     ]);
 
     // when
-    await render(hbs`<Team::InvitationsList @invitations={{this.invitations}}/>`);
+    await render(hbs`<Team::InvitationsList @invitations={{this.invitations}} />`);
 
     // then
     assert.dom(`[aria-label="${this.intl.t('pages.team-invitations.table.row.aria-label')}"]`).exists({ count: 2 });
@@ -41,7 +41,7 @@ module('Integration | Component | Team::InvitationsList', function (hooks) {
     this.set('invitations', [{ email: 'gigi@example.net', isPending: true, updatedAt: pendingInvitationDate }]);
 
     // when
-    await render(hbs`<Team::InvitationsList @invitations={{this.invitations}}/>`);
+    await render(hbs`<Team::InvitationsList @invitations={{this.invitations}} />`);
 
     // then
     assert.contains('gigi@example.net');
@@ -67,14 +67,14 @@ module('Integration | Component | Team::InvitationsList', function (hooks) {
     this.set('invitations', [invitation]);
 
     // when
-    await render(hbs`<Team::InvitationsList @invitations={{this.invitations}}/>`);
+    await render(hbs`<Team::InvitationsList @invitations={{this.invitations}} />`);
 
     await clickByName(this.intl.t('pages.team-invitations.cancel-invitation'));
 
     // then
     sinon.assert.calledWith(
       notifications.success,
-      this.intl.t('pages.team-invitations.invitation-cancelled-succeed-message')
+      this.intl.t('pages.team-invitations.invitation-cancelled-succeed-message'),
     );
     assert.ok(true);
   });
@@ -99,7 +99,7 @@ module('Integration | Component | Team::InvitationsList', function (hooks) {
     this.set('invitations', [invitation]);
 
     // when
-    await render(hbs`<Team::InvitationsList @invitations={{this.invitations}}/>`);
+    await render(hbs`<Team::InvitationsList @invitations={{this.invitations}} />`);
     await clickByName(this.intl.t('pages.team-invitations.cancel-invitation'));
 
     // then

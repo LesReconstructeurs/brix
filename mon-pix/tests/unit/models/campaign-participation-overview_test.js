@@ -18,10 +18,9 @@ module('Unit | Model | Campaign-Participation-Overview', function (hooks) {
           const model = store.createRecord('campaign-participation-overview', {
             status: 'STARTED',
           });
+
           // when / then
-          // TODO: Fix this the next time the file is edited.
-          // eslint-disable-next-line qunit/no-assert-equal
-          assert.equal(model.cardStatus, 'ONGOING');
+          assert.strictEqual(model.cardStatus, 'ONGOING');
         });
       });
 
@@ -33,10 +32,9 @@ module('Unit | Model | Campaign-Participation-Overview', function (hooks) {
             isShared: false,
             disabledAt: null,
           });
+
           // when / then
-          // TODO: Fix this the next time the file is edited.
-          // eslint-disable-next-line qunit/no-assert-equal
-          assert.equal(model.cardStatus, 'TO_SHARE');
+          assert.strictEqual(model.cardStatus, 'TO_SHARE');
         });
       });
 
@@ -48,26 +46,36 @@ module('Unit | Model | Campaign-Participation-Overview', function (hooks) {
             disabledAt: null,
             isShared: true,
           });
+
           // when / then
-          // TODO: Fix this the next time the file is edited.
-          // eslint-disable-next-line qunit/no-assert-equal
-          assert.equal(model.cardStatus, 'ENDED');
+          assert.strictEqual(model.cardStatus, 'ENDED');
         });
       });
     });
 
     module('when the participation is disabled"', function () {
-      test('should return the status "disabled"', function (assert) {
+      test('should return the status "ENDED" if campaign "SHARED"', function (assert) {
         // given
         const model = store.createRecord('campaign-participation-overview', {
           status: 'SHARED',
           isShared: true,
           disabledAt: new Date('2021-01-01'),
         });
+
         // when / then
-        // TODO: Fix this the next time the file is edited.
-        // eslint-disable-next-line qunit/no-assert-equal
-        assert.equal(model.cardStatus, 'DISABLED');
+        assert.strictEqual(model.cardStatus, 'ENDED');
+      });
+
+      test('should return the status "DISABLED" if campaign not "SHARED"', function (assert) {
+        // given
+        const model = store.createRecord('campaign-participation-overview', {
+          status: 'TO_SHARE',
+          isShared: false,
+          disabledAt: new Date('2021-01-01'),
+        });
+
+        // when / then
+        assert.strictEqual(model.cardStatus, 'DISABLED');
       });
     });
   });

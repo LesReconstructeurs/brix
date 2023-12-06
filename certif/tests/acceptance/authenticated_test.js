@@ -48,75 +48,47 @@ module('Acceptance | authenticated', function (hooks) {
       assert.strictEqual(currentURL(), '/sessions/liste');
     });
 
-    module('when end test screen removal is enabled', function () {
-      test('it should show a "Espace surveillant" button', async function (assert) {
-        // given
-        const currentAllowedCertificationCenterAccess = server.create('allowed-certification-center-access', {
-          name: 'Bibiche',
-          externalId: 'ABC123',
-          isEndTestScreenRemovalEnabled: true,
-        });
-        const certificationPointOfContact = server.create('certification-point-of-contact', {
-          firstName: 'Buffy',
-          lastName: 'Summers',
-          pixCertifTermsOfServiceAccepted: true,
-          allowedCertificationCenterAccesses: [currentAllowedCertificationCenterAccess],
-        });
-        await authenticateSession(certificationPointOfContact.id);
-
-        // when
-        const screen = await visitScreen('/sessions/liste');
-
-        // then
-        assert.dom(screen.getByRole('link', { name: 'Espace surveillant' })).exists();
+    test('it should show a "Espace surveillant" button', async function (assert) {
+      // given
+      const currentAllowedCertificationCenterAccess = server.create('allowed-certification-center-access', {
+        name: 'Bibiche',
+        externalId: 'ABC123',
       });
-
-      test('it should redirect to the login session supervisor', async function (assert) {
-        // given
-        const currentAllowedCertificationCenterAccess = server.create('allowed-certification-center-access', {
-          name: 'Bibiche',
-          externalId: 'ABC123',
-          isEndTestScreenRemovalEnabled: true,
-        });
-        const certificationPointOfContact = server.create('certification-point-of-contact', {
-          firstName: 'Buffy',
-          lastName: 'Summers',
-          pixCertifTermsOfServiceAccepted: true,
-          allowedCertificationCenterAccesses: [currentAllowedCertificationCenterAccess],
-        });
-        await authenticateSession(certificationPointOfContact.id);
-
-        // when
-        const screen = await visitScreen('/sessions/liste');
-        await click(screen.getByRole('link', { name: 'Espace surveillant' }));
-
-        // then
-        assert.strictEqual(currentURL(), '/connexion-espace-surveillant');
+      const certificationPointOfContact = server.create('certification-point-of-contact', {
+        firstName: 'Buffy',
+        lastName: 'Summers',
+        pixCertifTermsOfServiceAccepted: true,
+        allowedCertificationCenterAccesses: [currentAllowedCertificationCenterAccess],
       });
+      await authenticateSession(certificationPointOfContact.id);
+
+      // when
+      const screen = await visitScreen('/sessions/liste');
+
+      // then
+      assert.dom(screen.getByRole('link', { name: 'Espace surveillant' })).exists();
     });
 
-    module('when end test screen removal is not enabled', function () {
-      test('it should not show a "Espace surveillant" button', async function (assert) {
-        // given
-        const currentAllowedCertificationCenterAccess = server.create('allowed-certification-center-access', {
-          name: 'Bibiche',
-          externalId: 'ABC123',
-          isEndTestScreenRemovalEnabled: false,
-        });
-        const certificationPointOfContact = server.create('certification-point-of-contact', {
-          firstName: 'Buffy',
-          lastName: 'Summers',
-          pixCertifTermsOfServiceAccepted: true,
-          allowedCertificationCenterAccesses: [currentAllowedCertificationCenterAccess],
-        });
-        await authenticateSession(certificationPointOfContact.id);
-
-        // when
-        const screen = await visitScreen('/sessions/liste');
-
-        // then
-        assert.dom(screen.queryByRole('link', { name: 'Espace surveillant' })).doesNotExist();
+    test('it should redirect to the login session supervisor', async function (assert) {
+      // given
+      const currentAllowedCertificationCenterAccess = server.create('allowed-certification-center-access', {
+        name: 'Bibiche',
+        externalId: 'ABC123',
       });
+      const certificationPointOfContact = server.create('certification-point-of-contact', {
+        firstName: 'Buffy',
+        lastName: 'Summers',
+        pixCertifTermsOfServiceAccepted: true,
+        allowedCertificationCenterAccesses: [currentAllowedCertificationCenterAccess],
+      });
+      await authenticateSession(certificationPointOfContact.id);
+
+      // when
+      const screen = await visitScreen('/sessions/liste');
+      await click(screen.getByRole('link', { name: 'Espace surveillant' }));
+
+      // then
+      assert.strictEqual(currentURL(), '/connexion-espace-surveillant');
     });
   });
 
@@ -134,8 +106,8 @@ module('Acceptance | authenticated', function (hooks) {
       assert
         .dom(
           screen.getByText(
-            'La certification Pix se déroulera du 14 novembre 2022 au 17 mars 2023 pour les lycées et du 6 mars au 16 juin 2023 pour les collèges. Pensez à consulter la'
-          )
+            'La certification Pix se déroulera du 14 novembre 2022 au 17 mars 2023 pour les lycées et du 6 mars au 16 juin 2023 pour les collèges. Pensez à consulter la',
+          ),
         )
         .exists();
       assert.dom(screen.getByRole('link', { name: 'documentation pour voir les nouveautés.' })).exists();
@@ -151,7 +123,7 @@ module('Acceptance | authenticated', function (hooks) {
 
       // then
       const certificationBannerMessage = screen.queryByText(
-        'La certification Pix se déroulera du 14 novembre 2022 au 17 mars 2023 pour les lycées et du 6 mars au 16 juin 2023 pour les collèges. Pensez à consulter la'
+        'La certification Pix se déroulera du 14 novembre 2022 au 17 mars 2023 pour les lycées et du 6 mars au 16 juin 2023 pour les collèges. Pensez à consulter la',
       );
       assert.dom(certificationBannerMessage).doesNotExist();
     });
@@ -181,11 +153,13 @@ module('Acceptance | authenticated', function (hooks) {
 
       // when
       const screen = await visitScreen('/');
-      await click(screen.getByRole('link', { name: 'Buffy Summers Bibiche (ABC123)' }));
+      await click(screen.getByRole('button', { name: 'Buffy Summers Bibiche (ABC123) Ouvrir le menu utilisateur' }));
       await click(screen.getByRole('button', { name: 'Poupoune (DEF456)' }));
 
       // then
-      assert.dom(screen.getByRole('link', { name: 'Buffy Summers Poupoune (DEF456)' })).exists();
+      assert
+        .dom(screen.getByRole('button', { name: 'Buffy Summers Poupoune (DEF456) Ouvrir le menu utilisateur' }))
+        .exists();
     });
 
     test('should redirect to sessions/liste URL when changing the current certification center', async function (assert) {
@@ -217,7 +191,7 @@ module('Acceptance | authenticated', function (hooks) {
 
       // when
       const screen = await visitScreen('/sessions/555');
-      await click(screen.getByRole('link', { name: 'Buffy Summers Bibiche (ABC123)' }));
+      await click(screen.getByRole('button', { name: 'Buffy Summers Bibiche (ABC123) Ouvrir le menu utilisateur' }));
       await click(screen.getByRole('button', { name: 'Poupoune (DEF456)' }));
 
       // then
@@ -254,7 +228,7 @@ module('Acceptance | authenticated', function (hooks) {
 
       // when
       const screen = await visitScreen('/sessions/555');
-      await click(screen.getByRole('link', { name: 'Buffy Summers Bibiche (ABC123)' }));
+      await click(screen.getByRole('button', { name: 'Buffy Summers Bibiche (ABC123) Ouvrir le menu utilisateur' }));
       await click(screen.getByRole('button', { name: 'Poupoune (DEF456)' }));
 
       // then
@@ -291,7 +265,7 @@ module('Acceptance | authenticated', function (hooks) {
 
       // when
       const screen = await visitScreen('/');
-      await click(screen.getByRole('link', { name: 'Buffy Summers Bibiche (ABC123)' }));
+      await click(screen.getByRole('button', { name: 'Buffy Summers Bibiche (ABC123) Ouvrir le menu utilisateur' }));
       await click(screen.getByRole('button', { name: 'Poupoune (DEF456)' }));
 
       // then

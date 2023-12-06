@@ -2,7 +2,7 @@ import Controller from '@ember/controller';
 import { action, set } from '@ember/object';
 // eslint-disable-next-line ember/no-computed-properties-in-native-classes
 import { alias } from '@ember/object/computed';
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 
 export default class NeutralizationController extends Controller {
   @alias('model') certificationDetails;
@@ -20,7 +20,7 @@ export default class NeutralizationController extends Controller {
       return this.notifications.success(`La question n°${questionIndex} a été neutralisée avec succès.`);
     } catch (e) {
       return this.notifications.error(
-        `Une erreur est survenue lors de la neutralisation de la question n°${questionIndex}.`
+        `Une erreur est survenue lors de la neutralisation de la question n°${questionIndex}.`,
       );
     }
   }
@@ -36,7 +36,7 @@ export default class NeutralizationController extends Controller {
       return this.notifications.success(`La question n°${questionIndex} a été dé-neutralisée avec succès.`);
     } catch (e) {
       return this.notifications.error(
-        `Une erreur est survenue lors de la dé-neutralisation de la question n°${questionIndex}.`
+        `Une erreur est survenue lors de la dé-neutralisation de la question n°${questionIndex}.`,
       );
     }
   }

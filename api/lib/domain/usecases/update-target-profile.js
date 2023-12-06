@@ -1,12 +1,25 @@
-module.exports = async function updateTargetProfile({
+import { validate } from '../validators/target-profile/base-validation.js';
+
+const updateTargetProfile = async function ({
   id,
   name,
+  imageUrl,
   description,
   comment,
   category,
+  areKnowledgeElementsResettable,
   targetProfileForUpdateRepository,
 }) {
-  const targetProfileForUpdate = await targetProfileForUpdateRepository.get(id);
-  targetProfileForUpdate.update({ name, description, comment, category });
-  await targetProfileForUpdateRepository.update(targetProfileForUpdate);
+  validate({ name, imageUrl, description, comment, category });
+  return targetProfileForUpdateRepository.update({
+    targetProfileId: id,
+    name,
+    imageUrl,
+    description,
+    comment,
+    category,
+    areKnowledgeElementsResettable,
+  });
 };
+
+export { updateTargetProfile };

@@ -1,7 +1,7 @@
-const { expect } = require('../../../../test-helper');
-const serializer = require('../../../../../lib/infrastructure/serializers/jsonapi/organization-learner-activity-serializer');
-const OrganizationLearnerParticipation = require('../../../../../lib/domain/read-models/OrganizationLearnerParticipation');
-const OrganizationLearnerActivity = require('../../../../../lib/domain/read-models/OrganizationLearnerActivity');
+import { expect } from '../../../../test-helper.js';
+import * as serializer from '../../../../../lib/infrastructure/serializers/jsonapi/organization-learner-activity-serializer.js';
+import { OrganizationLearnerParticipation } from '../../../../../lib/domain/read-models/OrganizationLearnerParticipation.js';
+import { OrganizationLearnerActivity } from '../../../../../lib/domain/read-models/OrganizationLearnerActivity.js';
 
 describe('Unit | Serializer | JSONAPI | organization-learner-participation-serialize', function () {
   describe('#serialize', function () {
@@ -12,6 +12,7 @@ describe('Unit | Serializer | JSONAPI | organization-learner-participation-seria
         participations: [
           new OrganizationLearnerParticipation({
             id: '99999',
+            campaignId: '123',
             campaignType: 'PROFILES_COLLECTION',
             campaignName: 'La 1ère campagne',
             createdAt: '2000-01-01T10:00:00Z',
@@ -20,12 +21,28 @@ describe('Unit | Serializer | JSONAPI | organization-learner-participation-seria
           }),
           new OrganizationLearnerParticipation({
             id: '100000',
+            campaignId: '456',
             campaignType: 'ASSESSMENT',
             campaignName: 'La 2ème campagne',
             createdAt: '2000-03-01T10:00:00Z',
             sharedAt: '2000-04-01T10:00:00Z',
             status: 'STARTED',
           }),
+        ],
+        statistics: [
+          {
+            campaignType: 'ASSESSMENT',
+            shared: 0,
+            started: 1,
+            to_share: 0,
+            total: 1,
+          },
+          {
+            campaignType: 'PROFILES_COLLECTION',
+            shared: 1,
+            to_share: 0,
+            total: 1,
+          },
         ],
       });
       // when
@@ -50,6 +67,18 @@ describe('Unit | Serializer | JSONAPI | organization-learner-participation-seria
                 },
               ],
             },
+            'organization-learner-statistics': {
+              data: [
+                {
+                  id: 'ASSESSMENT',
+                  type: 'organizationLearnerStatistics',
+                },
+                {
+                  id: 'PROFILES_COLLECTION',
+                  type: 'organizationLearnerStatistics',
+                },
+              ],
+            },
           },
         },
         included: [
@@ -57,6 +86,7 @@ describe('Unit | Serializer | JSONAPI | organization-learner-participation-seria
             id: '99999',
             type: 'organizationLearnerParticipations',
             attributes: {
+              'campaign-id': '123',
               'campaign-type': 'PROFILES_COLLECTION',
               'campaign-name': 'La 1ère campagne',
               'created-at': '2000-01-01T10:00:00Z',
@@ -68,11 +98,31 @@ describe('Unit | Serializer | JSONAPI | organization-learner-participation-seria
             id: '100000',
             type: 'organizationLearnerParticipations',
             attributes: {
+              'campaign-id': '456',
               'campaign-type': 'ASSESSMENT',
               'campaign-name': 'La 2ème campagne',
               'created-at': '2000-03-01T10:00:00Z',
               'shared-at': '2000-04-01T10:00:00Z',
               status: 'STARTED',
+            },
+          },
+          {
+            id: 'ASSESSMENT',
+            type: 'organizationLearnerStatistics',
+            attributes: {
+              shared: 0,
+              'to-share': 0,
+              total: 1,
+              started: 1,
+            },
+          },
+          {
+            id: 'PROFILES_COLLECTION',
+            type: 'organizationLearnerStatistics',
+            attributes: {
+              shared: 1,
+              'to-share': 0,
+              total: 1,
             },
           },
         ],

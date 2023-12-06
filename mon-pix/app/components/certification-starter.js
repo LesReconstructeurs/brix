@@ -1,5 +1,5 @@
 import Component from '@glimmer/component';
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
 import { action } from '@ember/object';
 
@@ -17,25 +17,6 @@ export default class CertificationJoiner extends Component {
 
   get accessCode() {
     return this.inputAccessCode.toUpperCase();
-  }
-
-  get allComplementaryCertificationsLength() {
-    return (
-      this.args.certificationCandidateSubscription.eligibleSubscriptions.length +
-      this.args.certificationCandidateSubscription.nonEligibleSubscriptions.length
-    );
-  }
-
-  get nonEligibleSubscriptionLabels() {
-    return this.args.certificationCandidateSubscription.nonEligibleSubscriptions
-      .map((nonEligibleSubscription) => nonEligibleSubscription.label)
-      .join(', ');
-  }
-
-  get eligibleSubscriptionLabels() {
-    return this.args.certificationCandidateSubscription.eligibleSubscriptions
-      .map((eligibleSubscription) => eligibleSubscription.label)
-      .join(', ');
   }
 
   @action
@@ -68,7 +49,7 @@ export default class CertificationJoiner extends Component {
           this.errorMessage = this.intl.t('pages.certification-start.error-messages.candidate-not-authorized-to-start');
         } else if (errorCode === 'CANDIDATE_NOT_AUTHORIZED_TO_RESUME_SESSION') {
           this.errorMessage = this.intl.t(
-            'pages.certification-start.error-messages.candidate-not-authorized-to-resume'
+            'pages.certification-start.error-messages.candidate-not-authorized-to-resume',
           );
         }
       } else {

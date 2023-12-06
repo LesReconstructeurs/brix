@@ -33,7 +33,7 @@ module('Unit | Controller | authenticated/campaigns/campaign/activity', function
 
       // then
       assert.true(
-        controller.router.transitionTo.calledWith('authenticated.campaigns.participant-assessment', 123, 456)
+        controller.router.transitionTo.calledWith('authenticated.campaigns.participant-assessment', 123, 456),
       );
     });
   });
@@ -91,12 +91,12 @@ module('Unit | Controller | authenticated/campaigns/campaign/activity', function
     });
   });
 
-  module('#deleteCampaignParticipant', function (hooks) {
+  module('#deleteCampaignParticipation', function (hooks) {
     hooks.beforeEach(function () {
       controller.model = { campaign: { isTypeAssessment: false, id: 7 } };
     });
 
-    module('when the deleteCampaignParticipant works', function () {
+    module('when the deleteCampaignParticipation works', function () {
       test('it should called destroyRecord', async function (assert) {
         // given
         const campaignParticipantActivity = {
@@ -106,13 +106,13 @@ module('Unit | Controller | authenticated/campaigns/campaign/activity', function
         const campaignId = controller.model.campaign.id;
         controller.send = sinon.stub();
         // when
-        await controller.deleteCampaignParticipant(campaignId, campaignParticipantActivity);
+        await controller.deleteCampaignParticipation(campaignId, campaignParticipantActivity);
 
         //then
         assert.true(
           campaignParticipantActivity.destroyRecord.calledWith({
             adapterOptions: { campaignId, campaignParticipationId: campaignParticipantActivity.id },
-          })
+          }),
         );
 
         assert.true(controller.send.calledWith('refreshModel'));

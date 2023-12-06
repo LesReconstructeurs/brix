@@ -1,5 +1,5 @@
-const { expect, domainBuilder } = require('../../../../test-helper');
-const serializer = require('../../../../../lib/infrastructure/serializers/jsonapi/certification-center-serializer');
+import { expect, domainBuilder } from '../../../../test-helper.js';
+import * as serializer from '../../../../../lib/infrastructure/serializers/jsonapi/certification-center-serializer.js';
 
 describe('Unit | Serializer | JSONAPI | certification-center-serializer', function () {
   describe('#serialize', function () {
@@ -16,7 +16,6 @@ describe('Unit | Serializer | JSONAPI | certification-center-serializer', functi
         type: 'SCO',
         createdAt: new Date('2018-01-01T05:43:10Z'),
         externalId: '12345',
-        isSupervisorAccessEnabled: true,
         habilitations: [complementaryCertification],
       });
 
@@ -28,7 +27,6 @@ describe('Unit | Serializer | JSONAPI | certification-center-serializer', functi
             name: 'Centre des dés',
             type: 'SCO',
             'external-id': '12345',
-            'is-supervisor-access-enabled': true,
             'created-at': new Date('2018-01-01T05:43:10Z'),
           },
           relationships: {
@@ -41,7 +39,7 @@ describe('Unit | Serializer | JSONAPI | certification-center-serializer', functi
               data: [
                 {
                   id: '1',
-                  type: 'habilitations',
+                  type: 'complementary-certifications',
                 },
               ],
             },
@@ -50,7 +48,7 @@ describe('Unit | Serializer | JSONAPI | certification-center-serializer', functi
         included: [
           {
             id: '1',
-            type: 'habilitations',
+            type: 'complementary-certifications',
             attributes: {
               key: 'SURF',
               label: 'Pix+surf',
@@ -78,7 +76,6 @@ describe('Unit | Serializer | JSONAPI | certification-center-serializer', functi
             name: 'Centre des dés',
             type: 'SCO',
             'external-id': '12345',
-            'is-supervisor-access-enabled': true,
             'created-at': new Date('2018-02-01T01:02:03Z'),
           },
           relationships: {},
@@ -90,7 +87,6 @@ describe('Unit | Serializer | JSONAPI | certification-center-serializer', functi
         type: 'SCO',
         externalId: '12345',
         createdAt: null,
-        isSupervisorAccessEnabled: true,
         habilitations: [],
       });
 

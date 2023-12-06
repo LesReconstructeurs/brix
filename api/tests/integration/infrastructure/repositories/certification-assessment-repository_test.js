@@ -1,10 +1,10 @@
-const { expect, databaseBuilder, mockLearningContent, catchErr } = require('../../../test-helper');
-const { NotFoundError } = require('../../../../lib/domain/errors');
-const certificationAssessmentRepository = require('../../../../lib/infrastructure/repositories/certification-assessment-repository');
-const CertificationAssessment = require('../../../../lib/domain/models/CertificationAssessment');
-const Challenge = require('../../../../lib/domain/models/Challenge');
-const AnswerStatus = require('../../../../lib/domain/models/AnswerStatus');
-const _ = require('lodash');
+import { expect, databaseBuilder, mockLearningContent, catchErr } from '../../../test-helper.js';
+import { NotFoundError } from '../../../../lib/domain/errors.js';
+import * as certificationAssessmentRepository from '../../../../lib/infrastructure/repositories/certification-assessment-repository.js';
+import { CertificationAssessment } from '../../../../lib/domain/models/CertificationAssessment.js';
+import { Challenge } from '../../../../lib/domain/models/Challenge.js';
+import { AnswerStatus } from '../../../../lib/domain/models/AnswerStatus.js';
+import _ from 'lodash';
 
 describe('Integration | Infrastructure | Repositories | certification-assessment-repository', function () {
   beforeEach(function () {
@@ -97,7 +97,6 @@ describe('Integration | Infrastructure | Repositories | certification-assessment
           userId: expectedUserId,
           createdAt: expectedCreatedAt,
           completedAt: expectedCompletedAt,
-          isV2Certification: true,
         }).id;
         certificationAssessmentId = dbf.buildAssessment({
           userId: expectedUserId,
@@ -127,7 +126,7 @@ describe('Integration | Infrastructure | Repositories | certification-assessment
         expect(certificationAssessment.userId).to.equal(expectedUserId);
         expect(certificationAssessment.certificationCourseId).to.equal(expectedCertificationCourseId);
         expect(certificationAssessment.state).to.equal(expectedState);
-        expect(certificationAssessment.isV2Certification).to.be.true;
+        expect(certificationAssessment.version).to.equal(2);
 
         expect(certificationAssessment.certificationAnswersByDate).to.have.length(2);
         expect(certificationAssessment.certificationChallenges).to.have.length(2);
@@ -170,7 +169,6 @@ describe('Integration | Infrastructure | Repositories | certification-assessment
           userId: expectedUserId,
           createdAt: expectedCreatedAt,
           completedAt: expectedCompletedAt,
-          isV2Certification: true,
         }).id;
         expectedCertificationAssessmentId = dbf.buildAssessment({
           userId: expectedUserId,
@@ -214,7 +212,7 @@ describe('Integration | Infrastructure | Repositories | certification-assessment
         expect(certificationAssessment.userId).to.equal(expectedUserId);
         expect(certificationAssessment.certificationCourseId).to.equal(certificationCourseId);
         expect(certificationAssessment.state).to.equal(expectedState);
-        expect(certificationAssessment.isV2Certification).to.be.true;
+        expect(certificationAssessment.version).to.equal(2);
 
         expect(certificationAssessment.certificationAnswersByDate).to.have.length(2);
         expect(certificationAssessment.certificationChallenges).to.have.length(2);
@@ -428,7 +426,7 @@ describe('Integration | Infrastructure | Repositories | certification-assessment
       // then
       const persistedCertificationAssessment = await certificationAssessmentRepository.get(certificationAssessmentId);
       expect(persistedCertificationAssessment.state).to.deep.equal(
-        CertificationAssessment.states.ENDED_DUE_TO_FINALIZATION
+        CertificationAssessment.states.ENDED_DUE_TO_FINALIZATION,
       );
     });
   });

@@ -1,8 +1,6 @@
-const { sinon, expect, hFake } = require('../../../test-helper');
-const tokenService = require('../../../../lib/domain/services/token-service');
-const usecases = require('../../../../lib/domain/usecases');
-
-const authenticationController = require('../../../../lib/application/authentication/authentication-controller');
+import { sinon, expect, hFake } from '../../../test-helper.js';
+import { usecases } from '../../../../lib/domain/usecases/index.js';
+import { authenticationController } from '../../../../lib/application/authentication/authentication-controller.js';
 
 describe('Unit | Application | Controller | Authentication', function () {
   describe('#createToken', function () {
@@ -32,14 +30,15 @@ describe('Unit | Application | Controller | Authentication', function () {
         },
       };
 
-      sinon
-        .stub(usecases, 'authenticateUser')
-        .withArgs({ username, password, scope, source })
-        .resolves({ accessToken, refreshToken, expirationDelaySeconds });
-      sinon.stub(tokenService, 'extractUserId').returns(USER_ID);
+      sinon.stub(usecases, 'authenticateUser').resolves({ accessToken, refreshToken, expirationDelaySeconds });
+
+      const tokenServiceStub = { extractUserId: sinon.stub() };
+      tokenServiceStub.extractUserId.withArgs(accessToken).returns(USER_ID);
+
+      const dependencies = { tokenService: tokenServiceStub };
 
       // when
-      const response = await authenticationController.createToken(request, hFake);
+      const response = await authenticationController.createToken(request, hFake, dependencies);
 
       // then
       const expectedResponseResult = {
@@ -55,6 +54,46 @@ describe('Unit | Application | Controller | Authentication', function () {
         'Content-Type': 'application/json;charset=UTF-8',
         'Cache-Control': 'no-store',
         Pragma: 'no-cache',
+      });
+    });
+
+    context('when there is a locale cookie', function () {
+      it('retrieves the value from the cookie and pass it as an argument to the use case', async function () {
+        // given
+        const expirationDelaySeconds = 777;
+        const refreshToken = 'cookie.refresh.token';
+        const localeFromCookie = 'fr-FR';
+        const request = {
+          headers: {
+            'content-type': 'application/x-www-form-urlencoded',
+          },
+          payload: {
+            grant_type: 'password',
+            username,
+            password,
+            scope,
+          },
+          state: {
+            locale: localeFromCookie,
+          },
+        };
+        sinon.stub(usecases, 'authenticateUser').resolves({ accessToken, refreshToken, expirationDelaySeconds });
+        const tokenServiceStub = { extractUserId: sinon.stub() };
+        tokenServiceStub.extractUserId.withArgs(accessToken).returns(USER_ID);
+
+        const dependencies = { tokenService: tokenServiceStub };
+
+        // when
+        await authenticationController.createToken(request, hFake, dependencies);
+
+        // then
+        expect(usecases.authenticateUser).to.have.been.calledWithExactly({
+          username,
+          password,
+          scope,
+          source,
+          localeFromCookie,
+        });
       });
     });
   });
@@ -144,14 +183,18 @@ describe('Unit | Application | Controller | Authentication', function () {
           scope,
         },
       };
-      sinon.stub(tokenService, 'extractClientId').returns(client_id);
+      const tokenServiceStub = { extractUserId: sinon.stub() };
+      tokenServiceStub.extractUserId.returns(client_id);
+
+      const dependencies = { tokenService: tokenServiceStub };
+
       sinon
         .stub(usecases, 'authenticateApplication')
         .withArgs({ clientId: client_id, clientSecret: client_secret, scope })
         .resolves(access_token);
 
       // when
-      const response = await authenticationController.authenticateApplication(request, hFake);
+      const response = await authenticationController.authenticateApplication(request, hFake, dependencies);
 
       // then
       const expectedResponseResult = {

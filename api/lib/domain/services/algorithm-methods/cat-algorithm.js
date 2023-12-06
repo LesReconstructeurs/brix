@@ -1,19 +1,13 @@
-const KnowledgeElement = require('../../models/KnowledgeElement');
-const _ = require('lodash');
-const { pipe } = require('lodash/fp');
+import { KnowledgeElement } from '../../models/KnowledgeElement.js';
+import _ from 'lodash';
+import fp from 'lodash/fp.js';
 
-// This file implements methods useful for a CAT algorithm
-// https://en.wikipedia.org/wiki/Computerized_adaptive_testing
-// https://en.wikipedia.org/wiki/Item_response_theory
-
-module.exports = {
-  findMaxRewardingSkills,
-  getPredictedLevel,
-};
+const { pipe } = fp;
+export { findMaxRewardingSkills, getPredictedLevel };
 
 function getPredictedLevel(knowledgeElements, skills) {
   return _.maxBy(_enumerateCatLevels(), (level) =>
-    _probabilityThatUserHasSpecificLevel(level, knowledgeElements, skills)
+    _probabilityThatUserHasSpecificLevel(level, knowledgeElements, skills),
   );
 }
 
@@ -38,7 +32,7 @@ function _probabilityThatUserHasSpecificLevel(level, knowledgeElements, skills) 
   extraAnswers.push(answerThatAnyoneCanSolve, answerThatNobodyCanSolve);
 
   const diffBetweenResultAndProbaToResolve = extraAnswers.map(
-    (answer) => answer.binaryOutcome - _probaOfCorrectAnswer(level, answer.maxDifficulty)
+    (answer) => answer.binaryOutcome - _probaOfCorrectAnswer(level, answer.maxDifficulty),
   );
 
   return -Math.abs(diffBetweenResultAndProbaToResolve.reduce((a, b) => a + b));
@@ -61,7 +55,7 @@ function _getMaxRewardingSkills({ availableSkills, predictedLevel, tubes, knowle
       }
       return acc;
     },
-    { maxRewardingSkills: [], maxReward: -Infinity }
+    { maxRewardingSkills: [], maxReward: -Infinity },
   ).maxRewardingSkills;
 }
 

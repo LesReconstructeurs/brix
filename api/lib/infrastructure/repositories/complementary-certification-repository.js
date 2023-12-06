@@ -1,5 +1,5 @@
-const ComplementaryCertification = require('../../domain/models/ComplementaryCertification');
-const { knex } = require('../../../db/knex-database-connection');
+import { ComplementaryCertification } from '../../domain/models/index.js';
+import { knex } from '../../../db/knex-database-connection.js';
 
 function _toDomain(row) {
   return new ComplementaryCertification({
@@ -7,10 +7,16 @@ function _toDomain(row) {
   });
 }
 
-module.exports = {
-  async findAll() {
-    const result = await knex.from('complementary-certifications').select('id', 'label', 'key').orderBy('id', 'asc');
+const findAll = async function () {
+  const result = await knex.from('complementary-certifications').select('id', 'label', 'key').orderBy('id', 'asc');
 
-    return result.map(_toDomain);
-  },
+  return result.map(_toDomain);
 };
+
+const getByLabel = async function ({ label }) {
+  const result = await knex.from('complementary-certifications').where({ label }).first();
+
+  return _toDomain(result);
+};
+
+export { findAll, getByLabel };

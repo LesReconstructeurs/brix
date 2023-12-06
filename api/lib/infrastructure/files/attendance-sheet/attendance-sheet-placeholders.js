@@ -12,10 +12,6 @@ const ATTENDANCE_SHEET_SESSION_TEMPLATE_VALUES = [
     propertyName: 'startTime',
   },
   {
-    placeholder: 'SESSION_END_TIME',
-    propertyName: 'endTime',
-  },
-  {
     placeholder: 'SESSION_ADDRESS',
     propertyName: 'address',
   },
@@ -89,7 +85,7 @@ const SCO_ATTENDANCE_SHEET_CANDIDATE_TEMPLATE_VALUES = [
 
 const EXTRA_EMPTY_CANDIDATE_ROWS = 20;
 
-module.exports = {
+export {
   ATTENDANCE_SHEET_SESSION_TEMPLATE_VALUES,
   NON_SCO_ATTENDANCE_SHEET_CANDIDATE_TEMPLATE_VALUES,
   SCO_ATTENDANCE_SHEET_CANDIDATE_TEMPLATE_VALUES,

@@ -1,26 +1,18 @@
-const solutionServiceQROCMDep = require('../services/solution-service-qrocm-dep');
-const Validation = require('./Validation');
-const Validator = require('./Validator');
+import * as solutionServiceQROCMDep from '../services/solution-service-qrocm-dep.js';
+import { Validator } from './Validator.js';
 
-/**
- * Traduction: Vérificateur de réponse pour un QROCM Dep
- */
 class ValidatorQROCMDep extends Validator {
-  constructor({ solution } = {}) {
+  constructor({ solution, dependencies = { solutionServiceQROCMDep } } = {}) {
     super({ solution });
+    this.dependencies = dependencies;
   }
 
   assess({ answer }) {
-    const result = solutionServiceQROCMDep.match({
+    return this.dependencies.solutionServiceQROCMDep.match({
       answerValue: answer.value,
       solution: this.solution,
-    });
-
-    return new Validation({
-      result,
-      resultDetails: null,
     });
   }
 }
 
-module.exports = ValidatorQROCMDep;
+export { ValidatorQROCMDep };

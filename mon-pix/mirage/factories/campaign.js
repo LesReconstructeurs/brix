@@ -1,9 +1,9 @@
 import { Factory, trait } from 'miragejs';
-import faker from 'faker';
+import { faker } from '@faker-js/faker';
 
 export default Factory.extend({
   title() {
-    return faker.random.words();
+    return faker.lorem.words();
   },
 
   type() {
@@ -11,7 +11,7 @@ export default Factory.extend({
   },
 
   code() {
-    return faker.random.alphaNumeric(6);
+    return faker.string.alphanumeric(6);
   },
 
   idPixLabel() {
@@ -23,7 +23,7 @@ export default Factory.extend({
   },
 
   organizationName() {
-    return faker.company.companyName();
+    return faker.company.name();
   },
 
   isRestricted() {

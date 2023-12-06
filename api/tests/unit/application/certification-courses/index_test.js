@@ -1,8 +1,7 @@
-const { expect, HttpTestServer, sinon } = require('../../../test-helper');
-
-const securityPreHandlers = require('../../../../lib/application/security-pre-handlers');
-const moduleUnderTest = require('../../../../lib/application/certification-courses');
-const certificationCoursesController = require('../../../../lib/application/certification-courses/certification-course-controller');
+import { expect, HttpTestServer, sinon } from '../../../test-helper.js';
+import { securityPreHandlers } from '../../../../lib/application/security-pre-handlers.js';
+import { certificationCourseController as certificationCoursesController } from '../../../../lib/application/certification-courses/certification-course-controller.js';
+import * as moduleUnderTest from '../../../../lib/application/certification-courses/index.js';
 
 describe('Unit | Application | Certifications Course | Route', function () {
   describe('GET /api/admin/certifications/{id}/details', function () {
@@ -128,7 +127,7 @@ describe('Unit | Application | Certifications Course | Route', function () {
             h
               .response({ errors: new Error('forbidden') })
               .code(403)
-              .takeover()
+              .takeover(),
         );
       const httpTestServer = new HttpTestServer();
       await httpTestServer.register(moduleUnderTest);
@@ -142,14 +141,24 @@ describe('Unit | Application | Certifications Course | Route', function () {
   });
 
   describe('POST /api/certification-courses', function () {
-    it('should exist', async function () {
+    it('should return OK (200)', async function () {
       // given
       sinon.stub(certificationCoursesController, 'save').returns('ok');
       const httpTestServer = new HttpTestServer();
       await httpTestServer.register(moduleUnderTest);
+      const method = 'POST';
+      const url = '/api/certification-courses';
+      const payload = {
+        data: {
+          attributes: {
+            'access-code': 'FMKP39',
+            'session-id': 2,
+          },
+        },
+      };
 
       // when
-      const response = await httpTestServer.request('POST', '/api/certification-courses');
+      const response = await httpTestServer.request(method, url, payload);
 
       // then
       expect(response.statusCode).to.equal(200);
@@ -187,7 +196,7 @@ describe('Unit | Application | Certifications Course | Route', function () {
             h
               .response({ errors: new Error('forbidden') })
               .code(403)
-              .takeover()
+              .takeover(),
         );
       const httpTestServer = new HttpTestServer();
       await httpTestServer.register(moduleUnderTest);
@@ -229,7 +238,7 @@ describe('Unit | Application | Certifications Course | Route', function () {
             h
               .response({ errors: new Error('forbidden') })
               .code(403)
-              .takeover()
+              .takeover(),
         );
 
       const httpTestServer = new HttpTestServer();

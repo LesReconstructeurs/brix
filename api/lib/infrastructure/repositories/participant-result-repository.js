@@ -1,40 +1,45 @@
-const { knex } = require('../../../db/knex-database-connection');
-const _ = require('lodash');
-const Assessment = require('../../domain/models/Assessment');
-const AssessmentResult = require('../../domain/read-models/participant-results/AssessmentResult');
-const competenceRepository = require('./competence-repository');
-const answerRepository = require('./answer-repository');
-const challengeRepository = require('./challenge-repository');
-const knowledgeElementRepository = require('./knowledge-element-repository');
-const flashAssessmentResultRepository = require('./flash-assessment-result-repository');
-const campaignRepository = require('./campaign-repository');
-const flash = require('../../domain/services/algorithm-methods/flash');
-const dataFetcher = require('../../domain/services/algorithm-methods/data-fetcher');
-const { NotFoundError } = require('../../domain/errors');
+import { knex } from '../../../db/knex-database-connection.js';
+import _ from 'lodash';
+import { Assessment } from '../../domain/models/Assessment.js';
+import { AssessmentResult } from '../../domain/read-models/participant-results/AssessmentResult.js';
+import * as competenceRepository from './competence-repository.js';
+import * as answerRepository from './answer-repository.js';
+import * as challengeRepository from './challenge-repository.js';
+import * as areaRepository from './area-repository.js';
+import * as knowledgeElementRepository from './knowledge-element-repository.js';
+import * as flashAssessmentResultRepository from './flash-assessment-result-repository.js';
+import * as campaignRepository from './campaign-repository.js';
+import * as stageCollectionRepository from './user-campaign-results/stage-collection-repository.js';
+import * as flash from '../../domain/services/algorithm-methods/flash.js';
+import * as dataFetcher from '../../domain/services/algorithm-methods/data-fetcher.js';
+import { NotFoundError } from '../../domain/errors.js';
 
-const ParticipantResultRepository = {
-  async getByUserIdAndCampaignId({ userId, campaignId, badges, locale }) {
-    const participationResults = await _getParticipationResults(userId, campaignId, locale);
-    const isCampaignMultipleSendings = await _isCampaignMultipleSendings(campaignId);
-    const isOrganizationLearnerActive = await _isOrganizationLearnerActive(userId, campaignId);
-    const isCampaignArchived = await _isCampaignArchived(campaignId);
-    const competences = await _findTargetedCompetences(campaignId, locale);
-    const badgeResultsDTO = await _getBadgeResults(badges);
-    const stages = await _getStages(campaignId);
+const getByUserIdAndCampaignId = async function ({ userId, campaignId, badges, locale }) {
+  const participationResults = await _getParticipationResults(userId, campaignId, locale);
+  let flashScoringResults;
+  if (participationResults.isFlash) {
+    flashScoringResults = await _getFlashScoringResults(participationResults.assessmentId, locale);
+  }
+  const isCampaignMultipleSendings = await _isCampaignMultipleSendings(campaignId);
+  const isOrganizationLearnerActive = await _isOrganizationLearnerActive(userId, campaignId);
+  const isCampaignArchived = await _isCampaignArchived(campaignId);
+  const competences = await _findTargetedCompetences(campaignId, locale);
+  const badgeResultsDTO = await _getBadgeResults(badges);
+  const stageCollection = await _getStageCollection(campaignId);
 
-    return new AssessmentResult({
-      participationResults,
-      competences,
-      badgeResultsDTO,
-      stages,
-      isCampaignMultipleSendings,
-      isOrganizationLearnerActive,
-      isCampaignArchived,
-    });
-  },
+  return new AssessmentResult({
+    participationResults,
+    competences,
+    badgeResultsDTO,
+    stageCollection,
+    isCampaignMultipleSendings,
+    isOrganizationLearnerActive,
+    isCampaignArchived,
+    flashScoringResults,
+  });
 };
 
-async function _getParticipationResults(userId, campaignId, locale) {
+async function _getParticipationResults(userId, campaignId) {
   const {
     isCompleted,
     campaignParticipationId,
@@ -51,20 +56,6 @@ async function _getParticipationResults(userId, campaignId, locale) {
 
   const acquiredBadgeIds = await _getAcquiredBadgeIds(userId, campaignParticipationId);
 
-  let estimatedFlashLevel;
-  let flashPixScore;
-  if (isFlash) {
-    const { allAnswers, challenges, estimatedLevel } = await dataFetcher.fetchForFlashCampaigns({
-      assessmentId,
-      locale,
-      answerRepository,
-      challengeRepository,
-      flashAssessmentResultRepository,
-    });
-    estimatedFlashLevel = estimatedLevel;
-    flashPixScore = flash.calculateTotalPixScore({ allAnswers, challenges, estimatedLevel });
-  }
-
   return {
     campaignParticipationId,
     isCompleted,
@@ -74,10 +65,49 @@ async function _getParticipationResults(userId, campaignId, locale) {
     knowledgeElements,
     masteryRate,
     acquiredBadgeIds: acquiredBadgeIds.map(({ badgeId }) => badgeId),
-    estimatedFlashLevel,
     isDeleted,
-    flashPixScore,
+    assessmentId,
+    isFlash,
   };
+}
+
+async function _getFlashScoringResults(assessmentId, locale) {
+  const { allAnswers, challenges, estimatedLevel } = await dataFetcher.fetchForFlashCampaigns({
+    assessmentId,
+    locale,
+    answerRepository,
+    challengeRepository,
+    flashAssessmentResultRepository,
+  });
+
+  const { pixScore, pixScoreByCompetence } = flash.calculateTotalPixScoreAndScoreByCompetence({
+    allAnswers,
+    challenges,
+    estimatedLevel,
+  });
+
+  const competences = await competenceRepository.findByRecordIds({
+    competenceIds: pixScoreByCompetence.map(({ competenceId }) => competenceId),
+    locale,
+  });
+
+  const areas = await areaRepository.list({ locale });
+
+  const competencesWithPixScore = _.sortBy(
+    pixScoreByCompetence.map(({ competenceId, pixScore }) => {
+      const competence = competences.find(({ id }) => id === competenceId);
+      const area = areas.find(({ id }) => id === competence.areaId);
+
+      return {
+        competence,
+        area,
+        pixScore,
+      };
+    }),
+    'competence.index',
+  );
+
+  return { estimatedLevel, pixScore, competencesWithPixScore };
 }
 
 async function _getParticipationAttributes(userId, campaignId) {
@@ -139,8 +169,8 @@ async function _getAcquiredBadgeIds(userId, campaignParticipationId) {
   return knex('badge-acquisitions').select('badgeId').where({ userId, campaignParticipationId });
 }
 
-function _getStages(campaignId) {
-  return campaignRepository.findStages({ campaignId });
+function _getStageCollection(campaignId) {
+  return stageCollectionRepository.findStageCollection({ campaignId });
 }
 
 async function _getBadgeResults(badges) {
@@ -158,7 +188,7 @@ async function _getBadgeResults(badges) {
 function _findSkillSet(badges) {
   return knex('skill-sets').whereIn(
     'badgeId',
-    badges.map(({ id }) => id)
+    badges.map(({ id }) => id),
   );
 }
 
@@ -167,20 +197,17 @@ async function _findTargetedCompetences(campaignId, locale) {
   const competences = await competenceRepository.list({ locale });
   const targetedCompetences = [];
 
-  competences.forEach((competence) => {
-    const matchingSkills = _.intersection(competence.skillIds, skillIds);
-
-    if (matchingSkills.length > 0) {
+  for (const competence of competences) {
+    const targetedSkillIds = _.intersection(competence.skillIds, skillIds);
+    const area = await areaRepository.get({ id: competence.areaId, locale });
+    if (targetedSkillIds.length > 0) {
       targetedCompetences.push({
-        id: competence.id,
-        name: competence.name,
-        index: competence.index,
-        areaName: competence.area.name,
-        areaColor: competence.area.color,
-        skillIds: matchingSkills,
+        competence,
+        area,
+        targetedSkillIds,
       });
     }
-  });
+  }
 
   return targetedCompetences;
 }
@@ -196,14 +223,14 @@ async function _isCampaignArchived(campaignId) {
 }
 
 async function _isOrganizationLearnerActive(userId, campaignId) {
-  const organizationLearner = await knex('organization-learners')
-    .select('organization-learners.isDisabled')
-    .join('organizations', 'organizations.id', 'organization-learners.organizationId')
+  const organizationLearner = await knex('view-active-organization-learners')
+    .select('view-active-organization-learners.isDisabled')
+    .join('organizations', 'organizations.id', 'view-active-organization-learners.organizationId')
     .join('campaigns', 'campaigns.organizationId', 'organizations.id')
     .where({ 'campaigns.id': campaignId })
-    .andWhere({ 'organization-learners.userId': userId })
+    .andWhere({ 'view-active-organization-learners.userId': userId })
     .first();
   return !organizationLearner?.isDisabled;
 }
 
-module.exports = ParticipantResultRepository;
+export { getByUserIdAndCampaignId };

@@ -22,7 +22,7 @@ module('Unit | Component | routes/campaigns/invited/associate-sco-student-form',
     sessionStub = { set: sinon.stub() };
     onSubmitStub = sinon.stub();
     eventStub = { preventDefault: sinon.stub() };
-    component = createComponent('component:routes/campaigns/invited/associate-sco-student-form', {
+    component = createComponent('routes/campaigns/invited/associate-sco-student-form', {
       onSubmit: onSubmitStub,
       campaignCode: 123,
     });
@@ -43,7 +43,9 @@ module('Unit | Component | routes/campaigns/invited/associate-sco-student-form',
 
     test('should create a sco-organization-learner', async function (assert) {
       // given
-      storeStub.createRecord.returns({ unloadRecord: () => {} });
+      storeStub.createRecord.returns({
+        unloadRecord: () => {},
+      });
 
       // when
       await component.actions.submit.call(component, attributes);
@@ -61,7 +63,9 @@ module('Unit | Component | routes/campaigns/invited/associate-sco-student-form',
 
     test('should call onSubmit with withReconciliation adapterOption to false', async function (assert) {
       // given
-      const scoOrganizationLearner = { unloadRecord: () => {} };
+      const scoOrganizationLearner = {
+        unloadRecord: () => {},
+      };
       storeStub.createRecord.returns(scoOrganizationLearner);
 
       // when
@@ -88,7 +92,9 @@ module('Unit | Component | routes/campaigns/invited/associate-sco-student-form',
     module('When user is logged in with email', function () {
       test('should open information modal and set reconciliationWarning', async function (assert) {
         // given
-        const scoOrganizationLearner = { unloadRecord: () => {} };
+        const scoOrganizationLearner = {
+          unloadRecord: () => {},
+        };
         storeStub.createRecord.returns(scoOrganizationLearner);
         const connectionMethod = 'test@example.net';
         component.currentUser.user.email = connectionMethod;
@@ -110,7 +116,9 @@ module('Unit | Component | routes/campaigns/invited/associate-sco-student-form',
     module('When user is logged in with username', function () {
       test('should open information modal and set reconciliationWarning', async function (assert) {
         // given
-        const scoOrganizationLearner = { unloadRecord: () => {} };
+        const scoOrganizationLearner = {
+          unloadRecord: () => {},
+        };
         storeStub.createRecord.returns(scoOrganizationLearner);
         const connectionMethod = 'john.doe3001';
         component.currentUser.user.username = connectionMethod;
@@ -150,9 +158,7 @@ module('Unit | Component | routes/campaigns/invited/associate-sco-student-form',
 
         // then
         sinon.assert.calledOnce(record.unloadRecord);
-        // TODO: Fix this the next time the file is edited.
-        // eslint-disable-next-line qunit/no-assert-equal
-        assert.equal(component.errorMessage.string, expectedErrorMessage);
+        assert.strictEqual(component.errorMessage.toString(), expectedErrorMessage);
         assert.ok(true);
       });
 
@@ -169,16 +175,12 @@ module('Unit | Component | routes/campaigns/invited/associate-sco-student-form',
           // then
           sinon.assert.calledOnce(record.unloadRecord);
           assert.true(component.displayInformationModal);
-          // TODO: Fix this the next time the file is edited.
-          // eslint-disable-next-line qunit/no-assert-equal
-          assert.equal(component.reconciliationError, error);
+          assert.strictEqual(component.reconciliationError, error);
           assert.ok(true);
         });
       });
 
-      // TODO: Fix this the next time the file is edited.
-      // eslint-disable-next-line qunit/no-async-module-callbacks
-      module('When another student is already reconciled on the same organization', async function () {
+      module('When another student is already reconciled on the same organization', function () {
         test('should return a conflict error and display the error message related to the short code R70)', async function (assert) {
           // given
           const meta = { shortCode: 'R70' };
@@ -198,9 +200,7 @@ module('Unit | Component | routes/campaigns/invited/associate-sco-student-form',
           await component.actions.submit.call(component, attributes);
 
           // then
-          // TODO: Fix this the next time the file is edited.
-          // eslint-disable-next-line qunit/no-assert-equal
-          assert.equal(component.errorMessage, expectedErrorMessage);
+          assert.strictEqual(component.errorMessage, expectedErrorMessage);
         });
       });
 
@@ -228,7 +228,7 @@ module('Unit | Component | routes/campaigns/invited/associate-sco-student-form',
       module('When user has an invalid reconciliation', function () {
         test('should return a bad request error and display the invalid reconciliation error message', async function (assert) {
           // given
-          const expectedErrorMessage = this.intl.t('pages.join.sco.invalid-reconciliation-error');
+          const expectedErrorMessage = this.intl.t('pages.join.sco.invalid-reconciliation-error', { htmlSafe: true });
           const error = { status: '400' };
 
           onSubmitStub.rejects({ errors: [error] });
@@ -237,9 +237,7 @@ module('Unit | Component | routes/campaigns/invited/associate-sco-student-form',
           await component.actions.submit.call(component, attributes);
 
           // then
-          // TODO: Fix this the next time the file is edited.
-          // eslint-disable-next-line qunit/no-assert-equal
-          assert.equal(component.errorMessage.string, expectedErrorMessage);
+          assert.deepEqual(component.errorMessage, expectedErrorMessage);
         });
       });
 
@@ -255,9 +253,7 @@ module('Unit | Component | routes/campaigns/invited/associate-sco-student-form',
 
           // then
           assert.true(component.displayInformationModal);
-          // TODO: Fix this the next time the file is edited.
-          // eslint-disable-next-line qunit/no-assert-equal
-          assert.equal(component.reconciliationError, error);
+          assert.strictEqual(component.reconciliationError, error);
         });
       });
     });
@@ -284,7 +280,9 @@ module('Unit | Component | routes/campaigns/invited/associate-sco-student-form',
 
     test('should create a sco-organization-learner', async function (assert) {
       // given
-      storeStub.createRecord.returns({ unloadRecord: () => {} });
+      storeStub.createRecord.returns({
+        unloadRecord: () => {},
+      });
 
       // when
       await component.actions.associate.call(component, eventStub);
@@ -302,7 +300,9 @@ module('Unit | Component | routes/campaigns/invited/associate-sco-student-form',
 
     test('should call onSubmit with withReconciliation adapterOption to true', async function (assert) {
       // given
-      const scoOrganizationLearner = { unloadRecord: () => {} };
+      const scoOrganizationLearner = {
+        unloadRecord: () => {},
+      };
       storeStub.createRecord.returns(scoOrganizationLearner);
 
       // when

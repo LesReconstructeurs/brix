@@ -1,6 +1,5 @@
-const { expect } = require('../../test-helper');
-
-const HttpTestServer = require('../../tooling/server/http-test-server');
+import { expect } from '../../test-helper.js';
+import { HttpTestServer } from '../../tooling/server/http-test-server.js';
 
 describe('Unit | Tooling | Http-test-server', function () {
   describe('#constructor', function () {
@@ -18,7 +17,7 @@ describe('Unit | Tooling | Http-test-server', function () {
     it('Should use pre-response-utils function', function () {
       // then
       expect(server.hapiServer._core.extensions.route.onPreResponse.nodes[0].func.name).to.equal(
-        'handleDomainAndHttpErrors'
+        'handleDomainAndHttpErrors',
       );
     });
   });

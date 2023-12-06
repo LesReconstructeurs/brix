@@ -1,6 +1,5 @@
-const { sinon, expect } = require('../../../test-helper');
-
-const publishSessionsInBatch = require('../../../../lib/domain/usecases/publish-sessions-in-batch');
+import { sinon, expect } from '../../../test-helper.js';
+import { publishSessionsInBatch } from '../../../../lib/domain/usecases/publish-sessions-in-batch.js';
 
 describe('Unit | UseCase | publish-sessions-in-batch', function () {
   let sessionPublicationService;
@@ -25,6 +24,7 @@ describe('Unit | UseCase | publish-sessions-in-batch', function () {
     const sessionId1 = Symbol('first session id');
     const sessionId2 = Symbol('second session id');
     const publishedAt = Symbol('a publication date');
+    const i18n = Symbol('i18n');
 
     // when
     await publishSessionsInBatch({
@@ -36,6 +36,7 @@ describe('Unit | UseCase | publish-sessions-in-batch', function () {
       sessionRepository,
       publishedAt,
       batchId: 'batch id',
+      i18n,
     });
 
     // then
@@ -46,6 +47,7 @@ describe('Unit | UseCase | publish-sessions-in-batch', function () {
       finalizedSessionRepository,
       sessionRepository,
       publishedAt,
+      i18n,
     });
     expect(sessionPublicationService.publishSession).to.have.been.calledWithExactly({
       sessionId: sessionId2,
@@ -54,12 +56,14 @@ describe('Unit | UseCase | publish-sessions-in-batch', function () {
       finalizedSessionRepository,
       sessionRepository,
       publishedAt,
+      i18n,
     });
   });
 
   context('when one or many session publication fail', function () {
     it('should continue', async function () {
       // given
+      const i18n = Symbol('i18n');
       const sessionId1 = Symbol('first session id');
       const sessionId2 = Symbol('second session id');
       const publishedAt = Symbol('a publication date');
@@ -85,6 +89,7 @@ describe('Unit | UseCase | publish-sessions-in-batch', function () {
         sessionRepository,
         publishedAt,
         batchId: 'batch id',
+        i18n,
       });
 
       expect(sessionPublicationService.publishSession).to.have.been.calledWithExactly({
@@ -94,6 +99,7 @@ describe('Unit | UseCase | publish-sessions-in-batch', function () {
         finalizedSessionRepository,
         sessionRepository,
         publishedAt,
+        i18n,
       });
     });
 
@@ -102,6 +108,8 @@ describe('Unit | UseCase | publish-sessions-in-batch', function () {
       const sessionId1 = Symbol('first session id');
       const sessionId2 = Symbol('second session id');
       const publishedAt = Symbol('a publication date');
+      const i18n = Symbol('i18n');
+      const certificationCenterRepository = Symbol('certificationCenterRepository');
 
       const sessionPublicationService = {
         publishSession: sinon.stub(),
@@ -110,18 +118,22 @@ describe('Unit | UseCase | publish-sessions-in-batch', function () {
       const error2 = new Error('another error');
       sessionPublicationService.publishSession
         .withArgs({
+          i18n,
           sessionId: sessionId1,
+          certificationRepository,
+          certificationCenterRepository,
           finalizedSessionRepository,
-          sessionPublicationService,
           sessionRepository,
           publishedAt,
         })
         .rejects(error1);
       sessionPublicationService.publishSession
         .withArgs({
+          i18n,
           sessionId: sessionId2,
+          certificationRepository,
+          certificationCenterRepository,
           finalizedSessionRepository,
-          sessionPublicationService,
           sessionRepository,
           publishedAt,
         })
@@ -129,8 +141,10 @@ describe('Unit | UseCase | publish-sessions-in-batch', function () {
 
       // when
       const result = await publishSessionsInBatch({
+        i18n,
         sessionIds: [sessionId1, sessionId2],
         certificationRepository,
+        certificationCenterRepository,
         finalizedSessionRepository,
         sessionPublicationService,
         sessionRepository,

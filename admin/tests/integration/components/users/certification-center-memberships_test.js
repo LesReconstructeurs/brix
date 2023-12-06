@@ -1,7 +1,7 @@
 import { module, test } from 'qunit';
 import { setupRenderingTest } from 'ember-qunit';
 import { render, clickByName } from '@1024pix/ember-testing-library';
-import hbs from 'htmlbars-inline-precompile';
+import { hbs } from 'ember-cli-htmlbars';
 import EmberObject from '@ember/object';
 import Service from '@ember/service';
 import sinon from 'sinon';
@@ -16,7 +16,7 @@ module('Integration | Component | users | certification-center-memberships', fun
 
       // when
       const screen = await render(
-        hbs`<Users::CertificationCenterMemberships @certificationCenterMemberships={{this.certificationCenterMemberships}} />`
+        hbs`<Users::CertificationCenterMemberships @certificationCenterMemberships={{this.certificationCenterMemberships}} />`,
       );
 
       // then
@@ -42,7 +42,7 @@ module('Integration | Component | users | certification-center-memberships', fun
 
       // when
       const screen = await render(
-        hbs`<Users::CertificationCenterMemberships @certificationCenterMemberships={{this.certificationCenterMemberships}} />`
+        hbs`<Users::CertificationCenterMemberships @certificationCenterMemberships={{this.certificationCenterMemberships}} />`,
       );
 
       // then
@@ -78,7 +78,7 @@ module('Integration | Component | users | certification-center-memberships', fun
 
     // when
     await render(
-      hbs`<Users::CertificationCenterMemberships @certificationCenterMemberships={{this.certificationCenterMemberships}} />`
+      hbs`<Users::CertificationCenterMemberships @certificationCenterMemberships={{this.certificationCenterMemberships}} />`,
     );
     await clickByName('Désactiver');
 
@@ -115,7 +115,7 @@ module('Integration | Component | users | certification-center-memberships', fun
 
     // when
     await render(
-      hbs`<Users::CertificationCenterMemberships @certificationCenterMemberships={{this.certificationCenterMemberships}} />`
+      hbs`<Users::CertificationCenterMemberships @certificationCenterMemberships={{this.certificationCenterMemberships}} />`,
     );
     await clickByName('Désactiver');
 

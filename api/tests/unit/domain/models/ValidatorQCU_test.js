@@ -1,13 +1,15 @@
-const AnswerStatus = require('../../../../lib/domain/models/AnswerStatus');
-const solutionServiceQcu = require('../../../../lib/domain/services/solution-service-qcu');
-const Validation = require('../../../../lib/domain/models/Validation');
-const ValidatorQCU = require('../../../../lib/domain/models/ValidatorQCU');
-
-const { expect, domainBuilder, sinon } = require('../../../test-helper');
+import { AnswerStatus } from '../../../../lib/domain/models/AnswerStatus.js';
+import { Validation } from '../../../../lib/domain/models/Validation.js';
+import { ValidatorQCU } from '../../../../lib/domain/models/ValidatorQCU.js';
+import { expect, domainBuilder, sinon } from '../../../test-helper.js';
 
 describe('Unit | Domain | Models | ValidatorQCU', function () {
+  let solutionServiceQCUStub;
+
   beforeEach(function () {
-    sinon.stub(solutionServiceQcu, 'match');
+    solutionServiceQCUStub = {
+      match: sinon.stub(),
+    };
   });
 
   describe('#assess', function () {
@@ -18,11 +20,14 @@ describe('Unit | Domain | Models | ValidatorQCU', function () {
 
     beforeEach(function () {
       // given
-      solutionServiceQcu.match.returns(AnswerStatus.OK);
+      solutionServiceQCUStub.match.returns(AnswerStatus.OK);
       solution = domainBuilder.buildSolution({ type: 'QCU' });
 
       uncorrectedAnswer = domainBuilder.buildAnswer.uncorrected();
-      validator = new ValidatorQCU({ solution: solution });
+      validator = new ValidatorQCU({
+        solution: solution,
+        dependencies: { solutionServiceQCU: solutionServiceQCUStub },
+      });
 
       // when
       validation = validator.assess({ answer: uncorrectedAnswer });
@@ -30,7 +35,7 @@ describe('Unit | Domain | Models | ValidatorQCU', function () {
 
     it('should call solutionServiceQCU', function () {
       // then
-      expect(solutionServiceQcu.match).to.have.been.calledWith(uncorrectedAnswer.value, solution.value);
+      expect(solutionServiceQCUStub.match).to.have.been.calledWith(uncorrectedAnswer.value, solution.value);
     });
     it('should return a validation object with the returned status', function () {
       const expectedValidation = domainBuilder.buildValidation({

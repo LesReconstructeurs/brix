@@ -1,42 +1,54 @@
-const toLower = require('lodash/toLower');
-const isNil = require('lodash/isNil');
-const dayjs = require('dayjs');
-const config = require('../../config');
+import lodash from 'lodash';
 
-const AuthenticationMethod = require('./AuthenticationMethod');
+const { toLower, isNil } = lodash;
+
+import dayjs from 'dayjs';
+
+import { config } from '../../config.js';
+import * as localeService from '../services/locale-service.js';
+import { NON_OIDC_IDENTITY_PROVIDERS } from '../constants/identity-providers.js';
 
 class User {
-  constructor({
-    id,
-    cgu,
-    pixOrgaTermsOfServiceAccepted,
-    pixCertifTermsOfServiceAccepted,
-    email,
-    emailConfirmedAt,
-    username,
-    firstName,
-    knowledgeElements,
-    lastName,
-    lastTermsOfServiceValidatedAt,
-    lastPixOrgaTermsOfServiceValidatedAt,
-    lastPixCertifTermsOfServiceValidatedAt,
-    lastDataProtectionPolicySeenAt,
-    hasSeenAssessmentInstructions,
-    hasSeenNewDashboardInfo,
-    hasSeenFocusedChallengeTooltip,
-    hasSeenOtherChallengesTooltip,
-    mustValidateTermsOfService,
-    lang,
-    isAnonymous,
-    memberships = [],
-    certificationCenterMemberships = [],
-    pixScore,
-    scorecards = [],
-    campaignParticipations = [],
-    authenticationMethods = [],
-    hasBeenAnonymised,
-    hasBeenAnonymisedBy,
-  } = {}) {
+  constructor(
+    {
+      id,
+      cgu,
+      pixOrgaTermsOfServiceAccepted,
+      pixCertifTermsOfServiceAccepted,
+      email,
+      emailConfirmedAt,
+      username,
+      firstName,
+      knowledgeElements,
+      lastName,
+      lastTermsOfServiceValidatedAt,
+      lastPixOrgaTermsOfServiceValidatedAt,
+      lastPixCertifTermsOfServiceValidatedAt,
+      lastDataProtectionPolicySeenAt,
+      hasSeenAssessmentInstructions,
+      hasSeenNewDashboardInfo,
+      hasSeenLevelSevenInfo,
+      hasSeenFocusedChallengeTooltip,
+      hasSeenOtherChallengesTooltip,
+      mustValidateTermsOfService,
+      lang,
+      locale,
+      isAnonymous,
+      memberships = [],
+      certificationCenterMemberships = [],
+      pixScore,
+      scorecards = [],
+      campaignParticipations = [],
+      authenticationMethods = [],
+      hasBeenAnonymised,
+      hasBeenAnonymisedBy,
+    } = {},
+    dependencies = { config, localeService },
+  ) {
+    if (locale) {
+      locale = dependencies.localeService.getCanonicalLocale(locale);
+    }
+
     this.id = id;
     this.firstName = firstName;
     this.lastName = lastName;
@@ -54,9 +66,11 @@ class User {
     this.hasSeenAssessmentInstructions = hasSeenAssessmentInstructions;
     this.hasSeenOtherChallengesTooltip = hasSeenOtherChallengesTooltip;
     this.hasSeenNewDashboardInfo = hasSeenNewDashboardInfo;
+    this.hasSeenLevelSevenInfo = hasSeenLevelSevenInfo;
     this.hasSeenFocusedChallengeTooltip = hasSeenFocusedChallengeTooltip;
     this.knowledgeElements = knowledgeElements;
     this.lang = lang;
+    this.locale = locale;
     this.isAnonymous = isAnonymous;
     this.pixScore = pixScore;
     this.memberships = memberships;
@@ -66,11 +80,12 @@ class User {
     this.authenticationMethods = authenticationMethods;
     this.hasBeenAnonymised = hasBeenAnonymised;
     this.hasBeenAnonymisedBy = hasBeenAnonymisedBy;
+    this.dependencies = dependencies;
   }
 
   get shouldChangePassword() {
     const pixAuthenticationMethod = this.authenticationMethods.find(
-      (authenticationMethod) => authenticationMethod.identityProvider === AuthenticationMethod.identityProviders.PIX
+      (authenticationMethod) => authenticationMethod.identityProvider === NON_OIDC_IDENTITY_PROVIDERS.PIX.code,
     );
 
     return pixAuthenticationMethod ? pixAuthenticationMethod.authenticationComplement.shouldChangePassword : null;
@@ -79,7 +94,19 @@ class User {
   get shouldSeeDataProtectionPolicyInformationBanner() {
     const isNotOrganizationLearner = this.cgu === true;
     const parsedDate = new Date(this.lastDataProtectionPolicySeenAt);
-    return dayjs(parsedDate).isBefore(dayjs(config.dataProtectionPolicy.updateDate)) && isNotOrganizationLearner;
+    return (
+      dayjs(parsedDate).isBefore(dayjs(this.dependencies.config.dataProtectionPolicy.updateDate)) &&
+      isNotOrganizationLearner
+    );
+  }
+
+  setLocaleIfNotAlreadySet(newLocale) {
+    this.hasBeenModified = false;
+    if (newLocale && !this.locale) {
+      const canonicalLocale = this.dependencies.localeService.getCanonicalLocale(newLocale);
+      this.locale = canonicalLocale;
+      this.hasBeenModified = true;
+    }
   }
 
   isLinkedToOrganizations() {
@@ -98,9 +125,9 @@ class User {
     return this.certificationCenterMemberships.some(
       (certificationCenterMembership) =>
         certificationCenterMembership.certificationCenter.id === certificationCenterId &&
-        isNil(certificationCenterMembership.disabledAt)
+        isNil(certificationCenterMembership.disabledAt),
     );
   }
 }
 
-module.exports = User;
+export { User };

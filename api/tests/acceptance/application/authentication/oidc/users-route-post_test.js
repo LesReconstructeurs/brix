@@ -1,9 +1,9 @@
-const jsonwebtoken = require('jsonwebtoken');
-const { expect, knex } = require('../../../../test-helper');
-const authenticationSessionService = require('../../../../../lib/domain/services/authentication/authentication-session-service');
-const createServer = require('../../../../../server');
-const AuthenticationSessionContent = require('../../../../../lib/domain/models/AuthenticationSessionContent');
-const OidcIdentityProviders = require('../../../../../lib/domain/constants/oidc-identity-providers');
+import jsonwebtoken from 'jsonwebtoken';
+import { expect, knex } from '../../../../test-helper.js';
+import * as authenticationSessionService from '../../../../../lib/domain/services/authentication/authentication-session-service.js';
+import { createServer } from '../../../../../server.js';
+import { AuthenticationSessionContent } from '../../../../../lib/domain/models/AuthenticationSessionContent.js';
+import * as OidcIdentityProviders from '../../../../../lib/domain/constants/oidc-identity-providers.js';
 
 describe('Acceptance | Route | oidc users', function () {
   let server;
@@ -30,7 +30,7 @@ describe('Acceptance | Route | oidc users', function () {
           nonce: 'nonce',
           sub: externalIdentifier,
         },
-        'secret'
+        'secret',
       );
 
       const sessionContent = new AuthenticationSessionContent({
@@ -49,6 +49,9 @@ describe('Acceptance | Route | oidc users', function () {
       const request = {
         method: 'POST',
         url: '/api/oidc/users',
+        headers: {
+          cookie: 'locale=fr-FR',
+        },
         payload: {
           data: {
             attributes: {
@@ -69,6 +72,7 @@ describe('Acceptance | Route | oidc users', function () {
       const createdUser = await knex('users').first();
       expect(createdUser.firstName).to.equal('Brice');
       expect(createdUser.lastName).to.equal('Glace');
+      expect(createdUser.locale).to.equal('fr-FR');
 
       const createdAuthenticationMethod = await knex('authentication-methods').first();
       expect(createdAuthenticationMethod.externalIdentifier).to.equal('sub');

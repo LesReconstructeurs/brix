@@ -1,6 +1,6 @@
 import { module, test } from 'qunit';
 import { render } from '@ember/test-helpers';
-import hbs from 'htmlbars-inline-precompile';
+import { hbs } from 'ember-cli-htmlbars';
 
 import setupIntlRenderingTest from '../../../helpers/setup-intl-rendering';
 
@@ -33,7 +33,7 @@ module('Integration | Component | Team::MembersList', function (hooks) {
     this.set('members', members);
 
     // when
-    await render(hbs`<Team::MembersList @members={{this.members}}/>`);
+    await render(hbs`<Team::MembersList @members={{this.members}} />`);
 
     // then
     assert.contains('Gigi');
@@ -45,7 +45,7 @@ module('Integration | Component | Team::MembersList', function (hooks) {
     this.set('members', []);
 
     // when
-    await render(hbs`<Team::MembersList @members={{this.members}}/>`);
+    await render(hbs`<Team::MembersList @members={{this.members}} />`);
 
     // then
     assert.contains('En attente de membres');

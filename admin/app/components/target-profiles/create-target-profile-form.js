@@ -1,6 +1,6 @@
 import { action } from '@ember/object';
 import Component from '@glimmer/component';
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 import { optionsCategoryList } from '../../models/target-profile';
 import { tracked } from '@glimmer/tracking';
 
@@ -16,31 +16,21 @@ export default class CreateTargetProfileForm extends Component {
   }
 
   @action
-  onCategoryChange(value) {
-    this.args.targetProfile.category = value;
-  }
-
-  @action
-  updateTargetProfileName(event) {
-    this.args.targetProfile.name = event.target.value;
-  }
-
-  @action
-  updateOwnerOrganizationId(event) {
-    this.args.targetProfile.ownerOrganizationId = event.target.value;
-  }
-
-  @action
-  updateImageUrl(event) {
-    this.args.targetProfile.imageUrl = event.target.value;
-  }
-
-  @action
   updateTubes(tubesWithLevel) {
     this.selectedTubes = tubesWithLevel.map(({ id, level }) => ({
       id,
       level,
     }));
+  }
+
+  @action
+  updateTargetProfileValue(key, event) {
+    this.args.targetProfile[key] = event.target.value;
+  }
+
+  @action
+  updateCategory(value) {
+    this.args.targetProfile['category'] = value;
   }
 
   @action

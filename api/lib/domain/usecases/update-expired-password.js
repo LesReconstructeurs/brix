@@ -1,10 +1,12 @@
-const get = require('lodash/get');
-const AuthenticationMethod = require('../../domain/models/AuthenticationMethod');
-const { ForbiddenAccess } = require('../../domain/errors');
-const { UserNotFoundError } = require('../../domain/errors');
-const logger = require('../../../lib/infrastructure/logger');
+import lodash from 'lodash';
 
-module.exports = async function updateExpiredPassword({
+const { get } = lodash;
+
+import { NON_OIDC_IDENTITY_PROVIDERS } from '../constants/identity-providers.js';
+import { ForbiddenAccess, UserNotFoundError } from '../../domain/errors.js';
+import { logger } from '../../../lib/infrastructure/logger.js';
+
+const updateExpiredPassword = async function ({
   passwordResetToken,
   newPassword,
   encryptionService,
@@ -26,7 +28,7 @@ module.exports = async function updateExpiredPassword({
 
   const authenticationMethod = await authenticationMethodRepository.findOneByUserIdAndIdentityProvider({
     userId: foundUser.id,
-    identityProvider: AuthenticationMethod.identityProviders.PIX,
+    identityProvider: NON_OIDC_IDENTITY_PROVIDERS.PIX.code,
   });
 
   const shouldChangePassword = get(authenticationMethod, 'authenticationComplement.shouldChangePassword');
@@ -44,3 +46,5 @@ module.exports = async function updateExpiredPassword({
 
   return foundUser.username ?? foundUser.email;
 };
+
+export { updateExpiredPassword };

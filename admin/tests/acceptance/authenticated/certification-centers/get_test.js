@@ -40,7 +40,7 @@ module('Acceptance | authenticated/certification-centers/get', function (hooks) 
     const screen = await visit(`/certification-centers/${certificationCenter.id}`);
 
     // then
-    assert.dom(screen.getByRole('heading', { name: 'Center 1' })).exists();
+    assert.dom(screen.getByRole('heading', { name: 'Center 1', level: 2 })).exists();
     assert.dom(screen.getByText('ABCDEF')).exists();
     assert.dom(screen.getByText('Établissement scolaire')).exists();
   });
@@ -48,8 +48,8 @@ module('Acceptance | authenticated/certification-centers/get', function (hooks) 
   test('should display Certification center habilitations', async function (assert) {
     // given
     await authenticateAdminMemberWithRole({ isSuperAdmin: true })(server);
-    const habilitation1 = server.create('habilitation', { key: 'E', label: 'Pix+Edu' });
-    const habilitation2 = server.create('habilitation', { key: 'S', label: 'Pix+Surf' });
+    const habilitation1 = server.create('complementary-certification', { key: 'E', label: 'Pix+Edu' });
+    const habilitation2 = server.create('complementary-certification', { key: 'S', label: 'Pix+Surf' });
 
     const certificationCenter = server.create('certification-center', {
       name: 'Center 1',
@@ -69,8 +69,8 @@ module('Acceptance | authenticated/certification-centers/get', function (hooks) 
   test('should highlight the habilitations of the current certification center', async function (assert) {
     // given
     await authenticateAdminMemberWithRole({ isSuperAdmin: true })(server);
-    const habilitation1 = server.create('habilitation', { key: 'E', label: 'Pix+Edu' });
-    const habilitation2 = server.create('habilitation', { key: 'S', label: 'Pix+Surf' });
+    const habilitation1 = server.create('complementary-certification', { key: 'E', label: 'Pix+Edu' });
+    const habilitation2 = server.create('complementary-certification', { key: 'S', label: 'Pix+Surf' });
     const certificationCenter = server.create('certification-center', {
       name: 'Center 1',
       externalId: 'ABCDEF',
@@ -78,7 +78,7 @@ module('Acceptance | authenticated/certification-centers/get', function (hooks) 
       habilitations: [habilitation1, habilitation2],
     });
 
-    server.create('habilitation', { key: 'S', label: 'Pix+Autre' });
+    server.create('complementary-certification', { key: 'S', label: 'Pix+Autre' });
 
     // when
     const screen = await visit(`/certification-centers/${certificationCenter.id}`);
@@ -115,7 +115,6 @@ module('Acceptance | authenticated/certification-centers/get', function (hooks) 
         name: 'Center 1',
         externalId: 'ABCDEF',
         type: 'SCO',
-        isSupervisorAccessEnabled: false,
       });
       const screen = await visit(`/certification-centers/${certificationCenter.id}`);
       await clickByName('Editer les informations');
@@ -132,18 +131,16 @@ module('Acceptance | authenticated/certification-centers/get', function (hooks) 
       await fillByLabel('Prénom du DPO', 'Justin');
       await fillByLabel('Nom du DPO', 'Ptipeu');
       await fillByLabel('Adresse e-mail du DPO', 'justin.ptipeu@example.net');
-      await clickByName('Espace surveillant');
       await clickByName('Enregistrer');
 
       // then
       assert.dom(screen.getByText('Habilitations aux certifications complémentaires')).exists();
-      assert.dom(screen.getByRole('heading', { name: 'nouveau nom' })).exists();
+      assert.dom(screen.getByRole('heading', { name: 'nouveau nom', level: 2 })).exists();
       assert.dom(screen.getByText('Établissement supérieur')).exists();
       assert.dom(screen.getByText('nouvel identifiant externe')).exists();
       assert.dom(screen.getByText('Nom du : Justin Ptipeu')).exists();
       assert.dom(screen.getByText('Adresse e-mail du : justin.ptipeu@example.net')).exists();
       assert.strictEqual(screen.getAllByTitle('Délégué à la protection des données').length, 2);
-      assert.dom(screen.getByLabelText('Espace surveillant')).hasText('oui');
     });
 
     test('should display a success notification when the certification has been successfully updated', async function (assert) {
@@ -154,8 +151,8 @@ module('Acceptance | authenticated/certification-centers/get', function (hooks) 
         externalId: 'ABCDEF',
         type: 'SCO',
       });
-      server.create('habilitation', { key: 'S', label: 'Pix+Surf' });
-      server.create('habilitation', { key: 'A', label: 'Pix+Autre' });
+      server.create('complementary-certification', { key: 'S', label: 'Pix+Surf' });
+      server.create('complementary-certification', { key: 'A', label: 'Pix+Autre' });
 
       const screen = await visit(`/certification-centers/${certificationCenter.id}`);
       await clickByName('Editer les informations');
@@ -170,7 +167,7 @@ module('Acceptance | authenticated/certification-centers/get', function (hooks) 
       assert.dom(screen.getByLabelText('Habilité pour Pix+Surf')).exists();
       assert.dom(screen.getByLabelText('Non-habilité pour Pix+Autre')).exists();
       assert.dom(screen.getByText('Habilitations aux certifications complémentaires')).exists();
-      assert.dom(screen.getByRole('heading', { name: 'Centre des réussites' })).exists();
+      assert.dom(screen.getByRole('heading', { name: 'Centre des réussites', level: 2 })).exists();
       assert.dom(screen.getByText('Centre de certification mis à jour avec succès.')).exists();
     });
 
@@ -213,7 +210,7 @@ module('Acceptance | authenticated/certification-centers/get', function (hooks) 
       const certificationCenterNavigation = within(
         screen.getByRole('navigation', {
           name: 'Navigation de la section centre de certification',
-        })
+        }),
       );
       assert.dom(certificationCenterNavigation.getByRole('link', { name: 'Équipe' })).exists();
       assert.dom(certificationCenterNavigation.getByRole('link', { name: 'Invitations' })).exists();

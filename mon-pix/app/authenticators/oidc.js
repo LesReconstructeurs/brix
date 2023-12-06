@@ -1,6 +1,6 @@
 import RSVP from 'rsvp';
 import { isEmpty } from '@ember/utils';
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 
 import BaseAuthenticator from 'ember-simple-auth/authenticators/base';
 
@@ -84,7 +84,7 @@ export default class OidcAuthenticator extends BaseAuthenticator {
         headers: {
           Authorization: `Bearer ${access_token}`,
         },
-      }
+      },
     );
     const { redirectLogoutUrl } = await response.json();
 

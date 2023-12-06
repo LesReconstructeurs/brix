@@ -1,10 +1,10 @@
-const _ = require('lodash');
-const Validator = require('./Validator');
-const ValidatorQCM = require('./ValidatorQCM');
-const ValidatorQCU = require('./ValidatorQCU');
-const ValidatorQROC = require('./ValidatorQROC');
-const ValidatorQROCMDep = require('./ValidatorQROCMDep');
-const ValidatorQROCMInd = require('./ValidatorQROCMInd');
+import _ from 'lodash';
+import { Validator } from './Validator.js';
+import { ValidatorQCM } from './ValidatorQCM.js';
+import { ValidatorQCU } from './ValidatorQCU.js';
+import { ValidatorQROC } from './ValidatorQROC.js';
+import { ValidatorQROCMDep } from './ValidatorQROCMDep.js';
+import { ValidatorQROCMInd } from './ValidatorQROCMInd.js';
 
 const ChallengeType = Object.freeze({
   QCU: 'QCU',
@@ -44,6 +44,7 @@ class Challenge {
    * @param difficulty
    * @param responsive
    * @param successProbabilityThreshold
+   * @param shuffled
    */
   constructor({
     id,
@@ -71,6 +72,7 @@ class Challenge {
     difficulty,
     successProbabilityThreshold,
     responsive,
+    shuffled,
   } = {}) {
     this.id = id;
     this.answer = answer;
@@ -97,6 +99,7 @@ class Challenge {
     this.difficulty = difficulty;
     this.responsive = responsive;
     this.successProbabilityThreshold = successProbabilityThreshold;
+    this.shuffled = shuffled;
   }
 
   isTimed() {
@@ -165,4 +168,4 @@ class Challenge {
 
 Challenge.Type = ChallengeType;
 
-module.exports = Challenge;
+export { Challenge, ChallengeType as Type };

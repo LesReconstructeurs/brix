@@ -1,6 +1,6 @@
 import Component from '@glimmer/component';
 import { action } from '@ember/object';
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 import some from 'lodash/some';
 
 import { tracked } from '@glimmer/tracking';
@@ -14,24 +14,22 @@ export default class AddStudentList extends Component {
 
   @tracked selectedDivisions = this.args.selectedDivisions;
 
-  get headerCheckboxStatus() {
-    return this.hasCheckedEverything ? 'checked' : this.hasCheckedSomething ? 'partial' : 'unchecked';
+  get isDisabled() {
+    const areStudentsAllEnrolled = this.args.studentList.every((student) => student.isEnrolled);
+    return !!areStudentsAllEnrolled;
   }
 
-  get hasCheckedSomething() {
-    const hasOneOrMoreCheck = this.args.studentList.any((student) => student.isSelected);
-    return hasOneOrMoreCheck;
+  get hasCheckState() {
+    return this._hasCheckedSomething();
+  }
+
+  get hasPartialState() {
+    return !this._hasCheckedEverything() && this._hasCheckedSomething();
   }
 
   get shouldEnableAddButton() {
     const hasAtLeastOneSelectedStudent = this.store.peekAll('student').any((student) => student.isSelected);
     return hasAtLeastOneSelectedStudent;
-  }
-
-  get hasCheckedEverything() {
-    const enrollableStudentList = this.args.studentList.filter((student) => !student.isEnrolled);
-    const allCertifReportsAreCheck = enrollableStudentList.every((student) => student.isSelected);
-    return allCertifReportsAreCheck;
   }
 
   get numberOfStudentsAlreadyCandidate() {
@@ -56,17 +54,17 @@ export default class AddStudentList extends Component {
   }
 
   @action
-  toggleAllItems() {
-    const state = this.headerCheckboxStatus;
+  toggleAllItems(parentCheckbox) {
     let newState = true;
-    if (state === 'checked') {
+    if (this._hasCheckedEverything()) {
       newState = false;
     }
     this.args.studentList.forEach((student) => student.setSelected(newState));
+    parentCheckbox.srcElement.checked = newState;
   }
 
   @action
-  async enrollStudents() {
+  async enrolStudents() {
     const sessionId = this.args.session.id;
     const studentListToAdd = this.store.peekAll('student').filter((student) => student.isSelected);
 
@@ -85,5 +83,18 @@ export default class AddStudentList extends Component {
   async selectDivision(divisions) {
     this.selectedDivisions = divisions;
     return this.router.replaceWith({ queryParams: { divisions } });
+  }
+
+  get _enrolableStudentList() {
+    return this.args.studentList.filter(({ isEnrolled }) => !isEnrolled);
+  }
+
+  _hasCheckedEverything() {
+    return this._enrolableStudentList.every(({ isSelected }) => isSelected);
+  }
+
+  _hasCheckedSomething() {
+    const hasOneOrMoreCheck = this.args.studentList.any((student) => student.isSelected);
+    return hasOneOrMoreCheck;
   }
 }

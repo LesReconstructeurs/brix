@@ -1,10 +1,10 @@
-const { expect, HttpTestServer, sinon } = require('../../../test-helper');
-const securityPreHandlers = require('../../../../lib/application/security-pre-handlers');
-const { NotFoundError } = require('../../../../lib/domain/errors');
-const moduleUnderTest = require('../../../../lib/application/campaigns');
-const campaignController = require('../../../../lib/application/campaigns/campaign-controller');
-const campaignStatsController = require('../../../../lib/application/campaigns/campaign-stats-controller');
-const campaignManagementController = require('../../../../lib/application/campaigns/campaign-management-controller');
+import { expect, HttpTestServer, sinon } from '../../../test-helper.js';
+import { securityPreHandlers } from '../../../../lib/application/security-pre-handlers.js';
+import { NotFoundError } from '../../../../lib/domain/errors.js';
+import { campaignController } from '../../../../lib/application/campaigns/campaign-controller.js';
+import { campaignStatsController } from '../../../../lib/application/campaigns/campaign-stats-controller.js';
+import { campaignManagementController } from '../../../../lib/application/campaigns/campaign-management-controller.js';
+import * as moduleUnderTest from '../../../../lib/application/campaigns/index.js';
 
 describe('Unit | Application | Router | campaign-router ', function () {
   describe('POST /api/campaigns', function () {
@@ -510,7 +510,7 @@ describe('Unit | Application | Router | campaign-router ', function () {
       // when
       const result = await httpTestServer.request(
         'GET',
-        '/api/campaigns/1/profiles-collection-participations?page[number]=1&page[size]=25'
+        '/api/campaigns/1/profiles-collection-participations?page[number]=1&page[size]=25',
       );
 
       // then
@@ -526,7 +526,7 @@ describe('Unit | Application | Router | campaign-router ', function () {
       // when
       const result = await httpTestServer.request(
         'GET',
-        '/api/campaigns/1/profiles-collection-participations?filter[divisions][]="3EMEB"'
+        '/api/campaigns/1/profiles-collection-participations?filter[divisions][]="3EMEB"',
       );
 
       // then
@@ -542,7 +542,7 @@ describe('Unit | Application | Router | campaign-router ', function () {
       // when
       const result = await httpTestServer.request(
         'GET',
-        '/api/campaigns/1/profiles-collection-participations?filter[divisions][]="3EMEB"&filter[divisions][]="3EMEA"'
+        '/api/campaigns/1/profiles-collection-participations?filter[divisions][]="3EMEB"&filter[divisions][]="3EMEA"',
       );
 
       // then
@@ -558,7 +558,7 @@ describe('Unit | Application | Router | campaign-router ', function () {
       // when
       const result = await httpTestServer.request(
         'GET',
-        '/api/campaigns/1/profiles-collection-participations?filter[groups][]="AB1"'
+        '/api/campaigns/1/profiles-collection-participations?filter[groups][]="AB1"',
       );
 
       // then
@@ -574,7 +574,23 @@ describe('Unit | Application | Router | campaign-router ', function () {
       // when
       const result = await httpTestServer.request(
         'GET',
-        '/api/campaigns/1/profiles-collection-participations?filter[groups][]="AB1"&filter[groups][]="AB2"'
+        '/api/campaigns/1/profiles-collection-participations?filter[groups][]="AB1"&filter[groups][]="AB2"',
+      );
+
+      // then
+      expect(result.statusCode).to.equal(200);
+    });
+
+    it('should return 200 with a string of certificability filter', async function () {
+      // given
+      sinon.stub(campaignController, 'findProfilesCollectionParticipations').returns('ok');
+      const httpTestServer = new HttpTestServer();
+      await httpTestServer.register(moduleUnderTest);
+
+      // when
+      const result = await httpTestServer.request(
+        'GET',
+        '/api/campaigns/1/profiles-collection-participations?filter[certificability]="eligibile"',
       );
 
       // then
@@ -589,7 +605,7 @@ describe('Unit | Application | Router | campaign-router ', function () {
       // when
       const result = await httpTestServer.request(
         'GET',
-        '/api/campaigns/1/profiles-collection-participations?filter[unexpected][]=5'
+        '/api/campaigns/1/profiles-collection-participations?filter[unexpected][]=5',
       );
 
       // then
@@ -604,7 +620,7 @@ describe('Unit | Application | Router | campaign-router ', function () {
       // when
       const result = await httpTestServer.request(
         'GET',
-        '/api/campaigns/1/profiles-collection-participations?filter[divisions]="3EMEA"'
+        '/api/campaigns/1/profiles-collection-participations?filter[divisions]="3EMEA"',
       );
 
       // then
@@ -619,7 +635,7 @@ describe('Unit | Application | Router | campaign-router ', function () {
       // when
       const result = await httpTestServer.request(
         'GET',
-        '/api/campaigns/1/profiles-collection-participations?filter[groups]="AB3"'
+        '/api/campaigns/1/profiles-collection-participations?filter[groups]="AB3"',
       );
 
       // then
@@ -634,7 +650,7 @@ describe('Unit | Application | Router | campaign-router ', function () {
       // when
       const result = await httpTestServer.request(
         'GET',
-        '/api/campaigns/1/profiles-collection-participations?page[number]=a'
+        '/api/campaigns/1/profiles-collection-participations?page[number]=a',
       );
 
       // then
@@ -649,7 +665,7 @@ describe('Unit | Application | Router | campaign-router ', function () {
       // when
       const result = await httpTestServer.request(
         'GET',
-        '/api/campaigns/1/profiles-collection-participations?page[size]=a'
+        '/api/campaigns/1/profiles-collection-participations?page[size]=a',
       );
 
       // then
@@ -800,7 +816,7 @@ describe('Unit | Application | Router | campaign-router ', function () {
       // when
       const result = await httpTestServer.request(
         'GET',
-        '/api/campaigns/1/participants-activity?filter[divisions][]="3EMEB"'
+        '/api/campaigns/1/participants-activity?filter[divisions][]="3EMEB"',
       );
 
       // then
@@ -816,7 +832,7 @@ describe('Unit | Application | Router | campaign-router ', function () {
       // when
       const result = await httpTestServer.request(
         'GET',
-        '/api/campaigns/1/participants-activity?filter[divisions][]="3EMEB"&filter[divisions][]="3EMEA"'
+        '/api/campaigns/1/participants-activity?filter[divisions][]="3EMEB"&filter[divisions][]="3EMEA"',
       );
 
       // then
@@ -841,7 +857,7 @@ describe('Unit | Application | Router | campaign-router ', function () {
       // when
       const result = await httpTestServer.request(
         'GET',
-        '/api/campaigns/1/participants-activity?filter[unexpected][]=5'
+        '/api/campaigns/1/participants-activity?filter[unexpected][]=5',
       );
 
       // then
@@ -856,7 +872,7 @@ describe('Unit | Application | Router | campaign-router ', function () {
       // when
       const result = await httpTestServer.request(
         'GET',
-        '/api/campaigns/1/participants-activity?filter[divisions]="3EMEA"'
+        '/api/campaigns/1/participants-activity?filter[divisions]="3EMEA"',
       );
 
       // then
@@ -869,9 +885,6 @@ describe('Unit | Application | Router | campaign-router ', function () {
       sinon
         .stub(campaignStatsController, 'getParticipationsCountByMasteryRate')
         .callsFake((request, h) => h.response('ok').code(200));
-    });
-    afterEach(function () {
-      sinon.restore();
     });
 
     it('should return 200', async function () {

@@ -1,17 +1,28 @@
-const { injectDependencies } = require('../../utils/dependency-injection');
+import { injectDependencies } from '../../utils/dependency-injection.js';
+
+import * as cpfCertificationResultRepository from '../../repositories/cpf-certification-result-repository.js';
+import * as cpfCertificationXmlExportService from '../../../domain/services/cpf-certification-xml-export-service.js';
+import * as cpfExternalStorage from '../../external-storage/cpf-external-storage.js';
+import * as mailService from '../../../domain/services/mail-service.js';
+
+import * as planner from './handlers/planner.js';
+import * as createAndUpload from './handlers/create-and-upload.js';
+import * as sendEmail from './handlers/send-email.js';
 
 const dependencies = {
-  cpfCertificationResultRepository: require('../../repositories/cpf-certification-result-repository'),
-  cpfCertificationXmlExportService: require('../../../domain/services/cpf-certification-xml-export-service'),
-  cpfExternalStorage: require('../../external-storage/cpf-external-storage'),
-  mailService: require('../../../domain/services/mail-service'),
+  cpfCertificationResultRepository,
+  cpfCertificationXmlExportService,
+  cpfExternalStorage,
+  mailService,
 };
 
-module.exports = injectDependencies(
+const cpfExport = injectDependencies(
   {
-    planner: require('./handlers/planner'),
-    createAndUpload: require('./handlers/create-and-upload'),
-    sendEmail: require('./handlers/send-email'),
+    planner,
+    createAndUpload,
+    sendEmail,
   },
-  dependencies
+  dependencies,
 );
+
+export { cpfExport };

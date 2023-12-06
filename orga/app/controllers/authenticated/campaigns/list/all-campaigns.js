@@ -1,7 +1,7 @@
 import { action } from '@ember/object';
 import Controller from '@ember/controller';
 import { tracked } from '@glimmer/tracking';
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 
 const DEFAULT_PAGE_NUMBER = 1;
 
@@ -12,14 +12,6 @@ export default class AuthenticatedCampaignsListAllCampaignsController extends Co
   @tracked name = null;
   @tracked ownerName = null;
   @tracked status = null;
-
-  get isArchived() {
-    return this.status === 'archived';
-  }
-
-  get isClearFiltersButtonDisabled() {
-    return !this.name && !this.ownerName && !this.status;
-  }
 
   @action
   clearFilters() {

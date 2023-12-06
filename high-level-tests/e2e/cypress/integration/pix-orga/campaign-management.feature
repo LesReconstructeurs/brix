@@ -24,7 +24,7 @@ Fonctionnalité: Gestion des Campagnes
     Alors je vois 2 sujets
     Et je vois que le sujet "Capitales" est "Très recommandé"
     Et je vois que le sujet "Philosophes" est "Assez recommandé"
-    Lorsque je retourne au détail de la campagne
+    Lorsque je clique sur "Campagne de la Néra"
     Et je clique sur "Résultats (1)"
     Alors je vois la moyenne des résultats à 50%
     Lorsque je clique sur "Analyse"
@@ -64,6 +64,15 @@ Fonctionnalité: Gestion des Campagnes
     Et je clique sur "Non"
     Et je clique sur "Créer la campagne"
     Alors je vois le détail de la campagne "Campagne de l'Ouest"
+
+  Scénario: Je duplique une campagne d'évaluation
+    Étant donné que je suis connecté à Pix Orga
+    Et je clique sur "Campagne de la Néra"
+    Et je clique sur "Paramètres"
+    Lorsque je clique sur "Dupliquer"
+    Alors je suis redirigé vers la page "creation"
+    Et je clique sur "Créer la campagne"
+    Alors je vois le détail de la campagne "Copie de Campagne de la Néra"
 
   Scénario: J'archive et je désarchive une campagne
     Étant donné que je suis connecté à Pix Orga

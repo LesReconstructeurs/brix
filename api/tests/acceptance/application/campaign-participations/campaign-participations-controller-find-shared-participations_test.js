@@ -1,11 +1,12 @@
-const createServer = require('../../../../server');
-const {
+import { createServer } from '../../../../server.js';
+
+import {
   expect,
   databaseBuilder,
   mockLearningContent,
   learningContentBuilder,
   generateValidRequestAuthorizationHeader,
-} = require('../../../test-helper');
+} from '../../../test-helper.js';
 
 describe('Acceptance | API | Campaign Participations | Results', function () {
   let server;
@@ -45,7 +46,7 @@ describe('Acceptance | API | Campaign Participations | Results', function () {
         },
       ];
 
-      const learningContentObjects = learningContentBuilder.buildLearningContent.fromAreas(learningContent);
+      const learningContentObjects = learningContentBuilder.fromAreas(learningContent);
       mockLearningContent(learningContentObjects);
 
       campaign = databaseBuilder.factory.buildAssessmentCampaignForSkills({ organizationId: organization.id }, [skill]);
@@ -64,7 +65,7 @@ describe('Acceptance | API | Campaign Participations | Results', function () {
           firstName: 'John',
           lastName: 'McClane',
         },
-        participant1
+        participant1,
       );
       databaseBuilder.factory.buildAssessmentFromParticipation(
         campaignParticipation,
@@ -74,7 +75,7 @@ describe('Acceptance | API | Campaign Participations | Results', function () {
           firstName: 'Holly',
           lastName: 'McClane',
         },
-        participant2
+        participant2,
       );
 
       return databaseBuilder.commit();

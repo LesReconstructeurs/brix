@@ -1,18 +1,14 @@
-import Service from '@ember/service';
-import { inject as service } from '@ember/service';
+import Service, { inject as service } from '@ember/service';
 import ENV from 'mon-pix/config/environment';
 
-const FRENCH_DOMAIN_EXTENSION = 'fr';
+const FRENCH_INTERNATIONAL_LOCALE = 'fr';
+const ENGLISH_INTERNATIONAL_LOCALE = 'en';
 
 export default class Url extends Service {
   @service currentDomain;
   @service intl;
 
   definedHomeUrl = ENV.rootURL;
-
-  get isFrenchDomainExtension() {
-    return this.currentDomain.getExtension() === FRENCH_DOMAIN_EXTENSION;
-  }
 
   get showcase() {
     return { url: this._showcaseWebsiteUrl, linkText: this._showcaseWebsiteLinkText };
@@ -25,27 +21,32 @@ export default class Url extends Service {
 
   get cguUrl() {
     const currentLanguage = this.intl.t('current-lang');
-    if (currentLanguage === 'en') {
-      return 'https://pix.org/en-gb/terms-and-conditions';
+    if (this.currentDomain.isFranceDomain) {
+      return `https://pix.fr/conditions-generales-d-utilisation`;
     }
-    return `https://pix.${this.currentDomain.getExtension()}/conditions-generales-d-utilisation`;
+    return currentLanguage === FRENCH_INTERNATIONAL_LOCALE
+      ? 'https://pix.org/fr/conditions-generales-d-utilisation'
+      : 'https://pix.org/en-gb/terms-and-conditions';
   }
 
   get dataProtectionPolicyUrl() {
     const currentLanguage = this.intl.t('current-lang');
-    if (currentLanguage === 'en') {
-      return 'https://pix.org/en-gb/personal-data-protection-policy';
+    if (this.currentDomain.isFranceDomain) {
+      return `https://pix.fr/politique-protection-donnees-personnelles-app`;
     }
-    return `https://pix.${this.currentDomain.getExtension()}/politique-protection-donnees-personnelles-app`;
+
+    return currentLanguage === FRENCH_INTERNATIONAL_LOCALE
+      ? 'https://pix.org/fr/politique-protection-donnees-personnelles-app'
+      : 'https://pix.org/en-gb/personal-data-protection-policy';
   }
 
   get _showcaseWebsiteUrl() {
     const currentLanguage = this.intl.t('current-lang');
 
-    if (currentLanguage === 'en') {
+    if (currentLanguage === ENGLISH_INTERNATIONAL_LOCALE) {
       return `https://pix.${this.currentDomain.getExtension()}/en-gb`;
     }
-    return `https://brix.lesreconstructeurs.${this.currentDomain.getExtension()}`;
+    return `https://pix.${this.currentDomain.getExtension()}`;
   }
 
   get _showcaseWebsiteLinkText() {
@@ -54,17 +55,17 @@ export default class Url extends Service {
 
   get accessibilityUrl() {
     const currentLanguage = this.intl.t('current-lang');
-
-    if (currentLanguage === 'en') {
-      return `https://pix.${this.currentDomain.getExtension()}/en-gb/accessibility`;
+    if (this.currentDomain.isFranceDomain) {
+      return `https://pix.fr/accessibilite`;
     }
-    return `https://pix.${this.currentDomain.getExtension()}/accessibilite`;
+    return currentLanguage === FRENCH_INTERNATIONAL_LOCALE
+      ? `https://pix.org/fr/accessibilite`
+      : `https://pix.org/en-gb/accessibility`;
   }
 
   get accessibilityHelpUrl() {
     const currentLanguage = this.intl.t('current-lang');
-
-    if (currentLanguage === 'en') {
+    if (currentLanguage === ENGLISH_INTERNATIONAL_LOCALE) {
       return `https://pix.${this.currentDomain.getExtension()}/en-gb/help-accessibility`;
     }
     return `https://pix.${this.currentDomain.getExtension()}/aide-accessibilite`;
@@ -73,9 +74,19 @@ export default class Url extends Service {
   get supportHomeUrl() {
     const currentLanguage = this.intl.t('current-lang');
 
-    if (currentLanguage === 'en') {
+    if (currentLanguage === ENGLISH_INTERNATIONAL_LOCALE) {
       return 'https://support.pix.org/en/support/home';
     }
     return 'https://support.pix.org/fr/support/home';
+  }
+
+  get levelSevenNewsUrl() {
+    const currentLanguage = this.intl.t('current-lang');
+
+    // TODO change these url when they are available
+    if (currentLanguage === ENGLISH_INTERNATIONAL_LOCALE) {
+      return 'https://pix.org/en/news/european-commission-pix-wins-european-digital-skills-awards';
+    }
+    return 'https://pix.fr/actualites/commission-europeenne-pix-remporte-european-digital-skills-awards';
   }
 }

@@ -1,6 +1,6 @@
 import Component from '@glimmer/component';
 import { action } from '@ember/object';
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
 import _get from 'lodash/get';
 
@@ -12,6 +12,10 @@ function _pad(num, size) {
 
 function _isMatchingReconciledStudentNotFoundError(err) {
   return _get(err, 'errors[0].code') === 'MATCHING_RECONCILED_STUDENT_NOT_FOUND';
+}
+
+function _isWrongAccount(err) {
+  return _get(err, 'errors[0].status') === '409' && _get(err, 'errors[0].code') === 'UNEXPECTED_USER_ACCOUNT';
 }
 
 function _isSessionNotAccessibleError(err) {
@@ -62,7 +66,7 @@ export default class CertificationJoiner extends Component {
     const { value } = event.target;
     if (value && !this._isANumber(value)) {
       this.sessionIdIsNotANumberError = this.intl.t(
-        'pages.certification-joiner.form.fields-validation.session-number-error'
+        'pages.certification-joiner.form.fields-validation.session-number-error',
       );
     } else {
       this.sessionIdIsNotANumberError = null;
@@ -91,7 +95,7 @@ export default class CertificationJoiner extends Component {
     let currentCertificationCandidate = null;
     if (this.sessionId && !this._isANumber(this.sessionId)) {
       this.sessionIdIsNotANumberError = this.intl.t(
-        'pages.certification-joiner.form.fields-validation.session-number-error'
+        'pages.certification-joiner.form.fields-validation.session-number-error',
       );
       document.querySelector('#certificationJoinerSessionId').focus();
       return;
@@ -106,11 +110,13 @@ export default class CertificationJoiner extends Component {
       }
 
       if (_isMatchingReconciledStudentNotFoundError(err)) {
-        this.errorMessage = this.intl.t('pages.certification-joiner.error-messages.wrong-account');
+        this.errorMessage = this.intl.t('pages.certification-joiner.error-messages.wrong-account-sco');
         this.errorMessageLink = {
-          label: this.intl.t('pages.certification-joiner.error-messages.wrong-account-link'),
+          label: this.intl.t('pages.certification-joiner.error-messages.wrong-account-sco-link'),
           url: 'https://support.pix.org/fr/support/solutions/articles/15000047880',
         };
+      } else if (_isWrongAccount(err)) {
+        this.errorMessage = this.intl.t('pages.certification-joiner.error-messages.wrong-account');
       } else if (_isSessionNotAccessibleError(err)) {
         this.errorMessage = this.intl.t('pages.certification-joiner.error-messages.session-not-accessible');
       } else {
@@ -136,10 +142,12 @@ export default class CertificationJoiner extends Component {
   setDayOfBirth(event) {
     this.dayOfBirth = event.target.value;
   }
+
   @action
   setMonthOfBirth(event) {
     this.monthOfBirth = event.target.value;
   }
+
   @action
   setYearOfBirth(event) {
     this.yearOfBirth = event.target.value;

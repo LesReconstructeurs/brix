@@ -1,7 +1,8 @@
-require('dotenv').config();
-const logger = require('../../lib/infrastructure/logger');
-const PgClient = require('../PgClient');
-const { PGSQL_NON_EXISTENT_DATABASE_ERROR } = require('../../db/pgsql-errors');
+import dotenv from 'dotenv';
+dotenv.config();
+import { logger } from '../../lib/infrastructure/logger.js';
+import { PgClient } from '../PgClient.js';
+import { PGSQL_NON_EXISTENT_DATABASE_ERROR } from '../../db/pgsql-errors.js';
 
 function isPlatformScalingo() {
   return Boolean(process.env.CONTAINER);
@@ -33,6 +34,8 @@ PgClient.getClient(url.href).then(async (client) => {
   } catch (error) {
     if (error.code === PGSQL_NON_EXISTENT_DATABASE_ERROR) {
       logger.info(`Database ${DB_TO_DELETE_NAME} does not exist`);
+    } else {
+      logger.error(`Database drop failed: ${error.detail}`);
     }
   } finally {
     await client.end();

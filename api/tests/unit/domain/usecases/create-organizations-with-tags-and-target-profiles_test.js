@@ -1,19 +1,16 @@
-const { expect, catchErr, sinon, domainBuilder } = require('../../../test-helper');
-const Membership = require('../../../../lib/domain/models/Membership');
-const Organization = require('../../../../lib/domain/models/Organization');
-const OrganizationTag = require('../../../../lib/domain/models/OrganizationTag');
-const domainTransaction = require('../../../../lib/infrastructure/DomainTransaction');
-const createOrganizationsWithTagsAndTargetProfiles = require('../../../../lib/domain/usecases/create-organizations-with-tags-and-target-profiles');
-const organizationInvitationService = require('../../../../lib/domain/services/organization-invitation-service');
+import { expect, catchErr, sinon, domainBuilder } from '../../../test-helper.js';
+import { Membership } from '../../../../lib/domain/models/Membership.js';
+import { Organization } from '../../../../lib/domain/models/Organization.js';
+import { OrganizationTag } from '../../../../lib/domain/models/OrganizationTag.js';
+import { DomainTransaction as domainTransaction } from '../../../../lib/infrastructure/DomainTransaction.js';
+import { createOrganizationsWithTagsAndTargetProfiles } from '../../../../lib/domain/usecases/create-organizations-with-tags-and-target-profiles.js';
 
-const organizationValidator = require('../../../../lib/domain/validators/organization-with-tags-and-target-profiles-script');
-
-const {
+import {
   ManyOrganizationsFoundError,
   ObjectValidationError,
   OrganizationAlreadyExistError,
   OrganizationTagNotFound,
-} = require('../../../../lib/domain/errors');
+} from '../../../../lib/domain/errors.js';
 
 describe('Unit | UseCase | create-organizations-with-tags-and-target-profiles', function () {
   let organizationRepositoryStub;
@@ -21,6 +18,8 @@ describe('Unit | UseCase | create-organizations-with-tags-and-target-profiles', 
   let organizationInvitationRepositoryStub;
   let targetProfileShareRepository;
   let dataProtectionOfficerRepository;
+  let organizationInvitationService;
+  let organizationValidator;
 
   const allTags = [
     { id: 1, name: 'TAG1' },
@@ -48,13 +47,18 @@ describe('Unit | UseCase | create-organizations-with-tags-and-target-profiles', 
     dataProtectionOfficerRepository = {
       batchAddDataProtectionOfficerToOrganization: sinon.stub(),
     };
+    organizationInvitationService = {
+      createProOrganizationInvitation: sinon.stub(),
+    };
+    organizationValidator = {
+      validate: sinon.stub(),
+    };
 
     domainTransaction.execute = (lambda) => {
       return lambda(Symbol());
     };
 
-    sinon.stub(organizationInvitationService, 'createProOrganizationInvitation').resolves();
-    sinon.stub(organizationValidator, 'validate');
+    organizationInvitationService.createProOrganizationInvitation.resolves();
   });
 
   it('should throw an ObjectValidationError if organizations are undefined', async function () {
@@ -106,6 +110,8 @@ describe('Unit | UseCase | create-organizations-with-tags-and-target-profiles', 
       targetProfileShareRepository,
       organizationTagRepository: organizationTagRepositoryStub,
       dataProtectionOfficerRepository,
+      organizationValidator,
+      organizationInvitationService,
     });
 
     // then
@@ -150,6 +156,8 @@ describe('Unit | UseCase | create-organizations-with-tags-and-target-profiles', 
       tagRepository: tagRepositoryStub,
       organizationTagRepository: organizationTagRepositoryStub,
       dataProtectionOfficerRepository,
+      organizationValidator,
+      organizationInvitationService,
     });
 
     // then
@@ -204,6 +212,8 @@ describe('Unit | UseCase | create-organizations-with-tags-and-target-profiles', 
       targetProfileShareRepository,
       organizationTagRepository: organizationTagRepositoryStub,
       dataProtectionOfficerRepository,
+      organizationValidator,
+      organizationInvitationService,
     });
 
     // then
@@ -258,6 +268,8 @@ describe('Unit | UseCase | create-organizations-with-tags-and-target-profiles', 
       targetProfileShareRepository,
       organizationTagRepository: organizationTagRepositoryStub,
       dataProtectionOfficerRepository,
+      organizationValidator,
+      organizationInvitationService,
     });
 
     // then
@@ -303,6 +315,8 @@ describe('Unit | UseCase | create-organizations-with-tags-and-target-profiles', 
       targetProfileShareRepository,
       organizationTagRepository: organizationTagRepositoryStub,
       dataProtectionOfficerRepository,
+      organizationValidator,
+      organizationInvitationService,
     });
 
     // then
@@ -355,6 +369,8 @@ describe('Unit | UseCase | create-organizations-with-tags-and-target-profiles', 
       targetProfileShareRepository,
       organizationTagRepository: organizationTagRepositoryStub,
       dataProtectionOfficerRepository,
+      organizationValidator,
+      organizationInvitationService,
     });
 
     // then
@@ -406,6 +422,8 @@ describe('Unit | UseCase | create-organizations-with-tags-and-target-profiles', 
       organizationTagRepository: organizationTagRepositoryStub,
       dataProtectionOfficerRepository,
       organizationInvitationRepository: organizationInvitationRepositoryStub,
+      organizationValidator,
+      organizationInvitationService,
     });
 
     // then
@@ -458,6 +476,8 @@ describe('Unit | UseCase | create-organizations-with-tags-and-target-profiles', 
       organizationTagRepository: organizationTagRepositoryStub,
       dataProtectionOfficerRepository,
       organizationInvitationRepository: organizationInvitationRepositoryStub,
+      organizationValidator,
+      organizationInvitationService,
     });
 
     // then
@@ -481,6 +501,8 @@ describe('Unit | UseCase | create-organizations-with-tags-and-target-profiles', 
       const error = await catchErr(createOrganizationsWithTagsAndTargetProfiles)({
         organizations,
         organizationRepository: organizationRepositoryStub,
+        organizationValidator,
+        organizationInvitationService,
       });
 
       // then

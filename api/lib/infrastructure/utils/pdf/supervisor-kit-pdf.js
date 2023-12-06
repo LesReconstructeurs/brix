@@ -1,6 +1,15 @@
-const { PDFDocument, rgb } = require('pdf-lib');
-const { readFile } = require('fs/promises');
-const pdfLibFontkit = require('@pdf-lib/fontkit');
+import { readFile } from 'fs/promises';
+
+import { PDFDocument, rgb } from 'pdf-lib';
+
+import pdfLibFontkit from '@pdf-lib/fontkit';
+import * as url from 'url';
+import { LOCALE } from '../../../domain/constants.js';
+
+const { ENGLISH_SPOKEN, FRENCH_SPOKEN } = LOCALE;
+
+const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
+
 const MAX_SESSION_DETAIL_WIDTH = 155;
 const SESSION_DETAIL_FONT_SIZE = 7;
 const SESSION_DETAIL_LINE_HEIGHT = 8;
@@ -10,8 +19,24 @@ async function getSupervisorKitPdfBuffer({
   dirname = __dirname,
   fontkit = pdfLibFontkit,
   creationDate = new Date(),
+  lang = FRENCH_SPOKEN,
 } = {}) {
-  const fileBuffer = await readFile(`${dirname}/files/kit-surveillant_template.pdf`);
+  let templatePath;
+  let fileName;
+
+  switch (lang) {
+    case ENGLISH_SPOKEN:
+      templatePath = `${dirname}/files/invigilator-kit_template.pdf`;
+      fileName = `invigilator-kit-${sessionForSupervisorKit.id}.pdf`;
+      break;
+
+    default:
+      templatePath = `${dirname}/files/kit-surveillant_template.pdf`;
+      fileName = `kit-surveillant-${sessionForSupervisorKit.id}.pdf`;
+      break;
+  }
+
+  const fileBuffer = await readFile(templatePath);
 
   const pdfDoc = await PDFDocument.load(fileBuffer);
 
@@ -25,7 +50,7 @@ async function getSupervisorKitPdfBuffer({
 
   const [page] = pdfDoc.getPages();
 
-  _drawSessionDate(sessionForSupervisorKit, page, robotFont);
+  _drawSessionDate({ lang, sessionForSupervisorKit, page, robotFont });
   _drawSessionStartTime(sessionForSupervisorKit, page, robotFont);
   _drawSessionAddress(sessionForSupervisorKit, page, robotFont);
   _drawSessionExaminer(sessionForSupervisorKit, page, robotFont);
@@ -37,22 +62,27 @@ async function getSupervisorKitPdfBuffer({
   const pdfBytes = await pdfDoc.save();
   const buffer = Buffer.from(pdfBytes);
 
-  const fileName = `kit-surveillant-${sessionForSupervisorKit.id}.pdf`;
-
   return {
     buffer,
     fileName,
   };
 }
 
-function _drawSessionDate(sessionForSupervisorKit, page, font) {
+function _drawSessionDate({ lang, sessionForSupervisorKit, page, font }) {
   const date = new Date(sessionForSupervisorKit.date);
   const day = date.getDate();
   const year = date.getFullYear();
   const options = { month: 'short' };
-  const month = new Intl.DateTimeFormat('fr-FR', options).format(date);
+  let month, fullDate;
 
-  const fullDate = day + ' ' + month + ' ' + year;
+  if (lang === ENGLISH_SPOKEN) {
+    month = new Intl.DateTimeFormat(lang, options).format(date);
+    fullDate = `${year} ${month} ${day}`;
+  } else {
+    month = new Intl.DateTimeFormat(FRENCH_SPOKEN, options).format(date);
+    fullDate = `${day} ${month} ${year}`;
+  }
+
   page.drawText(fullDate, {
     x: 85,
     y: 646,
@@ -78,7 +108,7 @@ function _drawSessionAddress(sessionForSupervisorKit, page, font) {
   const addressArray = _toArrayOfFixedWidthConservingWords(
     sessionForSupervisorKit.address,
     font,
-    MAX_SESSION_DETAIL_WIDTH
+    MAX_SESSION_DETAIL_WIDTH,
   );
   addressArray.forEach((address, index) => {
     page.drawText(address, {
@@ -108,7 +138,7 @@ function _drawSessionExaminer(sessionForSupervisorKit, page, font) {
   const examinerArray = _toArrayOfFixedWidthConservingWords(
     sessionForSupervisorKit.examiner,
     font,
-    MAX_SESSION_DETAIL_WIDTH
+    MAX_SESSION_DETAIL_WIDTH,
   );
   examinerArray.forEach((examiner, index) => {
     page.drawText(examiner, {
@@ -175,6 +205,4 @@ function _toArrayOfFixedWidthConservingWords(str, font, maxWidth) {
   return result.map((str) => str.trim());
 }
 
-module.exports = {
-  getSupervisorKitPdfBuffer,
-};
+export { getSupervisorKitPdfBuffer };

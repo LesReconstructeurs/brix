@@ -1,25 +1,25 @@
 const MAX_ROW_COUNT_FOR_CREATING_BACK_PK_IN_DEPLOYMENT = 500000;
 
-exports.up = async function (knex) {
+const up = async function (knex) {
   await knex.raw('LOCK TABLE "knowledge-elements" IN ACCESS EXCLUSIVE MODE');
   await knex.raw('DROP TRIGGER "trg_knowledge-elements" ON "knowledge-elements"');
   await knex.raw('DROP FUNCTION copy_int_id_to_bigint_id');
   await knex.raw('ALTER SEQUENCE "knowledge-elements_id_seq" OWNED BY "knowledge-elements"."bigintId"');
   await knex.raw('ALTER SEQUENCE "knowledge-elements_id_seq" AS BIGINT');
   await knex.raw(
-    'ALTER TABLE "knowledge-elements" ALTER COLUMN "bigintId" SET DEFAULT nextval(\'"knowledge-elements_id_seq"\')'
+    'ALTER TABLE "knowledge-elements" ALTER COLUMN "bigintId" SET DEFAULT nextval(\'"knowledge-elements_id_seq"\')',
   );
   await knex.raw('ALTER TABLE "knowledge-elements" ALTER COLUMN "id" DROP DEFAULT');
   await knex.raw('ALTER TABLE "knowledge-elements" DROP CONSTRAINT "knowledge-elements_pkey"');
   await knex.raw('ALTER TABLE "knowledge-elements" ALTER COLUMN "id" DROP NOT NULL');
   await knex.raw(
-    'ALTER TABLE "knowledge-elements" ADD CONSTRAINT "knowledge-elements_pkey" PRIMARY KEY USING INDEX "knowledge-elements_bigintId_index"'
+    'ALTER TABLE "knowledge-elements" ADD CONSTRAINT "knowledge-elements_pkey" PRIMARY KEY USING INDEX "knowledge-elements_bigintId_index"',
   );
   await knex.raw('ALTER TABLE "knowledge-elements" RENAME COLUMN "id" TO "intId"');
   await knex.raw('ALTER TABLE "knowledge-elements" RENAME COLUMN "bigintId" TO "id"');
 };
 
-exports.down = async function (knex) {
+const down = async function (knex) {
   const nbRows = (await knex('knowledge-elements').max('id').first()).max;
 
   if (nbRows < MAX_ROW_COUNT_FOR_CREATING_BACK_PK_IN_DEPLOYMENT) {
@@ -28,7 +28,7 @@ exports.down = async function (knex) {
     await knex.raw('ALTER SEQUENCE "knowledge-elements_id_seq" OWNED BY "knowledge-elements"."intId"');
     await knex.raw('ALTER SEQUENCE "knowledge-elements_id_seq" AS INTEGER');
     await knex.raw(
-      'ALTER TABLE "knowledge-elements" ALTER COLUMN "intId" SET DEFAULT nextval(\'"knowledge-elements_id_seq"\')'
+      'ALTER TABLE "knowledge-elements" ALTER COLUMN "intId" SET DEFAULT nextval(\'"knowledge-elements_id_seq"\')',
     );
     await knex.raw('ALTER TABLE "knowledge-elements" ALTER COLUMN "id" DROP DEFAULT');
     await knex.raw('ALTER TABLE "knowledge-elements" DROP CONSTRAINT "knowledge-elements_pkey"');
@@ -60,3 +60,5 @@ exports.down = async function (knex) {
     // https://doc.scalingo.com/platform/app/postdeploy-hook#limits
   }
 };
+
+export { up, down };

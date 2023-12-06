@@ -1,19 +1,19 @@
-const { ForbiddenAccess } = require('../../domain/errors');
-const dayjs = require('dayjs');
-const learningContentConversionService = require('../services/learning-content/learning-content-conversion-service');
+import { ForbiddenAccess } from '../../domain/errors.js';
+import dayjs from 'dayjs';
 
-module.exports = async function getTargetProfileContentAsJson({
+const getTargetProfileContentAsJson = async function ({
   userId,
   targetProfileId,
   adminMemberRepository,
   targetProfileForAdminRepository,
+  learningContentConversionService,
 }) {
   const adminMember = await adminMemberRepository.get({ userId });
   if (!_hasAuthorizationToDownloadContent(adminMember))
     throw new ForbiddenAccess("L'utilisateur n'est pas autorisé à effectuer cette opération.");
   const targetProfileForAdmin = await targetProfileForAdminRepository.get({ id: targetProfileId });
   const skills = await learningContentConversionService.findActiveSkillsForCappedTubes(
-    targetProfileForAdmin.cappedTubes
+    targetProfileForAdmin.cappedTubes,
   );
   const jsonContent = targetProfileForAdmin.getContentAsJson(skills);
   const now = dayjs();
@@ -23,6 +23,8 @@ module.exports = async function getTargetProfileContentAsJson({
     fileName,
   };
 };
+
+export { getTargetProfileContentAsJson };
 
 function _hasAuthorizationToDownloadContent(adminMember) {
   return adminMember.isMetier || adminMember.isSupport || adminMember.isSuperAdmin;

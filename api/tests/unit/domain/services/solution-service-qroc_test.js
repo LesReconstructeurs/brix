@@ -1,7 +1,6 @@
-const { expect } = require('../../../test-helper');
-
-const AnswerStatus = require('../../../../lib/domain/models/AnswerStatus');
-const service = require('../../../../lib/domain/services/solution-service-qroc');
+import { expect } from '../../../test-helper.js';
+import { AnswerStatus } from '../../../../lib/domain/models/AnswerStatus.js';
+import * as service from '../../../../lib/domain/services/solution-service-qroc.js';
 
 const ANSWER_KO = AnswerStatus.KO;
 const ANSWER_OK = AnswerStatus.OK;
@@ -98,7 +97,7 @@ describe('Unit | Service | SolutionServiceQROC ', function () {
       it(`should return ${data.expectedAnswerStatus.status} when answer is ${data.answer} and solution is ${data.solution}`, function () {
         const solution = { value: data.solution, deactivations: {} };
         expect(service.match({ answer: data.answer, solution, challengeFormat })).to.deep.equal(
-          data.expectedAnswerStatus
+          data.expectedAnswerStatus,
         );
       });
     });
@@ -174,7 +173,7 @@ describe('Unit | Service | SolutionServiceQROC ', function () {
         function () {
           const solution = { value: data.solution, deactivations: {} };
           expect(service.match({ answer: data.answer, solution })).to.deep.equal(ANSWER_OK);
-        }
+        },
       );
     });
 
@@ -210,7 +209,7 @@ describe('Unit | Service | SolutionServiceQROC ', function () {
         function () {
           const solution = { value: data.solution, deactivations: {} };
           expect(service.match({ answer: data.answer, solution })).to.deep.equal(ANSWER_KO);
-        }
+        },
       );
     });
   });
@@ -318,7 +317,7 @@ describe('Unit | Service | SolutionServiceQROC ', function () {
         function () {
           const solution = { value: data.solution, deactivations: data.deactivations };
           expect(service.match({ answer: data.answer, solution })).to.deep.equal(data.output);
-        }
+        },
       );
     });
   });
@@ -432,7 +431,7 @@ describe('Unit | Service | SolutionServiceQROC ', function () {
         function () {
           const solution = { value: data.solution, deactivations: data.deactivations };
           expect(service.match({ answer: data.answer, solution })).to.deep.equal(data.output);
-        }
+        },
       );
     });
   });
@@ -546,7 +545,7 @@ describe('Unit | Service | SolutionServiceQROC ', function () {
         function () {
           const solution = { value: data.solution, deactivations: data.deactivations };
           expect(service.match({ answer: data.answer, solution })).to.deep.equal(data.output);
-        }
+        },
       );
     });
   });
@@ -660,7 +659,7 @@ describe('Unit | Service | SolutionServiceQROC ', function () {
         function () {
           const solution = { value: data.solution, deactivations: data.deactivations };
           expect(service.match({ answer: data.answer, solution })).to.deep.equal(data.output);
-        }
+        },
       );
     });
   });
@@ -774,7 +773,7 @@ describe('Unit | Service | SolutionServiceQROC ', function () {
         function () {
           const solution = { value: data.solution, deactivations: data.deactivations };
           expect(service.match({ answer: data.answer, solution })).to.deep.equal(data.output);
-        }
+        },
       );
     });
   });
@@ -888,7 +887,7 @@ describe('Unit | Service | SolutionServiceQROC ', function () {
         function () {
           const solution = { value: data.solution, deactivations: data.deactivations };
           expect(service.match({ answer: data.answer, solution })).to.deep.equal(data.output);
-        }
+        },
       );
     });
   });
@@ -1002,7 +1001,7 @@ describe('Unit | Service | SolutionServiceQROC ', function () {
         function () {
           const solution = { value: data.solution, deactivations: data.deactivations };
           expect(service.match({ answer: data.answer, solution })).to.deep.equal(data.output);
-        }
+        },
       );
     });
   });
@@ -1116,7 +1115,7 @@ describe('Unit | Service | SolutionServiceQROC ', function () {
         function () {
           const solution = { value: data.solution, deactivations: data.deactivations };
           expect(service.match({ answer: data.answer, solution })).to.deep.equal(data.output);
-        }
+        },
       );
     });
   });
@@ -1173,7 +1172,7 @@ describe('Unit | Service | SolutionServiceQROC ', function () {
             qrocBlocksTypes: { rep: 'select' },
           };
           expect(service.match({ answer: data.answer, solution })).to.deep.equal(data.output);
-        }
+        },
       );
     });
   });

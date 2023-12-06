@@ -1,12 +1,15 @@
-const {
+import {
   CampaignCodeError,
   OrganizationLearnerAlreadyLinkedToUserError,
   UserShouldNotBeReconciledOnAnotherAccountError,
-} = require('../errors');
-const { STUDENT_RECONCILIATION_ERRORS } = require('../constants');
-const isEmpty = require('lodash/isEmpty');
+} from '../errors.js';
 
-module.exports = async function reconcileScoOrganizationLearnerManually({
+import { STUDENT_RECONCILIATION_ERRORS } from '../constants.js';
+import lodash from 'lodash';
+
+const { isEmpty } = lodash;
+
+const reconcileScoOrganizationLearnerManually = async function ({
   campaignCode,
   reconciliationInfo,
   withReconciliation,
@@ -23,23 +26,23 @@ module.exports = async function reconcileScoOrganizationLearnerManually({
   }
 
   const organizationLearnerOfUserAccessingCampaign =
-    await userReconciliationService.findMatchingOrganizationLearnerIdForGivenOrganizationIdAndUser({
+    await userReconciliationService.findMatchingOrganizationLearnerForGivenOrganizationIdAndReconciliationInfo({
       organizationId: campaign.organizationId,
       reconciliationInfo,
       organizationLearnerRepository,
     });
 
-  await userReconciliationService.checkIfStudentHasAnAlreadyReconciledAccount(
+  await userReconciliationService.assertStudentHasAnAlreadyReconciledAccount(
     organizationLearnerOfUserAccessingCampaign,
     userRepository,
     obfuscationService,
-    studentRepository
+    studentRepository,
   );
 
   await _checkIfAnotherStudentIsAlreadyReconciledWithTheSameOrganizationAndUser(
     reconciliationInfo.id,
     campaign.organizationId,
-    organizationLearnerRepository
+    organizationLearnerRepository,
   );
 
   await _checkIfUserIsConnectedOnAnotherAccount({
@@ -56,10 +59,12 @@ module.exports = async function reconcileScoOrganizationLearnerManually({
   }
 };
 
+export { reconcileScoOrganizationLearnerManually };
+
 async function _checkIfAnotherStudentIsAlreadyReconciledWithTheSameOrganizationAndUser(
   userId,
   organizationId,
-  organizationLearnerRepository
+  organizationLearnerRepository,
 ) {
   const organizationLearnerFound = await organizationLearnerRepository.findOneByUserIdAndOrganizationId({
     userId,
@@ -87,7 +92,7 @@ async function _checkIfUserIsConnectedOnAnotherAccount({
 
   const loggedAccountReconciledOrganizationLearnersWithoutNullNationalStudentIds =
     loggedAccountReconciledOrganizationLearners.filter(
-      (organizationLearner) => !!organizationLearner.nationalStudentId
+      (organizationLearner) => !!organizationLearner.nationalStudentId,
     );
 
   if (isEmpty(loggedAccountReconciledOrganizationLearnersWithoutNullNationalStudentIds)) {
@@ -97,13 +102,13 @@ async function _checkIfUserIsConnectedOnAnotherAccount({
   const isUserNationalStudentIdDifferentFromLoggedAccount =
     loggedAccountReconciledOrganizationLearnersWithoutNullNationalStudentIds.every(
       (organizationLearner) =>
-        organizationLearner.nationalStudentId !== organizationLearnerOfUserAccessingCampaign.nationalStudentId
+        organizationLearner.nationalStudentId !== organizationLearnerOfUserAccessingCampaign.nationalStudentId,
     );
 
   if (isUserNationalStudentIdDifferentFromLoggedAccount) {
     const isUserBirthdayDifferentFromLoggedAccount =
       loggedAccountReconciledOrganizationLearnersWithoutNullNationalStudentIds.every(
-        (organizationLearner) => organizationLearner.birthdate !== organizationLearnerOfUserAccessingCampaign.birthdate
+        (organizationLearner) => organizationLearner.birthdate !== organizationLearnerOfUserAccessingCampaign.birthdate,
       );
 
     if (isUserBirthdayDifferentFromLoggedAccount) {

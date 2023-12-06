@@ -1,6 +1,6 @@
 /* stylelint-disable selector-class-pattern */
 .table-admin {
-  margin-bottom: $spacing-s;
+  margin-bottom: $pix-spacing-s;
 
   a:not(.pix-button) {
     color: $pix-primary;
@@ -33,7 +33,7 @@
     background-color: rgb(0 0 0 / 3%);
   }
 
-  .col-status {
+  .col-status, .col-date {
     width: 10%;
   }
 }

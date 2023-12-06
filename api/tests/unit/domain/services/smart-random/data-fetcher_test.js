@@ -1,5 +1,5 @@
-const { sinon, expect, domainBuilder } = require('../../../../test-helper');
-const dataFetcher = require('../../../../../lib/domain/services/algorithm-methods/data-fetcher');
+import { sinon, expect, domainBuilder } from '../../../../test-helper.js';
+import * as dataFetcher from '../../../../../lib/domain/services/algorithm-methods/data-fetcher.js';
 
 describe('Unit | Domain | services | smart-random | dataFetcher', function () {
   describe('#fetchForCampaigns', function () {
@@ -19,7 +19,6 @@ describe('Unit | Domain | services | smart-random | dataFetcher', function () {
       };
       challengeRepository = {
         findOperativeBySkills: sinon.stub(),
-        answerRepository,
       };
       knowledgeElementRepository = {
         findUniqByUserId: sinon.stub(),
@@ -160,14 +159,15 @@ describe('Unit | Domain | services | smart-random | dataFetcher', function () {
         findByAssessment: sinon.stub(),
       };
       challengeRepository = {
-        findFlashCompatible: sinon.stub(),
+        findActiveFlashCompatible: sinon.stub(),
+        getMany: sinon.stub(),
       };
       flashAssessmentResultRepository = {
         getLatestByAssessmentId: sinon.stub(),
       };
     });
 
-    it('fetches answers and challenges', async function () {
+    it('fetches answers, challenges and lastest estimated level', async function () {
       // given
       const { id: assessmentId } = domainBuilder.buildAssessment.ofTypeCampaign({
         state: 'started',
@@ -175,12 +175,12 @@ describe('Unit | Domain | services | smart-random | dataFetcher', function () {
         campaignParticipationId: 1,
         userId: 5678899,
       });
-      const answer = Symbol('answer');
-      const challenges = Symbol('challenge');
+      const answers = [{ id: 'answerId', challengeId: 'challengeId' }];
+      const challenges = [{ id: 'challengeId' }];
       const estimatedLevel = Symbol('estimatedLevel');
 
-      answerRepository.findByAssessment.withArgs(assessmentId).resolves([answer]);
-      challengeRepository.findFlashCompatible.withArgs().resolves(challenges);
+      answerRepository.findByAssessment.withArgs(assessmentId).resolves(answers);
+      challengeRepository.findActiveFlashCompatible.withArgs().resolves(challenges);
       flashAssessmentResultRepository.getLatestByAssessmentId.withArgs(assessmentId).resolves({ estimatedLevel });
 
       // when
@@ -192,9 +192,43 @@ describe('Unit | Domain | services | smart-random | dataFetcher', function () {
       });
 
       // then
-      expect(data.allAnswers).to.deep.equal([answer]);
+      expect(data.allAnswers).to.deep.equal(answers);
       expect(data.challenges).to.deep.equal(challenges);
       expect(data.estimatedLevel).to.equal(estimatedLevel);
+    });
+
+    it('fetches missing challenges corresponding to answers', async function () {
+      // given
+      const { id: assessmentId } = domainBuilder.buildAssessment.ofTypeCampaign({
+        state: 'started',
+        method: 'FLASH',
+        campaignParticipationId: 1,
+        userId: 5678899,
+      });
+      const answers = [
+        { id: 'answerId1', challengeId: 'challengeId' },
+        { id: 'answerId2', challengeId: 'missingChallengeId' },
+      ];
+      const challenges = [{ id: 'challengeId' }];
+      const missingChallenges = [{ id: 'missingChallengeId' }];
+      const expectedChallenges = [...challenges, ...missingChallenges];
+      const estimatedLevel = Symbol('estimatedLevel');
+
+      answerRepository.findByAssessment.withArgs(assessmentId).resolves(answers);
+      challengeRepository.findActiveFlashCompatible.withArgs().resolves(challenges);
+      challengeRepository.getMany.withArgs(['missingChallengeId']).resolves(missingChallenges);
+      flashAssessmentResultRepository.getLatestByAssessmentId.withArgs(assessmentId).resolves({ estimatedLevel });
+
+      // when
+      const data = await dataFetcher.fetchForFlashCampaigns({
+        assessmentId,
+        answerRepository,
+        challengeRepository,
+        flashAssessmentResultRepository,
+      });
+
+      // then
+      expect(data.challenges).to.deep.equal(expectedChallenges);
     });
   });
 

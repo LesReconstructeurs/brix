@@ -2,7 +2,7 @@
 import { computed } from '@ember/object';
 import Model, { attr } from '@ember-data/model';
 import find from 'lodash/find';
-import { certificationStatuses } from 'pix-admin/models/certification';
+import { certificationStatuses } from './certification';
 import dayjs from 'dayjs';
 
 export const ENDED_BY_SUPERVISOR = 'endedBySupervisor';
@@ -17,9 +17,10 @@ export default class JuryCertificationSummary extends Model {
   @attr() createdAt;
   @attr() completedAt;
   @attr() isPublished;
+  @attr() isCancelled;
   @attr() examinerComment;
   @attr() hasSeenEndTestScreen;
-  @attr() complementaryCertificationTakenLabels;
+  @attr() complementaryCertificationTakenLabel;
   @attr() numberOfCertificationIssueReports;
   @attr() isFlaggedAborted;
   @attr() numberOfCertificationIssueReportsWithRequiredAction;
@@ -34,10 +35,6 @@ export default class JuryCertificationSummary extends Model {
     return this.completedAt ? dayjs(this.completedAt).format('DD/MM/YYYY, HH:mm:ss') : null;
   }
 
-  get complementaryCertificationsLabel() {
-    return this.complementaryCertificationTakenLabels?.join('\n') ?? '';
-  }
-
   @computed('numberOfCertificationIssueReportsWithRequiredAction')
   get numberOfCertificationIssueReportsWithRequiredActionLabel() {
     return this.numberOfCertificationIssueReportsWithRequiredAction > 0
@@ -50,8 +47,9 @@ export default class JuryCertificationSummary extends Model {
     return this.hasSeenEndTestScreen ? '' : 'non';
   }
 
-  @computed('status')
+  @computed('status', 'isCancelled')
   get statusLabel() {
+    if (this.isCancelled) return 'Annulée';
     const statusWithLabel = find(statuses, { value: this.status });
     return statusWithLabel?.label;
   }

@@ -1,11 +1,12 @@
-const { expect, sinon, HttpTestServer, generateValidRequestAuthorizationHeader } = require('../../../../test-helper');
-const oidcController = require('../../../../../lib/application/authentication/oidc/oidc-controller');
-const moduleUnderTest = require('../../../../../lib/application/authentication/oidc');
-const {
+import { expect, sinon, HttpTestServer, generateValidRequestAuthorizationHeader } from '../../../../test-helper.js';
+import { oidcController } from '../../../../../lib/application/authentication/oidc/oidc-controller.js';
+import * as moduleUnderTest from '../../../../../lib/application/authentication/oidc/index.js';
+
+import {
   UserNotFoundError,
   AuthenticationKeyExpired,
   DifferentExternalIdentifierError,
-} = require('../../../../../lib/domain/errors');
+} from '../../../../../lib/domain/errors.js';
 
 describe('Integration | Application | Route | OidcRouter', function () {
   let server;
@@ -167,7 +168,7 @@ describe('Integration | Application | Route | OidcRouter', function () {
           // then
           expect(response.statusCode).to.equal(409);
           expect(response.result.errors[0].detail).to.equal(
-            "La valeur de l'externalIdentifier de la méthode de connexion ne correspond pas à celui reçu par le partenaire."
+            "La valeur de l'externalIdentifier de la méthode de connexion ne correspond pas à celui reçu par le partenaire.",
           );
         });
       });

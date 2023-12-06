@@ -1,11 +1,11 @@
 class Competence {
-  constructor({ id, area, name, index, description, origin, skillIds = [], thematicIds = [], tubes = [] } = {}) {
+  constructor({ id, name, index, description, origin, areaId, skillIds = [], thematicIds = [], tubes = [] }) {
     this.id = id;
-    this.area = area;
     this.name = name;
     this.index = index;
     this.description = description;
     this.origin = origin;
+    this.areaId = areaId;
     this.level = -1;
     this.skillIds = skillIds;
     this.thematicIds = thematicIds;
@@ -24,10 +24,6 @@ class Competence {
     return `${this.index} ${this.name}`;
   }
 
-  get areaId() {
-    return this.area.id;
-  }
-
   get skillCount() {
     return this.skills.length;
   }
@@ -41,4 +37,4 @@ class Competence {
   }
 }
 
-module.exports = Competence;
+export { Competence };

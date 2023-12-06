@@ -1,5 +1,5 @@
 import { action } from '@ember/object';
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 import Component from '@glimmer/component';
 
 const DEFAULT_PAGE_SIZE = 10;
@@ -64,15 +64,18 @@ export default class PaginationControl extends Component {
   @action
   changePageSize(value) {
     this.router.replaceWith({ queryParams: { pageSize: value, pageNumber: 1 } });
+    if (this.args.onChange) this.args.onChange();
   }
 
   @action
   goToNextPage() {
     this.router.replaceWith({ queryParams: { pageNumber: this.nextPage } });
+    if (this.args.onChange) this.args.onChange();
   }
 
   @action
   goToPreviousPage() {
     this.router.replaceWith({ queryParams: { pageNumber: this.previousPage } });
+    if (this.args.onChange) this.args.onChange();
   }
 }

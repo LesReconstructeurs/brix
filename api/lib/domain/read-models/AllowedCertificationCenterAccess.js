@@ -1,5 +1,5 @@
-const { features } = require('../../config');
-
+import { config } from '../../config.js';
+const { features } = config;
 class AllowedCertificationCenterAccess {
   constructor({
     id,
@@ -9,7 +9,6 @@ class AllowedCertificationCenterAccess {
     isRelatedToManagingStudentsOrganization,
     relatedOrganizationTags,
     habilitations,
-    isSupervisorAccessEnabled,
   }) {
     this.id = id;
     this.name = name;
@@ -18,7 +17,6 @@ class AllowedCertificationCenterAccess {
     this.isRelatedToManagingStudentsOrganization = isRelatedToManagingStudentsOrganization;
     this.relatedOrganizationTags = relatedOrganizationTags;
     this.habilitations = habilitations;
-    this.isSupervisorAccessEnabled = isSupervisorAccessEnabled;
   }
 
   isAccessBlockedCollege() {
@@ -72,10 +70,6 @@ class AllowedCertificationCenterAccess {
     return features.pixCertifScoBlockedAccessWhitelist.includes(this.externalId.toUpperCase());
   }
 
-  isEndTestScreenRemovalEnabled() {
-    return this.isSupervisorAccessEnabled;
-  }
-
   get pixCertifScoBlockedAccessDateLycee() {
     return features.pixCertifScoBlockedAccessDateLycee ?? null;
   }
@@ -85,4 +79,4 @@ class AllowedCertificationCenterAccess {
   }
 }
 
-module.exports = AllowedCertificationCenterAccess;
+export { AllowedCertificationCenterAccess };

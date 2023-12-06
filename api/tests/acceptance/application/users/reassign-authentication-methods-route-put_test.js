@@ -1,11 +1,12 @@
-const {
+import {
   databaseBuilder,
   expect,
   generateValidRequestAuthorizationHeader,
   insertUserWithRoleSuperAdmin,
-} = require('../../../test-helper');
-const createServer = require('../../../../server');
-const AuthenticationMethod = require('../../../../lib/domain/models/AuthenticationMethod');
+} from '../../../test-helper.js';
+
+import { createServer } from '../../../../server.js';
+import { NON_OIDC_IDENTITY_PROVIDERS } from '../../../../lib/domain/constants/identity-providers.js';
 
 describe('Acceptance | Route | Users', function () {
   describe('POST /api/admin/users/{userId}/authentication-methods/{authenticationMethodId}', function () {
@@ -37,7 +38,7 @@ describe('Acceptance | Route | Users', function () {
           data: {
             attributes: {
               'user-id': targetUserId,
-              'identity-provider': AuthenticationMethod.identityProviders.GAR,
+              'identity-provider': NON_OIDC_IDENTITY_PROVIDERS.GAR.code,
             },
           },
         },
@@ -73,7 +74,7 @@ describe('Acceptance | Route | Users', function () {
           data: {
             attributes: {
               'user-id': targetUserId,
-              'identity-provider': AuthenticationMethod.identityProviders.GAR,
+              'identity-provider': NON_OIDC_IDENTITY_PROVIDERS.GAR.code,
             },
           },
         },
@@ -82,7 +83,7 @@ describe('Acceptance | Route | Users', function () {
       // then
       expect(response.statusCode).to.equal(422);
       expect(response.result.errors[0].detail).to.equal(
-        `L'utilisateur ${targetUserId} a déjà une méthode de connexion GAR.`
+        `L'utilisateur ${targetUserId} a déjà une méthode de connexion GAR.`,
       );
     });
   });

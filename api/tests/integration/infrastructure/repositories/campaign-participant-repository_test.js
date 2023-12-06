@@ -1,11 +1,12 @@
-const { expect, databaseBuilder, mockLearningContent, catchErr } = require('../../../test-helper');
-const { knex } = require('../../../../db/knex-database-connection');
-const campaignParticipantRepository = require('../../../../lib/infrastructure/repositories/campaign-participant-repository');
-const CampaignParticipant = require('../../../../lib/domain/models/CampaignParticipant');
-const CampaignToStartParticipation = require('../../../../lib/domain/models/CampaignToStartParticipation');
-const pick = require('lodash/pick');
-const { AlreadyExistingCampaignParticipationError, NotFoundError } = require('../../../../lib/domain/errors');
-const DomainTransaction = require('../../../../lib/infrastructure/DomainTransaction');
+import { expect, databaseBuilder, mockLearningContent, catchErr } from '../../../test-helper.js';
+import { knex } from '../../../../db/knex-database-connection.js';
+import * as campaignParticipantRepository from '../../../../lib/infrastructure/repositories/campaign-participant-repository.js';
+import { CampaignParticipant } from '../../../../lib/domain/models/CampaignParticipant.js';
+import { CampaignToStartParticipation } from '../../../../lib/domain/models/CampaignToStartParticipation.js';
+import lodash from 'lodash';
+const { pick } = lodash;
+import { AlreadyExistingCampaignParticipationError, NotFoundError } from '../../../../lib/domain/errors.js';
+import { DomainTransaction } from '../../../../lib/infrastructure/DomainTransaction.js';
 const campaignParticipationDBAttributes = [
   'id',
   'campaignId',
@@ -84,7 +85,7 @@ describe('Integration | Infrastructure | Repository | CampaignParticipant', func
           .first();
 
         expect(campaignParticipation).to.deep.equal(
-          getExpectedCampaignParticipation(campaignParticipation.id, campaignParticipant)
+          getExpectedCampaignParticipation(campaignParticipation.id, campaignParticipant),
         );
         expect(isDisabled).to.be.false;
       });
@@ -108,7 +109,7 @@ describe('Integration | Infrastructure | Repository | CampaignParticipant', func
           .first();
 
         expect(campaignParticipation).to.deep.equal(
-          getExpectedCampaignParticipation(campaignParticipation.id, campaignParticipant)
+          getExpectedCampaignParticipation(campaignParticipation.id, campaignParticipant),
         );
       });
 
@@ -159,7 +160,7 @@ describe('Integration | Infrastructure | Repository | CampaignParticipant', func
           .first();
 
         expect(campaignParticipation).to.deep.equal(
-          getExpectedCampaignParticipation(campaignParticipation.id, campaignParticipant)
+          getExpectedCampaignParticipation(campaignParticipation.id, campaignParticipant),
         );
         expect(assessment).to.deep.equal(getExpectedAssessment(campaignParticipation.id, campaignParticipant));
       });
@@ -383,8 +384,46 @@ describe('Integration | Infrastructure | Repository | CampaignParticipant', func
           .first();
 
         expect(campaignParticipation).to.deep.equal(
-          getExpectedCampaignParticipation(campaignParticipation.id, campaignParticipant)
+          getExpectedCampaignParticipation(campaignParticipation.id, campaignParticipant),
         );
+      });
+    });
+
+    context('when there is a deleted organization learner', function () {
+      it('should create new participation with new organization learner', async function () {
+        const { id: organizationId } = databaseBuilder.factory.buildOrganization();
+
+        const { id: deletedOrganizationLearnerId } = databaseBuilder.factory.buildOrganizationLearner({
+          organizationId,
+          deletedAt: new Date(),
+        });
+
+        const { id: campaignId } = databaseBuilder.factory.buildCampaign({
+          organizationId,
+          idPixLabel: null,
+        });
+        databaseBuilder.factory.buildCampaignParticipation({
+          organizationLearnerId: deletedOrganizationLearnerId,
+          deletedAt: new Date(),
+          campaignId,
+        });
+
+        await databaseBuilder.commit();
+
+        const campaignParticipant = await makeCampaignParticipant({
+          campaignAttributes: { idPixLabel: null },
+          userIdentity,
+          participantExternalId: null,
+          isRestricted: false,
+        });
+
+        const id = await DomainTransaction.execute(async (domainTransaction) => {
+          return campaignParticipantRepository.save(campaignParticipant, domainTransaction);
+        });
+
+        const startedParticipation = await knex('campaign-participations').where('id', id).first();
+
+        expect(startedParticipation.organizationLearnerId).not.to.equal(deletedOrganizationLearnerId);
       });
     });
 
@@ -425,7 +464,7 @@ describe('Integration | Infrastructure | Repository | CampaignParticipant', func
           //THEN
           expect(error).to.be.an.instanceof(AlreadyExistingCampaignParticipationError);
           expect(error.message).to.equal(
-            `User ${userIdentity.id} has already a campaign participation with campaign ${campaign.id}`
+            `User ${userIdentity.id} has already a campaign participation with campaign ${campaign.id}`,
           );
         });
       });
@@ -603,6 +642,38 @@ describe('Integration | Infrastructure | Repository | CampaignParticipant', func
         });
 
         expect(campaignParticipant.previousCampaignParticipationForUser).to.be.null;
+      });
+    });
+
+    context('when there is a deleted organization learner', function () {
+      it('find the organization learner', async function () {
+        const campaignToStartParticipation = buildCampaignWithSkills({ organizationId });
+        const { id: userId } = databaseBuilder.factory.buildUser();
+        const { id: campaignId } = databaseBuilder.factory.buildCampaign({
+          organizationId,
+        });
+        const { id: organizationLearnerId } = databaseBuilder.factory.buildOrganizationLearner({
+          userId,
+          organizationId,
+          deletedAt: new Date(),
+        });
+        databaseBuilder.factory.buildCampaignParticipation({
+          organizationLearnerId,
+          campaignId,
+          deletedAt: new Date(),
+        });
+
+        await databaseBuilder.commit();
+
+        const campaignParticipant = await DomainTransaction.execute(async (domainTransaction) => {
+          return campaignParticipantRepository.get({
+            userId,
+            campaignId: campaignToStartParticipation.id,
+            domainTransaction,
+          });
+        });
+
+        expect(campaignParticipant.organizationLearnerId).to.equal(null);
       });
     });
 
@@ -892,7 +963,7 @@ describe('Integration | Infrastructure | Repository | CampaignParticipant', func
             assessmentMethod: 'SMART_RANDOM',
             skillCount: 1,
           },
-          ['skill1']
+          ['skill1'],
         );
         const { id: userId } = databaseBuilder.factory.buildUser();
 
@@ -930,7 +1001,7 @@ describe('Integration | Infrastructure | Repository | CampaignParticipant', func
             assessmentMethod: 'SMART_RANDOM',
             skillCount: 1,
           },
-          ['skill1']
+          ['skill1'],
         );
         buildCampaignWithSkills(
           {
@@ -941,7 +1012,7 @@ describe('Integration | Infrastructure | Repository | CampaignParticipant', func
             assessmentMethod: 'SMART_RANDOM',
             skillCount: 1,
           },
-          ['skill2']
+          ['skill2'],
         );
         const { id: userId } = databaseBuilder.factory.buildUser();
 

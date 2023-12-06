@@ -1,46 +1,47 @@
-const _ = require('lodash');
-const { knex } = require('../../../db/knex-database-connection');
-const { NotFoundError } = require('../../domain/errors');
-const CertificationPointOfContact = require('../../domain/read-models/CertificationPointOfContact');
-const AllowedCertificationCenterAccess = require('../../domain/read-models/AllowedCertificationCenterAccess');
+import _ from 'lodash';
+import { knex } from '../../../db/knex-database-connection.js';
+import { NotFoundError } from '../../domain/errors.js';
+import { CertificationPointOfContact } from '../../domain/read-models/CertificationPointOfContact.js';
+import { AllowedCertificationCenterAccess } from '../../domain/read-models/AllowedCertificationCenterAccess.js';
 
-module.exports = {
-  async get(userId) {
-    const certificationPointOfContactDTO = await knex
-      .select({
-        id: 'users.id',
-        firstName: 'users.firstName',
-        lastName: 'users.lastName',
-        email: 'users.email',
-        pixCertifTermsOfServiceAccepted: 'users.pixCertifTermsOfServiceAccepted',
-        certificationCenterIds: knex.raw('array_agg(?? order by ?? asc)', [
-          'certificationCenterId',
-          'certificationCenterId',
-        ]),
-      })
-      .from('users')
-      .leftJoin('certification-center-memberships', 'certification-center-memberships.userId', 'users.id')
-      .where('users.id', userId)
-      .groupByRaw('1, 2, 3, 4, 5')
-      .first();
+const get = async function (userId) {
+  const certificationPointOfContactDTO = await knex
+    .select({
+      id: 'users.id',
+      firstName: 'users.firstName',
+      lastName: 'users.lastName',
+      email: 'users.email',
+      lang: 'users.lang',
+      pixCertifTermsOfServiceAccepted: 'users.pixCertifTermsOfServiceAccepted',
+      certificationCenterIds: knex.raw('array_agg(?? order by ?? asc)', [
+        'certificationCenterId',
+        'certificationCenterId',
+      ]),
+    })
+    .from('users')
+    .leftJoin('certification-center-memberships', 'certification-center-memberships.userId', 'users.id')
+    .where('users.id', userId)
+    .groupByRaw('1, 2, 3, 4, 5')
+    .first();
 
-    if (!certificationPointOfContactDTO) {
-      throw new NotFoundError(`Le référent de certification ${userId} n'existe pas.`);
-    }
+  if (!certificationPointOfContactDTO) {
+    throw new NotFoundError(`Le référent de certification ${userId} n'existe pas.`);
+  }
 
-    const authorizedCertificationCenterIds = await _removeDisabledCertificationCenterAccesses({
-      certificationPointOfContactDTO,
-    });
-    const allowedCertificationCenterAccesses = await _findAllowedCertificationCenterAccesses(
-      authorizedCertificationCenterIds
-    );
+  const authorizedCertificationCenterIds = await _removeDisabledCertificationCenterAccesses({
+    certificationPointOfContactDTO,
+  });
+  const allowedCertificationCenterAccesses = await _findAllowedCertificationCenterAccesses(
+    authorizedCertificationCenterIds,
+  );
 
-    return new CertificationPointOfContact({
-      ...certificationPointOfContactDTO,
-      allowedCertificationCenterAccesses,
-    });
-  },
+  return new CertificationPointOfContact({
+    ...certificationPointOfContactDTO,
+    allowedCertificationCenterAccesses,
+  });
 };
+
+export { get };
 
 async function _removeDisabledCertificationCenterAccesses({ certificationPointOfContactDTO }) {
   const certificationCenters = await knex
@@ -49,7 +50,7 @@ async function _removeDisabledCertificationCenterAccesses({ certificationPointOf
     .where('certification-center-memberships.userId', certificationPointOfContactDTO.id)
     .whereIn(
       'certification-center-memberships.certificationCenterId',
-      certificationPointOfContactDTO.certificationCenterIds
+      certificationPointOfContactDTO.certificationCenterIds,
     )
     .where('certification-center-memberships.disabledAt', null);
 
@@ -68,17 +69,16 @@ async function _findAllowedCertificationCenterAccesses(certificationCenterIds) {
       externalId: 'certification-centers.externalId',
       type: 'certification-centers.type',
       isRelatedToManagingStudentsOrganization: 'organizations.isManagingStudents',
-      isSupervisorAccessEnabled: 'certification-centers.isSupervisorAccessEnabled',
       tags: knex.raw('array_agg(?? order by ??)', ['tags.name', 'tags.name']),
       habilitations: knex.raw(
-        `array_agg(json_build_object('id', "complementary-certifications".id, 'label', "complementary-certifications".label, 'key', "complementary-certifications".key) order by "complementary-certifications".id)`
+        `array_agg(json_build_object('id', "complementary-certifications".id, 'label', "complementary-certifications".label, 'key', "complementary-certifications".key) order by "complementary-certifications".id)`,
       ),
     })
     .from('certification-centers')
     .leftJoin('organizations', function () {
       this.on('organizations.externalId', 'certification-centers.externalId').andOn(
         'organizations.type',
-        'certification-centers.type'
+        'certification-centers.type',
       );
     })
     .leftJoin('organization-tags', 'organization-tags.organizationId', 'organizations.id')
@@ -86,22 +86,22 @@ async function _findAllowedCertificationCenterAccesses(certificationCenterIds) {
     .leftJoin(
       'complementary-certification-habilitations',
       'complementary-certification-habilitations.certificationCenterId',
-      'certification-centers.id'
+      'certification-centers.id',
     )
     .leftJoin(
       'complementary-certifications',
       'complementary-certifications.id',
-      'complementary-certification-habilitations.complementaryCertificationId'
+      'complementary-certification-habilitations.complementaryCertificationId',
     )
     .whereIn('certification-centers.id', certificationCenterIds)
     .orderBy('certification-centers.id')
-    .groupByRaw('1, 2, 3, 4, 5, 6');
+    .groupByRaw('1, 2, 3, 4, 5');
 
   return _.map(allowedCertificationCenterAccessDTOs, (allowedCertificationCenterAccessDTO) => {
     return new AllowedCertificationCenterAccess({
       ...allowedCertificationCenterAccessDTO,
       isRelatedToManagingStudentsOrganization: Boolean(
-        allowedCertificationCenterAccessDTO.isRelatedToManagingStudentsOrganization
+        allowedCertificationCenterAccessDTO.isRelatedToManagingStudentsOrganization,
       ),
       relatedOrganizationTags: _cleanTags(allowedCertificationCenterAccessDTO),
       habilitations: _cleanHabilitations(allowedCertificationCenterAccessDTO),
