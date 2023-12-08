@@ -143,16 +143,16 @@
 
   &__button {
     padding-top: 10px;
-    color: $pix-primary;
+    color: #2D69DE;
 
     &:hover,
     &:focus {
-      color: $pix-primary-70;
+      color: #2D69DE;
       text-decoration: underline;
     }
 
     &:visited {
-      color: $pix-tertiary-70;
+      color: #2D69DE;
     }
   }
 }
@@ -160,7 +160,7 @@
 .dashboard-section {
 
   &__title {
-    color: $pix-neutral-80;
+    color: #2B2B2B;
     font-weight: $font-semi-bold;
     font-size: 1.125rem;
     font-family: $font-open-sans;
@@ -170,7 +170,7 @@
 
   &__subtitle {
     margin: 4px 0 24px;
-    color: $pix-neutral-50;
+    color: #2B2B2B;
     font-size: 0.8125rem;
     font-family: $font-roboto;
     letter-spacing: 0.009rem;
@@ -190,7 +190,7 @@
     padding: 10px 16px;
     color: $pix-neutral-90;
     font-size: 0.875rem;
-    border: 1px solid $pix-neutral-50;
+    border: 1px solid #2B2B2B;
     border-radius: 4px;
 
     &:hover {

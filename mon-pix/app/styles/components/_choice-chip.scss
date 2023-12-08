@@ -3,7 +3,7 @@
   align-items: center;
   justify-content: center;
   padding: 6px 16px;
-  color: $pix-neutral-50;
+  color: #2B2B2B;
   font-weight: $font-medium;
   font-size: 0.875rem;
   line-height: 1.25rem;
@@ -27,9 +27,9 @@
 
   &:focus-visible {
     color: $pix-neutral-0;
-    background-color: $pix-neutral-60;
+    background-color: #2B2B2B;
     border-color: $pix-neutral-0;
     outline: none;
-    box-shadow: 0 0 0 2px $pix-neutral-60;
+    box-shadow: 0 0 0 2px #2B2B2B;
   }
 }

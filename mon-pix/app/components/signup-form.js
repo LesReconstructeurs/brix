@@ -10,6 +10,7 @@ import ENV from 'mon-pix/config/environment';
 const ERROR_INPUT_MESSAGE_MAP = {
   firstName: 'pages.sign-up.fields.firstname.error',
   lastName: 'pages.sign-up.fields.lastname.error',
+  zipcode: 'pages.sign-up.fields.zipcode.error',
   email: 'pages.sign-up.fields.email.error',
   password: 'pages.sign-up.fields.password.error',
 };
@@ -20,6 +21,11 @@ class LastName {
 }
 
 class FirstName {
+  @tracked status = 'default';
+  @tracked message = null;
+}
+
+class Zipcode {
   @tracked status = 'default';
   @tracked message = null;
 }
@@ -42,6 +48,7 @@ class Cgu {
 class SignupFormValidation {
   lastName = new LastName();
   firstName = new FirstName();
+  zipcode = new Zipcode();
   email = new Email();
   password = new Password();
   cgu = new Cgu();
@@ -103,9 +110,10 @@ export default class SignupForm extends Component {
   }
 
   _trimNamesAndEmailOfUser() {
-    const { firstName, lastName, email } = this.args.user;
+    const { firstName, lastName, zipcode, email } = this.args.user;
     this.args.user.firstName = firstName.trim();
     this.args.user.lastName = lastName.trim();
+    this.args.user.zipcode = zipcode.trim();
     this.args.user.email = email.trim();
   }
 

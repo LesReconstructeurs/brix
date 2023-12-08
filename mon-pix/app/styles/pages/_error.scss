@@ -31,7 +31,7 @@
   align-items: center;
   margin: 0 20px;
   padding: 40px;
-  border-bottom: 1px dashed $pix-neutral-50;
+  border-bottom: 1px dashed #2B2B2B;
 
   @include device-is('desktop') {
     padding: 80px 0;

@@ -6,7 +6,7 @@
 }
 
 .form-textfield__label {
-  color: $pix-neutral-80;
+  color: #2B2B2B;
   font-weight: $font-medium;
   font-size: 0.938rem;
   letter-spacing: 0.031rem;
@@ -78,7 +78,7 @@
   flex-grow: 1;
   height: 40px;
   padding: 0 10px;
-  color: $pix-neutral-50;
+  color: #2B2B2B;
   border: none;
   border-radius: 3px;
   outline: none;
@@ -132,7 +132,7 @@
   border: none;
 
   &:focus {
-    outline: 1px solid $pix-primary;
+    outline: 1px solid #2D69DE;
     box-shadow: 0 0 5px 0 rgb(61 104 255 / 50%);
   }
 }
@@ -147,7 +147,7 @@
     border: none;
 
     &:focus {
-      outline: 1px solid $pix-primary;
+      outline: 1px solid #2D69DE;
       box-shadow: 0 0 5px 0 rgb(61 104 255 / 50%);
     }
   }
@@ -161,7 +161,7 @@
 
   &__eye {
     margin-top: 1px;
-    color: $pix-neutral-60;
+    color: #2B2B2B;
     font-size: 1.125rem;
     transition: 0.5s;
 

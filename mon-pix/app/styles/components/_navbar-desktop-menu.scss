@@ -25,7 +25,7 @@
 }
 
 .navbar-header--white .navbar-desktop-menu-links__item {
-  color: $pix-neutral-50;
+  color: #2B2B2B;
 }
 
 .navbar-desktop-menu-links__item:first-child {
@@ -54,11 +54,11 @@
 .navbar-menu-signup-link {
   width: 140px;
   padding: 10px;
-  color: $pix-primary;
+  color: #2D69DE;
   font-size: 0.813rem;
   text-align: center;
   background-color: transparent;
-  border: 2px solid $pix-primary;
+  border: 2px solid #2D69DE;
   border-radius: 20px;
 
   &:hover,
@@ -66,18 +66,18 @@
   &:active {
     color: $pix-neutral-0;
     text-decoration: none;
-    background-color: $pix-primary;
+    background-color: #2D69DE;
   }
 }
 
 .navbar-header--white .navbar-menu-signup-link {
-  color: $pix-primary;
-  border: 2px solid $pix-primary;
+  color: #2D69DE;
+  border: 2px solid #2D69DE;
 
   &:hover,
   &:focus,
   &:active {
     color: $pix-neutral-0;
-    background-color: $pix-primary;
+    background-color: #2D69DE;
   }
 }

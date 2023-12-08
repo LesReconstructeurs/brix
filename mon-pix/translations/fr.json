@@ -124,7 +124,7 @@
       "dashboard": "Accueil",
       "help": "Aide",
       "link-help": "https://support.pix.org/fr/support/home",
-      "skills": "Compétences",
+      "skills": "Connaissances",
       "start-certification": "Certification",
       "tutorials": "Mes tutos",
       "trainings": "Mes formations"
@@ -178,12 +178,12 @@
         "announcement": "Inscrivez-vous ou connectez-vous sur la plateforme Brix et lancez votre test.",
         "certify": {
           "title": "Les réponses validées dans ce parcours contribueront à alimenter votre profil personnel de compétences numériques sur Brix.",
-          "description": "En fonction de votre situation et dans certaines conditions, vous pouvez accéder à la certification Brix, reconnue par le monde professionnel, qui permet de valoriser vos compétences numériques. Pour plus d’informations, renseignez-vous auprès de l’organisateur du parcours."
+          "description": "En fonction de votre situation et dans certaines conditions, vous pouvez accéder à la certification Brix, reconnue par le monde professionnel, qui permet de valoriser vos connaissances numériques. Pour plus d’informations, renseignez-vous auprès de l’organisateur du parcours."
         },
         "details": "Durant ce parcours, vous aurez l’opportunité de :",
         "develop": {
           "title": "Découvrir vos résultats au fil du test et consulter des indices pour progresser.",
-          "description": "Toutes les 5 questions, vous visualisez les bonnes réponses et obtenez des conseils et une recommandation personnalisée de tutoriels pour développer vos compétences."
+          "description": "Toutes les 5 questions, vous visualisez les bonnes réponses et obtenez des conseils et une recommandation personnalisée de tutoriels pour développer vos connaissances."
         },
         "evaluate": {
           "title": "Mesurer vos compétences numériques avec des défis ludiques et apprenants qui s'adaptent à votre niveau de maîtrise (via un algorithme adaptatif).",
@@ -231,7 +231,7 @@
       "candidate-birth-complete": "Né(e) le {birthdate} à {birthplace}",
       "certification-center": "Centre de certification :",
       "competences": {
-        "title": "Compétences certifiées",
+        "title": "Connaissances certifiées",
         "information": "Votre score certifié a été calculé en fonction de vos réponses lors du passage de la certification. Il peut donc différer du nombre de Brix affiché dans votre profil. Le jour de votre certification il était possible d’atteindre le niveau {maxReachableLevelOnCertificationDate} des compétences et {maxReachablePixCountOnCertificationDate} Brix au maximum.",
         "subtitle": "(niveaux sur {maxReachableLevel})"
       },
@@ -301,7 +301,7 @@
       "action": {
         "back": "Retour à l'accueil"
       },
-      "text": "Pour faire certifier votre profil, vous devez avoir obtenu un niveau supérieur à 0 dans 5 compétences minimum."
+      "text": "Pour faire certifier votre profil, vous devez avoir obtenu un niveau supérieur à 0 dans 5 connaissances minimum."
     },
     "certification-results": {
       "title": "Test terminé",
@@ -709,7 +709,7 @@
       "for-competence": "la compétence {competence}",
       "next-level-info": "{ remainingPixToNextLevel } Brix avant le niveau { level }",
       "tutorials": {
-        "title": "Cultivez vos compétences",
+        "title": "Cultivez vos connaissances",
         "description": "Voici une sélection de tutos qui pourront vous aider à gagner des Brix."
       }
     },
@@ -737,12 +737,12 @@
         "tests-link": "Tous mes parcours"
       },
       "empty-dashboard": {
-        "link-to-competences": "Voir mes compétences",
-        "message": "<h2>Bravo vous avez terminé les compétences recommandées !</h2> <p> Pour aller plus loin continuez à vous entraîner en retentant des compétences. </p>"
+        "link-to-competences": "Voir mes connaissances",
+        "message": "<h2>Bravo vous avez terminé les connaissances recommandées !</h2> <p> Pour aller plus loin continuez à vous entraîner en retentant des compétences. </p>"
       },
       "improvable-competences": {
         "title": "Retenter une compétence",
-        "profile-link": "Toutes les compétences",
+        "profile-link": "Toutes les connaissances",
         "subtitle": "Prêt à faire passer votre compétence au niveau supérieur ?"
       },
       "presentation": {
@@ -753,16 +753,16 @@
         "message": "<h2>Bonjour { firstname }, découvrez votre tableau de bord.</h2><p>Accédez rapidement et facilement à vos parcours et vos tests de compétence déjà commencés.<br/>Retrouvez l’évolution de votre score Brix et vérifiez si votre profil est prêt pour la certification Brix.</p>"
       },
       "recommended-competences": {
-        "title": "Compétences recommandées",
-        "profile-link": "Toutes les compétences",
-        "subtitle": "Explorez les compétences recommandées pour vous."
+        "title": "Connaissances recommandées",
+        "profile-link": "Toutes les connaissances",
+        "subtitle": "Explorez les connaissances recommandées pour vous."
       },
       "score": {
-        "profile-link": "Voir mes compétences"
+        "profile-link": "Voir mes connaissances"
       },
       "started-competences": {
-        "title": "Reprendre une compétence",
-        "subtitle": "Continuez vos tests de compétences, retrouvez les plus récents ici."
+        "title": "Reprendre une connaissance",
+        "subtitle": "Continuez vos tests de connaissances, retrouvez les plus récents ici."
       }
     },
     "error": {
@@ -946,6 +946,10 @@
             "error": "Votre nom n’est pas renseigné.",
             "label": "Nom"
           },
+          "zipcode": {
+            "error": "Votre code postal n’est pas renseigné.",
+            "label": "Code postal"
+          },
           "password": {
             "error": "Votre mot de passe doit contenir 8 caractères au minimum et comporter au moins une majuscule, une minuscule et un chiffre.",
             "help": "(8 caractères minimum, dont une majuscule, une minuscule et un chiffre)",
@@ -970,7 +974,7 @@
     "login-or-register-oidc": {
       "title": "Créez votre compte Brix",
       "login-form": {
-        "description": "Connectez-vous pour lier votre compte existant et récupérer vos compétences déjà évaluées",
+        "description": "Connectez-vous pour lier votre compte existant et récupérer vos connaissances déjà évaluées",
         "title": "Vous avez déjà un compte Brix ?",
         "email": "Adresse e-mail",
         "password": "Mot de passe",
@@ -1027,7 +1031,7 @@
         }
       },
       "page-title": "Oubli de mot de passe",
-      "subtitle": "Entrez votre adresse e-mail ci-dessous, et c'est repartix",
+      "subtitle": "Entrez votre adresse e-mail ci-dessous, et c'est reparti !",
       "succeed": {
         "help": "Si vous ne recevez pas cet e-mail, vérifiez vos courriers indésirables.",
         "instructions": "Un e-mail contenant la démarche à suivre afin de réinitialiser votre mot de passe\n vous a été envoyé à l’adresse e-mail {email}.",
@@ -1035,11 +1039,11 @@
       }
     },
     "profile": {
-      "title": "Compétences",
+      "title": "Connaissances",
       "accessibility": {
         "title": "Votre profil Brix",
         "user-score": "Votre nombre de Brix",
-        "user-skills": "Vos compétences Brix"
+        "user-skills": "Vos connaissances Brix"
       },
       "competence-card": {
         "congrats": "Bravo !",
@@ -1050,7 +1054,7 @@
           "no-level": "Compétence non commencée"
         }
       },
-      "first-title": "Vous avez 16 compétences à tester. '<br>'On se concentre et c'est partix&nbsp;!",
+      "first-title": "Vous avez 16 connaissances à tester. '<br>'On se concentre et c'est parti&nbsp;!",
       "resume-campaign-banner": {
         "accessibility": {
           "resume": "Continuer votre parcours",
@@ -1305,6 +1309,10 @@
           "error": "Votre nom n’est pas renseigné.",
           "label": "Nom"
         },
+        "zipcode": {
+          "error": "Votre code postal n’est pas renseigné.",
+          "label": "Code postal"
+        },
         "legend": "Information nécessaire pour l'inscription.",
         "password": {
           "error": "Votre mot de passe doit contenir 8 caractères au minimum et comporter au moins une majuscule, une minuscule et un chiffre.",
@@ -1332,7 +1340,7 @@
     },
     "skill-review": {
       "title": "Résultat",
-      "abstract": "Vous maîtrisez '<strong>'{rate, number, ::percent}'</strong><br>'des compétences testées.",
+      "abstract": "Vous maîtrisez '<strong>'{rate, number, ::percent}'</strong><br>'des connaissances testées.",
       "abstract-title": "Votre résultat pour ce parcours",
       "actions": {
         "continue": "Continuez votre expérience Brix",
@@ -1348,7 +1356,7 @@
       "details": {
         "title": "Vos résultats par compétence",
         "header-result": "Résultats",
-        "header-skill": "Compétences testées",
+        "header-skill": "Connaissances testées",
         "result": "Résultat global",
         "result-by-skill": "Votre résultat pour la compétence",
         "percentage": "{rate, number, ::percent}"
@@ -1548,6 +1556,18 @@
         },
         "lang": "Langue",
         "menu-link-title": "Choisir ma langue"
+      },
+      "situation": {
+        "fields": {
+          "select": {
+            "labels": {
+              "english": "Anglais",
+              "french": "Français"
+            }
+          }
+        },
+        "lang": "Situation",
+        "menu-link-title": "Choisir une Situation"
       },
       "personal-information": {
         "first-name": "Prénom",

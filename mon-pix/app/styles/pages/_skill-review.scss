@@ -92,7 +92,7 @@
   }
 
   &__explain-text {
-    color: $pix-neutral-60;
+    color: #2B2B2B;
     font-weight: $font-light;
     font-size: 1.5rem;
     line-height: 33px;
@@ -124,7 +124,7 @@
     align-items: flex-start;
 
     > h2 {
-      color: $pix-neutral-60;
+      color: #2B2B2B;
       font-size: 16px;
     }
 
@@ -196,14 +196,14 @@
 
   &__info-icon {
     float: left;
-    color: $pix-neutral-60;
+    color: #2B2B2B;
     font-size: 0.938em;
   }
 
   &__text {
     margin-top: 14px;
     padding-left: 14px;
-    color: $pix-neutral-60;
+    color: #2B2B2B;
     font-size: 0.875rem;
     font-family: $font-open-sans;
   }
@@ -249,6 +249,36 @@
       color: $pix-environment-light;
       background: $pix-environment-light;
     }
+
+    &--Kaki {
+      color: #8E944D;
+      background: #8E944D;
+    }
+
+    &--Rose {
+      color: #BF4C82;
+      background: #BF4C82;
+    }
+
+    &--Glacier {
+      color: #7FBBBF;
+      background: #7FBBBF;
+    }
+
+    &--Gris {
+      color: #353535;
+      background: #353535;
+    }
+
+    &--Bleu {
+      color: #2D69DE;
+      background: #2D69DE;
+    }
+
+    &--Orange {
+      color: #F88419;
+      background: #F88419;
+    }
   }
 }
 
@@ -280,7 +310,7 @@
 
   &__title {
     margin: 0;
-    color: $pix-neutral-60;
+    color: #2B2B2B;
     font-weight: $font-bold;
     font-size: 1rem;
     font-family: $font-open-sans;
@@ -312,7 +342,7 @@
     color: $pix-neutral-0;
     font-size: 0.875rem;
     text-decoration: none;
-    background-color: $pix-primary;
+    background-color: #2D69DE;
     border-radius: 4px;
     cursor: pointer;
 
@@ -342,7 +372,7 @@
 
     > strong {
       display: inline-block;
-      color: $pix-primary;
+      color: #2D69DE;
       font-weight: 300;
     }
   }

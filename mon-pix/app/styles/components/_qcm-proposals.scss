@@ -18,8 +18,8 @@
   }
 
   input[type='checkbox']:checked::before {
-    background-color: $pix-primary;
-    border-color: $pix-primary;
+    background-color: #2D69DE;
+    border-color: #2D69DE;
   }
 
   input[type='checkbox']:checked::after {
@@ -37,7 +37,7 @@
 
   input[type='checkbox']:focus::before,
   input[type='checkbox']:hover::before {
-    border-color: $pix-primary;
+    border-color: #2D69DE;
     box-shadow: 0 0 0 8px rgba($pix-primary, 0.1);
   }
 

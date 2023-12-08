@@ -2,7 +2,7 @@
   display: flex;
   width: 100%;
   min-height: 100vh;
-  background: $pix-primary-app-gradient;
+  background: #2D69DE;
 }
 
 .terms-of-service-form {
@@ -27,7 +27,7 @@
 
   &__title,
   &__description {
-    color: $pix-neutral-80;
+    color: #2B2B2B;
     font-family: $font-roboto;
     text-align: center;
   }

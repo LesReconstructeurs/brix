@@ -68,7 +68,7 @@
   @extend .certifications-list-item__cell;
 
   padding: 10px 0;
-  color: $pix-neutral-60;
+  color: #2B2B2B;
   font-size: 1rem;
   text-align: left;
   border-top: 1px solid $pix-neutral-20;
@@ -89,7 +89,7 @@
 }
 
 .certifications-list-item__published-item {
-  color: $pix-neutral-80;
+  color: #2B2B2B;
 }
 
 .certifications-list-item__cell-pix-score {
@@ -139,7 +139,7 @@
   justify-content: left;
 
   & :first-child {
-    color: $pix-primary;
+    color: #2D69DE;
     font-size: 0.813rem;
     text-transform: uppercase;
     background: none;
