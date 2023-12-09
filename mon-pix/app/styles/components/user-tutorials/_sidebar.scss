@@ -42,6 +42,30 @@
       &.butterfly-bush::before {
         border-color: $pix-environment-light;
       }
+
+      &.Kaki::before {
+        border-color: #8E944D;
+      }
+    
+      &.Rose::before {
+        border-color: #BF4C82;
+      }
+    
+      &.Glacier::before {
+        border-color: #7FBBBF;
+      }
+    
+      &.Gris::before {
+        border-color: #353535;
+      }
+    
+      &.Bleu::before {
+        border-color: #2D69DE;
+      }
+    
+      &.Orange::before {
+        border-color: #F88419;
+      }
     }
   }
 

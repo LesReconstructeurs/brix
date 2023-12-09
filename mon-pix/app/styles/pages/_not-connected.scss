@@ -1,7 +1,7 @@
 .not-connected {
   height: 100vh;
   padding-top: 5%;
-  background: $pix-primary-app-gradient;
+  background: #2D69DE;
 
   @include device-is('tablet') {
     padding-right: 20%;
@@ -20,7 +20,7 @@
 
   &__text-block {
     padding-top: 30px;
-    color: $pix-neutral-80;
+    color: #2B2B2B;
     font-weight: $font-light;
     font-size: 1.875rem;
     line-height: 46px;

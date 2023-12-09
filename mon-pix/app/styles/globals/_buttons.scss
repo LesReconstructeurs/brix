@@ -1,3 +1,32 @@
+.pix-button {
+  &--background-blueandwhite {
+    color: #2D69DE;
+    background: #FFF;
+
+    &:hover,
+    &:active,
+    &:focus {
+      color: #FFF;
+      background-color: #0d25b3;
+      outline: 1px solid #ffffff;
+    }
+  }
+
+  &--background-grey-soft {
+    color: #353535;
+    background: #FFF;
+    outline: 1px solid #353535;
+
+    &:hover,
+    &:active,
+    &:focus {
+      color: #FFF;
+      background-color: #353535;
+      
+    }
+  }
+}
+
 .button {
   padding: 5px;
   color: $pix-neutral-0;
@@ -6,7 +35,7 @@
   font-family: $font-roboto;
   letter-spacing: 0.012rem;
   text-align: center;
-  background-color: $pix-primary;
+  background-color: #2D69DE;
   border: none;
   border-radius: 5px;
   outline: none;
@@ -16,7 +45,7 @@
   &:hover,
   &:active,
   &:focus {
-    background-color: $pix-primary-60;
+    background-color: #2D69DE;
   }
 
   &--link {
@@ -65,7 +94,7 @@
   }
 
   &--grey {
-    color: $pix-neutral-80;
+    color: #2B2B2B;
     background: $pix-neutral-15;
     border: 2px solid $pix-neutral-40;
 
@@ -73,7 +102,7 @@
     &:active,
     &:focus {
       background-color: $pix-neutral-20;
-      border: 2px solid $pix-neutral-80;
+      border: 2px solid #2B2B2B;
     }
   }
 
@@ -119,12 +148,12 @@
     color: $pix-neutral-0;
     font-weight: $font-bold;
     font-size: 0.938rem;
-    background-color: $pix-neutral-60;
+    background-color: #2B2B2B;
 
     &:hover,
     &:active,
     &:focus {
-      background-color: $pix-neutral-80;
+      background-color: #2B2B2B;
     }
   }
 
@@ -157,7 +186,7 @@
     &:hover,
     &:focus-within {
       border: 2px solid white;
-      box-shadow: 0 0 0 2px $pix-primary;
+      box-shadow: 0 0 0 2px #2D69DE;
     }
   }
 
@@ -168,7 +197,7 @@
 
 .icon-button {
   padding: 4px 8px;
-  color: $pix-neutral-60;
+  color: #2B2B2B;
   font-size: 1rem;
   background-color: transparent;
   border: none;
@@ -190,7 +219,7 @@
 }
 
 .link {
-  color: $pix-primary;
+  color: #2D69DE;
   text-decoration: none;
   background-color: inherit;
   border: none;
@@ -199,7 +228,7 @@
   &:hover,
   &:focus,
   &:active {
-    color: $pix-primary-60;
+    color: #2D69DE;
     text-decoration: underline;
     cursor: pointer;
   }
@@ -209,6 +238,6 @@
   }
 
   &--grey {
-    color: $pix-neutral-60;
+    color: #2B2B2B;
   }
 }

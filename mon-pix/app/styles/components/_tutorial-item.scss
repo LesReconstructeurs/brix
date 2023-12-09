@@ -14,7 +14,7 @@
     display: block;
     width: 4px;
     height: calc(100% - 6px);
-    background: $pix-neutral-50;
+    background: #2B2B2B;
     border-radius: 50px;
     content: ' ';
   }
@@ -42,7 +42,7 @@
 
   &__description {
     margin: 0 0 14px;
-    color: $pix-neutral-50;
+    color: #2B2B2B;
     font-weight: $font-normal;
     font-size: 0.875rem;
     font-family: $font-roboto;
@@ -66,7 +66,7 @@
     display: block;
     margin: 0 0 16px;
     padding: 0;
-    color: $pix-neutral-50;
+    color: #2B2B2B;
     font-weight: $font-medium;
     font-size: 0.813rem;
     letter-spacing: 0.028rem;
@@ -93,7 +93,7 @@
     display: block;
     margin: 0 0 16px;
     padding: 0;
-    color: $pix-neutral-50;
+    color: #2B2B2B;
     font-weight: $font-medium;
     font-size: 0.813rem;
     letter-spacing: 0.028rem;

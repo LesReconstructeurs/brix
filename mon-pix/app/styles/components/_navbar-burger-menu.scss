@@ -31,7 +31,7 @@
 
   &__footer {
     padding: 20px 0;
-    background-color: $pix-primary;
+    background-color: #2D69DE;
   }
 }
 
@@ -47,12 +47,12 @@
 
     &.active {
       padding-left: calc(32px - 5px);
-      color: $pix-primary;
-      border-left: 5px solid $pix-primary;
+      color: #2D69DE;
+      border-left: 5px solid #2D69DE;
     }
 
     &:hover {
-      color: $pix-primary-60;
+      color: #2D69DE;
       background-color: $pix-neutral-10;
     }
 
@@ -87,7 +87,7 @@
     }
 
     &:hover {
-      background-color: $pix-primary-60;
+      background-color: #2D69DE;
     }
 
     &:active {

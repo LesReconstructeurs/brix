@@ -65,6 +65,30 @@
   &--butterfly-bush::after {
     background: linear-gradient(90deg, $pix-environment-dark 45%, $pix-environment-light 100%);
   }
+
+  &--Kaki::after {
+    background: #8E944D;
+  }
+
+  &--Rose::after {
+    background: #BF4C82;
+  }
+
+  &--Glacier::after {
+    background: #7FBBBF;
+  }
+
+  &--Gris::after {
+    background: #353535;
+  }
+
+  &--Bleu::after {
+    background: #2D69DE;
+  }
+
+  &--Orange::after {
+    background: #F88419;
+  }
 }
 
 .competence-card__area-name {

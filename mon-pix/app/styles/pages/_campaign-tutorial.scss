@@ -19,7 +19,7 @@
   }
 
   &__title {
-    color: $pix-primary;
+    color: #2D69DE;
     font-weight: 600;
     font-size: 1.25rem;
     font-family: $font-open-sans;
@@ -73,7 +73,7 @@
       border-radius: 50%;
 
       &__active {
-        background-color: $pix-primary;
+        background-color: #2D69DE;
       }
     }
   }

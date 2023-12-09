@@ -55,6 +55,8 @@
   align-items: center;
   justify-content: space-between;
   width: 100%;
+  padding-right: 30px;
+  padding-left: 30px;
 
   @include device-is('tablet') {
     flex-direction: row;

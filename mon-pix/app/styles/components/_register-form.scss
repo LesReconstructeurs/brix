@@ -8,14 +8,14 @@
   &__login-options {
     display: inline-block;
     margin-bottom: 5px;
-    color: $pix-neutral-80;
+    color: #2B2B2B;
     font-weight: $font-bold;
     font-size: 0.875rem;
     font-family: $font-roboto;
   }
 
   &__required-inputs {
-    color: $pix-neutral-60;
+    color: #2B2B2B;
     font-weight: $font-normal;
     font-size: 1rem;
     font-family: $font-roboto;
@@ -83,7 +83,7 @@
     margin-top: 20px;
 
     &__label {
-      color: $pix-neutral-80;
+      color: #2B2B2B;
       font-weight: $font-medium;
       font-size: 0.938rem;
       letter-spacing: 0.031rem;
@@ -91,7 +91,7 @@
 
     &__span {
       padding: 15px 10px;
-      color: $pix-neutral-50;
+      color: #2B2B2B;
       font-size: 0.875rem;
       font-family: $font-roboto;
       background-color: $pix-neutral-20;

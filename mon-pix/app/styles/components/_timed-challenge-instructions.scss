@@ -8,7 +8,7 @@
 
   &__primary {
     margin-top: 22px;
-    color: $pix-neutral-80;
+    color: #2B2B2B;
     font-weight: $font-bold;
     font-size: 1.5rem;
     font-style: normal;
@@ -18,18 +18,18 @@
   &__secondary {
     margin-top: 9px;
     margin-bottom: 50px;
-    color: $pix-neutral-80;
+    color: #2B2B2B;
     font-size: 1.125rem;
     font-style: normal;
     font-stretch: normal;
   }
 
   &__time {
-    color: $pix-primary;
+    color: #2D69DE;
   }
 
   &__allocated-time {
-    color: $pix-neutral-80;
+    color: #2B2B2B;
     font-size: 1.7375rem;
   }
 

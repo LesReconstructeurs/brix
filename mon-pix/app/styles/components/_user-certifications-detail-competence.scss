@@ -28,7 +28,7 @@
     &--level {
       @include rightElement;
 
-      color: $pix-neutral-60;
+      color: #2B2B2B;
     }
   }
 
@@ -38,7 +38,7 @@
     height: 100%;
     margin: 0;
     padding: 20px 0 20px 36px;
-    color: $pix-neutral-80;
+    color: #2B2B2B;
     font-size: 1rem;
     font-family: $font-open-sans;
 
@@ -115,6 +115,30 @@
 
 .user-certifications-detail-competence--butterfly-bush {
   @include coloriseElements($environment-light);
+}
+
+.user-certifications-detail-competence--Kaki {
+  @include coloriseElements(#8E944D);
+}
+
+.user-certifications-detail-competence--Rose {
+  @include coloriseElements(#BF4C82);
+}
+
+.user-certifications-detail-competence--Glacier {
+  @include coloriseElements(#7FBBBF);
+}
+
+.user-certifications-detail-competence--Gris {
+  @include coloriseElements(#353535);
+}
+
+.user-certifications-detail-competence--Bleu {
+  @include coloriseElements(#2D69DE);
+}
+
+.user-certifications-detail-competence--Orange{
+  @include coloriseElements(#F88419);
 }
 
 @include device-is('mobile') {

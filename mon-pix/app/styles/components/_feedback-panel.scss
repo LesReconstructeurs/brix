@@ -2,7 +2,7 @@
   z-index: 1;
   margin-top: 16px;
   padding: 5px 15px;
-  color: $pix-neutral-60;
+  color: #2B2B2B;
   font-size: 0.938rem;
   background-color: white;
   border-radius: 10px;
@@ -13,7 +13,7 @@
 
 .feedback-panel__open-button {
   padding: 0;
-  color: $pix-neutral-50;
+  color: #2B2B2B;
   font-weight: $font-medium;
   font-size: 0.875rem;
   font-family: $font-roboto;
@@ -26,7 +26,7 @@
 .feedback-panel__open-button:hover,
 .feedback-panel__open-button:focus,
 .feedback-panel__open-button:active {
-  color: $pix-neutral-80;
+  color: #2B2B2B;
 }
 
 /* "Form" view
@@ -81,7 +81,7 @@
 .feedback-panel__dropdown {
   width: 100%;
   margin: 5px 0;
-  color: $pix-neutral-80;
+  color: #2B2B2B;
   font-size: 0.938rem;
   font-family: $font-roboto;
 
@@ -130,7 +130,7 @@
 
 .feedback-panel__button--send {
   color: white;
-  background-color: $pix-neutral-50;
+  background-color: #2B2B2B;
 
   &:hover,
   &:focus {
@@ -147,7 +147,7 @@
   }
 
   & a {
-    color: $pix-primary-60;
+    color: #2D69DE;
   }
 }
 
@@ -157,7 +157,7 @@
 .feedback-panel__view--mercix {
   padding-top: 20px;
   padding-bottom: 10px;
-  color: $pix-neutral-80;
+  color: #2B2B2B;
   font-size: 1.125rem;
   text-align: center;
 }

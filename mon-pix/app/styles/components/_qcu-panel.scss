@@ -1,7 +1,7 @@
 .qcu-panel {
 
   a {
-    color: $pix-primary;
+    color: #2D69DE;
     text-decoration: underline;
 
     @include device-is('tablet') {
@@ -11,7 +11,7 @@
     &:active,
     &:focus,
     &:hover {
-      color: $pix-primary-60;
+      color: #2D69DE;
     }
 
     &::after {
