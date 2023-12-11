@@ -22,7 +22,7 @@
   }
 
   a {
-    color: $pix-primary;
+    color: #2D69DE;
     text-decoration: underline;
 
     @include device-is('tablet') {
@@ -32,7 +32,7 @@
     &:active,
     &:focus,
     &:hover {
-      color: $pix-primary-60;
+      color: #2D69DE;
     }
 
     &::after {
@@ -48,7 +48,7 @@
   &__proposal {
     margin-top: 10px;
     margin-bottom: 10px;
-    color: $pix-neutral-80;
+    color: #2B2B2B;
     font-size: 1.25rem;
 
     &--paragraph {

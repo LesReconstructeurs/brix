@@ -946,6 +946,10 @@
             "error": "You haven't entered your last name.",
             "label": "Last name"
           },
+          "zipcode": {
+            "error": "You haven't entered your zipcode.",
+            "label": "zipcode"
+          },
           "password": {
             "error": "Your password must contain at least 8 characters and include at least one uppercase letter, one lowercase letter and one number.",
             "help": "(At least 8 characters, including one uppercase letter, one lowercase letter and one number)",
@@ -1305,6 +1309,10 @@
           "error": "You have not entered your last name.",
           "label": "Last name"
         },
+        "zipcode": {
+          "error": "You have not entered your zipcode.",
+          "label": "zipcode"
+        },
         "legend": "Information required for sign up.",
         "password": {
           "error": "Your password must contain at least 8 characters and include at least one uppercase letter, one lowercase letter and one number.",
@@ -1548,6 +1556,18 @@
         },
         "lang": "Language",
         "menu-link-title": "Language"
+      },
+      "situation": {
+        "fields": {
+          "select": {
+            "labels": {
+              "english": "Anglais",
+              "french": "Français"
+            }
+          }
+        },
+        "lang": "Situation",
+        "menu-link-title": "Situation"
       },
       "personal-information": {
         "first-name": "First name",

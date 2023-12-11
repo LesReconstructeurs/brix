@@ -7,7 +7,7 @@
 .qcu-solution-panel {
 
   a {
-    color: $pix-primary;
+    color: #2D69DE;
     text-decoration: underline;
 
     @include device-is('tablet') {
@@ -15,7 +15,7 @@
     }
 
     &:focus {
-      color: $pix-primary-60;
+      color: #2D69DE;
     }
 
     &::after {

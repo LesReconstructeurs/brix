@@ -24,7 +24,7 @@
 }
 
 @mixin hexagon-score-pix-total {
-  color: $pix-neutral-60;
+  color: #2B2B2B;
   font-size: 0.813rem;
   font-family: $font-roboto;
   border-top: 1px solid $pix-neutral-30;
@@ -122,6 +122,6 @@
 
   &:hover,
   &:focus {
-    color: $pix-neutral-80;
+    color: #2B2B2B;
   }
 }

@@ -9,7 +9,7 @@
   thead {
     display: none;
     width: 100%;
-    color: $pix-neutral-80;
+    color: #2B2B2B;
 
     @include device-is('tablet') {
       display: table-header-group;
@@ -17,7 +17,7 @@
   }
 
   tbody {
-    color: $pix-neutral-60;
+    color: #2B2B2B;
   }
 
   tr {

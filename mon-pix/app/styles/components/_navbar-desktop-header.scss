@@ -38,25 +38,25 @@
   }
 
   &__link {
-    color: $pix-neutral-60;
+    color: #2B2B2B;
     font-size: 1rem;
     font-family: $font-roboto;
     text-decoration: none;
 
     &.active {
       padding-bottom: 5px;
-      color: $pix-primary-60;
+      color: #2D69DE;
       text-decoration: none;
-      border-bottom: 2px solid $pix-primary-60;
+      border-bottom: 2px solid #2D69DE;
     }
 
     &:focus {
-      color: $pix-neutral-60;
+      color: #2D69DE;
       text-decoration: none;
     }
 
     &:hover {
-      color: $pix-primary-60;
+      color: #2D69DE;
       text-decoration: none;
       cursor: pointer;
     }

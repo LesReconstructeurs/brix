@@ -64,6 +64,21 @@
 
       <div class="sign-form-body__input">
         <FormTextfield
+          @label="{{t 'pages.sign-up.fields.zipcode.label'}}"
+          @textfieldName="zipcode"
+          @inputBindingValue={{@user.zipcode}}
+          @onValidate={{this.validateInput}}
+          @validationStatus={{this.validation.zipcode.status}}
+          @validationMessage={{this.validation.zipcode.message}}
+          @autocomplete="zipcode"
+          @hideRequired={{true}}
+          @require={{true}}
+          @aria-describedby="sign-up-error-message"
+        />
+      </div>
+
+      <div class="sign-form-body__input">
+        <FormTextfield
           @label="{{t 'pages.sign-up.fields.email.label'}}"
           @help="{{t 'pages.sign-up.fields.email.help'}}"
           @textfieldName="email"
