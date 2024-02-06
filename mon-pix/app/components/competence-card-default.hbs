@@ -56,7 +56,7 @@
           </div>
         {{else}}
           <PixButton
-            class="competence-card__button"
+            class="competence-card__button competence-card__button--{{@scorecard.area.color}}"
             @shape="rounded"
             @backgroundColor="green"
             @triggerAction={{this.improveCompetenceEvaluation}}
@@ -70,7 +70,7 @@
         {{/if}}
       {{else}}
         <LinkTo
-          class="button button--extra-thin button--round button--link competence-card__button"
+          class="button button--extra-thin button--round button--link competence-card__button competence-card__button--{{@scorecard.area.color}}"
           @model={{@scorecard.competenceId}}
           @route="authenticated.competences.resume"
         >

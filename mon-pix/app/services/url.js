@@ -24,19 +24,25 @@ export default class Url extends Service {
   }
 
   get cguUrl() {
-    const currentLanguage = this.intl.t('current-lang');
-    if (currentLanguage === 'en') {
-      return 'https://pix.org/en-gb/terms-and-conditions';
-    }
-    return `https://pix.${this.currentDomain.getExtension()}/conditions-generales-d-utilisation`;
+    /*
+      const currentLanguage = this.intl.t('current-lang');
+      if (currentLanguage === 'en') {
+        return 'https://pix.org/en-gb/terms-and-conditions';
+      }
+      return `https://pix.${this.currentDomain.getExtension()}/conditions-generales-d-utilisation`;
+    */
+    return `https://brix.lesreconstructeurs.fr/conditions-generales-utilisation`;
   }
 
   get dataProtectionPolicyUrl() {
-    const currentLanguage = this.intl.t('current-lang');
-    if (currentLanguage === 'en') {
-      return 'https://pix.org/en-gb/personal-data-protection-policy';
-    }
-    return `https://pix.${this.currentDomain.getExtension()}/politique-protection-donnees-personnelles-app`;
+    /*
+      const currentLanguage = this.intl.t('current-lang');
+      if (currentLanguage === 'en') {
+        return 'https://pix.org/en-gb/personal-data-protection-policy';
+      }
+      return `https://pix.${this.currentDomain.getExtension()}/politique-protection-donnees-personnelles-app`;
+    */
+    return `https://brix.lesreconstructeurs.fr/politique-de-confidentialite`;
   }
 
   get _showcaseWebsiteUrl() {
@@ -45,7 +51,7 @@ export default class Url extends Service {
     if (currentLanguage === 'en') {
       return `https://pix.${this.currentDomain.getExtension()}/en-gb`;
     }
-    return `https://brix.lesreconstructeurs.${this.currentDomain.getExtension()}`;
+    return `https://app.brix.lesreconstructeurs.${this.currentDomain.getExtension()}`;
   }
 
   get _showcaseWebsiteLinkText() {
@@ -76,6 +82,6 @@ export default class Url extends Service {
     if (currentLanguage === 'en') {
       return 'https://support.pix.org/en/support/home';
     }
-    return 'https://support.pix.org/fr/support/home';
+    return 'https://brix.lesreconstructeurs.fr/aide';
   }
 }
