@@ -58,7 +58,7 @@
           <PixButton
             class="competence-card__button competence-card__button--{{@scorecard.area.color}}"
             @shape="rounded"
-            @backgroundColor="green"
+            @backgroundColor="{{@scorecard.area.color}}"
             @triggerAction={{this.improveCompetenceEvaluation}}
           >
             <span class="competence-card-button__label">
