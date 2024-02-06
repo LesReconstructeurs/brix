@@ -17,6 +17,8 @@
 
   .competence-card__wrapper {
 
+    height:80%;
+
     &::after {
       top: -330px;
       right: -200px;
@@ -99,6 +101,11 @@
     padding-top: 10px;
     font-weight: $font-bold;
     font-size: 1.17rem;
+
+    height: 80%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
 
   .competence-card__body {
@@ -242,6 +249,33 @@
       position: relative;
       min-width: 140px;
       height: 34px;
+    }
+
+    .competence-card__button {
+  
+      &--Kaki {
+        background-color: #8E944D;
+      }
+    
+      &--Rose {
+        background-color: #BF4C82;
+      }
+    
+      &--Glacier {
+        background-color: #7FBBBF;
+      }
+    
+      &--Gris {
+        background-color: #353535;
+      }
+    
+      &--Bleu {
+        background-color: #2D69DE;
+      }
+    
+      &--Orange {
+        background-color: #F88419;
+      }
     }
 
     .competence-card-button__label {

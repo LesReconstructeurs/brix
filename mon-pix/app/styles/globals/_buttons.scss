@@ -2,6 +2,26 @@
   &--background-blueandwhite {
     color: #2D69DE;
     background: #FFF;
+    border-radius: 25px;
+    
+    &:hover,
+    &:active,
+    &:focus {
+      color: #FFF;
+      background-color: #0d25b3;
+      outline: 1px solid #ffffff;
+    }
+  }
+
+  &--background-transparent-light {
+    border-radius: 25px;
+  }
+
+  &--background-blue {
+    color: #FFF;
+    background: #2D69DE;
+    background-color: #2D69DE;
+    border-radius: 25px;
 
     &:hover,
     &:active,
@@ -16,6 +36,7 @@
     color: #353535;
     background: #FFF;
     outline: 1px solid #353535;
+    border-radius: 25px;
 
     &:hover,
     &:active,
@@ -37,7 +58,7 @@
   text-align: center;
   background-color: #2D69DE;
   border: none;
-  border-radius: 5px;
+  border-radius: 25px;
   outline: none;
   cursor: pointer;
   transition: background-color 0.2s ease;

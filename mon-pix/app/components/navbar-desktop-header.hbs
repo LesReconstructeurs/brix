@@ -1,12 +1,9 @@
 <div class="navbar-desktop-header">
   <div class="navbar-desktop-header__container">
     <div class="navbar-desktop-header-logo">
-      {{#if @shouldShowTheMarianneLogo}}
-        <div class="navbar-desktop-header-logo__marianne">
-          <img src="/images/logo/logo-de-la-republique-francaise.svg" alt="{{t 'common.french-republic'}}" />
-        </div>
-      {{/if}}
+      
       <PixLogo />
+
     </div>
 
     {{#if this.showHeaderMenuItem}}
@@ -22,11 +19,13 @@
               {{t "navigation.main.skills"}}
             </LinkTo>
           </li>
-          <li class="navbar-desktop-header-menu__item">
-            <LinkTo @route="authenticated.certifications" class="navbar-desktop-header-menu__link">
-              {{t "navigation.main.start-certification"}}
-            </LinkTo>
-          </li>
+          <!--
+            <li class="navbar-desktop-header-menu__item">
+              <LinkTo @route="authenticated.certifications" class="navbar-desktop-header-menu__link">
+                {{t "navigation.main.start-certification"}}
+              </LinkTo>
+            </li>
+          -->
           <li class="navbar-desktop-header-menu__item">
             <LinkTo @route="authenticated.user-tutorials" class="navbar-desktop-header-menu__link">
               {{t "navigation.main.tutorials"}}

@@ -67,7 +67,7 @@
           <PixButton
             class="scorecard-details__improve-button"
             @shape="rounded"
-            @backgroundColor="green"
+            @backgroundColor="blue"
             @triggerAction={{this.improveCompetenceEvaluation}}
           >
             {{t "pages.competence-details.actions.improve.label"}}
@@ -135,7 +135,7 @@
         <LinkTo
           @route="authenticated.competences.resume"
           @model={{@scorecard.competenceId}}
-          class="button button--big button--thin button--round button--link button--green scorecard-details__resume-or-start-button"
+          class="button button--big button--thin button--round button--link button--blue scorecard-details__resume-or-start-button"
         >
           {{t "pages.competence-details.actions.continue.label"}}
           <span class="sr-only">{{t "pages.competence-details.for-competence" competence=@scorecard.name}}</span>
@@ -167,7 +167,7 @@
         <LinkTo
           @route="authenticated.competences.resume"
           @model={{@scorecard.competenceId}}
-          class="button button--big button--thin button--round button--link button--green scorecard-details__resume-or-start-button"
+          class="button button--big button--thin button--round button--link button--blue scorecard-details__resume-or-start-button"
         >
           {{t "pages.competence-details.actions.start.label"}}
           <span class="sr-only">{{t "pages.competence-details.for-competence" competence=@scorecard.name}}</span>
