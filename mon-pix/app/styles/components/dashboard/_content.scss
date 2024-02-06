@@ -188,13 +188,13 @@
   &__button {
     display: none;
     padding: 10px 16px;
-    color: $pix-neutral-90;
+    color: #FFF;
     font-size: 0.875rem;
-    border: 1px solid #2B2B2B;
-    border-radius: 4px;
+    background-color: #2D69DE;
+    border-radius: 25px;
 
     &:hover {
-      background-color: darken($pix-neutral-10, 5%);
+      background-color: #2944D4;
     }
 
     @include device-is('tablet') {
