@@ -78,6 +78,28 @@
       </div>
 
       <div class="sign-form-body__input">
+        <div class="form-textfield">
+          <label for="situation" class="form-textfield__label">
+            Situation<br><span class="form-textfield__help"></span>
+          </label>
+
+          <div class="form-textfield__input-field-container form-textfield__input-container--default">
+            <select name="situation" id="situation" class="sign-form-body__select">
+              <option value="0">--- Votre situation---</option>
+              <option value="1">Salarié</option>
+              <option value="2">Alternant</option>
+              <option value="3">Etudiant</option>
+              <option value="4">Demandeur d’emploi</option>
+              <option value="5">Collégien ou lycéen</option>
+              <option value="6">Autre</option>
+            </select>
+          </div>
+
+          <div id="validationMessage-situation" class="form-textfield__message form-textfield__message--default form-textfield__message-text" aria-live="polite"><!----></div>
+        </div>
+      </div>
+
+      <div class="sign-form-body__input">
         <FormTextfield
           @label="{{t 'pages.sign-up.fields.email.label'}}"
           @help="{{t 'pages.sign-up.fields.email.help'}}"
