@@ -950,6 +950,10 @@
             "error": "You haven't entered your zipcode.",
             "label": "zipcode"
           },
+          "situation": {
+            "error": "You haven't entered your situation.",
+            "label": "Situation"
+          },
           "password": {
             "error": "Your password must contain at least 8 characters and include at least one uppercase letter, one lowercase letter and one number.",
             "help": "(At least 8 characters, including one uppercase letter, one lowercase letter and one number)",
@@ -1312,6 +1316,10 @@
         "zipcode": {
           "error": "You have not entered your zipcode.",
           "label": "zipcode"
+        },
+        "situation": {
+          "error": "You have not entered your situation.",
+          "label": "Situation"
         },
         "legend": "Information required for sign up.",
         "password": {

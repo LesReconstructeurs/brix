@@ -950,6 +950,10 @@
             "error": "Votre code postal n’est pas renseigné.",
             "label": "Code postal"
           },
+          "situation": {
+            "error": "Votre situation n’est pas renseigné.",
+            "label": "Situation"
+          },
           "password": {
             "error": "Votre mot de passe doit contenir 8 caractères au minimum et comporter au moins une majuscule, une minuscule et un chiffre.",
             "help": "(8 caractères minimum, dont une majuscule, une minuscule et un chiffre)",
@@ -1312,6 +1316,10 @@
         "zipcode": {
           "error": "Votre code postal n’est pas renseigné.",
           "label": "Code postal"
+        },
+        "situation": {
+          "error": "Votre situation n’est pas renseigné.",
+          "label": "Situation"
         },
         "legend": "Information nécessaire pour l'inscription.",
         "password": {
