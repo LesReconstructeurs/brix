@@ -50,7 +50,6 @@ class SendinblueProvider extends MailingProvider {
 
   sendEmail(options) {
     const payload = _formatPayload(options);
-    console.log(payload);
     return this._client.sendTransacEmail(payload);
   }
 }
