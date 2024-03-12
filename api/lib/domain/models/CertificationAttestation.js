@@ -1,4 +1,4 @@
-const PIX_COUNT_BY_LEVEL = 8;
+const PIX_COUNT_BY_LEVEL = 6;
 const COMPETENCE_COUNT = 16;
 
 class CertificationAttestation {
