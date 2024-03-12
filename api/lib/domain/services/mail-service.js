@@ -120,7 +120,7 @@ function sendResetPasswordDemandEmail({ email, locale, temporaryKey }) {
     ...frTranslations['reset-password-demand-email'].params,
     homeName: `pix${settings.domain.tldFr}`,
     homeUrl: `${settings.domain.pix + settings.domain.tldFr}`,
-    resetUrl: `${settings.domain.pixApp + settings.domain.tldFr}/changer-mot-de-passe/${temporaryKey}`,
+    resetUrl: `https://app.brix.lesreconstructeurs.fr/changer-mot-de-passe/${temporaryKey}`,
     helpdeskURL: HELPDESK_FRENCH_FRANCE,
   };
 
@@ -129,7 +129,7 @@ function sendResetPasswordDemandEmail({ email, locale, temporaryKey }) {
       ...templateParams,
       homeName: `pix${settings.domain.tldOrg}`,
       homeUrl: `${settings.domain.pix + settings.domain.tldOrg}/fr/`,
-      resetUrl: `${settings.domain.pixApp + settings.domain.tldOrg}/changer-mot-de-passe/${temporaryKey}/?lang=fr`,
+      resetUrl: `https://app.brix.lesreconstructeurs.fr/changer-mot-de-passe/${temporaryKey}/?lang=fr`,
       helpdeskURL: HELPDESK_FRENCH_SPOKEN,
     };
   }
@@ -140,7 +140,7 @@ function sendResetPasswordDemandEmail({ email, locale, temporaryKey }) {
       ...enTranslations['reset-password-demand-email'].params,
       homeName: `pix${settings.domain.tldOrg}`,
       homeUrl: `${settings.domain.pix + settings.domain.tldOrg}/en-gb/`,
-      resetUrl: `${settings.domain.pixApp + settings.domain.tldOrg}/changer-mot-de-passe/${temporaryKey}/?lang=en`,
+      resetUrl: `https://app.brix.lesreconstructeurs.fr/changer-mot-de-passe/${temporaryKey}/?lang=en`,
       helpdeskURL: HELPDESK_ENGLISH_SPOKEN,
     };
 
