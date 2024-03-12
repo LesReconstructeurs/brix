@@ -9,13 +9,13 @@ const enTranslations = require('../../../translations/en');
 
 const { ENGLISH_SPOKEN, FRENCH_FRANCE, FRENCH_SPOKEN } = require('../../domain/constants').LOCALE;
 
-const EMAIL_ADDRESS_NO_RESPONSE = 'ne-pas-repondre@pix.fr';
+const EMAIL_ADDRESS_NO_RESPONSE = 'ne-pas-repondre@lesreconstructeurs.fr';
 const PIX_ORGA_NAME_FR = 'Pix Orga - Ne pas répondre';
 const PIX_ORGA_NAME_EN = 'Pix Orga - Noreply';
 const PIX_CERTIF_NAME_FR = 'Pix Certif - Ne pas répondre';
 const PIX_CERTIF_NAME_EN = 'Pix Certif - Noreply';
-const PIX_NAME_FR = 'PIX - Ne pas répondre';
-const PIX_NAME_EN = 'PIX - Noreply';
+const PIX_NAME_FR = 'BRIX - Ne pas répondre';
+const PIX_NAME_EN = 'BRIX - Noreply';
 const HELPDESK_FRENCH_FRANCE = 'https://support.pix.fr';
 const HELPDESK_ENGLISH_SPOKEN = 'https://support.pix.org/en/support/home';
 const HELPDESK_FRENCH_SPOKEN = 'https://support.pix.org';

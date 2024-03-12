@@ -12,7 +12,7 @@ import ENV from 'pix-admin/config/environment';
 
 import { tracked } from '@glimmer/tracking';
 
-const PIX_COUNT_BY_LEVEL = 8;
+const PIX_COUNT_BY_LEVEL = 6;
 
 export default class CertificationInformationsController extends Controller {
   // Domain constants
