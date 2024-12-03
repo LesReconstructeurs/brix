@@ -28,6 +28,19 @@
     <link integrity="" rel="stylesheet" href="{{rootURL}}assets/mon-pix.css" data-matomo-href="{{rootURL}}assets/mon-pix.uncached.css">
 
     {{content-for "head-footer"}}
+
+    <!-- plugin axeptio -->
+    <script>
+      window.axeptioSettings = {
+        clientId: "6580693d002460f1ba0ae6bd",
+      };
+       
+      (function(d, s) {
+        var t = d.getElementsByTagName(s)[0], e = d.createElement(s);
+        e.async = true; e.src = "//static.axept.io/sdk.js";
+        t.parentNode.insertBefore(e, t);
+      })(document, "script");
+      </script>
   </head>
   <body>
     {{content-for "body"}}
