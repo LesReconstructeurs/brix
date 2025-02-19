@@ -9,7 +9,7 @@ const enTranslations = require('../../../translations/en');
 
 const { ENGLISH_SPOKEN, FRENCH_FRANCE, FRENCH_SPOKEN } = require('../../domain/constants').LOCALE;
 
-const EMAIL_ADDRESS_NO_RESPONSE = 'ne-pas-repondre@lesreconstructeurs.fr';
+const EMAIL_ADDRESS_NO_RESPONSE = 'ne-pas-repondre@lesperformeurs.fr';
 const PIX_ORGA_NAME_FR = 'Pix Orga - Ne pas répondre';
 const PIX_ORGA_NAME_EN = 'Pix Orga - Noreply';
 const PIX_CERTIF_NAME_FR = 'Pix Certif - Ne pas répondre';
@@ -120,7 +120,7 @@ function sendResetPasswordDemandEmail({ email, locale, temporaryKey }) {
     ...frTranslations['reset-password-demand-email'].params,
     homeName: `pix${settings.domain.tldFr}`,
     homeUrl: `${settings.domain.pix + settings.domain.tldFr}`,
-    resetUrl: `https://app.brix.lesreconstructeurs.fr/changer-mot-de-passe/${temporaryKey}`,
+    resetUrl: `https://app.brix.lesperformeurs.fr/changer-mot-de-passe/${temporaryKey}`,
     helpdeskURL: HELPDESK_FRENCH_FRANCE,
   };
 
@@ -129,7 +129,7 @@ function sendResetPasswordDemandEmail({ email, locale, temporaryKey }) {
       ...templateParams,
       homeName: `pix${settings.domain.tldOrg}`,
       homeUrl: `${settings.domain.pix + settings.domain.tldOrg}/fr/`,
-      resetUrl: `https://app.brix.lesreconstructeurs.fr/changer-mot-de-passe/${temporaryKey}/?lang=fr`,
+      resetUrl: `https://app.brix.lesperformeurs.fr/changer-mot-de-passe/${temporaryKey}/?lang=fr`,
       helpdeskURL: HELPDESK_FRENCH_SPOKEN,
     };
   }
@@ -140,7 +140,7 @@ function sendResetPasswordDemandEmail({ email, locale, temporaryKey }) {
       ...enTranslations['reset-password-demand-email'].params,
       homeName: `pix${settings.domain.tldOrg}`,
       homeUrl: `${settings.domain.pix + settings.domain.tldOrg}/en-gb/`,
-      resetUrl: `https://app.brix.lesreconstructeurs.fr/changer-mot-de-passe/${temporaryKey}/?lang=en`,
+      resetUrl: `https://app.brix.lesperformeurs.fr/changer-mot-de-passe/${temporaryKey}/?lang=en`,
       helpdeskURL: HELPDESK_ENGLISH_SPOKEN,
     };
 
