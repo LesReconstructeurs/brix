@@ -51,7 +51,7 @@ export default class Url extends Service {
     if (currentLanguage === 'en') {
       return `https://pix.${this.currentDomain.getExtension()}/en-gb`;
     }
-    return `https://app.brix.lesreconstructeurs.${this.currentDomain.getExtension()}`;
+    return `https://app.brix.lesperformeurs.${this.currentDomain.getExtension()}`;
   }
 
   get _showcaseWebsiteLinkText() {
