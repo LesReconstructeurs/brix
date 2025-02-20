@@ -31,7 +31,7 @@ export default class Url extends Service {
       }
       return `https://pix.${this.currentDomain.getExtension()}/conditions-generales-d-utilisation`;
     */
-    return `https://brix.lesreconstructeurs.fr/conditions-generales-utilisation`;
+    return `https://brix.lesperformeurs.fr/conditions-generales-utilisation`;
   }
 
   get dataProtectionPolicyUrl() {
@@ -42,7 +42,7 @@ export default class Url extends Service {
       }
       return `https://pix.${this.currentDomain.getExtension()}/politique-protection-donnees-personnelles-app`;
     */
-    return `https://brix.lesreconstructeurs.fr/politique-de-confidentialite`;
+    return `https://brix.lesperformeurs.fr/politique-de-confidentialite`;
   }
 
   get _showcaseWebsiteUrl() {
@@ -51,7 +51,7 @@ export default class Url extends Service {
     if (currentLanguage === 'en') {
       return `https://pix.${this.currentDomain.getExtension()}/en-gb`;
     }
-    return `https://app.brix.lesreconstructeurs.${this.currentDomain.getExtension()}`;
+    return `https://app.brix.lesperformeurs.${this.currentDomain.getExtension()}`;
   }
 
   get _showcaseWebsiteLinkText() {
@@ -82,6 +82,6 @@ export default class Url extends Service {
     if (currentLanguage === 'en') {
       return 'https://support.pix.org/en/support/home';
     }
-    return 'https://brix.lesreconstructeurs.fr/aide';
+    return 'https://brix.lesperformeurs.fr/aide';
   }
 }
